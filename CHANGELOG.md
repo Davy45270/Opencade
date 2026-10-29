@@ -5,6 +5,9 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Extend Bubble Lab to 30 seeded, sculpted levels while retaining L1–L10 and save keys; add stone bubbles, radius-one bomb chains, rainbow shots, two-burst ice, star rescues and internal reflecting bumpers.
+- Add shared B-LVL literal oracles, diversity metrics, seeded solver measurements and direct browser captures for levels 15 and 30.
+
 - Refine Bubble Lab hex snapping with accessible contact sockets, reduced collision radius, exact wall reflections, one-bounce guidance, touch drag/release aiming, optional tap firing and next-bubble swapping.
 - Add B-HEX geometry, drop scoring, parity, determinism and desktop/mobile capture oracles; retain save formats.
 

@@ -341,29 +341,102 @@ observable. Le mutant « centre » prévu utilise le centre de la bulle touchée
 
 ## Niveaux de Bubble Lab
 
-Les dix définitions sont des données pures dans `src/engine/levels.ts`. Les motifs
+Les trente définitions sont des données pures dans `src/engines/bubble/levels.ts`. Les dix premières définitions et leurs grilles restent identiques. Les motifs
 sont originaux : masque de cellules et formule de couleur, avec une permutation de
-palette calculée par le PRNG depuis la graine. La rangée 0 est toujours pleine
+palette calculée par le PRNG depuis la graine. Dans les dix niveaux historiques, la rangée 0 est toujours pleine
 pour ancrer les motifs. Le niveau 1 garde cinq rangées et quatre couleurs.
 
-| Niveau | Nom / motif | Couleurs | Rangées | Descente tous les N tirs | Graine par défaut |
-| --- | --- | --- | --- | --- | --- |
-| 1 | Atelier / rubans | 4 | 5 | aucune | 452 |
-| 2 | Losange | 4 | 5 | 12 | 453 |
-| 3 | Damier | 4 | 6 | 12 | 454 |
-| 4 | Pyramide | 4 | 6 | 10 | 455 |
-| 5 | Colonnes | 5 | 6 | 10 | 456 |
-| 6 | Vagues | 5 | 7 | 9 | 457 |
-| 7 | Chevrons | 5 | 7 | 8 | 458 |
-| 8 | Spirale | 6 | 7 | 8 | 459 |
-| 9 | Cristal | 6 | 8 | 7 | 460 |
-| 10 | Prisme | 6 | 8 | 6 | 461 |
+| Niveau | Nom | Nouveauté / rôle | Tirs (graine 28, jalons) | Tirs moyens (5 graines) | Victoires (5 graines) | Graines non gagnées |
+| --- | --- | --- | ---: | ---: | ---: | --- |
+| 1 | Atelier | Groupes et chutes | 6 | 7.40 | 5/5 (100 %) | — |
+| 2 | Losange | Descente | — | 17.40 | 5/5 (100 %) | — |
+| 3 | Damier | Motif historique | — | 23.20 | 5/5 (100 %) | — |
+| 4 | Pyramide | Motif historique | — | 8.40 | 5/5 (100 %) | — |
+| 5 | Colonnes | Motif historique | 12 | 12.00 | 5/5 (100 %) | — |
+| 6 | Vagues | Motif historique | — | 15.80 | 5/5 (100 %) | — |
+| 7 | Chevrons | Motif historique | — | 27.20 | 5/5 (100 %) | — |
+| 8 | Spirale | Motif historique | — | 21.00 | 5/5 (100 %) | — |
+| 9 | Cristal | Motif historique | — | indisponible | 0/5 (0 %) | 0 (temps), 1 (temps), 2 (temps), 3 (temps), 4 (temps) |
+| 10 | Prisme | Défi historique | 24 (échec) | indisponible | 0/5 (0 %) | 0 (temps), 1 (temps), 2 (temps), 3 (temps), 4 (temps) |
+| 11 | Silex suspendu | Pierre | — | 5.40 | 5/5 (100 %) | — |
+| 12 | Arches de craie | Combinaison | — | 7.80 | 5/5 (100 %) | — |
+| 13 | Halte des lucioles | Respiration | — | 6.00 | 5/5 (100 %) | — |
+| 14 | Mèches jumelles | Bombe | — | 5.20 | 5/5 (100 %) | — |
+| 15 | Le grand brasier | Défi | 6 | 4.80 | 5/5 (100 %) | — |
+| 16 | Jardin ajouré | Respiration | — | 5.00 | 5/5 (100 %) | — |
+| 17 | Iris voyageur | Tir arc-en-ciel | — | 4.80 | 5/5 (100 %) | — |
+| 18 | Éventail des marées | Combinaison | — | 5.40 | 5/5 (100 %) | — |
+| 19 | Clairière calme | Respiration | — | 7.20 | 5/5 (100 %) | — |
+| 20 | Banquise fendue | Glace · défi | 8 | 5.40 | 5/5 (100 %) | — |
+| 21 | Dentelle polaire | Combinaison | — | 4.40 | 5/5 (100 %) | — |
+| 22 | Le dégel doux | Respiration | — | 5.20 | 5/5 (100 %) | — |
+| 23 | Constellation captive | Libérer les étoiles | — | 3.60 | 5/5 (100 %) | — |
+| 24 | Passerelles du soir | Combinaison | — | 3.80 | 5/5 (100 %) | — |
+| 25 | Le coffre du ciel | Étoiles · défi | 4 | 3.80 | 5/5 (100 %) | — |
+| 26 | Ricochets de cuivre | Butoirs · combinaison | — | 4.20 | 5/5 (100 %) | — |
+| 27 | Les trois cloches | Combinaison | — | 4.20 | 5/5 (100 %) | — |
+| 28 | Souffle paisible | Respiration | — | 3.40 | 5/5 (100 %) | — |
+| 29 | Couronne des échos | Combinaison | — | 6.40 | 5/5 (100 %) | — |
+| 30 | La voûte aux six secrets | Final, six mécaniques | 7 | 4.40 | 5/5 (100 %) | — |
 
-L'ouverture automatique, `loadLevel` et le choix HTML emploient la graine du tableau
-quand aucune graine n'est fournie.
-Le nombre de couleurs et de rangées ne diminue pas ; l'intervalle ne croît pas
+Mesure : cinq graines (0 à 4), constante documentée `STAT_SEEDS = 5` dans
+`scripts/validate-bubble.js`, plafond de 160 tirs et borne de 2 000 ms par niveau
+et par graine (chargement inclus, worker interrompu). Chaque essai est enregistré
+avec `won`, `shots` et `timedOut` dans `docs/bubble-validation.json`.
+La moyenne inclut les échecs ; après interruption, elle emploie uniquement le
+nombre réel de tirs de la tentative gloutonne terminée, sans extrapoler la recherche
+interrompue. Si cette tentative n’a pas terminé, la moyenne est indisponible.
+Une interruption compte comme non-victoire. La mention « temps » désigne une interruption ; « — » dans la colonne graine 28 signifie hors des jalons mesurés. Ces mesures ne prouvent pas qu’un
+niveau en échec soit impossible pour un autre pilote.
+
+L'ouverture automatique, `loadLevel` et le choix HTML emploient la graine définie
+dans `LEVELS` (452 à 481) quand aucune graine n'est fournie.
+Dans les dix premiers niveaux, le nombre de couleurs et de rangées ne diminue pas ; l'intervalle ne croît pas
 (l'absence de descente équivaut à un intervalle infini). Les six couleurs ont des
 marques de un à six traits sombres, en complément de la teinte.
+
+### Extension et mécaniques (B-LVL-01–04)
+
+Les nouveautés arrivent à 11 (pierre), 14 (bombe), 17 (arc-en-ciel), 20 (glace),
+23 (étoiles) et 26 (butoirs). Les niveaux 13, 16, 19, 22 et 28 sont des respirations ;
+15, 20, 25 et 30 réactivent une descente tous les six tirs. Le défi historique 10
+reste inchangé. Les îlots suspendus ont des cols, branches, profondeurs et trous
+calculés depuis des données déterministes, avec permutation de palette par graine.
+
+- Pierre : exclue des groupes de couleur et des explosions ; tombe seulement détachée.
+- Bombe : un groupe de trois l’active ; détruit ses six voisins colorés, avec chaînes de bombes.
+- Arc-en-ciel : un tir sur trois, à partir du premier, adopte la couleur de la bulle frappée.
+- Glace : deux résolutions distinctes contenant un éclatement adjacent enlèvent sa coque ; plusieurs voisins éclatés dans un même tir ne comptent qu’une fois. La bulle libérée reste dans la grille.
+- Étoiles : insensibles aux couleurs et bombes ; toutes doivent tomber. Des bulles ordinaires peuvent rester au plafond après la victoire.
+- Butoirs : segments verticaux à x=100 et x=260, y=290–380 ; réflexion exacte de la direction horizontale, aussi dans le guide et le vol.
+
+La clé et la structure de sauvegarde restent inchangées. La scène lit désormais
+la borne 30 ; une sauvegarde historique débloquant 10 conserve exactement sa valeur.
+B-LVL-01 compare les dix définitions et des cellules littérales des niveaux 1, 5, 10.
+B-LVL-02 partage ses six oracles avec le validateur Node ; B-LVL-03 réutilise la mesure
+du rapport (seuil de clones < 0,2, six mécaniques). La cadence est vérifiée dans
+l’extension : conserver strictement les dix premiers niveaux empêche de supprimer
+l’écart historique de huit niveaux sans nouveauté. Le solveur choisit d’abord gloutonnement le meilleur tir simulé ; en cas d’échec,
+un faisceau glouton conserve 64 états par profondeur, sur au plus 160 tirs. Il
+utilise les angles et l’échange de réserve, sans injecter de couleur ni de grille.
+Les rayons sont mis en cache par géométrie (256 entrées maximum), indépendamment
+des couleurs ; les voisins par parité conservent exactement les anciennes listes.
+La recherche complète sur trente niveaux dépassant le budget rapide, B-LVL-04
+emploie les jalons représentatifs 1, 5, 10, 15, 20, 25, 30 à graine 28 : départ,
+jalons de cinq niveaux, introductions combinées et final. Il exige sept victoires
+avec la politique gloutonne, au plus 160 tirs et moins de 10 secondes au total.
+Le validateur Node exécute le même oracle sans lancer le moteur de tests et
+renvoie un code non nul si un jalon échoue ; les statistiques restent enregistrées. Résultat de cette passe : 1.63 s, six victoires sur sept ; échec du niveau 10 à graine 28 après 24 tirs. B-LVL-04 reste donc non satisfait. Les captures `bubble-level15` et
+`bubble-level30` se produisent via `scripts/capture-bubble.js`, sans outil E2E externe.
+
+Mutations vérifiées par le script Node (substitution en mémoire, sans changer les fichiers) :
+
+| Mutation | Point de mutation | Oracle |
+| --- | --- | --- |
+| Trente copies du niveau 1 | `src/engines/bubble/levels.ts:20` (collection `LEVELS`) ; injection dans `scripts/validate-bubble.js:68` | B-LVL-03 |
+| Bombe sans explosion | `src/engines/bubble/engine.ts:268` | B-LVL-02 bombe |
+| Pierre incluse dans le groupe coloré | `src/engines/bubble/engine.ts:263` | B-LVL-02 pierre |
+| Glace libérée dès le premier éclatement | `src/engines/bubble/engine.ts:277` | B-LVL-02 glace |
 
 ### Plafond mobile
 
@@ -386,13 +459,13 @@ suivant et affiche le panneau avec les deux scores. « Niveau suivant » conserv
 ce cumul. Le dernier niveau affiche « Tous les niveaux réussis ! ».
 Une défaite et « Recommencer » restaurent le cumul d'avant le niveau ; le niveau
 courant et sa graine sont rejoués, score local remis à zéro. Un nouveau choix de
-niveau commence une nouvelle session à cumul nul. Le menu montre les dix niveaux,
+niveau commence une nouvelle session à cumul nul. Le menu montre les trente niveaux,
 avec boutons désactivés et cadenas pour les verrouillés. Il suspend le vol ;
 « Fermer » reprend la partie. Sur mobile il occupe temporairement l'aire de jeu,
 avec défilement interne et boutons tactiles d'au moins 44 pixels.
 
 `bubble-lab:v1` contient `{ unlocked, best }` : nombre maximal de niveaux
-débloqués (1–10) et meilleur cumul entier sûr positif ou nul. La sauvegarde
+débloqués (1–30) et meilleur cumul entier sûr positif ou nul. La sauvegarde
 n'enregistre ni partie en cours ni cumul de session. Après rechargement on repart
 au niveau 1, mais le menu conserve déblocages et record. Toute donnée invalide
 revient à `{ unlocked: 1, best: 0 }`. Chaque lecture/écriture est protégée par

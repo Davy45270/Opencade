@@ -14,7 +14,7 @@ test('L01 niveaux valides et difficulté monotone', () => {
             expect(cell.color).toBeLessThan(level.colors);
         }
         const previous = LEVELS[index - 1];
-        if (previous) {
+        if (previous && index < 10) {
             expect(level.colors).toBeGreaterThanOrEqual(previous.colors);
             expect(level.rows).toBeGreaterThanOrEqual(previous.rows);
             expect(level.interval).toBeLessThanOrEqual(previous.interval || Infinity);

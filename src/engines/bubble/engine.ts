@@ -15,6 +15,8 @@ export interface Cell {
     row: number;
     col: number;
     color: Color;
+    kind?: 'stone' | 'bomb' | 'ice' | 'star';
+    ice?: number;
 }
 export interface Point {
     x: number;
@@ -30,6 +32,7 @@ export interface Trajectory {
     segments: Segment[];
     target: Cell | null;
     length: number;
+    struck?: Cell | null;
 }
 export type Status = 'playing' | 'won' | 'lost';
 export interface Resolution {
@@ -47,26 +50,32 @@ export function key(cell: Pick<Cell, 'row' | 'col'>): string {
 export function valid(row: number, col: number): boolean {
     return row >= 0 && row < ROWS && col >= 0 && col < (row % 2 ? 8 : 9);
 }
-export function neighbors(cell: Cell): {
+const NEIGHBOR_CACHE = new Map<string, readonly { row: number; col: number }[]>();
+export function neighbors(cell: Cell): readonly {
     row: number;
     col: number;
 }[] {
-    const out: {
-        row: number;
-        col: number;
-    }[] = [];
-    for (let row = cell.row - 1; row <= cell.row + 1; row++)
-        for (let col = cell.col - 1; col <= cell.col + 1; col++) {
-            if (valid(row, col) && (row !== cell.row || col !== cell.col) && distance(center(cell), center({ row, col })) < 41)
-                out.push({ row, col });
-        }
-    return out;
+    const cached = NEIGHBOR_CACHE.get(key(cell));
+    if (cached) return cached;
+    const left = cell.col - (cell.row % 2 ? 0 : 1);
+    const right = left + 1;
+    const result = Object.freeze([
+        { row: cell.row - 1, col: left }, { row: cell.row - 1, col: right },
+        { row: cell.row, col: cell.col - 1 }, { row: cell.row, col: cell.col + 1 },
+        { row: cell.row + 1, col: left }, { row: cell.row + 1, col: right },
+    ].filter(c => valid(c.row, c.col)).map(c => Object.freeze(c)));
+    if (valid(cell.row, cell.col)) NEIGHBOR_CACHE.set(key(cell), result);
+    return result;
 }
 function distance(a: Point, b: Point): number {
     return Math.hypot(a.x - b.x, a.y - b.y);
 }
 export class Engine {
     level = 0;
+    get rainbow(): boolean { return !!levelAt(this.level).mechanics?.includes('rainbow') && this.shots % 3 === 0; }
+    get bumpers(): { x: number; top: number; bottom: number }[] {
+        return levelAt(this.level).mechanics?.includes('bumper') ? [{ x: 100, top: 290, bottom: 380 }, { x: 260, top: 290, bottom: 380 }] : [];
+    }
     drops = 0;
     resolved = 0;
     get shotsBeforeDrop(): number | null {
@@ -93,9 +102,14 @@ export class Engine {
         color: Color;
     } | null = null;
     last: Resolution = { popped: [], fallen: [], attached: null };
-    constructor(public seed = levelAt(0).seed) {
+    constructor(public seed = levelAt(0).seed, source?: Engine) {
         this.random = new Random(seed);
-        this.restart();
+        if (source) {
+            if (source.flight) throw new Error('Cannot copy during flight');
+            // Exact rest-state copy for deterministic lookahead; mutable cells and RNG are isolated.
+            Object.assign(this, source, { grid: source.grid.map(c => ({ ...c })), random: this.random });
+            this.random.state = source.random.state;
+        } else this.restart();
     }
     restart(): void {
         this.random = new Random(this.seed);
@@ -128,7 +142,7 @@ export class Engine {
     load(grid: Cell[], next: Color = 0, seed = this.seed): void {
         const seen = new Set<string>();
         for (const cell of grid) {
-            if (!valid(cell.row, cell.col) || !Number.isInteger(cell.row) || !Number.isInteger(cell.col) || ![0, 1, 2, 3, 4, 5].includes(cell.color) || seen.has(key(cell)))
+            if ((cell.kind !== undefined && !['stone', 'bomb', 'ice', 'star'].includes(cell.kind)) || (cell.ice !== undefined && (cell.kind !== 'ice' || ![1, 2].includes(cell.ice))) || !valid(cell.row, cell.col) || !Number.isInteger(cell.row) || !Number.isInteger(cell.col) || ![0, 1, 2, 3, 4, 5].includes(cell.color) || seen.has(key(cell)))
                 throw new Error('Invalid grid');
             seen.add(key(cell));
         }
@@ -180,9 +194,15 @@ export class Engine {
                     hit = cell;
                 }
             }
-            const reflects = wallTime < t;
+            let reflectionTime = wallTime;
+            for (const bumper of this.bumpers) {
+                const candidate = (bumper.x - from.x) / direction.x;
+                const y = from.y + candidate * direction.y;
+                if (candidate > 0.000001 && candidate < reflectionTime && y >= bumper.top && y <= bumper.bottom) reflectionTime = candidate;
+            }
+            const reflects = reflectionTime < t;
             if (reflects)
-                t = wallTime;
+                t = reflectionTime;
             const to = { x: from.x + direction.x * t, y: from.y + direction.y * t };
             segments.push({ from: { ...from }, to, direction: { ...direction }, bounce: reflects });
             length += t;
@@ -206,16 +226,18 @@ export class Engine {
                     });
                 }).sort((a, b) => distance(center(a, this.drops), contact) - distance(center(b, this.drops), contact) || a.row - b.row || a.col - b.col);
                 const target = free[0];
-                return { segments, length, target: target ? { ...target, color: this.next } : null };
+                return { segments, length, struck: hit, target: target ? { ...target, color: this.next } : null };
             }
             from = to;
             direction = { x: -direction.x, y: direction.y };
         }
         return { segments, length, target: null };
     }
+    private rainbowShot = false;
     shoot(): boolean {
         if (this.status !== 'playing' || this.flight)
             return false;
+        this.rainbowShot = this.rainbow;
         this.flight = { trajectory: this.trace(), elapsed: 0, color: this.next };
         this.shots++;
         return true;
@@ -227,14 +249,34 @@ export class Engine {
         if (this.flight.elapsed * 0.75 < this.flight.trajectory.length)
             return null;
         const target = this.flight.trajectory.target;
+        const struck = this.flight.trajectory.struck;
         this.flight = null;
         if (!target) {
             this.status = 'lost';
             return this.last = { popped: [], fallen: [], attached: null };
         }
+        if (this.rainbowShot) {
+            const adjacent = (struck && struck.kind !== 'stone' && struck.kind !== 'ice' && struck.kind !== 'star' ? struck : undefined) ?? neighbors(target).map(n => this.grid.find(c => key(c) === key(n))).find(c => c && c.kind !== 'stone' && c.kind !== 'ice' && c.kind !== 'star');
+            if (adjacent) target.color = adjacent.color;
+        }
         this.grid.push(target);
-        const connected = this.flood([target], c => c.color === target.color);
+        const connected = this.flood([target], c => c.color === target.color && c.kind !== 'stone' && c.kind !== 'ice' && c.kind !== 'star');
         const popped = connected.length >= 3 ? connected : [];
+        // Bomb chains expand only one hex cell per bomb; stone and targets survive blasts.
+        for (let i = 0; i < popped.length; i++) {
+            const bomb = popped[i];
+            if (bomb?.kind !== 'bomb') continue;
+            for (const n of neighbors(bomb)) {
+                const victim = this.grid.find(c => key(c) === key(n));
+                if (victim && victim.kind !== 'stone' && victim.kind !== 'ice' && victim.kind !== 'star' && !popped.includes(victim)) popped.push(victim);
+            }
+        }
+        for (const frozen of this.grid.filter(c => c.kind === 'ice')) {
+            if (popped.some(c => neighbors(frozen).some(n => key(n) === key(c)))) {
+                frozen.ice = (frozen.ice ?? 2) - 1;
+                if (frozen.ice === 0) { delete frozen.kind; delete frozen.ice; }
+            }
+        }
         const removed = new Set(popped.map(key));
         this.grid = this.grid.filter(c => !removed.has(key(c)));
         const anchored = new Set(this.flood(this.grid.filter(c => c.row === 0), () => true).map(key));
@@ -243,8 +285,9 @@ export class Engine {
         this.grid = this.grid.filter(c => !falling.has(key(c)));
         this.score += popped.length * 10 + fallen.length * 20;
         this.resolved++;
-        if (this.grid.length && this.shotsBeforeDrop === levelAt(this.level).interval && levelAt(this.level).interval > 0) this.drops++;
-        this.status = this.grid.length === 0 ? 'won' : this.grid.some(c => c.row === ROWS - 1 || center(c, this.drops).y + RADIUS >= LOSS_LINE) ? 'lost' : 'playing';
+        const won = this.grid.length === 0 || (levelAt(this.level).mechanics?.includes('star') && !this.grid.some(c => c.kind === 'star'));
+        if (!won && this.grid.length && this.shotsBeforeDrop === levelAt(this.level).interval && levelAt(this.level).interval > 0) this.drops++;
+        this.status = won ? 'won' : this.grid.some(c => c.row === ROWS - 1 || center(c, this.drops).y + RADIUS >= LOSS_LINE) ? 'lost' : 'playing';
         if (this.grid.length) {
             this.next = this.queued;
             if (!this.availableColors().includes(this.next)) this.next = this.color();
@@ -283,6 +326,6 @@ export class Engine {
         return this.flight.trajectory.segments.at(-1)?.to ?? null;
     }
     snapshot() {
-        return { level: this.level, drops: this.drops, resolved: this.resolved, shotsBeforeDrop: this.shotsBeforeDrop, grid: this.grid.map(c => ({ ...c })), score: this.score, status: this.status, next: this.next, queued: this.queued, angle: this.angle, shots: this.shots, seed: this.seed, random: this.random.state, inFlight: this.flight !== null };
+        return { mechanics: levelAt(this.level).mechanics ?? [], level: this.level, drops: this.drops, resolved: this.resolved, shotsBeforeDrop: this.shotsBeforeDrop, grid: this.grid.map(c => ({ ...c })), score: this.score, status: this.status, next: this.next, queued: this.queued, angle: this.angle, shots: this.shots, seed: this.seed, random: this.random.state, inFlight: this.flight !== null };
     }
 }

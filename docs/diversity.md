@@ -1,6 +1,6 @@
-# Level diversity audit — pass 46
+# Level diversity audit — pass 48
 
-Read-only analysis of revision `409d801`. No engine, level, dependency or game rule is changed. Run from the repository root:
+Analysis updated for the Bubble Lab extension from revision `3a99fa4`. Other game entries retain the pass 46 measurements. Run from the repository root:
 
 ```sh
 nice -n 19 ionice -c3 node scripts/diversity-report.js
@@ -26,7 +26,7 @@ A configuration plateau is a maximal window of at least **3 levels**, every leve
 
 Let n be available levels, C the clone count divided by n−1, N the number of post-baseline novelty-bearing levels, and G the maximum consecutive run of levels without a first appearance after baseline (including the trailing run). Repetitiveness is **round-to-0.1[100 × (0.50C + 0.25(1 − N/(n−1)) + 0.25G/(n−1))]**. Several new elements at one level count once in N; their individual names remain in JSON. Scores measure pacing and descriptor repetition, not game quality. Ordering is descending score, then identifier for ties.
 
-**Coverage exception:** Bulles exposes only ten levels. Levels 11–30 are explicitly unavailable in JSON. Its normalization, nine adjacent comparisons, gaps and score use those ten levels only; its starred rank is provisional and is not a 30-level estimate. Twenty authored level records and generators must be supplied before a complete campaign comparison is possible. No numbers are invented for absent levels. Even for other games, this single-seed two-snapshot inventory is a lower bound on content diversity. An explicit per-level mechanic/bonus availability catalog and spawn-event trace would make first appearances independent of sampling.
+**Bubble Lab coverage:** 30/30 levels, including six added engine mechanics at 11, 14, 17, 20, 23 and 26. Its previous provisional ten-level score was 44.4; the complete campaign scores 25.9 with 0% adjacent clones. The eight-level historical novelty gap (3–10) is retained to preserve the first ten levels; the extension has no introduction gap above five. The score is not directly comparable at constant coverage. The full report was rerun successfully after the five-seed validation during this resumption. `scripts/diversity-metrics.js` is shared with B-LVL-03; its thresholds and formula are unchanged.
 
 ## Ranked results
 
@@ -41,9 +41,9 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Empilo | 59.5 | 5; 6, 9, 11, 16, 21 | 62.1% | 3 | Piece vocabulary, initial rubble and sealed tiles, gravity and line target. |
 | Alunir | 56.9 | 2; 2, 15 | 41.4% | 3 | Terrain relief, landing width, wind, gusts, fuel and initial offset. |
 | Caisses | 56.9 | 0; none | 13.8% | 5 | Authored room topology, box/target positions and solution length; the rules stay fixed. |
-| Bulles * | 44.4 | 1; 2 | 0.0% | 0 | Ten authored masks, palette size, row count and ceiling-drop cadence; twenty requested levels are absent. |
 | Traverse | 41.4 | 1; 10 | 0.0% | 3 | Lane placement, direction and phase, diving logs, shelters and flow speed. |
 | Dérapage | 38.8 | 4; 3, 24, 29, 30 | 0.0% | 0 | Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning. |
+| Bulles | 25.9 | 7; 2, 11, 14, 17, 20, 23, 26 | 0.0% | 0 | Thirty sculpted layouts; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers. |
 
 “Flat” in the table refers to the configuration proxy above. A zero means no qualifying window, not proof of continuous experiential difficulty growth. The JSON carries the exact ranges and pairs.
 
@@ -60,19 +60,19 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Empilo | 0 | 30 | 0 |
 | Alunir | 30 | 0 | 0 |
 | Caisses | 30 | 0 | 0 |
-| Bulles | 8 | 2 | 0 |
+| Bulles | 27 | 3 | 0 |
 | Traverse | 1 | 29 | 0 |
 | Dérapage | 23 | 7 | 0 |
 
 For Orbite and Empilo no completion time is measured at any level. Briqueterie is mostly censored. Those curves require a stronger ordinary-input policy before completion-time comparisons become useful. Caisses times reflect the chosen replay cadence, not puzzle-solving time. Dédale scores 100 under this descriptor because all adjacent layouts remain near enough to the fixed threshold and no new element type is observed; this does not mean its mazes are identical.
 
-## Concrete campaign proposals (not implemented)
+## Campaign plans and Bubble Lab implementation
 
-All proposals introduce something every 3–5 levels, include recovery levels, a challenge or boss every five levels, and a distinctive final level. These are design suggestions, including new mechanics that do not exist in this revision.
+The remaining proposals introduce something every 3–5 levels, include recovery levels, a challenge or boss every five levels, and a distinctive final level. Bubble Lab below describes its implemented extension; the other entries remain design suggestions.
 
 ### Bulles
 
-Introduce anchor bubbles at 4, directional bumpers at 8, ice shells at 12, color changers at 16, paired portals at 20, wind lanes at 24 and chained anchors at 28. Use 6, 11, 17, 22 and 27 as generous-shot recovery boards. At 5/10/15/20/25 run a limited-shot rescue challenge. Author the missing 11–30 levels rather than repeating the first ten; make 30 a three-chamber crystal finale using all mechanics.
+Pass 48 preserves levels 1–10 and adds stone at 11, bombs at 14, rainbow shots at 17, ice at 20, star rescues at 23 and internal bumpers at 26. Recovery boards are 13/16/19/22/28; 15/20/25 and the three-chamber finale at 30 use a six-shot ceiling cadence. The historical 10 remains intact. Solver validation now records five seeds (0–4), with a hard 2,000 ms deadline per level/seed and a 160-shot cap. Actual failures and timeouts remain visible in `bubble-validation.json` and the table in `GAME_SPEC.md`; no unplayed result is inferred. B-LVL-04 uses checkpoints 1/5/10/15/20/25/30 at seed 28 and requires completion within ten seconds. A nonzero validator exit reports a failed checkpoint even after the statistics have been saved. This run records 140 wins in 150 attempts: levels 9 and 10 time out on every seed, with no completed shot count available; all twenty added levels win 5/5. B-LVL-04 takes 1.63 seconds and wins six of seven checkpoints, failing level 10 after 24 shots; its validator exit code is 1.
 
 ### Briqueterie
 

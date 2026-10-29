@@ -9,6 +9,11 @@ import { Engine, center, ORIGIN, ROW_STEP, LOSS_LINE, type Cell, type Color } fr
 import { LEVELS } from '../../engines/bubble/levels';
 import { Progression } from '../../shell/progression';
 import { readSave, writeSave, type StoragePort } from '../../shell/storage';
+const HINTS: Record<string, string> = {
+    stone: 'Pierre : couper ses attaches', bomb: 'Bombe : éclate ses six voisins',
+    rainbow: 'Anneau blanc : couleur touchée', ice: 'Glace : deux éclatements voisins',
+    star: 'Étoiles : couper leurs attaches', bumper: 'Barres dorées : rebond intermédiaire',
+};
 const COLORS = [0x65e6ce, 0xffb867, 0xf080ab, 0x8ba6ff, 0xffef70, 0x70cfff];
 interface Effect {
     cell: Cell;
@@ -77,7 +82,7 @@ export class LabScene extends Phaser.Scene {
             }
             else this.engine.aim(this.engine.angle + (id === 'touch-left' ? -0.08 : 0.08));
         });
-        this.progress = new Progression(readSave(this.storage), LEVELS.length);
+        this.progress = new Progression(readSave(this.storage, 'bubble', LEVELS.length), LEVELS.length);
         const showLevels = (): void => {
             this.selecting = !this.selecting;
             renderLevels(LEVELS, this.progress.save, index => { this.startLevel(index, undefined, true); });
@@ -96,7 +101,7 @@ export class LabScene extends Phaser.Scene {
             this.progress.retry(); this.engine.restart(); this.effects = []; this.syncPanels();
         });
         this.graphics = this.add.graphics();
-        this.hud = this.add.text(18, 482, '', { fontFamily: 'system-ui', fontSize: '16px', color: '#e5f3ff' });
+        this.hud = this.add.text(18, 482, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff' });
         this.add.text(266, 612, 'SUIVANTE', { fontFamily: 'system-ui', fontSize: '11px', color: '#a6bdce' });
         const aim = (pointer: Phaser.Input.Pointer): void => {
             if (!this.session.paused && !this.selecting && pointer.y < ORIGIN.y - 15)
@@ -245,9 +250,23 @@ export class LabScene extends Phaser.Scene {
                 }
             }
         }
+        g.lineStyle(8, 0xffb867);
+        for (const bumper of this.engine.bumpers) g.lineBetween(bumper.x, bumper.top, bumper.x, bumper.bottom);
         for (const cell of this.engine.grid) {
             const p = center(cell, this.engine.drops);
             this.bubble(p.x, p.y, cell.color);
+            if (cell.kind) {
+                g.lineStyle(3, cell.kind === 'stone' ? 0x303b4c : 0xffffff);
+                if (cell.kind === 'stone') { g.fillStyle(0x667080); g.fillRoundedRect(p.x - 13, p.y - 13, 26, 26, 5); }
+                if (cell.kind === 'bomb') { g.fillStyle(0x263040); g.fillCircle(p.x, p.y, 10); g.lineBetween(p.x, p.y - 10, p.x + 8, p.y - 16); }
+                if (cell.kind === 'ice') { g.strokeRect(p.x - 14, p.y - 14, 28, 28); if (cell.ice === 1) g.lineBetween(p.x - 12, p.y - 12, p.x + 12, p.y + 12); }
+                if (cell.kind === 'star') {
+                    g.lineBetween(p.x - 12, p.y, p.x + 12, p.y);
+                    g.lineBetween(p.x, p.y - 12, p.x, p.y + 12);
+                    g.lineBetween(p.x - 8, p.y - 8, p.x + 8, p.y + 8);
+                    g.lineBetween(p.x + 8, p.y - 8, p.x - 8, p.y + 8);
+                }
+            }
         }
         for (const effect of this.effects) {
             effect.age += delta;
@@ -261,11 +280,16 @@ export class LabScene extends Phaser.Scene {
         g.lineBetween(ORIGIN.x, ORIGIN.y, ORIGIN.x + Math.sin(this.engine.angle) * 40, ORIGIN.y - Math.cos(this.engine.angle) * 40);
         if (!this.engine.flight)
             this.bubble(ORIGIN.x, ORIGIN.y, this.engine.next);
+        if (this.engine.rainbow && !this.engine.flight) {
+            g.lineStyle(4, 0xffffff); g.strokeCircle(ORIGIN.x, ORIGIN.y, 22);
+        }
         const projectile = this.engine.projectile();
         if (projectile && this.engine.flight)
             this.bubble(projectile.x, projectile.y, this.engine.flight.color);
         this.bubble(300, 585, this.engine.queued, 0.9, 0.8);
-        this.hud?.setText(`NIVEAU ${String(this.engine.level + 1)} · DESCENTE ${String(this.engine.shotsBeforeDrop ?? '—')}\nSCORE  ${String(this.engine.score)}\nTIRS     ${String(this.engine.shots)}`);
+        const mechanic = LEVELS[this.engine.level]?.mechanics?.at(-1);
+        const hint = mechanic ? HINTS[mechanic] ?? '' : '';
+        this.hud?.setText(`NIVEAU ${String(this.engine.level + 1)} · ${LEVELS[this.engine.level]?.name ?? ''}\nDESCENTE ${String(this.engine.shotsBeforeDrop ?? '—')} · ${LEVELS[this.engine.level]?.mechanics?.includes('star') ? 'LIBÉRER LES ÉTOILES' : 'VIDER LE PLAFOND'}\nSCORE  ${String(this.engine.score)}\nTIRS     ${String(this.engine.shots)}\n${hint}`);
         const status = document.querySelector('#status');
         const text = `Score : ${String(this.engine.score)} · ${this.engine.status === 'playing' ? 'En jeu' : this.engine.status === 'won' ? 'Victoire' : 'Défaite'}`;
         if (status && status.textContent !== text)

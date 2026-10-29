@@ -1,0 +1,1378 @@
+{
+  "seed": 28,
+  "seeds": 5,
+  "shotCap": 160,
+  "levelTimeoutMs": 2000,
+  "fixedLevels": [
+    1,
+    5,
+    10,
+    15,
+    20,
+    25,
+    30
+  ],
+  "fixedDurationMs": 1625.531111,
+  "fixedResults": [
+    {
+      "level": 1,
+      "won": true,
+      "shots": 6
+    },
+    {
+      "level": 5,
+      "won": true,
+      "shots": 12
+    },
+    {
+      "level": 10,
+      "won": false,
+      "shots": 24
+    },
+    {
+      "level": 15,
+      "won": true,
+      "shots": 6
+    },
+    {
+      "level": 20,
+      "won": true,
+      "shots": 8
+    },
+    {
+      "level": 25,
+      "won": true,
+      "shots": 4
+    },
+    {
+      "level": 30,
+      "won": true,
+      "shots": 7
+    }
+  ],
+  "results": [
+    {
+      "level": 1,
+      "name": "Atelier",
+      "mechanics": [],
+      "fixed": {
+        "level": 1,
+        "won": true,
+        "shots": 6
+      },
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 9,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 10,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 7.4,
+      "winRate": 1
+    },
+    {
+      "level": 2,
+      "name": "Losange",
+      "mechanics": [],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 17.4,
+      "winRate": 1
+    },
+    {
+      "level": 3,
+      "name": "Damier",
+      "mechanics": [],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 31,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 26,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 23.2,
+      "winRate": 1
+    },
+    {
+      "level": 4,
+      "name": "Pyramide",
+      "mechanics": [],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 10,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 8.4,
+      "winRate": 1
+    },
+    {
+      "level": 5,
+      "name": "Colonnes",
+      "mechanics": [],
+      "fixed": {
+        "level": 5,
+        "won": true,
+        "shots": 12
+      },
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 12,
+      "winRate": 1
+    },
+    {
+      "level": 6,
+      "name": "Vagues",
+      "mechanics": [],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 15.8,
+      "winRate": 1
+    },
+    {
+      "level": 7,
+      "name": "Chevrons",
+      "mechanics": [],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 39,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 24,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 27.2,
+      "winRate": 1
+    },
+    {
+      "level": 8,
+      "name": "Spirale",
+      "mechanics": [],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 28,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 22,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 21,
+      "winRate": 1
+    },
+    {
+      "level": 9,
+      "name": "Cristal",
+      "mechanics": [],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 1,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 2,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 3,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 4,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        }
+      ],
+      "meanShots": null,
+      "winRate": 0
+    },
+    {
+      "level": 10,
+      "name": "Prisme",
+      "mechanics": [],
+      "fixed": {
+        "level": 10,
+        "won": false,
+        "shots": 24
+      },
+      "runs": [
+        {
+          "seed": 0,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 1,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 2,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 3,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 4,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        }
+      ],
+      "meanShots": null,
+      "winRate": 0
+    },
+    {
+      "level": 11,
+      "name": "Silex suspendu",
+      "mechanics": [
+        "stone"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 5.4,
+      "winRate": 1
+    },
+    {
+      "level": 12,
+      "name": "Arches de craie",
+      "mechanics": [
+        "stone"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 9,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 8,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 7.8,
+      "winRate": 1
+    },
+    {
+      "level": 13,
+      "name": "Halte des lucioles",
+      "mechanics": [
+        "stone"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 8,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 8,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 6,
+      "winRate": 1
+    },
+    {
+      "level": 14,
+      "name": "Mèches jumelles",
+      "mechanics": [
+        "stone",
+        "bomb"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 8,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 5.2,
+      "winRate": 1
+    },
+    {
+      "level": 15,
+      "name": "Le grand brasier",
+      "mechanics": [
+        "stone",
+        "bomb"
+      ],
+      "fixed": {
+        "level": 15,
+        "won": true,
+        "shots": 6
+      },
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 8,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 4.8,
+      "winRate": 1
+    },
+    {
+      "level": 16,
+      "name": "Jardin ajouré",
+      "mechanics": [
+        "stone",
+        "bomb"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 9,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 5,
+      "winRate": 1
+    },
+    {
+      "level": 17,
+      "name": "Iris voyageur",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 4.8,
+      "winRate": 1
+    },
+    {
+      "level": 18,
+      "name": "Éventail des marées",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 8,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 5.4,
+      "winRate": 1
+    },
+    {
+      "level": 19,
+      "name": "Clairière calme",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 8,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 7.2,
+      "winRate": 1
+    },
+    {
+      "level": 20,
+      "name": "Banquise fendue",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow",
+        "ice"
+      ],
+      "fixed": {
+        "level": 20,
+        "won": true,
+        "shots": 8
+      },
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 8,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 5.4,
+      "winRate": 1
+    },
+    {
+      "level": 21,
+      "name": "Dentelle polaire",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow",
+        "ice"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 4.4,
+      "winRate": 1
+    },
+    {
+      "level": 22,
+      "name": "Le dégel doux",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow",
+        "ice"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 5.2,
+      "winRate": 1
+    },
+    {
+      "level": 23,
+      "name": "Constellation captive",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow",
+        "ice",
+        "star"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 3.6,
+      "winRate": 1
+    },
+    {
+      "level": 24,
+      "name": "Passerelles du soir",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow",
+        "ice",
+        "star"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 3.8,
+      "winRate": 1
+    },
+    {
+      "level": 25,
+      "name": "Le coffre du ciel",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow",
+        "ice",
+        "star"
+      ],
+      "fixed": {
+        "level": 25,
+        "won": true,
+        "shots": 4
+      },
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 3.8,
+      "winRate": 1
+    },
+    {
+      "level": 26,
+      "name": "Ricochets de cuivre",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow",
+        "ice",
+        "star",
+        "bumper"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 4.2,
+      "winRate": 1
+    },
+    {
+      "level": 27,
+      "name": "Les trois cloches",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow",
+        "ice",
+        "star",
+        "bumper"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 4.2,
+      "winRate": 1
+    },
+    {
+      "level": 28,
+      "name": "Souffle paisible",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow",
+        "ice",
+        "star",
+        "bumper"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 3,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 3.4,
+      "winRate": 1
+    },
+    {
+      "level": 29,
+      "name": "Couronne des échos",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow",
+        "ice",
+        "star",
+        "bumper"
+      ],
+      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 8,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 6.4,
+      "winRate": 1
+    },
+    {
+      "level": 30,
+      "name": "La voûte aux six secrets",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow",
+        "ice",
+        "star",
+        "bumper"
+      ],
+      "fixed": {
+        "level": 30,
+        "won": true,
+        "shots": 7
+      },
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 4.4,
+      "winRate": 1
+    }
+  ]
+}

@@ -24,7 +24,7 @@ la grille comporte deux colonnes.
 
 Bubble Lab propose un accrochage hexagonal précis, des tirs dans les trous, des bonus de chute et la visée par glisser-relâcher ; ⇄ ou X échange la prochaine bulle.
 
-Bubble Lab propose 10 niveaux ; chaque autre jeu en propose 30. Le tableau
+Bubble Lab propose désormais 30 niveaux sculptés avec pierres, bombes, tirs arc-en-ciel, glace, étoiles à libérer et butoirs internes. Le tableau
 indique les commandes clavier et tactiles de chaque jeu, ainsi que les commandes
 souris disponibles. Les boutons à l’écran sont également cliquables. P ou Échap
 met les jeux en temps réel en pause. Chaque jeu possède son aide ; sur téléphone,

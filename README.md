@@ -22,7 +22,7 @@ reduced-motion preferences switch them to still images. Phones use a two-column 
 
 Bubble Lab now has precise hex snapping, gap shots, falling bonuses, and drag-to-aim/release-to-fire touch controls; ⇄ or X swaps the next bubble.
 
-Bubble Lab has 10 levels; every other game has 30. The table lists each game's
+Bubble Lab now has 30 sculpted levels with stones, bombs, rainbow shots, ice, star rescues and internal bumpers. The table lists each game's
 keyboard and touch controls. Mouse controls are listed where supported; you can
 also click the on-screen controls. P or Escape pauses real-time games. Each game
 includes its own help, and the mobile ☰ menu opens status, help, levels and restart
