@@ -45,7 +45,8 @@ for (const viewport of windows) for (const id of ids) {
         for (const m of [before, after]) {
             expect(m.canvas.width >= .92 * m.availableWidth || m.canvas.height >= .85 * m.availableHeight).toBe(true);
             expect(m.bar.height).toBeLessThanOrEqual(44);
-            expect(m.row.height).toBeLessThanOrEqual(id === 'ferraille' ? 120 : 64);
+            // Documented exceptions: Ferraille's joystick (120 px) and Dérapage's large Drift button with Bonus above it (88 + 56 px).
+            expect(m.row.height).toBeLessThanOrEqual(id === 'ferraille' ? 120 : id === 'derapage' ? 156 : 64);
             expect(m.buttons.length, 'M02b boutons visibles').toBeGreaterThan(0);
             for (const button of m.buttons) {
                 expect(button.scrollWidth, `M02b ${button.id} largeur`).toBeLessThanOrEqual(button.clientWidth);

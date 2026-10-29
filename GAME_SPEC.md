@@ -202,6 +202,8 @@ M02 vérifie la non-intersection avec toute la zone logique 360×640. Cela
 préserve aussi les assertions historiques de Ferraille interdisant tout
 chevauchement du canevas.
 
+**Exception Dérapage :** une zone de commandes de **156 px** au plus, sous le canevas : gros bouton Dérapage (≥ 88 px) et bouton Bonus (≥ 56 px) au-dessus, à droite ; braquage analogique au pouce dans la moitié gauche. Les commandes ne recouvrent jamais la piste devant le kart (M02).
+
 **Hauteur logique :** FIT 360×640 centré conservé. Les scènes positionnent
 terrain, HUD et zones de glisser dans ce repère ; adapter la hauteur demanderait
 de reprendre ces conventions propres aux jeux. Aucun moteur n'est modifié.
