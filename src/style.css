@@ -1,0 +1,192 @@
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: #101827;
+  color: #e5f3ff;
+  font-family: system-ui;
+  text-align: center;
+}
+body.playing { overflow: hidden; touch-action: none; }
+main { max-width: 460px; margin: auto; padding: 8px; }
+h1 { font-size: 24px; margin: 4px; }
+p { font-size: 12px; margin: 7px; }
+[hidden] { display: none !important; }
+button {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 10px 24px;
+  background: #64e4cc;
+  border: 0;
+  border-radius: 12px;
+  color: #102532;
+  font-weight: bold;
+  cursor: pointer;
+}
+button:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+button:disabled { background: #526174; color: #d9e0e8; }
+#play > button { padding: 10px 14px; }
+canvas { display: block; max-width: 100%; touch-action: none; margin: auto; }
+#game { margin: auto; width: 100%; height: min(640px, calc(100svh - 265px)); }
+#play-area { position: relative; touch-action: none; }
+.panel {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(320px, 88%);
+  max-height: 90%;
+  background: #172d44f5;
+  border: 2px solid #64e4cc;
+  border-radius: 16px;
+  padding: 12px;
+  overflow: auto;
+  z-index: 2;
+}
+.panel h2 { font-size: 20px; }
+.panel button { margin: 4px; padding: 10px; }
+#level-list { display: grid; grid-template-columns: 1fr 1fr; }
+#level-list button { font-size: 12px; }
+#level-select { width: 84%; max-height: 90%; }
+#touch-controls {
+  display: none;
+  gap: 8px;
+  justify-content: center;
+  margin-top: 4px;
+  touch-action: none;
+}
+@media (pointer: coarse) {
+  #touch-controls { display: flex; }
+  #game { height: min(640px, calc(100svh - 315px)); }
+}
+body.touch #touch-controls { display: flex; }
+body.touch #game { height: min(640px, calc(100svh - 315px)); }
+.game-card {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+  margin: 24px 0;
+  padding: 24px;
+  line-height: 1.8;
+  text-align: left;
+}
+.game-icon {
+  display: block;
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #172d44;
+  box-shadow: 12px -10px 0 -3px #ffb867, 12px 12px 0 -3px #f080ab;
+}
+
+#topbar { display: grid; grid-template-columns: 44px minmax(0, 1fr) auto 44px; align-items: center; height: 48px; gap: 4px; }
+#topbar button { padding: 0; font-size: 22px; }
+#topbar #sound { grid-column: 4; }
+#topbar #pause { font-size: 14px; padding: 0 8px; }
+#topbar h1 { font-size: 22px; white-space: nowrap; }
+body.playing main { height: 100svh; }
+#game, body.touch #game { height: min(640px, calc(100svh - 220px)); }
+@media (pointer: coarse) { #game { height: min(640px, calc(100svh - 220px)); } }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+
+.sound-icon::before { content: "♫"; }
+
+.joystick { border: 3px solid #64e4cc; border-radius: 50%; background: radial-gradient(circle, #64e4cc 0 15%, #172d44 16%); touch-action: none; }
+
+#touch-controls { justify-content: space-between; }
+.touch-slot { display: flex; align-items: center; gap: 4px; flex: 1; }
+.touch-slot.center { justify-content: center; }
+.touch-slot.right { justify-content: flex-end; }
+
+#touch-help { display: none; }
+@media (pointer: coarse) { #keyboard-help { display: none; } #touch-help { display: inline; } }
+body.touch #keyboard-help { display: none; }
+body.touch #touch-help { display: inline; }
+#game-help { line-height: 16px; margin: 4px 0; }
+#pause-panel { z-index: 4; }
+
+#game-cards { display: grid; gap: 16px; }
+.game-card { margin: 0; }
+.card-content { display: grid; gap: 6px; }
+.card-content strong { font-size: 24px; line-height: 1.2; }
+.card-content small { font-size: 12px; line-height: 1.5; font-weight: normal; }
+@media (min-width: 600px) {
+    body:not(.playing) main { max-width: 960px; }
+    #game-cards { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+body.serpentin #touch-controls { justify-content: center; gap: 4px; }
+body.serpentin .touch-slot { flex: 0; }
+body.serpentin .touch-slot.center { flex-direction: column; }
+body.serpentin #touch-controls button { width: 56px; height: 56px; padding: 0; font-size: 24px; }
+@media (pointer: coarse) {
+    body.serpentin #game { height: min(640px, calc(100svh - 290px)); }
+}
+body.serpentin.touch #game { height: min(640px, calc(100svh - 290px)); }
+
+body.empilo #touch-controls { display: flex; gap: 4px; }
+body.empilo .touch-slot { flex: 0; gap: 4px; }
+body.empilo #touch-controls button { width: 56px; height: 56px; padding: 0; font-size: 25px; }
+body.empilo #game { height: min(640px, calc(100svh - 230px)); }
+
+body.orbite #touch-controls { display: flex; align-items: center; }
+body.orbite #touch-controls button { padding: 0; font-size: 22px; }
+body.orbite #game { height: min(640px, calc(100svh - 240px)); }
+body.orbite .orbite-options { display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; font-size: 13px; cursor: pointer; touch-action: none; }
+body.orbite .orbite-options input { width: 22px; height: 22px; accent-color: #78ead5; }
+
+body.essaim #touch-controls { display: flex; align-items: center; }
+body.essaim #touch-controls button { padding: 0; font-size: 22px; }
+body.essaim #game { height: min(640px, calc(100svh - 240px)); }
+body.essaim .essaim-options { display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; font-size: 13px; cursor: pointer; touch-action: none; }
+body.essaim .essaim-options input { width: 22px; height: 22px; accent-color: #78ead5; }
+body.dedale #touch-controls { display: flex; justify-content: center; gap: 4px; }
+body.dedale .touch-slot { flex: 0; }
+body.dedale .touch-slot.center { flex-direction: column; }
+body.dedale #touch-controls button { width: 56px; height: 56px; padding: 0; font-size: 24px; }
+body.dedale #game { height: min(640px, calc(100svh - 290px)); }
+
+body.ferraille #touch-controls { display: flex; align-items: center; min-height: 124px; }
+body.ferraille #touch-controls button { width: 64px; height: 64px; padding: 0; font-size: 18px; }
+body.ferraille .touch-slot.center { flex: 0; }
+body.ferraille .touch-slot.right { flex: 0; gap: 8px; }
+body.ferraille #game { height: min(640px, calc(100svh - 300px)); }
+
+/* Published page gutter: retained on both sides, including safe areas. */
+body { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+@media (pointer: coarse), (width < 600px) {
+  body.playing main { padding: 0; max-width: none; height: 100svh; height: 100dvh; padding-top: env(safe-area-inset-top); padding-bottom: env(safe-area-inset-bottom); display: flex; flex-direction: column; }
+  body.playing #topbar { height: 44px; flex: 0 0 44px; grid-template-columns: 44px minmax(0, 1fr) auto 44px 44px; gap: 0; }
+  body.playing #topbar h1 { overflow: hidden; text-overflow: ellipsis; font-size: 18px; }
+  body.playing #topbar #pause { width: 44px; padding: 0; font-size: 20px; }
+  body.playing #topbar #sound { grid-column: 4; }
+  body.playing #game-menu-toggle { grid-column: 5; }
+  body.playing #play { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  body.playing #play-area { flex: 1; min-height: 0; overflow: hidden; }
+  body.playing #game, body.playing.touch #game { position: absolute; inset: 0; height: 100%; width: 100%; }
+  body.playing #touch-controls { display: flex; height: 64px; min-height: 64px; flex: 0 0 64px; margin: 0; gap: 4px; align-items: center; justify-content: space-between; }
+  body.playing #touch-controls .touch-slot { flex-direction: row; flex: 0 1 auto; gap: 4px; }
+  body.playing #touch-controls button { width: 56px; height: 56px; min-width: 56px !important; min-height: 56px !important; padding: 0; font-size: 16px; }
+  body.playing #touch-controls button[aria-label="Tirer"] { width: 64px; height: 64px; }
+  body.playing #touch-controls .orbite-options, body.playing #touch-controls .essaim-options { font-size: 11px; min-width: 56px; min-height: 56px; }
+  body.playing #game-menu { display: none; }
+  body.playing.menu-open #game-menu { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; position: fixed; left: max(16px, env(safe-area-inset-left)); right: max(16px, env(safe-area-inset-right)); bottom: env(safe-area-inset-bottom); padding: 8px 0 0; background: #172d44fa; border: 2px solid #64e4cc; border-radius: 12px; z-index: 5; }
+  body.playing #game-menu #status, body.playing #game-menu #game-help { grid-column: 1 / -1; order: -1; }
+  body.playing #game-menu button { height: 56px; }
+  body.playing.ferraille #touch-controls { height: 120px; min-height: 120px; flex-basis: 120px; }
+  body.playing.ferraille #touch-controls button { width: 64px; height: 64px; }
+}
+@media (pointer: coarse), (width < 600px) {
+  body.playing #orbite-fire, body.playing #essaim-fire { width: 64px !important; height: 64px !important; }
+}
+@media (width < 380px) {
+  body.playing.empilo #empilo-counterclockwise { display: none; }
+}
+
+.mobile-pause { display: none; }
+@media (pointer: coarse), (width < 600px) {
+  .desktop-pause { display: none; }
+  .mobile-pause { display: inline; }
+}

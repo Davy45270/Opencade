@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Arcade Lab</title>
+  </head>
+  <body>
+    <main>
+      <header id="topbar"><button data-home aria-label="Accueil" title="Accueil">⌂</button><h1>Arcade Lab</h1><button id="pause" aria-label="Pause" aria-pressed="false" hidden><span class="desktop-pause">Pause</span><span class="mobile-pause" aria-hidden="true">⏸</span></button><button id="sound" aria-pressed="true" aria-label="Son activé">♫</button><button id="game-menu-toggle" aria-label="Menu du jeu" aria-expanded="false" aria-controls="game-menu" hidden>☰</button></header>
+      <section id="home" aria-label="Accueil"><h2>Choisissez un jeu</h2><div id="game-cards"></div></section>
+      <section id="play" hidden>
+      <div id="play-area">
+        <div id="game"></div>
+        <section id="pause-panel" class="panel" aria-labelledby="pause-title" hidden><h2 id="pause-title">Prêt ?</h2><button id="resume">Jouer</button></section>
+        <section id="result" class="panel" aria-labelledby="result-title" hidden>
+          <h2 id="result-title"></h2><p id="result-scores"></p>
+          <button id="next-level">Niveau suivant</button>
+          <button id="replay-level">Rejouer ce niveau</button>
+          <button id="retry-level">Rejouer le niveau</button>
+          <button id="result-levels">Niveaux</button><button data-home>Accueil</button>
+        </section>
+        <section id="level-select" class="panel" aria-label="Choix des niveaux" hidden>
+          <h2>Niveaux</h2><p id="best-score"></p><div id="level-list"></div>
+          <button id="close-levels">Fermer</button>
+        </section>
+      </div>
+      <div id="touch-controls"></div>
+      <div id="game-menu">
+      <p id="status" aria-live="polite">Prêt</p>
+      <button id="levels">Niveaux</button>
+      <button id="restart">Recommencer</button>
+      <p id="game-help"><span id="keyboard-help"></span><span id="touch-help"></span></p>
+      </div>
+      </section>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

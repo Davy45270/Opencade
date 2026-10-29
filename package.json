@@ -1,0 +1,49 @@
+{
+  "name": "opencade",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Arcade de 8 jeux originaux en HTML5 (Phaser 3, TypeScript), jouable au doigt, à la souris et au clavier.",
+  "license": "MIT",
+  "author": "David Sevin",
+  "homepage": "https://davy45270.github.io/Opencade/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Davy45270/Opencade.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Davy45270/Opencade/issues"
+  },
+  "keywords": [
+    "phaser",
+    "typescript",
+    "arcade",
+    "html5-game",
+    "vite",
+    "playwright"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=22.12"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint . --max-warnings=0",
+    "test": "vitest run --pool=threads --maxWorkers=2",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "phaser": "3.90.0"
+  },
+  "devDependencies": {
+    "vite": "8.3.5",
+    "vitest": "5.0.5",
+    "@playwright/test": "1.64.1",
+    "typescript": "6.0.3",
+    "eslint": "10.13.0",
+    "typescript-eslint": "8.72.1",
+    "@eslint/js": "10.0.1"
+  }
+}
