@@ -109,11 +109,19 @@ test('Z07 sauter une porte, demi-tour et couper dans herbe ne valide pas', () =>
     cross(k, 0);
     expect(k.passed).toBe(1);
     expect(k.gate).toBe(2);
-    const t = createTrack(0), p = required(t.points[16]);
-    k.x = p.x + 40;
-    k.y = p.y + 40;
-    checkpoint(k, { x: p.x - 40, y: p.y - 40 }, t, 0);
+    const t = createTrack(0), i = required(t.gates[k.gate]), p = required(t.points[i]);
+    const line = gateLine(t, k.gate), width = required(t.widths[i]);
+    const nx = (line.a.x - line.b.x) / width, ny = (line.a.y - line.b.y) / width;
+    const cut = { x: p.x + nx * (width / 2 + 5), y: p.y + ny * (width / 2 + 5) };
+    const previous = { x: cut.x - ny, y: cut.y + nx };
+    Object.assign(k, { x: cut.x + ny, y: cut.y - nx });
+    for (const point of [previous, cut, k]) {
+        const n = nearest(t, point);
+        expect(n.distance).toBeGreaterThan(required(t.widths[n.index]) / 2);
+    }
+    checkpoint(k, previous, t, 0);
     expect(k.gate).toBe(2);
+    expect(k.passed).toBe(1);
 });
 test('Z08 ordre par progression puis distance, points 10/8/6/5/4/3 et podium', () => {
     const t = createTrack(0), a = kart(), b = { ...kart(), id: 1, passed: 1 };

@@ -411,9 +411,8 @@ export class DerapageScene extends Phaser.Scene {
         const delta = timing.lastLapDeltaMs;
         const crossing = timing.lapTimesMs.length === 0 ? '' : `Écart ${delta === null ? '—' : `${delta < 0 ? '−' : '+'}${formatTime(Math.abs(delta))}`} ${this.newRecord ? 'Nouveau record !' : ''}`;
         const text = `DÉRAPAGE ${String(e.level + 1)}/30 · PLACE ${String(s.order.indexOf(0) + 1)}/6 · TOUR ${String(Math.min(3, p.lap + 1))}/3
-COURSE ${formatTime(timing.raceMs)} · TOUR ${formatTime(timing.currentLapMs)}
-MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${p.item ?? '—'}
-${crossing || (p.lap === 2 ? 'Dernier tour !' : 'Trois tours pour le podium')}
+SCORE ${String(s.score)} · COURSE ${formatTime(timing.raceMs)} · TOUR ${formatTime(timing.currentLapMs)}
+MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${p.item ?? '—'}${crossing ? ` · ${crossing}` : ''}
 COUPE ${String(s.cup.races)}/4 · ${s.cup.order.map(id => `${String(id + 1)}:${String(s.cup.scores[id])}`).join(' ')}`;
         if (this.hud) {
             this.hud.replaceChildren();
@@ -421,7 +420,7 @@ COUPE ${String(s.cup.races)}/4 · ${s.cup.order.map(id => `${String(id + 1)}:${S
             lines.forEach((line, i) => {
                 const span = document.createElement('span');
                 span.textContent = line + (i < lines.length - 1 ? '\n' : '');
-                if (i === 3 && crossing) {
+                if (i === 2 && crossing) {
                     span.dataset.lapDelta = 'true';
                     span.style.color = delta !== null && delta < 0 ? '#80efac' : '#ff9b9b';
                 }
@@ -432,6 +431,12 @@ COUPE ${String(s.cup.races)}/4 · ${s.cup.order.map(id => `${String(id + 1)}:${S
             this.hud.style.left = `${String(box.x + 8 * scale)}px`;
             this.hud.style.top = `${String(box.y + 6 * scale)}px`;
             this.hud.style.fontSize = `${String(12 * scale)}px`;
+            // Keep all four lines left of the mini-map, inside the reserved band.
+            for (const span of this.hud.children) {
+                const width = span.getBoundingClientRect().width;
+                if (width > 249 * scale && span instanceof HTMLElement)
+                    span.style.fontSize = `${String(12 * scale * 249 * scale / width)}px`;
+            }
         }
         const indicator = document.querySelector<HTMLElement>('#derapage-steering');
         if (indicator) { indicator.textContent = `◀ ━ ${this.pointer.toFixed(2)} ━ ▶`; indicator.setAttribute('aria-valuenow', String(this.pointer)); }
