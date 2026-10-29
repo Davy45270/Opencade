@@ -1535,3 +1535,154 @@ niveau 3 ; la vignette Canvas dessine le plateau réel, sans asset externe.
 Vitest et Playwright ne sont pas exécutés sur cette machine : l'orchestrateur
 doit vérifier les preuves, les budgets de temps et les captures sur les deux
 projets. Aucun résultat d'exécution de ces suites n'est présumé.
+
+
+## Traverse
+
+Onzième jeu, `traverse`, temps réel. Grille originale de 9×15 cases, départ
+(4,14), abris en rangée 0. Flèches/ZQSD : une entrée = un pas, sans répétition
+clavier ; une file conserve les entrées rapides jusqu'au prochain quantum.
+Toucher l'aire monte ; un glisser émet une seule direction au relâchement.
+Quatre boutons de 56×56 sont sur une rangée de 64 px. P/Échap et les panneaux
+communs gèrent Prêt, pause, menu mobile, progression et sauvegarde
+`arcade-lab:traverse:v1`. Effets synthétisés `step`, `life`, `won`, `lost`.
+Aucune modification de `src/shell`, dépendance ou ressource externe.
+
+### Simulation et générateur
+
+Moteur sans DOM, Phaser ni hasard natif ; PRNG partagé. Graine canonique 28
+pour chacun des trente niveaux. Les autres graines sont reproductibles, sans
+promesse de faisabilité universelle. `snapshot()` copie état, plateau, file,
+phase, compteur de frames et reliquat. `step` accumule des pas de 1000/60 ms.
+Le trafic et une commande avancent à chaque quantum de `flowFrames` pas fixes.
+La représentation est une grille : les véhicules et supports se décalent d'une
+case à chaque quantum, et le héros est animé pendant quatre frames. Un pas
+refusé latéralement reste dans la grille. Sans entrée, le héros attend.
+
+Contact d'abord sur la destination au temps t, puis mouvement des voies et
+second contact à t+1. Les véhicules occupent deux cases consécutives modulo
+l'espacement. Les supports occupent `logLength` cases modulo 9 et transportent
+le héros d'une case dans leur sens. Eau sans support, immersion et transport
+hors [0,8] coûtent une vie. Huit rangées sont tirées sans remise parmi 2…13 :
+les cinq premières sont fluviales et les trois dernières routières. Les berges
+intermédiaires et la frontière route/rivière varient donc avec le niveau et la
+graine. Chaque voie fluviale reçoit un plongeur avec probabilité 0,4 ; son cycle
+est `(phase + offset) modulo 18 < diveDuration`. Les sens et offsets viennent
+du PRNG. Aucun délai d'ouverture ni fermeture spéciale d'une rangée : toutes
+les attentes proviennent des véhicules, supports, immersions et transports.
+Les trente flux PRNG ont été sélectionnés hors ligne parmi des dispositions
+naturelles puis vérifiés par BFS. Les sels du générateur choisissent seulement
+ces dispositions ; aucune mesure de parcours n'intervient dans les collisions.
+
+Trois vies. Toute mort réinitialise position, file et chronomètre de traversée,
+mais garde la phase du trafic et les abris déjà occupés. L'échéance du chrono
+coûte aussi une vie. Un nouvel abri rapporte 100×numéro du niveau et remet au
+départ ; un abri déjà pris ou une case hors abri en haut est mortel. Tous les
+abris occupés donnent victoire ; zéro vie donne défaite ; états terminaux gelés.
+
+Indice n=0…29, tous les paramètres ci-dessous ont des extrêmes stricts.
+
+| Paramètre | Générateur | Niveau 1 → 30 |
+| --- | --- | --- |
+| Frames par quantum | 30−floor(17n/29) | 30 → 13 (vitesse croissante) |
+| Espacement véhicules | 6−floor(2n/29) | 6 → 4 cases |
+| Longueur supports | 8−floor(3n/29) | 8 → 5 cases |
+| Immersion | 0 si n<9, sinon 1+floor((n−9)/5) | 0 → 5 quanta |
+| Chronomètre | 60000−1000n | 60 → 31 secondes |
+| Abris | 3+floor(n/10) | 3 → 5 |
+| Voies alternées | 1+floor(n/5) | 1 → 6 |
+
+Les 3 abris sont aux colonnes 1,4,7 ; les 4 aux colonnes 0,3,5,8 ; les 5 aux
+colonnes 0,2,4,6,8. Les premières voies alternent leurs sens ; les autres
+reçoivent un sens et un offset par PRNG. La démo au niveau 3 suit une politique
+locale : monter si possible, sinon chercher une fenêtre latérale, et redémarrer
+après fin ou 300 décisions. Sa vignette Canvas dessine l'état moteur réel.
+
+### Faisabilité mesurée sans Vitest
+
+`node --import ./scripts/ts-loader.js scripts/validate-traverse.js` effectue
+un BFS borné par le chrono dans (colonne, rangée, instant), avec cinq actions
+cardinales/attente, les mêmes contacts et transports que le moteur. Chaque
+arête dure un quantum. Tous les abris sont recherchés séparément depuis le
+départ à phase zéro, puis chaque témoin est rejoué par les entrées ordinaires,
+avec trois vies intactes. Le script rejoue aussi une victoire complète pour
+chaque niveau, en recherchant les abris successifs à leur phase réelle.
+Le budget de recherche est inférieur à une seconde par niveau dans R10.
+
+Le tableau donne le minimum de quanta jusqu'à l'abri médian et les actions
+`wait` du témoin optimal en temps. Le BFS départage les chemins de même durée
+par l'ordre fixe haut, attente, gauche, droite, bas : le nombre de `wait` est
+une mesure de ce témoin, pas le minimum d'attentes parmi tous les chemins.
+Les deux mesures sont constantes dans chaque palier de cinq niveaux et
+strictement croissantes entre paliers. Elles ne commandent jamais le trafic.
+Les attendus R10 sont littéraux, indépendants des paramètres du moteur ;
+R11 vérifie séparément leurs valeurs et leur monotonie. Les tests n'importent
+aucune constante du moteur pour fabriquer un attendu.
+Mesures Node observées, hors chargement TypeScript ; durées variables.
+
+| Niveau | Quanta min. (abri médian) | Pas immobiles du témoin | Max ms / abri |
+| --- | --- | --- | --- |
+| 1 | 16 | 0 | 15.9 |
+| 2 | 16 | 0 | 13.8 |
+| 3 | 16 | 0 | 2.2 |
+| 4 | 16 | 0 | 2.6 |
+| 5 | 16 | 0 | 2.3 |
+| 6 | 18 | 1 | 2.3 |
+| 7 | 18 | 1 | 2.0 |
+| 8 | 18 | 1 | 1.8 |
+| 9 | 18 | 1 | 2.2 |
+| 10 | 18 | 1 | 3.8 |
+| 11 | 20 | 2 | 4.2 |
+| 12 | 20 | 2 | 2.5 |
+| 13 | 20 | 2 | 2.9 |
+| 14 | 20 | 2 | 2.2 |
+| 15 | 20 | 2 | 2.6 |
+| 16 | 22 | 3 | 2.2 |
+| 17 | 22 | 3 | 2.6 |
+| 18 | 22 | 3 | 4.4 |
+| 19 | 22 | 3 | 2.4 |
+| 20 | 22 | 3 | 2.4 |
+| 21 | 24 | 4 | 2.4 |
+| 22 | 24 | 4 | 3.2 |
+| 23 | 24 | 4 | 2.9 |
+| 24 | 24 | 4 | 2.5 |
+| 25 | 24 | 4 | 47.0 |
+| 26 | 26 | 5 | 2.8 |
+| 27 | 26 | 5 | 54.5 |
+| 28 | 26 | 5 | 3.1 |
+| 29 | 26 | 5 | 3.1 |
+| 30 | 26 | 5 | 3.3 |
+
+### Oracle et intégration
+
+| ID | Preuve `tests/traverse.test.ts` |
+| --- | --- |
+| R01 | Un pas par entrée, aucune répétition et bornes latérales 0/8 |
+| R02 | Collision avant/après défilement, perte d'une vie |
+| R03 | Transport et sortie fatale aux deux bords |
+| R04 | Eau nue fatale, attente sur berge sûre |
+| R05 | Début au niveau 10, phase et durée littérales, immersion mortelle |
+| R06 | Occupation persistante, doublon et haut hors abri mortels |
+| R07 | 59999 ms sans perte, 60000 ms perte et remise du chrono |
+| R08 | Tous les abris nécessaires, trois vies, victoire/défaite gelées |
+| R09 | Réapparition exacte en (4,14) après perte |
+| R10 | Chaque abri des trente niveaux, budget, témoins rejoués, minimums et attentes du témoin littéraux, diversité des rangées/plongeurs |
+| R11 | Sept paramètres naturels : sens, extrêmes stricts et valeurs littérales |
+| R12 | Graine, copie sérialisable, regroupement temporel, temps invalides |
+
+Le crochet `__ARCADE_TEST__.games.traverse` expose read/loadLevel/advance,
+hudText/usefulArea/bounds et des scénarios `finish` (dernier abri à un pas)
+et `danger` (une vie devant un véhicule réel), sans changer les règles.
+Le HUD occupe une bande séparée au-dessus de y=64 ; la zone utile est
+(9,64,342,570). Héros de 24 px, obstacles de 34×26 px sur cases de 38 px.
+Les boîtes HUD/héros réellement dessinées sont exposées par bounds.
+
+`tests/e2e/traverse.spec.ts` écrit les parcours bureau/mobile avec victoire
+par vraie entrée, Niveau suivant, sauvegarde après reload, défaite/rejouer,
+niveau 30, tap/glisser et absence de crochet en production. Quatre captures
+traverse-play/level30/won/lost par projet. Les entrées mobiles sont tactiles.
+Le non-chevauchement HUD/héros/zone utile et contrôles/canevas est vérifié.
+M01–M04 incluent Traverse aux trois dimensions ; A11 inclut son horloge et
+V01–V08 comptent onze vignettes. La fixture commune refuse les erreurs console.
+Vitest et Playwright ne sont pas exécutés ici ; leur exécution et les captures
+restent à vérifier par l'orchestrateur.

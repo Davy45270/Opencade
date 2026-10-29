@@ -218,3 +218,7 @@ body.caisses #touch-controls .touch-slot { flex: 0; gap: 4px; }
 body.caisses #touch-controls button { width: 56px; height: 56px; padding: 0; }
 body.caisses #touch-controls .touch-slot:empty { display: none; }
 body.caisses #restart, body.caisses #replay-level { min-height: 56px; min-width: 56px; }
+
+body.traverse #touch-controls { gap: 4px; justify-content: center; }
+body.traverse #touch-controls .touch-slot { flex: 0; gap: 4px; flex-direction: row; }
+body.traverse #touch-controls button { width: 56px; height: 56px; padding: 0; }

@@ -5,6 +5,10 @@ le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+- Traverse : onzième jeu original, 30 traversées à graine, trois à cinq abris,
+  convois, rivière et flotteurs plongeants. Moteur pur, preuve BFS rejouée,
+  commandes tactiles, démo, sons et tests R01–R12 ; aucun changement du socle.
+
 - Passe 34 : seuils littéraux d’Alunir, module agrandi et HUD dégagé ; puzzles Caisses compacts, minimums exacts en pas/poussées, virages, détours et effort contrôlés par script Node.
 
 - Caisses : dixième jeu, 30 ateliers originaux, poussées, annulation illimitée, records prouvés par solveur, commandes tactiles et vignette animée.

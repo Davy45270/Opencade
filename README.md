@@ -4,15 +4,15 @@
 [![Pages](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml/badge.svg)](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml)
 [![Licence MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 
-Une petite arcade de **10 jeux originaux** dans le navigateur, sans serveur ni
+Une petite arcade de **11 jeux originaux** dans le navigateur, sans serveur ni
 compte : TypeScript strict, [Phaser 3](https://phaser.io/), Vite. Tout se joue
 au doigt, à la souris ou au clavier, sur téléphone comme sur ordinateur.
 
 **▶ Jouer : <https://davy45270.github.io/Opencade/>**
 
-> **English summary** — Opencade is a small browser arcade of ten original
+> **English summary** — Opencade is a small browser arcade of eleven original
 > games (bubble shooter, snake-like, brick breaker, falling blocks, fixed
-> shooter, wave shooter, maze chase, run-and-gun, lunar lander, crate puzzle), built with TypeScript,
+> shooter, wave shooter, maze chase, run-and-gun, lunar lander, crate puzzle, road-and-river crossing), built with TypeScript,
 > Phaser 3 and Vite. Each game's rules live in a pure, seeded engine that is
 > unit-tested with Vitest without a browser; Phaser scenes only draw and read
 > input. End-to-end tests (Playwright, desktop and mobile Chromium) drive the
@@ -20,12 +20,13 @@ au doigt, à la souris ou au clavier, sur téléphone comme sur ordinateur.
 > CPU speed. Touch, mouse and keyboard are supported. The interface is in
 > French. MIT licensed. Play it at <https://davy45270.github.io/Opencade/>.
 
-L’accueil présente dix vignettes Canvas animées par les moteurs purs, suspendues hors écran et fixes si la réduction des animations est demandée.
+L’accueil présente onze vignettes Canvas animées par les moteurs purs, suspendues hors écran et fixes si la réduction des animations est demandée.
 
 ## Les jeux
 
 | Jeu | En une ligne | Niveaux |
 |---|---|---|
+| **Traverse** | Rejoindre les abris entre convois routiers, rondins mobiles et flotteurs plongeants. | 30 |
 | **Caisses** | Pousser de une à sept caisses sur leurs cibles, avec annulation illimitée et record possible. | 30 |
 | **Bubble Lab** | Viser et tirer des bulles pour former des groupes de trois couleurs identiques avant que le plafond ne descende. | 10 |
 | **Serpentin** | Guider une tête lumineuse qui s'allonge vers les étincelles et les cristaux, entre murs ou sur un tore. | 30 |
@@ -45,13 +46,13 @@ est disponible ; le jeu fonctionne sans.
 ## Installer sur son téléphone et jouer hors ligne
 
 Ouvrir **https://davy45270.github.io/Opencade/** avec une connexion et attendre
-le chargement complet de l’accueil : les dix jeux sont alors précachés.
+le chargement complet de l’accueil : les onze jeux sont alors précachés.
 Sur **Android (Chrome)**, ouvrir le menu ⋮ puis « Installer l’application »
 ou « Ajouter à l’écran d’accueil ». Sur **iOS (Safari)**, ouvrir Partager puis
 « Sur l’écran d’accueil » et confirmer l’ajout. Relancer depuis cette icône.
 Les intitulés peuvent varier selon la version du navigateur.
 
-Après ce premier chargement, l’accueil et les dix jeux fonctionnent sans
+Après ce premier chargement, l’accueil et les onze jeux fonctionnent sans
 connexion. Scores, niveaux débloqués et préférences restent dans le stockage
 local du navigateur ou de l’application installée ; leur effacement supprime
 ces données et peut imposer un nouveau chargement en ligne.
