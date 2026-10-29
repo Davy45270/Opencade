@@ -5,6 +5,8 @@ export interface Vec {
     y: number;
 }
 export interface Track {
+    boosts: (Vec & { radius: number; index: number })[];
+    trees: (Vec & { radius: number })[];
     points: Vec[];
     racingLine: Vec[];
     widths: number[];
@@ -15,7 +17,7 @@ export interface Track {
 }
 export function difficulty(level: number) {
     const n = Math.max(0, Math.min(29, level));
-    return { width: 20 - n * .27, aiSpeed: 15 + n * .23, error: .18 - n * .005, brakeDelay: .45 - n * .012, bend: .015 + n * .0015, wallFraction: .12 + n * .02, grassGrip: .75 - n * .008 };
+    return { width: 20 - n * .27, aiSpeed: 15 + n * .23, error: .18 - n * .005, brakeDelay: .45 - n * .012, bend: .015 + n * .0015, wallFraction: .12 + n * .02, grassGrip: .45 - n * .001 };
 }
 export const LEVELS = Array.from({ length: 30 }, (_, i) => ({ name: i < 28 ? `Coupe ${String(1 + Math.floor(i / 4))} · ${String(i % 4 + 1)}` : `Entraînement ${String(i - 27)}` }));
 export function createTrack(level: number, seed = 28): Track {
@@ -27,7 +29,27 @@ export function createTrack(level: number, seed = 28): Track {
     const distances = [0];
     for (let i = 0; i < 96; i++)
         distances.push(required(distances[i]) + distance(required(points[i]), required(points[(i + 1) % 96])));
-    return { points, racingLine: points.map(p => ({ x: p.x * .99, y: p.y * .99 })), widths: points.map((_, i) => d.width + .5 * (1 + Math.sin(i * Math.PI / 24))), gates: Array.from({ length: 12 }, (_, i) => i * 8), walls: points.map((_, i) => i % 24 < Math.round(d.wallFraction * 24)), length: required(distances[96]), distances };
+    const track: Track = { boosts: [], trees: [], points, racingLine: points.map(p => ({ x: p.x * .99, y: p.y * .99 })), widths: points.map((_, i) => d.width + .5 * (1 + Math.sin(i * Math.PI / 24))), gates: Array.from({ length: 12 }, (_, i) => i * 8), walls: points.map((_, i) => i % 24 < Math.round(d.wallFraction * 24)), length: required(distances[96]), distances };
+    const candidates = points.map((_, i) => i).filter(i => bendAt(track, i) <= .09);
+    const count = level < 2 ? 0 : 1 + Math.floor((level - 2) / 4);
+    for (let j = 0; j < count; j++) {
+        const index = required(candidates[Math.floor((j + .5) * candidates.length / count)]);
+        track.boosts.push({ ...required(points[index]), radius: 2.5, index });
+    }
+    for (let i = 0; i < 96; i += 2 + level % 3) {
+        const p = required(points[i]), n = nearest(track, p), radius = 1.5 + r.next();
+        const side = r.next() < .5 ? -1 : 1;
+        const offset = required(track.widths[i]) / 2 + radius * 2 + 2 + r.next() * 4;
+        const tree = { x: p.x + n.nx * offset * side, y: p.y + n.ny * offset * side, radius };
+        const edge = nearest(track, tree);
+        if (edge.distance >= required(track.widths[edge.index]) / 2 + 2 * radius)
+            track.trees.push(tree);
+    }
+    return track;
+}
+export function bendAt(t: Track, i: number): number {
+    const a = required(t.points[(i + 95) % 96]), b = required(t.points[i]), c = required(t.points[(i + 1) % 96]);
+    return Math.abs(wrap(Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(b.y - a.y, b.x - a.x)));
 }
 export const distance = (a: Vec, b: Vec): number => Math.hypot(a.x - b.x, a.y - b.y);
 export const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));

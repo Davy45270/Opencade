@@ -1,7 +1,8 @@
 import { required } from '../../engines/derapage/access';
 import Phaser from 'phaser';
 import { Engine, LEVELS } from '../../engines/derapage/engine';
-import { at } from '../../engines/derapage/track';
+import { analogSteer } from '../../engines/derapage/physics';
+import { nearest, at } from '../../engines/derapage/track';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
 import { Progression } from '../../shell/progression';
@@ -10,16 +11,14 @@ import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 export const derapageButtons: readonly TouchButton[] = [
-    { id: 'derapage-left', label: '◀', ariaLabel: 'Braquer à gauche', size: 64, placement: 'left', mode: 'hold' },
-    { id: 'derapage-right', label: '▶', ariaLabel: 'Braquer à droite', size: 64, placement: 'left', mode: 'hold' },
-    { id: 'derapage-drift', label: 'Glisse', ariaLabel: 'Dérapage', size: 64, placement: 'center', mode: 'hold' },
-    { id: 'derapage-bonus', label: 'Bonus', ariaLabel: 'Bonus', size: 64, placement: 'right', mode: 'tap' },
+    { id: 'derapage-drift', label: 'Dérapage', ariaLabel: 'Dérapage', size: 64, placement: 'right', mode: 'hold' },
+    { id: 'derapage-bonus', label: 'Bonus', ariaLabel: 'Bonus', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface DerapageHook {
     read(): ReturnType<Engine['snapshot']>;
     loadLevel(i: number, seed?: number): void;
     advance(ms: number): void;
-    scenario(name: 'finish' | 'danger'): void;
+    scenario(name: 'finish' | 'danger' | 'trees-boost'): void;
     hudText(): string;
     usefulArea(): {
         x: number;
@@ -57,6 +56,7 @@ export class DerapageScene extends Phaser.Scene {
     private hud?: HTMLElement;
     private held = new Set<string>();
     private pointer = 0;
+    private thumb: { id: number; x: number } | null = null;
     private tilt = 0;
     private tiltEnabled = false;
     private mouseEnabled = false;
@@ -72,6 +72,7 @@ export class DerapageScene extends Phaser.Scene {
         this.manual = false;
         this.held.clear();
         this.pointer = 0;
+        this.thumb = null;
         this.pendingBonus = false;
         this.traces = [];
         this.progress.start(i, fresh);
@@ -101,26 +102,28 @@ export class DerapageScene extends Phaser.Scene {
             this.held.add(id);
         };
         renderTouchControls(this.inputs, derapageButtons, (id, held) => { action(id.replace('derapage-', ''), held); });
+        const indicator = document.createElement('output'); indicator.id = 'derapage-steering'; indicator.setAttribute('aria-label', 'Braquage'); document.querySelector('#touch-controls .left')?.append(indicator); this.inputs.cleanup(() => { indicator.remove(); });
         const keys: Record<string, string> = { ArrowLeft: 'left', ArrowRight: 'right', Space: 'drift', ShiftLeft: 'drift', ShiftRight: 'drift', KeyX: 'bonus', ControlLeft: 'bonus', ControlRight: 'bonus' };
         for (const type of ['keydown', 'keyup'])
             this.inputs.on(document, type, event => { const e = event as KeyboardEvent; const id = keys[e.code]; if (id) {
                 e.preventDefault();
                 action(id, type === 'keydown');
             } });
-        this.inputs.on(window, 'blur', () => { this.held.clear(); this.pointer = 0; });
+        this.inputs.on(window, 'blur', () => { this.held.clear(); this.pointer = 0; this.thumb = null; });
         const area = document.querySelector<HTMLElement>('#game');
         if (area) {
-            this.inputs.on(area, 'pointerdown', event => { const e = event as PointerEvent; if (e.pointerType !== 'mouse') {
+            this.inputs.on(area, 'pointerdown', event => { const e = event as PointerEvent; if (e.pointerType !== 'mouse' && !this.thumb && e.clientX < area.getBoundingClientRect().left + area.clientWidth / 2 && !(e.target as HTMLElement).closest('button')) {
                 area.setPointerCapture(e.pointerId);
-                const r = area.getBoundingClientRect();
-                this.pointer = e.clientX < r.left + r.width / 2 ? -1 : 1;
+                this.thumb = { id: e.pointerId, x: e.clientX };
+                this.pointer = 0;
+                action('steering', true);
             } });
-            this.inputs.on(area, 'pointermove', event => { const e = event as PointerEvent; if (e.pointerType === 'mouse' && this.mouseEnabled) {
+            this.inputs.on(area, 'pointermove', event => { const e = event as PointerEvent; if (e.pointerId === this.thumb?.id) this.pointer = analogSteer(e.clientX - this.thumb.x); if (e.pointerType === 'mouse' && this.mouseEnabled) {
                 const r = area.getBoundingClientRect();
                 this.pointer = Math.max(-1, Math.min(1, 2 * (e.clientX - r.left) / r.width - 1));
             } });
             for (const type of ['pointerup', 'pointercancel', 'lostpointercapture', 'pointerleave'])
-                this.inputs.on(area, type, () => { this.pointer = 0; });
+                this.inputs.on(area, type, event => { if ((event as PointerEvent).pointerType === 'mouse') this.pointer = 0; if ((event as PointerEvent).pointerId === this.thumb?.id) { this.thumb = null; this.pointer = 0; this.engine.input({ steer: 0, drift: this.held.has('drift'), bonus: false }); } });
         }
         // Optional sensors are enabled by an explicit user gesture; failures are silent.
         const help = document.querySelector('#game-help');
@@ -130,6 +133,7 @@ export class DerapageScene extends Phaser.Scene {
         ] as const) {
             const b = document.createElement('button');
             b.textContent = label;
+            b.style.minWidth = b.style.minHeight = '48px';
             help?.append(b);
             this.inputs.on(b, 'click', run);
             this.inputs.cleanup(() => { b.remove(); });
@@ -155,6 +159,16 @@ export class DerapageScene extends Phaser.Scene {
                     return { hud: { x: ((hud?.x ?? canvas.x) - canvas.x) / scale, y: ((hud?.y ?? canvas.y) - canvas.y) / scale, width: (hud?.width ?? 0) / scale, height: (hud?.height ?? 0) / scale }, forward: { x: 0, y: 96, width: 360, height: 330 } };
                 },
                 scenario: name => {
+                    if (name === 'trees-boost') {
+                        this.start(14, 28, true);
+                        const t = this.engine.track, b = required(t.boosts[0]), k = required(this.engine.karts[0]);
+                        const next = required(t.points[(b.index + 1) % t.points.length]);
+                        const angle = Math.atan2(next.y - b.y, next.x - b.x);
+                        Object.assign(k, { x: b.x, y: b.y, angle, vx: 24 * Math.cos(angle), vy: 24 * Math.sin(angle) });
+                        this.manual = true;
+                        this.tick(1000 / 60);
+                        return;
+                    }
                     this.start(0, 28, true);
                     this.engine.frames = 6000; this.engine.time = 100000;
                     const k = required(this.engine.karts[0]), t = this.engine.track, p = at(t, t.length - 3), q = at(t, 0);
@@ -187,7 +201,7 @@ export class DerapageScene extends Phaser.Scene {
     }
     update(_time: number, delta: number): void { this.tick(this.manual ? 0 : delta); }
     private tick(ms: number): void {
-        if (this.selecting || this.session.paused) { this.held.clear(); this.pointer = 0; this.pendingBonus = false; }
+        if (this.selecting || this.session.paused) { this.held.clear(); this.pointer = 0; this.thumb = null; this.pendingBonus = false; }
         if (!this.selecting && !this.session.paused) {
             const k = required(this.engine.karts[0]), hits = k.hits, boost = k.boostMs;
             this.engine.input({ steer: Number(this.held.has('right')) - Number(this.held.has('left')) + this.pointer + (this.tiltEnabled ? this.tilt : 0), drift: this.held.has('drift'), bonus: this.pendingBonus });
@@ -200,10 +214,11 @@ export class DerapageScene extends Phaser.Scene {
             if (k.boostMs > boost)
                 sound.playEffect('boost');
             if (ms > 0 && this.engine.frames - this.soundFrame > 18) {
-                sound.playEffect(k.driftMs > 0 ? 'drift' : 'engine');
+                const n = nearest(this.engine.track, k);
+                sound.playEffect(n.distance > required(this.engine.track.widths[n.index]) / 2 ? 'grass' : k.driftMs > 0 ? 'drift' : 'engine');
                 this.soundFrame = this.engine.frames;
             }
-            if (k.driftMs > 0 && ms > 0) {
+            if ((k.driftMs > 0 || nearest(this.engine.track, k).distance > required(this.engine.track.widths[nearest(this.engine.track, k).index]) / 2) && ms > 0) {
                 this.traces.push({ x: k.x, y: k.y });
                 if (this.traces.length > 60)
                     this.traces.shift();
@@ -244,6 +259,14 @@ export class DerapageScene extends Phaser.Scene {
             line(a, b, required(t.widths[i]) * 5 + 5, t.walls[i] ? 0xeab789 : 0x91c6ae);
             line(a, b, required(t.widths[i]) * 5, 0x38434d);
         }
+        for (const b of t.boosts) {
+            const a = project(b.x, b.y);
+            if (a.y > 110 && a.y < 620) { g.fillStyle(0x68edc0); g.fillCircle(a.x, a.y, b.radius * 5); g.fillStyle(0xffffff); g.fillTriangle(a.x - 6, a.y + 4, a.x + 6, a.y + 4, a.x, a.y - 6); }
+        }
+        for (const tree of t.trees) {
+            const a = project(tree.x, tree.y);
+            if (a.y > 110 && a.y < 620) { g.fillStyle(0x553c29); g.fillCircle(a.x + 2, a.y + 3, tree.radius * 5); g.fillStyle(0x37865a); g.fillCircle(a.x, a.y, tree.radius * 5); g.fillStyle(0x69a865); g.fillCircle(a.x - 3, a.y - 3, tree.radius * 2); }
+        }
         for (const i of t.gates) {
             const q = required(t.points[i]), a = project(q.x, q.y);
             if (a.y > 102 && a.y < 630) {
@@ -279,6 +302,7 @@ export class DerapageScene extends Phaser.Scene {
             g.fillRoundedRect(-11, -6, 22, 12, 4);
             g.fillStyle(0x26394a);
             g.fillCircle(0, 0, 4);
+            if (k.boostMs > 0) { g.fillStyle(0x70eeff); g.fillTriangle(-12, -5, -12, 5, -24, 0); }
             if (k.shield) {
                 g.lineStyle(2, 0x8cefff);
                 g.strokeCircle(0, 0, 16);
@@ -312,6 +336,8 @@ export class DerapageScene extends Phaser.Scene {
             this.hud.style.top = `${String(box.y + 6 * scale)}px`;
             this.hud.style.fontSize = `${String(12 * scale)}px`;
         }
+        const indicator = document.querySelector<HTMLElement>('#derapage-steering');
+        if (indicator) { indicator.textContent = `◀ ━ ${this.pointer.toFixed(2)} ━ ▶`; indicator.setAttribute('aria-valuenow', String(this.pointer)); }
         const status = document.querySelector('#status');
         if (status)
             status.textContent = `Score : ${String(e.score)} · ${text}`;

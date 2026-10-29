@@ -1,5 +1,6 @@
 import type { SoundEffects } from '../../shell/sound';
 export const derapageEffects: SoundEffects = {
+    grass: () => ({ frequency: 145, duration: .06, type: 'triangle' }),
     engine: () => ({ frequency: 95, duration: .09, type: 'sawtooth' }),
     drift: () => ({ frequency: 380, duration: .1, type: 'triangle' }),
     boost: () => ({ frequency: 740, duration: .2, type: 'sine' }),

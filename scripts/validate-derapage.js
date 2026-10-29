@@ -1,24 +1,28 @@
+import './ts-loader.js';
 /* global console */
-import { Engine } from '../src/engines/derapage/engine.ts';
-import { controller, aiInput, aiSpeed } from '../src/engines/derapage/ai.ts';
-import { physics } from '../src/engines/derapage/physics.ts';
-import { checkpoint } from '../src/engines/derapage/race.ts';
-import { validateTrack, difficulty, nearest } from '../src/engines/derapage/track.ts';
-import { Random } from '../src/engines/shared/random.ts';
+const { Engine } = await import('../src/engines/derapage/engine.ts');
+const { controller, aiInput, aiSpeed } = await import('../src/engines/derapage/ai.ts');
+const { physics } = await import('../src/engines/derapage/physics.ts');
+const { checkpoint } = await import('../src/engines/derapage/race.ts');
+const { validateTrack, difficulty, nearest } = await import('../src/engines/derapage/track.ts');
+const { Random } = await import('../src/engines/shared/random.ts');
 export function measure(level, ai = false) {
-    const e = new Engine(level, 28), k = e.karts[0], r = new Random(28); let error = 0, frames = 0;
+    const e = new Engine(level, 28), k = e.karts[0], r = new Random(28); let error = 0, frames = 0, grass = 0;
     for (; frames < 18000 && k.lap < 3; frames++) {
         const previous = { x: k.x, y: k.y };
         const input = ai ? aiInput(k, e.track, level, r.next() * 2 - 1) : controller(k, e.track);
         physics(k, input, e.track, 1 / 60, difficulty(level).grassGrip, ai ? aiSpeed(k, e.track, level) : 24);
         checkpoint(k, previous, e.track, (frames + 1) * 1000 / 60);
+        const n = nearest(e.track, k);
+        if (n.distance > e.track.widths[n.index] / 2) grass++;
         error += nearest({ ...e.track, points: e.track.racingLine }, k).distance;
     }
     if (k.lap !== 3) throw new Error(`Z13 circuit ${String(level + 1)} bloqué`);
-    return { lap: frames / 180, error: error / frames };
+    if (ai && [0, 14, 29].includes(level) && grass / frames > .05) throw new Error("Z24 herbe IA");
+    return { grass: grass / frames * 100, treeHits: k.treeHits ?? 0, lap: frames / 180, error: error / frames };
 }
-console.log('| Niveau | Longueur | Largeur min. | Virages | Tour pilote (s) | Tour IA (s) | Écart IA |');
-console.log('| --- | --- | --- | --- | --- | --- | --- |');
+console.log('| Niveau | Longueur | Largeur min. | Virages | Tour pilote (s) | Tour IA (s) | Écart IA | Herbe IA (%) | Bandes | Arbres | Chocs arbres pilote |');
+console.log('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
 for (let level = 0; level < 30; level++) {
     const e = new Engine(level, 28);
     if (!validateTrack(e.track)) throw new Error('Z12 circuit invalide');
@@ -29,7 +33,7 @@ for (let level = 0; level < 30; level++) {
         const angle = Math.atan2((b.x-a.x)*(c.y-b.y)-(b.y-a.y)*(c.x-b.x), (b.x-a.x)*(c.x-b.x)+(b.y-a.y)*(c.y-b.y));
         if (Math.abs(angle) > .06) turns++;
     }
-    console.log(`| ${String(level + 1)} | ${e.track.length.toFixed(1)} | ${Math.min(...e.track.widths).toFixed(2)} | ${String(turns)} | ${pilot.lap.toFixed(2)} | ${ai.lap.toFixed(2)} | ${ai.error.toFixed(3)} |`);
+    console.log(`| ${String(level + 1)} | ${e.track.length.toFixed(1)} | ${Math.min(...e.track.widths).toFixed(2)} | ${String(turns)} | ${pilot.lap.toFixed(2)} | ${ai.lap.toFixed(2)} | ${ai.error.toFixed(3)} | ${ai.grass.toFixed(2)} | ${e.track.boosts.length} | ${e.track.trees.length} | ${pilot.treeHits} |`);
 }
 
 // Also drive ordinary six-kart races at both endpoints (items and collisions active).

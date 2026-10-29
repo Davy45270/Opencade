@@ -42,7 +42,7 @@ partie en pause.
 | **Alunir** | Poser doucement un module lunaire en dosant rotation, poussée et carburant, entre relief et rafales. | Haut/W : poussée ; Gauche/Droite ou A/D : rotation ; toucher : maintenir les boutons de rotation et Poussée. |
 | **Caisses** | Pousser une à six caisses sur leurs cibles, avec annulation illimitée et records prouvés par solveur. | Flèches ou Q/S/D et Maj+Z : déplacer ; Z/Retour arrière : annuler ; R : recommencer ; toucher : glisser ou croix, bouton Annuler. |
 | **Traverse** | Rejoindre les abris entre trafic routier, rondins mobiles et flotteurs plongeants. | Flèches ou ZQSD : un pas ; clic souris ou tap : monter ; glisser ou croix : un pas. |
-| **Dérapage** | Piloter un kart, charger les dérapages et viser le podium en sept coupes originales. | Gauche/Droite : braquer ; Espace/Maj : dérapage ; X/Ctrl : bonus ; toucher : maintenir direction et Glisse, toucher Bonus ; inclinaison et souris en option. |
+| **Dérapage** | Piloter un kart, charger les dérapages et viser le podium en sept coupes originales. | Gauche/Droite : braquer ; Espace/Maj : dérapage ; X/Ctrl : bonus ; toucher : glisser dans la moitié gauche pour braquer (zone morte 6 px, maximum à 60 px), relâcher pour centrer ; maintenir Dérapage (88 px), toucher Bonus (56 px) au-dessus ; inclinaison et souris en option. |
 
 Les noms, règles, niveaux, graphismes et sons sont originaux. Les graphismes et
 sons synthétisés sont produits par le code, sans ressource de jeu externe,

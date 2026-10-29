@@ -1,7 +1,7 @@
 import { required } from '../src/engines/derapage/access';
 import { test, expect } from 'vitest';
 import { Engine } from '../src/engines/derapage/engine';
-import { physics, collide, type Kart } from '../src/engines/derapage/physics';
+import { analogSteer, physics, collide, type Kart } from '../src/engines/derapage/physics';
 import { createTrack, validateTrack, difficulty, at, nearest, distance } from '../src/engines/derapage/track';
 import { checkpoint, ranking, Cup } from '../src/engines/derapage/race';
 import { controller, aiInput, aiSpeed } from '../src/engines/derapage/ai';
@@ -9,7 +9,7 @@ import { drawItem, useItem, updateItems, type Puddle } from '../src/engines/dera
 import { Random } from '../src/engines/shared/random';
 const neutral = { steer: 0, drift: false, bonus: false };
 function kart(): Kart { return { id: 0, x: 0, y: 0, vx: 0, vy: 0, angle: 0, lap: 0, gate: 1, passed: 0, driftMs: 0, boostMs: 0, jumpMs: 0, slipMs: 0, shield: false, item: null, finishMs: null, hits: 0 }; }
-function flat() { const t = createTrack(0); t.widths.fill(10000); t.walls.fill(false); return t; }
+function flat() { const t = createTrack(0); t.trees = []; t.boosts = []; t.widths.fill(10000); t.walls.fill(false); return t; }
 test('Z01 accélération automatique, plafond 24, frottement et pas fixe', () => {
     const k = kart(), t = flat();
     physics(k, neutral, t, 1 / 60, .75);
@@ -54,7 +54,7 @@ test('Z03 seuil 9, charge 600/1400 ms et paliers 700/1400 ms', () => {
 });
 test('Z04 herbe ralentit, ressort ignore herbe, mur renvoie', () => {
     const t = createTrack(0);
-    t.walls.fill(false);
+    t.walls.fill(false); t.trees = [];
     const a = { ...kart(), vx: 24 }, b = { ...a, jumpMs: 1000 };
     physics(a, neutral, t, 1 / 60, .5);
     physics(b, neutral, t, 1 / 60, .5);
@@ -174,14 +174,16 @@ test('Z10 effets originaux, tirage pondéré reproductible et retour des caisses
 });
 function pilot(level: number, ai = false) {
     const e = new Engine(level), k = required(e.karts[0]), r = new Random(28);
-    let error = 0, frame = 0;
+    let error = 0, frame = 0, grass = 0;
     for (; frame < 18000 && k.lap < 3; frame++) {
         const old = { x: k.x, y: k.y };
         physics(k, ai ? aiInput(k, e.track, level, r.next() * 2 - 1) : controller(k, e.track), e.track, 1 / 60, difficulty(level).grassGrip, ai ? aiSpeed(k, e.track, level) : 24);
         checkpoint(k, old, e.track, frame * 1000 / 60);
+        const n = nearest(e.track, k);
+        if (n.distance > required(e.track.widths[n.index]) / 2) grass++;
         error += nearest({ ...e.track, points: e.track.racingLine }, k).distance;
     }
-    return { laps: k.lap, seconds: frame / 60, error: error / frame };
+    return { grass: grass / frame, laps: k.lap, seconds: frame / 60, error: error / frame };
 }
 test('Z11 IA : erreurs et temps mesurés entre niveaux extrêmes, cinq rivaux', () => {
     expect(new Engine().karts.slice(1)).toHaveLength(5);
@@ -221,7 +223,7 @@ test('Z13 pilote simulé trois tours sur chacun des trente circuits en moins de 
 }, 30000);
 test('Z14 tous paramètres monotones et extrêmes stricts', () => {
     const signs = { width: -1, aiSpeed: 1, error: -1, brakeDelay: -1, bend: 1, wallFraction: 1, grassGrip: -1 } as const;
-    expect(difficulty(0)).toEqual({ width: 20, aiSpeed: 15, error: .18, brakeDelay: .45, bend: .015, wallFraction: .12, grassGrip: .75 });
+    expect(difficulty(0)).toEqual({ width: 20, aiSpeed: 15, error: .18, brakeDelay: .45, bend: .015, wallFraction: .12, grassGrip: .45 });
     for (const key of Object.keys(signs) as (keyof typeof signs)[]) {
         for (let i = 1; i < 30; i++)
             expect((difficulty(i)[key] - difficulty(i - 1)[key]) * signs[key]).toBeGreaterThanOrEqual(0);
@@ -282,3 +284,81 @@ test('Z08 dernier franchissement exige le braquage réel, sans modifier les règ
         expect(k.lap).toBe(steer === 1 ? 3 : 2);
     }
 });
+
+
+// Constructed straight road: measurements do not depend on the generator.
+function straight() {
+    const t = createTrack(0);
+    t.points = Array.from({ length: 96 }, (_, i) => ({ x: i * 100, y: 0 }));
+    t.widths.fill(20); t.walls.fill(false); t.boosts = []; t.trees = [];
+    return t;
+}
+test('Z17 Z18 plafond herbe et perte de 30 % en une seconde', () => {
+    const t = straight(), road = { ...kart(), x: 100 }, grass = { ...kart(), x: 100, y: 30 };
+    for (let i = 0; i < 600; i++) {
+        physics(road, neutral, t, 1 / 60, .45);
+        physics(grass, neutral, t, 1 / 60, .45);
+    }
+    expect(Math.hypot(grass.vx, grass.vy)).toBeLessThanOrEqual(.50 * Math.hypot(road.vx, road.vy));
+    Object.assign(grass, { vx: 24, vy: 0 });
+    for (let i = 0; i < 60; i++) physics(grass, neutral, t, 1 / 60, .45);
+    expect(Math.hypot(grass.vx, grass.vy)).toBeLessThanOrEqual(24 * .70);
+});
+test('Z19 bande : 32 pendant 900 ms puis retour au plafond 24', () => {
+    const t = straight(), k = { ...kart(), x: 100, vx: 24 };
+    t.boosts = [{ x: 100, y: 0, radius: 2.5, index: 1 }];
+    physics(k, neutral, t, 1 / 60, .45);
+    expect(k.vx).toBe(32); expect(k.boostMs).toBeCloseTo(900 - 1000 / 60);
+    for (let i = 1; i < 54; i++) { physics(k, neutral, t, 1 / 60, .45); expect(k.vx).toBeGreaterThan(24); }
+    physics(k, neutral, t, 1 / 60, .45); physics(k, neutral, t, 1 / 60, .45);
+    expect(k.vx).toBe(24);
+});
+test('Z20 Z21 génération stable, bandes progressives et arbres hors piste', () => {
+    for (const seed of [1, 28, 999]) {
+        let previous = 0;
+        for (let level = 0; level < 30; level++) {
+            const t = createTrack(level, seed);
+            expect(t).toEqual(createTrack(level, seed));
+            expect(t.boosts.length).toBeGreaterThanOrEqual(previous);
+            if (level >= 2) expect(t.boosts.length).toBeGreaterThanOrEqual(1);
+            previous = t.boosts.length;
+            for (const b of t.boosts) {
+                const a = required(t.points[(b.index + 95) % 96]), c = required(t.points[(b.index + 1) % 96]);
+                const ux = b.x - a.x, uy = b.y - a.y, vx = c.x - b.x, vy = c.y - b.y;
+                expect(Math.abs(Math.atan2(ux * vy - uy * vx, ux * vx + uy * vy))).toBeLessThanOrEqual(.09);
+                expect(nearest(t, b).distance).toBe(0);
+            }
+            expect(t.trees.length).toBeGreaterThan(0);
+            for (const tree of t.trees) {
+                const n = nearest(t, tree);
+                expect(n.distance).toBeGreaterThanOrEqual(required(t.widths[n.index]) / 2 + 2 * tree.radius);
+                expect(nearest({ ...t, points: t.racingLine }, tree).distance).toBeGreaterThan(tree.radius + 1.2);
+            }
+        }
+    }
+});
+test('Z22 choc cercle balayé, rebond et aucune traversée à 24 ou 32', () => {
+    for (const speed of [24, 32]) for (const dt of [1 / 60, .5]) {
+        const t = straight(), k = { ...kart(), x: 100, vx: speed, boostMs: speed === 32 ? 1000 : 0 };
+        t.trees = [{ x: 100 + speed * dt / 2, y: 0, radius: .1 }];
+        physics(k, neutral, t, dt, .45);
+        expect(k.x).toBeLessThan(required(t.trees[0]).x);
+        expect(distance(k, required(t.trees[0]))).toBeGreaterThanOrEqual(1.3);
+        expect(k.vx).toBeLessThan(0); expect(Math.hypot(k.vx, k.vy)).toBeLessThan(speed);
+        expect(k.treeHits).toBe(1);
+    }
+});
+test('Z23 zone morte, saturation et rejeu analogique pas à pas', () => {
+    for (const x of [-6, 0, 6]) expect(analogSteer(x)).toBe(0);
+    expect(analogSteer(33)).toBe(.5); expect(analogSteer(-33)).toBe(-.5);
+    expect(analogSteer(60)).toBe(1); expect(analogSteer(-90)).toBe(-1);
+    const a = new Engine(14), b = new Engine(14);
+    for (let i = 0; i < 300; i++) {
+        const input = { ...neutral, steer: Math.sin(i / 30) * .37 };
+        a.input(input); b.input(input); a.step(1000 / 60); b.step(1000 / 120); b.step(1000 / 120);
+        expect(a.snapshot()).toEqual(b.snapshot());
+    }
+});
+test('Z24 IA au plus 5 % sur herbe aux niveaux 1, 15, 30', () => {
+    for (const level of [0, 14, 29]) { const p = pilot(level, true); expect(p.laps).toBe(3); expect(p.grass).toBeLessThanOrEqual(.05); }
+}, 30000);

@@ -1704,7 +1704,10 @@ longitudinal 0,12/s, vitesse normale plafonnée à 24. Braquage proportionnel
 2,4 rad/s, modulé par la vitesse jusqu’à 10 unités/s ; adhérence latérale
 exponentielle 10/s. Les cercles de rayon 1,2 se séparent et échangent une
 impulsion de coefficient 0,85 ; un mur renvoie la composante normale (1,7).
-L’herbe au-delà de la demi-largeur réduit la vitesse maximale ; les murs
+L’herbe au-delà de la demi-largeur plafonne la norme de la vitesse à
+45 % au niveau 1 et 42,1 % au niveau 30 de la cible sur piste, même avec
+un boost (toujours ≤ 50 %). Le plafond s’applique dès le premier pas :
+la perte est donc supérieure à 30 % en une seconde à partir de 24 ; les murs
 commencent trois unités au-delà de la bordure. Les sections sans mur restent
 en herbe et permettent une récupération par le pilote.
 
@@ -1741,12 +1744,18 @@ Le retard de freinage réduit la distance d’anticipation ; le bruit et ce
 retard diminuent aux niveaux élevés, tandis que leur vitesse augmente.
 
 Clavier ← →, Espace ou Maj pour déraper, X ou Ctrl pour le bonus.
-Au doigt, deux boutons ◀ ▶ de 64 px, Glisse (Dérapage) et Bonus sont
-sur une rangée de 64 px ; maintenir la moitié gauche/droite de l’aire
-braque aussi. Les options Souris et Inclinaison sont dans l’aide du menu ;
+Au doigt, poser le pouce dans la moitié gauche de l’écran de jeu puis
+glisser horizontalement : zone morte ±6 px, progression linéaire ensuite,
+saturation ±1 à ±60 px. Relâcher ou annuler recentre immédiatement.
+Les anciens boutons ◀ ▶ sont retirés. Un indicateur de braquage de
+120×48 px est sous le canevas, à gauche. À droite, Dérapage maintenu
+mesure 88×88 px, Bonus 56×56 px au-dessus. La bande réservée de 152 px
+reste hors du canevas : ni kart ni piste devant lui ne sont masqués.
+Le moteur accepte `steer` continu dans [-1,1], conservé dans le rejeu ;
+le clavier produit -1, 0 ou 1. Les options Souris et Inclinaison sont dans l’aide du menu ;
 le refus ou l’absence du capteur reste silencieux. Pause, Prêt, menus,
 progression, sauvegarde, écran allumé et vibrations life/won/lost passent
-par les services communs. Sons synthétisés engine/drift/boost/impact.
+par les services communs. Sons synthétisés engine/drift/boost/impact/grass, traces de terre sur herbe.
 La scène utilise des Graphics pour le circuit et les karts, un HUD HTML
 et une mini-carte dans la bande réservée y=0…96 ; la zone utile est
 (0,96,360,544), le kart vers y=466. Aucun contrôle ni HUD dans l’aire
@@ -1761,8 +1770,23 @@ aplatissement horizontal issus du PRNG partagé (graine canonique 28).
 La fermeture est explicite par l’arête du dernier au premier sommet.
 Cette courbe radiale bornée fournit des tracés simples, sans croisement.
 La largeur par segment est `width + 0,5 × (1+sin(iπ/24))`.
-Les portes sont aux sommets 0,8,…88. Aucun obstacle ajouté pour fabriquer
-une métrique : la difficulté vient des courbures, bordures, murs et IA.
+Les portes sont aux sommets 0,8,…88. Bandes et arbres sont des éléments
+sérialisables du circuit, en coordonnées du monde, utilisables par une future
+vue pseudo-3D. Dès le niveau 3, `1+floor((n−2)/4)` bandes de rayon 2,5
+sont réparties parmi les sommets dont le changement de direction est ≤0,09 rad
+(au-delà, virage considéré serré). Leur position dépend du tracé à graine fixe.
+À l’entrée, la vitesse passe à 32 pendant 900 ms, puis revient à la cible
+normale ; rester sur une bande ne recharge pas le boost. Les IA peuvent
+les emprunter. Flèche claire, couleur menthe, flamme et son signalent le boost.
+
+Les arbres ont un rayon de 1,5 à 2,5, une densité variable (un candidat tous
+les `2+n%3` sommets), un côté et un décalage issus de la même graine.
+La distance au centre de piste doit dépasser demi-largeur + deux rayons :
+il reste au moins un rayon libre entre bordure et tronc. La trajectoire idéale
+reste libre. Le kart de rayon 1,2 balaie son segment contre chaque cercle,
+s’arrête au premier contact, est repoussé à l’extérieur et rebondit (réflexion
+1,6, vitesse multipliée par 0,55). Il ne traverse donc pas le tronc à 24 ou 32.
+Troncs et feuillages sont dessinés par code.
 
 | Paramètre | Formule | Niveau 1 → 30 |
 | --- | --- | --- |
@@ -1772,11 +1796,11 @@ une métrique : la difficulté vient des courbures, bordures, murs et IA.
 | Retard de freinage | 0,45−0,012n | 0,45 → 0,102 s |
 | Amplitude des courbures | 0,015+0,0015n | 0,015 → 0,0585 |
 | Fraction de murs | 0,12+0,02n | 0,12 → 0,70 |
-| Facteur de vitesse sur herbe | 0,75−0,008n | 0,75 → 0,518 |
+| Facteur de vitesse sur herbe | 0,45−0,001n | 0,45 → 0,421 |
 
 ### Validation Node des trente circuits
 
-Commande : `node --import ./scripts/ts-loader.js scripts/validate-derapage.js`.
+Commande : `node scripts/validate-derapage.js`.
 Le script valide fermeture, largeur minimale 12, portes et intersections
 de toutes les arêtes non adjacentes. Il simule ensuite trois tours de chaque
 circuit, au pas 1/60 s, avec la physique et les portes ordinaires, sans
@@ -1785,41 +1809,43 @@ extrêmes vérifient aussi collisions et objets avec les cinq adversaires.
 Temps par tour = temps des trois tours / 3, départ arrêté inclus ;
 « virages » = nombre de sommets avec changement de direction > 0,06 rad.
 L’écart IA est la distance moyenne à la ligne de course, en unités du monde.
+Herbe IA compte les pas hors piste en pourcentage du temps total (≤5 %
+aux niveaux 1, 15 et 30). Les collisions d’arbres comptent celles du pilote.
 Les temps ne sont pas forcés à être monotones entre tracés différents ;
 la vitesse et la précision des paramètres IA le sont. Mesures graine 28 :
 
-| Niveau | Longueur | Largeur min. | Virages | Tour pilote (s) | Tour IA (s) | Écart IA |
-| --- | --- | --- | --- | --- | --- | --- |
-| 1 | 433.4 | 20.00 | 70 | 18.33 | 28.56 | 0.820 |
-| 2 | 441.9 | 19.73 | 67 | 18.68 | 28.69 | 0.783 |
-| 3 | 433.5 | 19.46 | 68 | 18.33 | 27.74 | 0.772 |
-| 4 | 442.0 | 19.19 | 66 | 18.68 | 27.89 | 0.737 |
-| 5 | 437.8 | 18.92 | 63 | 18.51 | 27.24 | 0.717 |
-| 6 | 442.1 | 18.65 | 61 | 18.69 | 27.14 | 0.685 |
-| 7 | 437.9 | 18.38 | 61 | 18.52 | 26.52 | 0.670 |
-| 8 | 433.8 | 18.11 | 60 | 18.34 | 25.92 | 0.646 |
-| 9 | 438.1 | 17.84 | 59 | 18.52 | 25.83 | 0.617 |
-| 10 | 434.0 | 17.57 | 58 | 18.35 | 25.26 | 0.594 |
-| 11 | 438.3 | 17.30 | 58 | 18.53 | 25.19 | 0.560 |
-| 12 | 434.1 | 17.03 | 57 | 18.36 | 24.64 | 0.542 |
-| 13 | 442.7 | 16.76 | 57 | 18.71 | 24.82 | 0.501 |
-| 14 | 434.3 | 16.49 | 56 | 18.37 | 24.06 | 0.484 |
-| 15 | 442.9 | 16.22 | 56 | 18.72 | 24.23 | 0.447 |
-| 16 | 434.5 | 15.95 | 57 | 18.38 | 23.51 | 0.426 |
-| 17 | 443.1 | 15.68 | 56 | 18.73 | 23.68 | 0.394 |
-| 18 | 439.0 | 15.41 | 55 | 18.56 | 23.20 | 0.366 |
-| 19 | 443.3 | 15.14 | 55 | 18.74 | 23.16 | 0.336 |
-| 20 | 439.2 | 14.87 | 55 | 18.57 | 22.70 | 0.312 |
-| 21 | 435.1 | 14.60 | 56 | 18.40 | 22.25 | 0.285 |
-| 22 | 439.5 | 14.33 | 56 | 18.58 | 22.24 | 0.258 |
-| 23 | 435.4 | 14.06 | 56 | 18.41 | 21.81 | 0.231 |
-| 24 | 439.8 | 13.79 | 54 | 18.59 | 21.84 | 0.204 |
-| 25 | 435.7 | 13.52 | 54 | 18.42 | 21.44 | 0.180 |
-| 26 | 444.3 | 13.25 | 54 | 18.78 | 21.68 | 0.151 |
-| 27 | 436.0 | 12.98 | 54 | 18.44 | 21.13 | 0.131 |
-| 28 | 444.6 | 12.71 | 55 | 18.79 | 21.39 | 0.106 |
-| 29 | 436.3 | 12.44 | 54 | 18.45 | 20.80 | 0.088 |
-| 30 | 445.0 | 12.17 | 54 | 18.81 | 21.07 | 0.077 |
+| Niveau | Longueur | Largeur min. | Virages | Tour pilote (s) | Tour IA (s) | Écart IA | Herbe IA (%) | Bandes | Arbres | Chocs arbres pilote |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 433.4 | 20.00 | 70 | 18.33 | 28.56 | 0.820 | 0.00 | 0 | 48 | 0 |
+| 2 | 441.9 | 19.73 | 67 | 18.68 | 28.69 | 0.783 | 0.00 | 0 | 32 | 0 |
+| 3 | 433.5 | 19.46 | 68 | 18.03 | 26.76 | 0.780 | 0.00 | 1 | 24 | 0 |
+| 4 | 442.0 | 19.19 | 66 | 18.38 | 26.93 | 0.733 | 0.00 | 1 | 48 | 0 |
+| 5 | 437.8 | 18.92 | 63 | 18.21 | 26.32 | 0.716 | 0.00 | 1 | 32 | 0 |
+| 6 | 442.1 | 18.65 | 61 | 18.39 | 26.23 | 0.684 | 0.00 | 1 | 24 | 0 |
+| 7 | 437.9 | 18.38 | 61 | 17.91 | 24.77 | 0.677 | 0.00 | 2 | 48 | 0 |
+| 8 | 433.8 | 18.11 | 60 | 17.74 | 24.22 | 0.652 | 0.00 | 2 | 32 | 0 |
+| 9 | 438.1 | 17.84 | 59 | 17.92 | 24.18 | 0.620 | 0.00 | 2 | 24 | 0 |
+| 10 | 434.0 | 17.57 | 58 | 17.74 | 23.66 | 0.593 | 0.00 | 2 | 48 | 0 |
+| 11 | 438.3 | 17.30 | 58 | 17.62 | 22.86 | 0.563 | 0.00 | 3 | 32 | 0 |
+| 12 | 434.1 | 17.03 | 57 | 17.46 | 22.38 | 0.505 | 0.00 | 3 | 24 | 0 |
+| 13 | 442.7 | 16.76 | 57 | 17.80 | 22.62 | 0.495 | 0.00 | 3 | 48 | 0 |
+| 14 | 434.3 | 16.49 | 56 | 17.46 | 21.92 | 0.458 | 0.00 | 3 | 32 | 0 |
+| 15 | 442.9 | 16.22 | 56 | 17.51 | 21.48 | 0.408 | 0.00 | 4 | 24 | 0 |
+| 16 | 434.5 | 15.95 | 57 | 17.17 | 20.83 | 0.384 | 0.00 | 4 | 48 | 0 |
+| 17 | 443.1 | 15.68 | 56 | 17.52 | 21.08 | 0.351 | 0.00 | 4 | 32 | 0 |
+| 18 | 439.0 | 15.41 | 55 | 17.35 | 20.68 | 0.320 | 0.00 | 4 | 24 | 0 |
+| 19 | 443.3 | 15.14 | 55 | 17.22 | 20.10 | 0.282 | 0.00 | 5 | 48 | 0 |
+| 20 | 439.2 | 14.87 | 55 | 17.06 | 19.73 | 0.251 | 0.00 | 5 | 32 | 0 |
+| 21 | 435.1 | 14.60 | 56 | 16.89 | 19.38 | 0.224 | 0.00 | 5 | 24 | 0 |
+| 22 | 439.5 | 14.33 | 56 | 17.07 | 19.45 | 0.205 | 0.00 | 5 | 48 | 0 |
+| 23 | 435.4 | 14.06 | 56 | 16.59 | 18.56 | 0.192 | 0.00 | 6 | 32 | 0 |
+| 24 | 439.8 | 13.79 | 54 | 16.78 | 18.69 | 0.173 | 0.00 | 6 | 24 | 0 |
+| 25 | 435.7 | 13.52 | 54 | 16.61 | 18.37 | 0.174 | 0.00 | 6 | 48 | 0 |
+| 26 | 444.3 | 13.25 | 54 | 16.97 | 18.69 | 0.164 | 0.00 | 6 | 32 | 0 |
+| 27 | 436.0 | 12.98 | 54 | 16.31 | 17.72 | 0.170 | 0.00 | 7 | 24 | 0 |
+| 28 | 444.6 | 12.71 | 55 | 16.68 | 18.07 | 0.163 | 0.00 | 7 | 48 | 0 |
+| 29 | 436.3 | 12.44 | 54 | 16.33 | 17.56 | 0.172 | 0.00 | 7 | 32 | 0 |
+| 30 | 445.0 | 12.17 | 54 | 16.68 | 17.88 | 0.175 | 0.00 | 7 | 24 | 0 |
 
 
 ### Oracle
@@ -1842,15 +1868,26 @@ la vitesse et la précision des paramètres IA le sont. Mesures graine 28 :
 | Z14 | Sens de chacun des sept paramètres et extrêmes stricts |
 | Z15 | Course complète rejouée à chaque pas, cadences, copies et temps invalides |
 | Z16 | Clés littérales du snapshot et méthodes publiques sans notion de vue |
+| Z17 | Circuit construit : plafond herbe ≤0,50 du plafond piste |
+| Z18 | À 24 sur herbe, perte ≥30 % après 60 pas de 1/60 s |
+| Z19 | Bande à 32 pendant 900 ms, retour à 24 |
+| Z20 | Bandes dès le niveau 3, nombre non décroissant, virage ≤0,09 rad |
+| Z21 | Trois graines : arbres reproductibles, marge et ligne idéale libre |
+| Z22 | Collision balayée à 24/32, rebond, perte et absence de traversée |
+| Z23 | Fonction pure : zone morte 6 px, saturation 60 px, rejeu continu |
+| Z24 | IA ≤5 % sur herbe aux niveaux 1,15,30 ; Z13 conservé |
+| Z25 | E2E mobile : glisser signé, relâcher, dérapage maintenu, tailles 88/56 et captures |
 
 Le crochet `__ARCADE_TEST__.games.derapage` expose read/loadLevel/advance,
-hudText/usefulArea/bounds et deux états de course ordinaires : finish
+hudText/usefulArea/bounds et trois états de course ordinaires : finish
 (dernière porte, kart mal orienté qui doit réellement braquer), danger
-(même situation, cinq adversaires déjà arrivés). Aucun seuil ni règle
+(même situation, cinq adversaires déjà arrivés), trees-boost (entrée réelle
+sur une bande du niveau 15, avec arbres et boost visibles). Aucun seuil ni règle
 n’est modifié. Les E2E utilisent un maintien réel au clavier ou multitouch,
 advance pour la simulation, puis vérifient les panneaux Niveau suivant et
 Rejouer le niveau, le déblocage après reload et les captures
-derapage-play/level30/won/lost sur chaque projet. Ils vérifient aussi
+derapage-play/level30/won/lost sur chaque projet, et
+`derapage-mobile-controls` / `derapage-trees-boost` sur mobile. Ils vérifient aussi
 la séparation HUD/aire devant le kart et contrôles/canevas. M01–M04,
 A11 et les douze vignettes communes incluent Dérapage.
 

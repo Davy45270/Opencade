@@ -39,7 +39,7 @@ while pausing play.
 | **Alunir** | Land a lunar module gently while managing rotation, thrust and fuel over rough terrain and gusts. | Up/W: thrust; Left/Right or A/D: rotate; touch: hold the rotation and Thrust buttons. |
 | **Caisses** | Push one to six crates onto targets, with unlimited undo and solver-proven records to beat. | Arrows or Q/S/D and Shift+Z: move; Z/Backspace: undo; R: restart; touch: swipe or direction pad, Undo button. |
 | **Traverse** | Reach shelters across traffic, moving logs and diving floats. | Arrows or ZQSD: step; mouse click or touch tap: up; swipe or direction pad: step. |
-| **Dérapage** | Steer a kart, charge drifts and race for the podium across seven original cups. | Left/Right: steer; Space/Shift: drift; X/Ctrl: bonus; touch: hold steering and Drift, tap Bonus; optional tilt and mouse steering. |
+| **Dérapage** | Steer a kart, charge drifts and race for the podium across seven original cups. | Left/Right: steer; Space/Shift: drift; X/Ctrl: bonus; touch: drag anywhere in the left half to steer (6 px dead zone, full lock at 60 px), release to center; hold the 88 px Drift button, tap the 56 px Bonus above it; optional tilt and mouse steering. |
 
 Names, rules, levels, artwork and sounds are original. Graphics and synthesized
 sounds are generated in code, with no external game assets, fonts or audio files.

@@ -4,9 +4,10 @@ test('Z08 Z09 podium, défaite, progression, commandes réelles et HUD séparé'
     const activate = async (selector: string) => { if (mobile) await page.locator(selector).tap(); else await page.locator(selector).click(); };
     const driveGate = async () => {
         if (mobile) {
-            const b = await page.locator('#derapage-right').boundingBox(); if (!b) throw new Error('Bouton absent');
+            const b = await page.locator('canvas').boundingBox(); if (!b) throw new Error('Canevas absent');
             const cdp = await page.context().newCDPSession(page);
             await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: b.x + 32, y: b.y + 32 }] });
+            await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: b.x + 92, y: b.y + 32 }] });
             await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(1500));
             await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await cdp.detach();
         } else {
@@ -21,7 +22,7 @@ test('Z08 Z09 podium, défaite, progression, commandes réelles et HUD séparé'
     expect(bounds.hud.y + bounds.hud.height).toBeLessThanOrEqual(bounds.forward.y);
     const canvas = await page.locator('canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
     for (const button of await page.locator('#touch-controls button').all()) {
-        const b = await button.boundingBox(); if (b) { expect(b.width).toBeGreaterThanOrEqual(64); expect(b.height).toBeGreaterThanOrEqual(64); expect(b.y >= canvas.y + canvas.height || b.y + b.height <= canvas.y).toBe(true); }
+        const b = await button.boundingBox(); if (b) { expect(b.width).toBeGreaterThanOrEqual(56); expect(b.height).toBeGreaterThanOrEqual(56); expect(b.y >= canvas.y + canvas.height || b.y + b.height <= canvas.y).toBe(true); }
     }
     await page.screenshot({ path: `test-results/screenshots/derapage-play-${info.project.name}.png` });
     // The scenario is a legal last-gate state, still requiring the kart to drive across it.
@@ -47,14 +48,46 @@ test('Z02 Z03 maintien tactile ou clavier et absence de crochet en production', 
     await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(2000));
     const before = await page.evaluate(() => window.__DERAPAGE_TEST__?.read().karts[0]?.angle);
     if (info.project.name === 'mobile-chromium') {
-        const right = await page.locator('#derapage-right').boundingBox(), drift = await page.locator('#derapage-drift').boundingBox(); if (!right || !drift) throw new Error('Boutons absents');
+        const right = await page.locator('canvas').boundingBox(), drift = await page.locator('#derapage-drift').boundingBox(); if (!right || !drift) throw new Error('Boutons absents');
         const cdp = await page.context().newCDPSession(page);
         await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: right.x + 32, y: right.y + 32, id: 1 }, { x: drift.x + 32, y: drift.y + 32, id: 2 }] });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: right.x + 65, y: right.y + 32, id: 1 }, { x: drift.x + 32, y: drift.y + 32, id: 2 }] });
         await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(700));
+        expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().controls.steer)).toBeGreaterThan(0);
+        expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().karts[0]?.driftMs)).toBeGreaterThan(0);
         await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await cdp.detach();
+        expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().controls.steer)).toBe(0);
     } else {
         await page.keyboard.down('ArrowRight'); await page.keyboard.down('Space'); await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(700)); await page.keyboard.up('Space'); await page.keyboard.up('ArrowRight');
     }
     expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().karts[0]?.angle)).not.toBe(before);
     await page.goto('/#/derapage'); await expect(page.locator('canvas')).toBeVisible(); expect(await page.evaluate(() => window.__DERAPAGE_TEST__)).toBeUndefined();
+});
+
+test('Z25 commandes analogiques mobiles, tailles et captures', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium');
+    await page.goto('/?test=1#/derapage'); await page.locator('#resume').tap();
+    await page.evaluate(() => { window.__DERAPAGE_TEST__?.loadLevel(14, 28); window.__DERAPAGE_TEST__?.advance(2000); });
+    const canvas = await page.locator('canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
+    const drift = await page.locator('#derapage-drift').boundingBox(), bonus = await page.locator('#derapage-bonus').boundingBox();
+    if (!drift || !bonus) throw new Error('Commandes absentes');
+    expect(drift.width).toBeGreaterThanOrEqual(88); expect(drift.height).toBeGreaterThanOrEqual(88);
+    expect(bonus.width).toBeGreaterThanOrEqual(56); expect(bonus.height).toBeGreaterThanOrEqual(56);
+    expect(bonus.y + bonus.height).toBeLessThanOrEqual(drift.y);
+    for (const box of [drift, bonus]) expect(box.y).toBeGreaterThanOrEqual(canvas.y + canvas.height);
+    await expect(page.locator('#derapage-left, #derapage-right')).toHaveCount(0);
+    const cdp = await page.context().newCDPSession(page);
+    const x = canvas.x + canvas.width * .25, y = canvas.y + canvas.height * .6;
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] });
+    for (const delta of [4, -33, 33]) {
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + delta, y, id: 1 }] });
+        await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(0));
+        expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().controls.steer)).toBe(delta === 4 ? 0 : delta / 66);
+    }
+    await page.screenshot({ path: 'test-results/screenshots/derapage-mobile-controls.png' });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await cdp.detach();
+    expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().controls.steer)).toBe(0);
+    await page.evaluate(() => window.__DERAPAGE_TEST__?.scenario('trees-boost'));
+    expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().karts[0]?.boostMs)).toBeGreaterThan(0);
+    await page.screenshot({ path: 'test-results/screenshots/derapage-trees-boost.png' });
 });

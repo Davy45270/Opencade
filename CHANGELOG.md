@@ -5,6 +5,17 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- Dérapage: continuous thumb steering with a dead zone and steering indicator,
+  an 88 px held Drift button and a 56 px Bonus button above it. The old touch
+  arrows are removed; keyboard, optional mouse steering and tilt remain available.
+- Seeded acceleration strips from level 3 (32 units/s for 900 ms) and roadside
+  trees with swept circle collisions, exposed in world coordinates for future views.
+- Grass speed capped at 45% or less of road speed, with immediate slowdown,
+  visual traces and a light sound; AI grass-time and tree-collision measurements.
+- Z17–Z25 coverage and an expanded 30-track validation table.
+
 ## [0.3.0] - 2026-10-29
 
 ### Added

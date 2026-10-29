@@ -51,7 +51,7 @@ export class Engine {
         });
         this.crates = [16, 40, 64, 88].map(i => ({ ...required(this.track.points[i]), cooldown: 0 }));
     }
-    input(input: Input): void { this.controls = { ...input, bonus: this.controls.bonus || input.bonus }; }
+    input(input: Input): void { this.controls = { ...input, steer: Math.max(-1, Math.min(1, input.steer)), bonus: this.controls.bonus || input.bonus }; }
     step(ms: number): void {
         if (!Number.isFinite(ms) || ms < 0)
             throw new RangeError('Temps invalide');

@@ -17,11 +17,18 @@ export interface Kart extends Vec {
     item: Item | null;
     finishMs: number | null;
     hits: number;
+    treeHits?: number;
+    stripActive?: boolean;
 }
 export interface Input {
     steer: number;
     drift: boolean;
     bonus: boolean;
+}
+/** Relative thumb displacement in CSS pixels; continuous outside the dead zone. */
+export function analogSteer(delta: number): number {
+    if (Math.abs(delta) <= 6) return 0;
+    return Math.sign(delta) * Math.min(1, Math.max(0, Math.abs(delta) - 6) / 54);
 }
 export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: number, targetSpeed = 24): void {
     const speed = Math.hypot(k.vx, k.vy), steer = Math.max(-1, Math.min(1, input.steer));
@@ -36,13 +43,44 @@ export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: 
     k.angle += steer * 2.4 * Math.min(1, speed / 10) * (drifting ? 1.22 : 1) * dt;
     const c = Math.cos(k.angle), s = Math.sin(k.angle), forward = k.vx * c + k.vy * s, lateral = -k.vx * s + k.vy * c;
     const n = nearest(t, k), grass = n.distance > required(t.widths[n.index]) / 2 && k.jumpMs <= 0;
-    const max = (k.boostMs > 0 ? 32 : targetSpeed) * (grass ? grassGrip : 1);
-    const f = Math.max(0, Math.min(max, forward + (12 - forward * .12) * dt));
+    const strip = t.boosts.some(b => Math.hypot(k.x - b.x, k.y - b.y) <= b.radius + 1.2);
+    if (strip && !k.stripActive) {
+        k.boostMs = Math.max(k.boostMs, 900);
+        k.vx = c * 32;
+        k.vy = s * 32;
+    }
+    k.stripActive = strip;
+    const max = grass ? targetSpeed * Math.min(.5, grassGrip) : k.boostMs > 0 ? 32 : targetSpeed;
+    const f = Math.max(0, Math.min(max, (strip && k.boostMs > 0 ? 32 : forward) + (12 - forward * .12) * dt));
     const l = lateral * Math.exp(-(drifting || k.slipMs > 0 ? 1.4 : 10) * dt);
     k.vx = c * f - s * l;
     k.vy = s * f + c * l;
-    k.x += k.vx * dt;
-    k.y += k.vy * dt;
+    if (grass) {
+        const magnitude = Math.hypot(k.vx, k.vy);
+        if (magnitude > max) { k.vx *= max / magnitude; k.vy *= max / magnitude; }
+    }
+    const start = { x: k.x, y: k.y }, dx = k.vx * dt, dy = k.vy * dt;
+    let hit: { time: number; tree: Track['trees'][number] } | undefined;
+    for (const tree of t.trees) {
+        const ox = start.x - tree.x, oy = start.y - tree.y, radius = tree.radius + 1.2;
+        const a = dx * dx + dy * dy, b = ox * dx + oy * dy, c0 = ox * ox + oy * oy - radius * radius;
+        const disc = b * b - a * c0;
+        const time = c0 < 0 ? 0 : a > 0 && disc >= 0 ? (-b - Math.sqrt(disc)) / a : Infinity;
+        if (time >= 0 && time <= 1 && (!hit || time < hit.time)) hit = { time, tree };
+    }
+    k.x += dx * (hit?.time ?? 1);
+    k.y += dy * (hit?.time ?? 1);
+    if (hit) {
+        const tree = hit.tree, length = Math.hypot(k.x - tree.x, k.y - tree.y);
+        const nx = length > 0 ? (k.x - tree.x) / length : 1, ny = length > 0 ? (k.y - tree.y) / length : 0;
+        k.x = tree.x + nx * (tree.radius + 1.201);
+        k.y = tree.y + ny * (tree.radius + 1.201);
+        const v = Math.min(0, k.vx * nx + k.vy * ny);
+        k.vx = (k.vx - 1.6 * v * nx) * .55;
+        k.vy = (k.vy - 1.6 * v * ny) * .55;
+        k.hits++;
+        k.treeHits = (k.treeHits ?? 0) + 1;
+    }
     if (n.distance > required(t.widths[n.index]) / 2 + 3 && t.walls[n.index]) {
         const sign = (k.x - n.x) * n.nx + (k.y - n.y) * n.ny > 0 ? 1 : -1;
         const nx = n.nx * sign, ny = n.ny * sign, v = k.vx * nx + k.vy * ny;
