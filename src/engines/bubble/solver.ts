@@ -70,12 +70,12 @@ export function greedyLevel(level: number, seed = 28, limit = 160): { won: boole
     return { won: e.status === 'won', shots: e.shots };
 }
 
-export function solveLevel(level: number, seed = 28, limit = 160, onDepth?: (depth: number) => void): { won: boolean; shots: number } {
+export function solveLevel(level: number, seed = 28, limit = 160, onDepth?: (depth: number) => void, beamWidth = 64, urgentInterval = 6): { won: boolean; shots: number } {
     const quick = greedyLevel(level, seed, limit);
     if (quick.won) return quick;
     const initial = new Engine(seed); initial.loadLevel(level, seed);
     // Short ceiling cadences favor preparing low pairs before clearing them.
-    const urgent = initial.shotsBeforeDrop !== null && initial.shotsBeforeDrop <= 6;
+    const urgent = initial.shotsBeforeDrop !== null && initial.shotsBeforeDrop <= urgentInterval;
     let beam = [initial];
     for (let depth = 0; depth < limit; depth++) {
         onDepth?.(depth + 1);
@@ -95,7 +95,7 @@ export function solveLevel(level: number, seed = 28, limit = 160, onDepth?: (dep
             const rank = urgent ? -discounted * 4 - e.grid.length * 4 : -cost * 3 - e.grid.length * 8 + pairs * 10 - Math.max(...e.grid.map(c=>center(c,e.drops).y)) / 5;
             expanded.set(signature,{engine:e,rank});
         }
-        beam = [...expanded.values()].sort((a,b)=>b.rank-a.rank).slice(0,64).map(x=>x.engine);
+        beam = [...expanded.values()].sort((a,b)=>b.rank-a.rank).slice(0,beamWidth).map(x=>x.engine);
         if (!beam.length) break;
     }
     return quick;

@@ -16,7 +16,8 @@ function extract(id, e, d) {
     switch (id) {
     case 'bubble':
         add('bubble', 'match-three', 'detach'); if (d.interval) add('ceiling-drop');
-        for (const mechanic of e.snapshot().mechanics ?? []) add(mechanic);
+        for (const cell of s.grid) if (cell.kind) add(cell.kind);
+        if (e.rainbow) add('rainbow'); if (e.bumpers.length) add('bumper');
         layout.push(...s.grid.map(c => `${c.row},${c.col}:${c.color}:${c.kind ?? 'color'}`)); break;
     case 'briqueterie':
         add('ball', 'paddle', 'breakable-brick'); if (s.bricks.some(b => b.solid)) add('solid-brick');
@@ -86,7 +87,7 @@ async function policy(id, mod, level) {
     const p = createDemo(SEED); p.engine.loadLevel(level, SEED); return p;
 }
 const variations = [
-    'Thirty sculpted layouts; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers.',
+    'Thirty seeded layouts with increasing density and pressure; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers.',
     'Brick masks, density, solid bricks, hit points, ball speed and paddle width.',
     'Piece vocabulary, initial rubble and sealed tiles, gravity and line target.',
     'Obstacle placement and patterns, boundary wrapping, speed and apple target.',
@@ -133,5 +134,5 @@ for (const [index, id] of ids.entries()) {
 }
 games.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
 const table = ['| Game | Score | Novelties (count; levels) | Clone share | Longest flat plateau | What actually varies |', '| --- | ---: | --- | ---: | ---: | --- |', ...games.map(g => `| ${g.game}${g.partial ? ' *' : ''} | ${g.score} | ${g.noveltyCount}; ${g.noveltyLevels.join(', ') || 'none'} | ${(g.cloneShare * 100).toFixed(1)}% | ${g.longestPlateau} | ${g.varies} |`)].join('\n');
-console.log(JSON.stringify({ revision: 'pass-48', seed: SEED, thresholds: { clone: CLONE, flatParameterRange: FLAT, minPlateauLevels: 3, maxPolicySteps: CAP }, games }, null, 2));
+console.log(JSON.stringify({ revision: 'pass-49', seed: SEED, thresholds: { clone: CLONE, flatParameterRange: FLAT, minPlateauLevels: 3, maxPolicySteps: CAP }, games }, null, 2));
 console.log('\n' + table);

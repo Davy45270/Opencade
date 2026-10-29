@@ -18,7 +18,7 @@ const additions = [
     'Couronne des échos', 'La voûte aux six secrets',
 ] as const;
 export const LEVELS: readonly Level[] = [...HISTORIC, ...additions.map((name, i) => ({
-    id: `L${String(i + 11)}`, name, colors: 6, rows: 8, interval: [14, 19, 24, 29].includes(i + 10) ? 6 : 0,
+    id: `L${String(i + 11)}`, name, colors: i < 5 ? 5 : 6, rows: [7,8,7,7,8,8,7,9,8,8,10,9,8,10,11,8,10,9,10,11][i] ?? 11, interval: 16 - Math.floor(i / 5),
     pattern: `sculpture-${String(i + 1)}`, seed: 462 + i,
     mechanics: ['stone', ...(i >= 3 ? ['bomb'] : []), ...(i >= 6 ? ['rainbow'] : []),
         ...(i >= 9 ? ['ice'] : []), ...(i >= 12 ? ['star'] : []), ...(i >= 15 ? ['bumper'] : [])],
@@ -32,30 +32,23 @@ export function levelAt(index: number): Level {
 export function generateLevel(index: number, seed: number): Cell[] {
     const level = levelAt(index), random = new Random(seed), grid: Cell[] = [];
     if (index >= 10) {
-        // Separate hanging islands with distinct silhouettes, gaps and narrow necks.
-        const phase = Math.floor(random.next() * 6);
-        const variant = index - 10;
-        const columns = variant % 3 === 0 ? [1, 4, 7] : variant % 3 === 1 ? [0, 3, 6] : [2, 5, 8];
-        for (const [island, col] of columns.entries()) {
-            const color = ((phase + island) % 6) as Color;
-            const depth = 2 + Math.floor(variant / (island + 1)) % 4;
-            grid.push({ row: 0, col, color }, { row: 1, col: Math.min(col, 7), color });
-            for (let row = 2; row <= depth; row++) {
-                const socket = Math.min(col, row % 2 ? 7 : 8);
-                grid.push({ row, col: socket, color: ((color + row) % 6) as Color,
-                    kind: row === depth ? 'stone' : undefined });
-                if (Math.floor(variant / (row + island)) % 2 === 0 && socket > 0)
-                    grid.push({ row, col: socket - 1, color, kind: level.mechanics?.includes('bomb') ? 'bomb' : undefined });
-            }
-            const last = grid[grid.length - 1];
-            if (last && level.mechanics?.includes('ice') && island === 1) { last.kind = 'ice'; last.ice = 2; }
-            if (level.mechanics?.includes('star')) grid.push({ row: depth + 1, col: Math.min(col, (depth + 1) % 2 ? 7 : 8), color, kind: 'star' });
+        // Shuffle the whole palette; nearby seeds also change the staggered seams.
+        const palette = Array.from({ length: level.colors }, (_, c) => c as Color);
+        for (let i = palette.length - 1; i > 0; i--) {
+            const j = Math.floor(random.next() * (i + 1));
+            [palette[i], palette[j]] = [palette[j] ?? 0, palette[i] ?? 0];
         }
-        if (variant % 5 === 3 || index === 29) {
-            // A suspended crosspiece joins the three necks; all supports must be cut.
-            for (let col = 0; col < 9; col++) if (!grid.some(c => c.row === 2 && c.col === col)) {
-                grid.push({ row: 2, col, color: ((phase + Math.floor(col / 3)) % 6) as Color,
-                    kind: level.mechanics?.includes('bomb') && col % 3 === 1 ? 'bomb' : undefined });
+        const seam = Math.abs(seed) % 3;
+        for (let row = 0; row < level.rows; row++) {
+            for (let col = 0; col < (row % 2 ? 8 : 9); col++) {
+                if (row === level.rows - 1 && col === Math.abs(seed) % (row % 2 ? 8 : 9)) continue;
+                const color = palette[(Math.floor((col + seam) / 2) + (index < 15 ? Math.floor(row / 2) : index < 25 ? row : row * 2) + index) % level.colors] ?? 0;
+                const cell: Cell = { row, col, color };
+                if (row === 1 && col === 1) cell.kind = 'stone';
+                if (level.mechanics?.includes('bomb') && row === level.rows - 2 && col === 5) cell.kind = 'bomb';
+                if (level.mechanics?.includes('ice') && row === 2 && col === 6) { cell.kind = 'ice'; cell.ice = 2; }
+                if (level.mechanics?.includes('star') && row === 1 && (col === 2 || col === 7)) cell.kind = 'star';
+                grid.push(cell);
             }
         }
         return grid;

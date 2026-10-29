@@ -1,65 +1,17 @@
 {
   "seed": 28,
-  "seeds": 5,
+  "seeds": 20,
   "shotCap": 160,
   "levelTimeoutMs": 2000,
-  "fixedLevels": [
-    1,
-    5,
-    10,
-    15,
-    20,
-    25,
-    30
-  ],
-  "fixedDurationMs": 1625.531111,
-  "fixedResults": [
-    {
-      "level": 1,
-      "won": true,
-      "shots": 6
-    },
-    {
-      "level": 5,
-      "won": true,
-      "shots": 12
-    },
-    {
-      "level": 10,
-      "won": false,
-      "shots": 24
-    },
-    {
-      "level": 15,
-      "won": true,
-      "shots": 6
-    },
-    {
-      "level": 20,
-      "won": true,
-      "shots": 8
-    },
-    {
-      "level": 25,
-      "won": true,
-      "shots": 4
-    },
-    {
-      "level": 30,
-      "won": true,
-      "shots": 7
-    }
-  ],
+  "historicalSearchTimeoutMs": 30000,
+  "concurrency": 2,
+  "fingerprint": "ec8f976d1b11e9e1704bd84ea77b40ee2edaa599eda423b672d0ef1ae72c13ab",
+  "durationMs": 1104604,
   "results": [
     {
       "level": 1,
       "name": "Atelier",
       "mechanics": [],
-      "fixed": {
-        "level": 1,
-        "won": true,
-        "shots": 6
-      },
       "runs": [
         {
           "seed": 0,
@@ -90,16 +42,110 @@
           "won": true,
           "shots": 6,
           "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 10,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 10,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 8,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 6,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 10,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 10,
+          "timedOut": false
         }
       ],
-      "meanShots": 7.4,
-      "winRate": 1
+      "meanShots": 8.7,
+      "winRate": 1,
+      "fixed": {
+        "level": 1,
+        "won": true,
+        "shots": 6
+      }
     },
     {
       "level": 2,
       "name": "Losange",
       "mechanics": [],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
@@ -130,16 +176,110 @@
           "won": true,
           "shots": 18,
           "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 22,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 26,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
         }
       ],
-      "meanShots": 17.4,
-      "winRate": 1
+      "meanShots": 18.5,
+      "winRate": 1,
+      "fixed": {
+        "level": 2,
+        "won": true,
+        "shots": 16
+      }
     },
     {
       "level": 3,
       "name": "Damier",
       "mechanics": [],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
@@ -170,16 +310,110 @@
           "won": true,
           "shots": 21,
           "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 28,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 30,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 22,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 22,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 26,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 29,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
         }
       ],
-      "meanShots": 23.2,
-      "winRate": 1
+      "meanShots": 23.85,
+      "winRate": 1,
+      "fixed": {
+        "level": 3,
+        "won": true,
+        "shots": 29
+      }
     },
     {
       "level": 4,
       "name": "Pyramide",
       "mechanics": [],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
@@ -210,20 +444,110 @@
           "won": true,
           "shots": 6,
           "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 9,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 8,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 10,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 9,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 7,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 4,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 5,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 9,
+          "timedOut": false
         }
       ],
-      "meanShots": 8.4,
-      "winRate": 1
+      "meanShots": 9.85,
+      "winRate": 1,
+      "fixed": {
+        "level": 4,
+        "won": true,
+        "shots": 11
+      }
     },
     {
       "level": 5,
       "name": "Colonnes",
       "mechanics": [],
-      "fixed": {
-        "level": 5,
-        "won": true,
-        "shots": 12
-      },
       "runs": [
         {
           "seed": 0,
@@ -254,16 +578,110 @@
           "won": true,
           "shots": 12,
           "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
         }
       ],
-      "meanShots": 12,
-      "winRate": 1
+      "meanShots": 12.15,
+      "winRate": 1,
+      "fixed": {
+        "level": 5,
+        "won": true,
+        "shots": 12
+      }
     },
     {
       "level": 6,
       "name": "Vagues",
       "mechanics": [],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
@@ -294,16 +712,110 @@
           "won": true,
           "shots": 12,
           "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 10,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 10,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 10,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 8,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
         }
       ],
-      "meanShots": 15.8,
-      "winRate": 1
+      "meanShots": 14.25,
+      "winRate": 1,
+      "fixed": {
+        "level": 6,
+        "won": true,
+        "shots": 13
+      }
     },
     {
       "level": 7,
       "name": "Chevrons",
       "mechanics": [],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
@@ -313,15 +825,15 @@
         },
         {
           "seed": 1,
-          "won": true,
-          "shots": 25,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 2,
-          "won": true,
-          "shots": 39,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 3,
@@ -334,16 +846,110 @@
           "won": true,
           "shots": 25,
           "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 29,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 36,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 28,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 28,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 30,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
         }
       ],
-      "meanShots": 27.2,
-      "winRate": 1
+      "meanShots": null,
+      "winRate": 0.55,
+      "fixed": {
+        "level": 7,
+        "won": true,
+        "shots": 28
+      }
     },
     {
       "level": 8,
       "name": "Spirale",
       "mechanics": [],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
@@ -374,94 +980,373 @@
           "won": true,
           "shots": 17,
           "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 24,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 31,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 29,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 29,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 26,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
         }
       ],
-      "meanShots": 21,
-      "winRate": 1
+      "meanShots": 23,
+      "winRate": 1,
+      "fixed": {
+        "level": 8,
+        "won": true,
+        "shots": 21
+      }
     },
     {
       "level": 9,
       "name": "Cristal",
       "mechanics": [],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
           "won": false,
-          "shots": null,
+          "shots": 56,
           "timedOut": true
         },
         {
           "seed": 1,
           "won": false,
-          "shots": null,
+          "shots": 56,
           "timedOut": true
         },
         {
           "seed": 2,
           "won": false,
-          "shots": null,
+          "shots": 35,
           "timedOut": true
         },
         {
           "seed": 3,
           "won": false,
-          "shots": null,
+          "shots": 49,
           "timedOut": true
         },
         {
           "seed": 4,
           "won": false,
-          "shots": null,
+          "shots": 49,
+          "timedOut": true
+        },
+        {
+          "seed": 5,
+          "won": false,
+          "shots": 35,
+          "timedOut": true
+        },
+        {
+          "seed": 6,
+          "won": false,
+          "shots": 49,
+          "timedOut": true
+        },
+        {
+          "seed": 7,
+          "won": false,
+          "shots": 49,
+          "timedOut": true
+        },
+        {
+          "seed": 8,
+          "won": false,
+          "shots": 35,
+          "timedOut": true
+        },
+        {
+          "seed": 9,
+          "won": false,
+          "shots": 63,
+          "timedOut": true
+        },
+        {
+          "seed": 10,
+          "won": false,
+          "shots": 56,
+          "timedOut": true
+        },
+        {
+          "seed": 11,
+          "won": false,
+          "shots": 63,
+          "timedOut": true
+        },
+        {
+          "seed": 12,
+          "won": false,
+          "shots": 70,
+          "timedOut": true
+        },
+        {
+          "seed": 13,
+          "won": false,
+          "shots": 49,
+          "timedOut": true
+        },
+        {
+          "seed": 14,
+          "won": false,
+          "shots": 49,
+          "timedOut": true
+        },
+        {
+          "seed": 15,
+          "won": false,
+          "shots": 42,
+          "timedOut": true
+        },
+        {
+          "seed": 16,
+          "won": false,
+          "shots": 35,
+          "timedOut": true
+        },
+        {
+          "seed": 17,
+          "won": false,
+          "shots": 35,
+          "timedOut": true
+        },
+        {
+          "seed": 18,
+          "won": false,
+          "shots": 42,
+          "timedOut": true
+        },
+        {
+          "seed": 19,
+          "won": false,
+          "shots": 56,
           "timedOut": true
         }
       ],
-      "meanShots": null,
-      "winRate": 0
+      "meanShots": 48.65,
+      "winRate": 0,
+      "fixed": {
+        "level": 9,
+        "won": true,
+        "shots": 70
+      }
     },
     {
       "level": 10,
       "name": "Prisme",
       "mechanics": [],
-      "fixed": {
-        "level": 10,
-        "won": false,
-        "shots": 24
-      },
       "runs": [
         {
           "seed": 0,
           "won": false,
-          "shots": null,
+          "shots": 30,
           "timedOut": true
         },
         {
           "seed": 1,
           "won": false,
-          "shots": null,
+          "shots": 36,
           "timedOut": true
         },
         {
           "seed": 2,
           "won": false,
-          "shots": null,
+          "shots": 36,
           "timedOut": true
         },
         {
           "seed": 3,
           "won": false,
-          "shots": null,
+          "shots": 54,
           "timedOut": true
         },
         {
           "seed": 4,
           "won": false,
-          "shots": null,
+          "shots": 30,
+          "timedOut": true
+        },
+        {
+          "seed": 5,
+          "won": false,
+          "shots": 54,
+          "timedOut": true
+        },
+        {
+          "seed": 6,
+          "won": false,
+          "shots": 54,
+          "timedOut": true
+        },
+        {
+          "seed": 7,
+          "won": false,
+          "shots": 39,
+          "timedOut": true
+        },
+        {
+          "seed": 8,
+          "won": false,
+          "shots": 30,
+          "timedOut": true
+        },
+        {
+          "seed": 9,
+          "won": false,
+          "shots": 30,
+          "timedOut": true
+        },
+        {
+          "seed": 10,
+          "won": false,
+          "shots": 30,
+          "timedOut": true
+        },
+        {
+          "seed": 11,
+          "won": false,
+          "shots": 60,
+          "timedOut": true
+        },
+        {
+          "seed": 12,
+          "won": false,
+          "shots": 60,
+          "timedOut": true
+        },
+        {
+          "seed": 13,
+          "won": false,
+          "shots": 30,
+          "timedOut": true
+        },
+        {
+          "seed": 14,
+          "won": false,
+          "shots": 42,
+          "timedOut": true
+        },
+        {
+          "seed": 15,
+          "won": false,
+          "shots": 36,
+          "timedOut": true
+        },
+        {
+          "seed": 16,
+          "won": false,
+          "shots": 48,
+          "timedOut": true
+        },
+        {
+          "seed": 17,
+          "won": false,
+          "shots": 30,
+          "timedOut": true
+        },
+        {
+          "seed": 18,
+          "won": false,
+          "shots": 54,
+          "timedOut": true
+        },
+        {
+          "seed": 19,
+          "won": false,
+          "shots": 36,
           "timedOut": true
         }
       ],
-      "meanShots": null,
-      "winRate": 0
+      "meanShots": 40.95,
+      "winRate": 0,
+      "fixed": {
+        "level": 10,
+        "won": true,
+        "shots": 56
+      }
     },
     {
       "level": 11,
@@ -469,7 +1354,1103 @@
       "mechanics": [
         "stone"
       ],
-      "fixed": null,
+      "runs": [
+        {
+          "seed": 0,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 1,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 29,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        }
+      ],
+      "meanShots": null,
+      "winRate": 0.85,
+      "fixed": {
+        "level": 11,
+        "won": true,
+        "shots": 13
+      }
+    },
+    {
+      "level": 12,
+      "name": "Arches de craie",
+      "mechanics": [
+        "stone"
+      ],
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 22,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 15.6,
+      "winRate": 1,
+      "fixed": {
+        "level": 12,
+        "won": true,
+        "shots": 14
+      }
+    },
+    {
+      "level": 13,
+      "name": "Halte des lucioles",
+      "mechanics": [
+        "stone"
+      ],
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 29,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 16.8,
+      "winRate": 1,
+      "fixed": {
+        "level": 13,
+        "won": true,
+        "shots": 16
+      }
+    },
+    {
+      "level": 14,
+      "name": "Mèches jumelles",
+      "mechanics": [
+        "stone",
+        "bomb"
+      ],
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 24,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 15.3,
+      "winRate": 1,
+      "fixed": {
+        "level": 14,
+        "won": true,
+        "shots": 13
+      }
+    },
+    {
+      "level": 15,
+      "name": "Le grand brasier",
+      "mechanics": [
+        "stone",
+        "bomb"
+      ],
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 10,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 16.15,
+      "winRate": 1,
+      "fixed": {
+        "level": 15,
+        "won": true,
+        "shots": 12
+      }
+    },
+    {
+      "level": 16,
+      "name": "Jardin ajouré",
+      "mechanics": [
+        "stone",
+        "bomb"
+      ],
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 22,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 26,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 28,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 28,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 32,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 28,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 24,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 22,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 26,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 22,
+      "winRate": 1,
+      "fixed": {
+        "level": 16,
+        "won": true,
+        "shots": 32
+      }
+    },
+    {
+      "level": 17,
+      "name": "Iris voyageur",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow"
+      ],
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 9,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 14.2,
+      "winRate": 1,
+      "fixed": {
+        "level": 17,
+        "won": true,
+        "shots": 11
+      }
+    },
+    {
+      "level": 18,
+      "name": "Éventail des marées",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow"
+      ],
+      "runs": [
+        {
+          "seed": 0,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 1,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 2,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 3,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 4,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 22,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        }
+      ],
+      "meanShots": 18.4,
+      "winRate": 1,
+      "fixed": {
+        "level": 18,
+        "won": true,
+        "shots": 13
+      }
+    },
+    {
+      "level": 19,
+      "name": "Clairière calme",
+      "mechanics": [
+        "stone",
+        "bomb",
+        "rainbow"
+      ],
       "runs": [
         {
           "seed": 0,
@@ -480,379 +2461,125 @@
         {
           "seed": 1,
           "won": true,
-          "shots": 3,
+          "shots": 15,
           "timedOut": false
         },
         {
           "seed": 2,
           "won": true,
-          "shots": 3,
+          "shots": 16,
           "timedOut": false
         },
         {
           "seed": 3,
-          "won": true,
-          "shots": 3,
-          "timedOut": false
-        },
-        {
-          "seed": 4,
-          "won": true,
-          "shots": 3,
-          "timedOut": false
-        }
-      ],
-      "meanShots": 5.4,
-      "winRate": 1
-    },
-    {
-      "level": 12,
-      "name": "Arches de craie",
-      "mechanics": [
-        "stone"
-      ],
-      "fixed": null,
-      "runs": [
-        {
-          "seed": 0,
           "won": true,
           "shots": 13,
           "timedOut": false
         },
         {
-          "seed": 1,
-          "won": true,
-          "shots": 9,
-          "timedOut": false
-        },
-        {
-          "seed": 2,
-          "won": true,
-          "shots": 3,
-          "timedOut": false
-        },
-        {
-          "seed": 3,
-          "won": true,
-          "shots": 8,
-          "timedOut": false
-        },
-        {
           "seed": 4,
           "won": true,
-          "shots": 6,
-          "timedOut": false
-        }
-      ],
-      "meanShots": 7.8,
-      "winRate": 1
-    },
-    {
-      "level": 13,
-      "name": "Halte des lucioles",
-      "mechanics": [
-        "stone"
-      ],
-      "fixed": null,
-      "runs": [
-        {
-          "seed": 0,
-          "won": true,
-          "shots": 7,
+          "shots": 17,
           "timedOut": false
         },
         {
-          "seed": 1,
+          "seed": 5,
           "won": true,
-          "shots": 4,
+          "shots": 13,
           "timedOut": false
         },
         {
-          "seed": 2,
+          "seed": 6,
           "won": true,
-          "shots": 3,
+          "shots": 14,
           "timedOut": false
         },
         {
-          "seed": 3,
+          "seed": 7,
           "won": true,
-          "shots": 8,
+          "shots": 16,
           "timedOut": false
         },
         {
-          "seed": 4,
-          "won": true,
-          "shots": 8,
-          "timedOut": false
-        }
-      ],
-      "meanShots": 6,
-      "winRate": 1
-    },
-    {
-      "level": 14,
-      "name": "Mèches jumelles",
-      "mechanics": [
-        "stone",
-        "bomb"
-      ],
-      "fixed": null,
-      "runs": [
-        {
-          "seed": 0,
-          "won": true,
-          "shots": 6,
-          "timedOut": false
-        },
-        {
-          "seed": 1,
-          "won": true,
-          "shots": 3,
-          "timedOut": false
-        },
-        {
-          "seed": 2,
-          "won": true,
-          "shots": 8,
-          "timedOut": false
-        },
-        {
-          "seed": 3,
-          "won": true,
-          "shots": 5,
-          "timedOut": false
-        },
-        {
-          "seed": 4,
-          "won": true,
-          "shots": 4,
-          "timedOut": false
-        }
-      ],
-      "meanShots": 5.2,
-      "winRate": 1
-    },
-    {
-      "level": 15,
-      "name": "Le grand brasier",
-      "mechanics": [
-        "stone",
-        "bomb"
-      ],
-      "fixed": {
-        "level": 15,
-        "won": true,
-        "shots": 6
-      },
-      "runs": [
-        {
-          "seed": 0,
-          "won": true,
-          "shots": 4,
-          "timedOut": false
-        },
-        {
-          "seed": 1,
-          "won": true,
-          "shots": 3,
-          "timedOut": false
-        },
-        {
-          "seed": 2,
-          "won": true,
-          "shots": 5,
-          "timedOut": false
-        },
-        {
-          "seed": 3,
-          "won": true,
-          "shots": 4,
-          "timedOut": false
-        },
-        {
-          "seed": 4,
-          "won": true,
-          "shots": 8,
-          "timedOut": false
-        }
-      ],
-      "meanShots": 4.8,
-      "winRate": 1
-    },
-    {
-      "level": 16,
-      "name": "Jardin ajouré",
-      "mechanics": [
-        "stone",
-        "bomb"
-      ],
-      "fixed": null,
-      "runs": [
-        {
-          "seed": 0,
-          "won": true,
-          "shots": 4,
-          "timedOut": false
-        },
-        {
-          "seed": 1,
-          "won": true,
-          "shots": 3,
-          "timedOut": false
-        },
-        {
-          "seed": 2,
-          "won": true,
-          "shots": 5,
-          "timedOut": false
-        },
-        {
-          "seed": 3,
-          "won": true,
-          "shots": 4,
-          "timedOut": false
-        },
-        {
-          "seed": 4,
-          "won": true,
-          "shots": 9,
-          "timedOut": false
-        }
-      ],
-      "meanShots": 5,
-      "winRate": 1
-    },
-    {
-      "level": 17,
-      "name": "Iris voyageur",
-      "mechanics": [
-        "stone",
-        "bomb",
-        "rainbow"
-      ],
-      "fixed": null,
-      "runs": [
-        {
-          "seed": 0,
-          "won": true,
-          "shots": 5,
-          "timedOut": false
-        },
-        {
-          "seed": 1,
-          "won": true,
-          "shots": 4,
-          "timedOut": false
-        },
-        {
-          "seed": 2,
-          "won": true,
-          "shots": 3,
-          "timedOut": false
-        },
-        {
-          "seed": 3,
-          "won": true,
-          "shots": 5,
-          "timedOut": false
-        },
-        {
-          "seed": 4,
-          "won": true,
-          "shots": 7,
-          "timedOut": false
-        }
-      ],
-      "meanShots": 4.8,
-      "winRate": 1
-    },
-    {
-      "level": 18,
-      "name": "Éventail des marées",
-      "mechanics": [
-        "stone",
-        "bomb",
-        "rainbow"
-      ],
-      "fixed": null,
-      "runs": [
-        {
-          "seed": 0,
-          "won": true,
-          "shots": 5,
-          "timedOut": false
-        },
-        {
-          "seed": 1,
-          "won": true,
-          "shots": 4,
-          "timedOut": false
-        },
-        {
-          "seed": 2,
-          "won": true,
-          "shots": 3,
-          "timedOut": false
-        },
-        {
-          "seed": 3,
-          "won": true,
-          "shots": 8,
-          "timedOut": false
-        },
-        {
-          "seed": 4,
-          "won": true,
-          "shots": 7,
-          "timedOut": false
-        }
-      ],
-      "meanShots": 5.4,
-      "winRate": 1
-    },
-    {
-      "level": 19,
-      "name": "Clairière calme",
-      "mechanics": [
-        "stone",
-        "bomb",
-        "rainbow"
-      ],
-      "fixed": null,
-      "runs": [
-        {
-          "seed": 0,
+          "seed": 8,
           "won": true,
           "shots": 11,
           "timedOut": false
         },
         {
-          "seed": 1,
+          "seed": 9,
           "won": true,
-          "shots": 7,
+          "shots": 12,
           "timedOut": false
         },
         {
-          "seed": 2,
+          "seed": 10,
           "won": true,
-          "shots": 3,
+          "shots": 20,
           "timedOut": false
         },
         {
-          "seed": 3,
+          "seed": 11,
           "won": true,
-          "shots": 8,
+          "shots": 17,
           "timedOut": false
         },
         {
-          "seed": 4,
+          "seed": 12,
           "won": true,
-          "shots": 7,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 9,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 14,
           "timedOut": false
         }
       ],
-      "meanShots": 7.2,
-      "winRate": 1
+      "meanShots": 15.2,
+      "winRate": 1,
+      "fixed": {
+        "level": 19,
+        "won": true,
+        "shots": 18
+      }
     },
     {
       "level": 20,
@@ -863,45 +2590,135 @@
         "rainbow",
         "ice"
       ],
-      "fixed": {
-        "level": 20,
-        "won": true,
-        "shots": 8
-      },
       "runs": [
         {
           "seed": 0,
           "won": true,
-          "shots": 7,
+          "shots": 20,
           "timedOut": false
         },
         {
           "seed": 1,
           "won": true,
-          "shots": 3,
+          "shots": 18,
           "timedOut": false
         },
         {
           "seed": 2,
           "won": true,
-          "shots": 3,
+          "shots": 16,
           "timedOut": false
         },
         {
           "seed": 3,
           "won": true,
-          "shots": 8,
+          "shots": 13,
           "timedOut": false
         },
         {
           "seed": 4,
           "won": true,
-          "shots": 6,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 12,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 16,
           "timedOut": false
         }
       ],
-      "meanShots": 5.4,
-      "winRate": 1
+      "meanShots": 15.65,
+      "winRate": 1,
+      "fixed": {
+        "level": 20,
+        "won": true,
+        "shots": 15
+      }
     },
     {
       "level": 21,
@@ -912,41 +2729,135 @@
         "rainbow",
         "ice"
       ],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
           "won": true,
-          "shots": 6,
+          "shots": 18,
           "timedOut": false
         },
         {
           "seed": 1,
           "won": true,
-          "shots": 4,
+          "shots": 18,
           "timedOut": false
         },
         {
           "seed": 2,
           "won": true,
-          "shots": 3,
+          "shots": 14,
           "timedOut": false
         },
         {
           "seed": 3,
           "won": true,
-          "shots": 6,
+          "shots": 19,
           "timedOut": false
         },
         {
           "seed": 4,
           "won": true,
-          "shots": 3,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 13,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 15,
           "timedOut": false
         }
       ],
-      "meanShots": 4.4,
-      "winRate": 1
+      "meanShots": 16.95,
+      "winRate": 1,
+      "fixed": {
+        "level": 21,
+        "won": true,
+        "shots": 24
+      }
     },
     {
       "level": 22,
@@ -957,41 +2868,135 @@
         "rainbow",
         "ice"
       ],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
           "won": true,
-          "shots": 7,
+          "shots": 16,
           "timedOut": false
         },
         {
           "seed": 1,
           "won": true,
-          "shots": 3,
+          "shots": 18,
           "timedOut": false
         },
         {
           "seed": 2,
           "won": true,
-          "shots": 7,
+          "shots": 19,
           "timedOut": false
         },
         {
           "seed": 3,
           "won": true,
-          "shots": 6,
+          "shots": 19,
           "timedOut": false
         },
         {
           "seed": 4,
           "won": true,
-          "shots": 3,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 22,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 16,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 27,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 16,
           "timedOut": false
         }
       ],
-      "meanShots": 5.2,
-      "winRate": 1
+      "meanShots": 19,
+      "winRate": 1,
+      "fixed": {
+        "level": 22,
+        "won": true,
+        "shots": 17
+      }
     },
     {
       "level": 23,
@@ -1003,41 +3008,135 @@
         "ice",
         "star"
       ],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
           "won": true,
-          "shots": 4,
+          "shots": 22,
           "timedOut": false
         },
         {
           "seed": 1,
           "won": true,
-          "shots": 3,
+          "shots": 11,
           "timedOut": false
         },
         {
           "seed": 2,
           "won": true,
-          "shots": 4,
+          "shots": 31,
           "timedOut": false
         },
         {
           "seed": 3,
           "won": true,
-          "shots": 4,
+          "shots": 19,
           "timedOut": false
         },
         {
           "seed": 4,
           "won": true,
-          "shots": 3,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 28,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 20,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 14,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 26,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 39,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 11,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 28,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 26,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 14,
           "timedOut": false
         }
       ],
-      "meanShots": 3.6,
-      "winRate": 1
+      "meanShots": 21.7,
+      "winRate": 1,
+      "fixed": {
+        "level": 23,
+        "won": true,
+        "shots": 13
+      }
     },
     {
       "level": 24,
@@ -1049,41 +3148,135 @@
         "ice",
         "star"
       ],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
           "won": true,
-          "shots": 4,
+          "shots": 37,
           "timedOut": false
         },
         {
           "seed": 1,
           "won": true,
-          "shots": 3,
+          "shots": 20,
           "timedOut": false
         },
         {
           "seed": 2,
           "won": true,
-          "shots": 4,
+          "shots": 27,
           "timedOut": false
         },
         {
           "seed": 3,
           "won": true,
-          "shots": 4,
+          "shots": 55,
           "timedOut": false
         },
         {
           "seed": 4,
           "won": true,
-          "shots": 4,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 34,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 15,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 30,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 29,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 22,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 29,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 23,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 18,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 29,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 17,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 31,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 28,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 19,
           "timedOut": false
         }
       ],
-      "meanShots": 3.8,
-      "winRate": 1
+      "meanShots": 26.6,
+      "winRate": 1,
+      "fixed": {
+        "level": 24,
+        "won": true,
+        "shots": 19
+      }
     },
     {
       "level": 25,
@@ -1095,45 +3288,135 @@
         "ice",
         "star"
       ],
-      "fixed": {
-        "level": 25,
-        "won": true,
-        "shots": 4
-      },
       "runs": [
         {
           "seed": 0,
           "won": true,
-          "shots": 4,
+          "shots": 29,
           "timedOut": false
         },
         {
           "seed": 1,
           "won": true,
-          "shots": 3,
+          "shots": 15,
           "timedOut": false
         },
         {
           "seed": 2,
           "won": true,
-          "shots": 4,
+          "shots": 32,
           "timedOut": false
         },
         {
           "seed": 3,
           "won": true,
-          "shots": 4,
+          "shots": 38,
           "timedOut": false
         },
         {
           "seed": 4,
           "won": true,
-          "shots": 4,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 41,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 29,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 34,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 38,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 22,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 25,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 28,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 19,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 49,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 46,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 21,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 27,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 28,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 16,
           "timedOut": false
         }
       ],
-      "meanShots": 3.8,
-      "winRate": 1
+      "meanShots": 28.85,
+      "winRate": 1,
+      "fixed": {
+        "level": 25,
+        "won": true,
+        "shots": 21
+      }
     },
     {
       "level": 26,
@@ -1146,41 +3429,135 @@
         "star",
         "bumper"
       ],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
           "won": true,
-          "shots": 4,
+          "shots": 36,
           "timedOut": false
         },
         {
           "seed": 1,
           "won": true,
-          "shots": 4,
+          "shots": 46,
           "timedOut": false
         },
         {
           "seed": 2,
           "won": true,
-          "shots": 3,
+          "shots": 40,
           "timedOut": false
         },
         {
           "seed": 3,
           "won": true,
-          "shots": 5,
+          "shots": 42,
           "timedOut": false
         },
         {
           "seed": 4,
           "won": true,
-          "shots": 5,
+          "shots": 30,
+          "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": true,
+          "shots": 44,
+          "timedOut": false
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 39,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": true,
+          "shots": 34,
+          "timedOut": false
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 31,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 37,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 36,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 40,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 38,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 37,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 34,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 29,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 32,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 40,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 40,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": true,
+          "shots": 58,
           "timedOut": false
         }
       ],
-      "meanShots": 4.2,
-      "winRate": 1
+      "meanShots": 38.15,
+      "winRate": 1,
+      "fixed": {
+        "level": 26,
+        "won": true,
+        "shots": 37
+      }
     },
     {
       "level": 27,
@@ -1193,41 +3570,135 @@
         "star",
         "bumper"
       ],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
           "won": true,
-          "shots": 4,
+          "shots": 65,
           "timedOut": false
         },
         {
           "seed": 1,
           "won": true,
-          "shots": 3,
+          "shots": 38,
           "timedOut": false
         },
         {
           "seed": 2,
           "won": true,
-          "shots": 4,
+          "shots": 38,
           "timedOut": false
         },
         {
           "seed": 3,
-          "won": true,
-          "shots": 5,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 4,
           "won": true,
-          "shots": 5,
+          "shots": 43,
           "timedOut": false
+        },
+        {
+          "seed": 5,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 6,
+          "won": true,
+          "shots": 43,
+          "timedOut": false
+        },
+        {
+          "seed": 7,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 8,
+          "won": true,
+          "shots": 39,
+          "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": true,
+          "shots": 49,
+          "timedOut": false
+        },
+        {
+          "seed": 10,
+          "won": true,
+          "shots": 34,
+          "timedOut": false
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 41,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": true,
+          "shots": 49,
+          "timedOut": false
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 38,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": true,
+          "shots": 58,
+          "timedOut": false
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 61,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": true,
+          "shots": 34,
+          "timedOut": false
+        },
+        {
+          "seed": 17,
+          "won": true,
+          "shots": 49,
+          "timedOut": false
+        },
+        {
+          "seed": 18,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 19,
+          "won": false,
+          "shots": null,
+          "timedOut": true
         }
       ],
-      "meanShots": 4.2,
-      "winRate": 1
+      "meanShots": null,
+      "winRate": 0.75,
+      "fixed": {
+        "level": 27,
+        "won": true,
+        "shots": 34
+      }
     },
     {
       "level": 28,
@@ -1240,41 +3711,135 @@
         "star",
         "bumper"
       ],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
-          "won": true,
-          "shots": 4,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 1,
-          "won": true,
-          "shots": 3,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 2,
-          "won": true,
-          "shots": 4,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 3,
-          "won": true,
-          "shots": 3,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 4,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 5,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 6,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 7,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 8,
           "won": true,
-          "shots": 3,
+          "shots": 44,
           "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 10,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 11,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 12,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 13,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 14,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 15,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 16,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 17,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 18,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 19,
+          "won": false,
+          "shots": null,
+          "timedOut": true
         }
       ],
-      "meanShots": 3.4,
-      "winRate": 1
+      "meanShots": null,
+      "winRate": 0.05,
+      "fixed": {
+        "level": 28,
+        "won": true,
+        "shots": 34
+      }
     },
     {
       "level": 29,
@@ -1287,41 +3852,135 @@
         "star",
         "bumper"
       ],
-      "fixed": null,
       "runs": [
         {
           "seed": 0,
-          "won": true,
-          "shots": 8,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 1,
-          "won": true,
-          "shots": 5,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 2,
-          "won": true,
-          "shots": 6,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 3,
-          "won": true,
-          "shots": 6,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 4,
-          "won": true,
-          "shots": 7,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 5,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 6,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 7,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 8,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 9,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 10,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 11,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 12,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 13,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 14,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 15,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 16,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 17,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 18,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 19,
+          "won": false,
+          "shots": null,
+          "timedOut": true
         }
       ],
-      "meanShots": 6.4,
-      "winRate": 1
+      "meanShots": null,
+      "winRate": 0,
+      "fixed": {
+        "level": 29,
+        "won": true,
+        "shots": 43
+      }
     },
     {
       "level": 30,
@@ -1334,45 +3993,296 @@
         "star",
         "bumper"
       ],
-      "fixed": {
-        "level": 30,
-        "won": true,
-        "shots": 7
-      },
       "runs": [
         {
           "seed": 0,
-          "won": true,
-          "shots": 4,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 1,
-          "won": true,
-          "shots": 4,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 2,
-          "won": true,
-          "shots": 4,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 3,
-          "won": true,
-          "shots": 5,
-          "timedOut": false
+          "won": false,
+          "shots": null,
+          "timedOut": true
         },
         {
           "seed": 4,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 5,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 6,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 7,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 8,
           "won": true,
-          "shots": 5,
+          "shots": 66,
           "timedOut": false
+        },
+        {
+          "seed": 9,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 10,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 11,
+          "won": true,
+          "shots": 49,
+          "timedOut": false
+        },
+        {
+          "seed": 12,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 13,
+          "won": true,
+          "shots": 36,
+          "timedOut": false
+        },
+        {
+          "seed": 14,
+          "won": false,
+          "shots": null,
+          "timedOut": true
+        },
+        {
+          "seed": 15,
+          "won": true,
+          "shots": 55,
+          "timedOut": false
+        },
+        {
+          "seed": 16,
+          "won": false,
+          "shots": 26,
+          "timedOut": true
+        },
+        {
+          "seed": 17,
+          "won": false,
+          "shots": 26,
+          "timedOut": true
+        },
+        {
+          "seed": 18,
+          "won": true,
+          "shots": 54,
+          "timedOut": false
+        },
+        {
+          "seed": 19,
+          "won": false,
+          "shots": null,
+          "timedOut": true
         }
       ],
-      "meanShots": 4.4,
-      "winRate": 1
+      "meanShots": null,
+      "winRate": 0.25,
+      "fixed": {
+        "level": 30,
+        "won": true,
+        "shots": 39
+      }
     }
+  ],
+  "fixedResults": [
+    {
+      "level": 1,
+      "won": true,
+      "shots": 6
+    },
+    {
+      "level": 2,
+      "won": true,
+      "shots": 16
+    },
+    {
+      "level": 3,
+      "won": true,
+      "shots": 29
+    },
+    {
+      "level": 4,
+      "won": true,
+      "shots": 11
+    },
+    {
+      "level": 5,
+      "won": true,
+      "shots": 12
+    },
+    {
+      "level": 6,
+      "won": true,
+      "shots": 13
+    },
+    {
+      "level": 7,
+      "won": true,
+      "shots": 28
+    },
+    {
+      "level": 8,
+      "won": true,
+      "shots": 21
+    },
+    {
+      "level": 9,
+      "won": true,
+      "shots": 70
+    },
+    {
+      "level": 10,
+      "won": true,
+      "shots": 56
+    },
+    {
+      "level": 11,
+      "won": true,
+      "shots": 13
+    },
+    {
+      "level": 12,
+      "won": true,
+      "shots": 14
+    },
+    {
+      "level": 13,
+      "won": true,
+      "shots": 16
+    },
+    {
+      "level": 14,
+      "won": true,
+      "shots": 13
+    },
+    {
+      "level": 15,
+      "won": true,
+      "shots": 12
+    },
+    {
+      "level": 16,
+      "won": true,
+      "shots": 32
+    },
+    {
+      "level": 17,
+      "won": true,
+      "shots": 11
+    },
+    {
+      "level": 18,
+      "won": true,
+      "shots": 13
+    },
+    {
+      "level": 19,
+      "won": true,
+      "shots": 18
+    },
+    {
+      "level": 20,
+      "won": true,
+      "shots": 15
+    },
+    {
+      "level": 21,
+      "won": true,
+      "shots": 24
+    },
+    {
+      "level": 22,
+      "won": true,
+      "shots": 17
+    },
+    {
+      "level": 23,
+      "won": true,
+      "shots": 13
+    },
+    {
+      "level": 24,
+      "won": true,
+      "shots": 19
+    },
+    {
+      "level": 25,
+      "won": true,
+      "shots": 21
+    },
+    {
+      "level": 26,
+      "won": true,
+      "shots": 37
+    },
+    {
+      "level": 27,
+      "won": true,
+      "shots": 34
+    },
+    {
+      "level": 28,
+      "won": true,
+      "shots": 34
+    },
+    {
+      "level": 29,
+      "won": true,
+      "shots": 43
+    },
+    {
+      "level": 30,
+      "won": true,
+      "shots": 39
+    }
+  ],
+  "fixedDurationMs": 203754.681806,
+  "bands": [
+    14.8,
+    37.6,
+    13.6,
+    17.8,
+    18.8,
+    37.4
   ]
 }

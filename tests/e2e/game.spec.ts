@@ -6,14 +6,24 @@ test('B-HEX-14 glisser-relâcher, guide et cellule scriptée', async ({ page }, 
     await page.evaluate(() => { window.__BUBBLE_TEST__?.advance(0); });
     const start = await point(page, 100, 250), end = await point(page, 200, 170);
     const canvas = page.locator('#game canvas');
-    await canvas.dispatchEvent('touchstart', { touches: [{ identifier: 7, clientX: start.x, clientY: start.y }], changedTouches: [{ identifier: 7, clientX: start.x, clientY: start.y }] });
-    await canvas.dispatchEvent('touchmove', { touches: [{ identifier: 7, clientX: end.x, clientY: end.y }], changedTouches: [{ identifier: 7, clientX: end.x, clientY: end.y }] });
+    // Construct native Touch objects: Phaser reads pageX/pageY, whereas plain
+    // dictionaries passed to dispatchEvent leave those coordinates at zero.
+    const touch = async (type: string, position: {x:number;y:number}) => {
+        await canvas.evaluate((element, {type,position}) => {
+            const finger = new Touch({identifier:7,target:element,clientX:position.x,clientY:position.y,
+                pageX:position.x + scrollX,pageY:position.y + scrollY});
+            element.dispatchEvent(new TouchEvent(type,{bubbles:true,cancelable:true,
+                touches:type === 'touchend' ? [] : [finger],changedTouches:[finger]}));
+        },{type,position});
+    };
+    await touch('touchstart',start);
+    await touch('touchmove',end);
     expect((await read(page)).shots).toBe(0);
     expect((await read(page)).angle).toBeCloseTo(0.04995839572194276, 8);
     const guide = await page.evaluate(() => window.__BUBBLE_TEST__?.visuals().guide);
     expect(guide).toHaveLength(1); expect(guide?.[0]?.to.y).toBeLessThan(54);
     await page.screenshot({ path: `test-results/screenshots/bubble-aim-${info.project.name}.png` });
-    await canvas.dispatchEvent('touchend', { touches: [], changedTouches: [{ identifier: 7, clientX: end.x, clientY: end.y }] });
+    await touch('touchend',end);
     expect((await read(page)).shots).toBe(1);
     await page.evaluate(() => window.__BUBBLE_TEST__?.advance(1000));
     expect((await read(page)).grid).toEqual([{ row: 0, col: 4, color: 0 }, { row: 1, col: 4, color: 0 }]);

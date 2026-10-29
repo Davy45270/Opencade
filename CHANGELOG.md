@@ -5,6 +5,11 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Correct Bubble Lab seed variants and replace short extension islands with denser layouts and a measured rising difficulty curve; retain all historical grids.
+- Lock complete historical cells, real generated mechanics and clone detection, bomb interactions, distant ice, rainbow cadence, multiple stars and both bumpers; reject the eight review mutations.
+- Restore the full 30-level solver campaign and 20-seed streaming statistics. All fixed-seed levels win, but the unchanged ten-second campaign limit still fails.
+- Correct synthetic touch coordinates in B-HEX-14 and check the installed input transforms directly with Node; no browser test runner was launched.
+
 - Extend Bubble Lab to 30 seeded, sculpted levels while retaining L1–L10 and save keys; add stone bubbles, radius-one bomb chains, rainbow shots, two-burst ice, star rescues and internal reflecting bumpers.
 - Add shared B-LVL literal oracles, diversity metrics, seeded solver measurements and direct browser captures for levels 15 and 30.
 

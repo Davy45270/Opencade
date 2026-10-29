@@ -341,102 +341,142 @@ observable. Le mutant « centre » prévu utilise le centre de la bulle touchée
 
 ## Niveaux de Bubble Lab
 
-Les trente définitions sont des données pures dans `src/engines/bubble/levels.ts`. Les dix premières définitions et leurs grilles restent identiques. Les motifs
-sont originaux : masque de cellules et formule de couleur, avec une permutation de
-palette calculée par le PRNG depuis la graine. Dans les dix niveaux historiques, la rangée 0 est toujours pleine
-pour ancrer les motifs. Le niveau 1 garde cinq rangées et quatre couleurs.
+Les trente définitions sont des données pures dans `src/engines/bubble/levels.ts`.
+Les dix premières définitions et leurs grilles restent identiques. B-LVL-01 compare
+chaque cellule, avec dix masques et palettes littéraux dans `tests/bubble-history.ts`,
+et vérifie les anciennes sauvegardes. La mutation du masque du niveau 2 est rejetée.
 
-| Niveau | Nom | Nouveauté / rôle | Tirs (graine 28, jalons) | Tirs moyens (5 graines) | Victoires (5 graines) | Graines non gagnées |
-| --- | --- | --- | ---: | ---: | ---: | --- |
-| 1 | Atelier | Groupes et chutes | 6 | 7.40 | 5/5 (100 %) | — |
-| 2 | Losange | Descente | — | 17.40 | 5/5 (100 %) | — |
-| 3 | Damier | Motif historique | — | 23.20 | 5/5 (100 %) | — |
-| 4 | Pyramide | Motif historique | — | 8.40 | 5/5 (100 %) | — |
-| 5 | Colonnes | Motif historique | 12 | 12.00 | 5/5 (100 %) | — |
-| 6 | Vagues | Motif historique | — | 15.80 | 5/5 (100 %) | — |
-| 7 | Chevrons | Motif historique | — | 27.20 | 5/5 (100 %) | — |
-| 8 | Spirale | Motif historique | — | 21.00 | 5/5 (100 %) | — |
-| 9 | Cristal | Motif historique | — | indisponible | 0/5 (0 %) | 0 (temps), 1 (temps), 2 (temps), 3 (temps), 4 (temps) |
-| 10 | Prisme | Défi historique | 24 (échec) | indisponible | 0/5 (0 %) | 0 (temps), 1 (temps), 2 (temps), 3 (temps), 4 (temps) |
-| 11 | Silex suspendu | Pierre | — | 5.40 | 5/5 (100 %) | — |
-| 12 | Arches de craie | Combinaison | — | 7.80 | 5/5 (100 %) | — |
-| 13 | Halte des lucioles | Respiration | — | 6.00 | 5/5 (100 %) | — |
-| 14 | Mèches jumelles | Bombe | — | 5.20 | 5/5 (100 %) | — |
-| 15 | Le grand brasier | Défi | 6 | 4.80 | 5/5 (100 %) | — |
-| 16 | Jardin ajouré | Respiration | — | 5.00 | 5/5 (100 %) | — |
-| 17 | Iris voyageur | Tir arc-en-ciel | — | 4.80 | 5/5 (100 %) | — |
-| 18 | Éventail des marées | Combinaison | — | 5.40 | 5/5 (100 %) | — |
-| 19 | Clairière calme | Respiration | — | 7.20 | 5/5 (100 %) | — |
-| 20 | Banquise fendue | Glace · défi | 8 | 5.40 | 5/5 (100 %) | — |
-| 21 | Dentelle polaire | Combinaison | — | 4.40 | 5/5 (100 %) | — |
-| 22 | Le dégel doux | Respiration | — | 5.20 | 5/5 (100 %) | — |
-| 23 | Constellation captive | Libérer les étoiles | — | 3.60 | 5/5 (100 %) | — |
-| 24 | Passerelles du soir | Combinaison | — | 3.80 | 5/5 (100 %) | — |
-| 25 | Le coffre du ciel | Étoiles · défi | 4 | 3.80 | 5/5 (100 %) | — |
-| 26 | Ricochets de cuivre | Butoirs · combinaison | — | 4.20 | 5/5 (100 %) | — |
-| 27 | Les trois cloches | Combinaison | — | 4.20 | 5/5 (100 %) | — |
-| 28 | Souffle paisible | Respiration | — | 3.40 | 5/5 (100 %) | — |
-| 29 | Couronne des échos | Combinaison | — | 6.40 | 5/5 (100 %) | — |
-| 30 | La voûte aux six secrets | Final, six mécaniques | 7 | 4.40 | 5/5 (100 %) | — |
+L’extension remplace les trois petits îlots faciles à détacher par des grilles
+étagées de 7 à 11 rangées, avec cinq puis six couleurs. Les paires, les décalages
+entre rangées, les pierres et les étoiles proches du plafond demandent des coupes
+successives. Les descentes interviennent tous les 16, 15, 14 puis 13 tirs résolus,
+par tranches de cinq niveaux. Les introductions gardent moins de rangées que les
+défis ultérieurs. Les respirations 13, 16, 19, 22 et 28 exigent au moins autant de
+tirs que le niveau 5 sur la graine de contrôle.
 
-Mesure : cinq graines (0 à 4), constante documentée `STAT_SEEDS = 5` dans
-`scripts/validate-bubble.js`, plafond de 160 tirs et borne de 2 000 ms par niveau
-et par graine (chargement inclus, worker interrompu). Chaque essai est enregistré
-avec `won`, `shots` et `timedOut` dans `docs/bubble-validation.json`.
-La moyenne inclut les échecs ; après interruption, elle emploie uniquement le
-nombre réel de tirs de la tentative gloutonne terminée, sans extrapoler la recherche
-interrompue. Si cette tentative n’a pas terminé, la moyenne est indisponible.
-Une interruption compte comme non-victoire. La mention « temps » désigne une interruption ; « — » dans la colonne graine 28 signifie hors des jalons mesurés. Ces mesures ne prouvent pas qu’un
-niveau en échec soit impossible pour un autre pilote.
+La graine permute toute la palette et déplace une encoche dans la dernière rangée ;
+elle ne se réduit plus à un choix parmi six phases. B-LVL-01 contrôle le déterminisme
+et la différence des grilles 10/11 pour chacun des trente niveaux. Les graines par
+défaut, 452 à 481, et les clés de sauvegarde sont conservées.
 
-L'ouverture automatique, `loadLevel` et le choix HTML emploient la graine définie
-dans `LEVELS` (452 à 481) quand aucune graine n'est fournie.
-Dans les dix premiers niveaux, le nombre de couleurs et de rangées ne diminue pas ; l'intervalle ne croît pas
-(l'absence de descente équivaut à un intervalle infini). Les six couleurs ont des
-marques de un à six traits sombres, en complément de la teinte.
+| Niveau | Nom | Tirs graine 28 | Tirs moyens, 20 graines | Victoires | Interruptions |
+| --- | --- | ---: | ---: | ---: | ---: |
+| 1 | Atelier | 6 | 8.70 | 20/20 (100 %) | 0 |
+| 2 | Losange | 16 | 18.50 | 20/20 (100 %) | 0 |
+| 3 | Damier | 29 | 23.85 | 20/20 (100 %) | 0 |
+| 4 | Pyramide | 11 | 9.85 | 20/20 (100 %) | 0 |
+| 5 | Colonnes | 12 | 12.15 | 20/20 (100 %) | 0 |
+| 6 | Vagues | 13 | 14.25 | 20/20 (100 %) | 0 |
+| 7 | Chevrons | 28 | indisponible | 11/20 (55 %) | 9 |
+| 8 | Spirale | 21 | 23.00 | 20/20 (100 %) | 0 |
+| 9 | Cristal | 70 | 48.65 | 0/20 (0 %) | 20 |
+| 10 | Prisme | 56 | 40.95 | 0/20 (0 %) | 20 |
+| 11 | Silex suspendu | 13 | indisponible | 17/20 (85 %) | 3 |
+| 12 | Arches de craie | 14 | 15.60 | 20/20 (100 %) | 0 |
+| 13 | Halte des lucioles | 16 | 16.80 | 20/20 (100 %) | 0 |
+| 14 | Mèches jumelles | 13 | 15.30 | 20/20 (100 %) | 0 |
+| 15 | Le grand brasier | 12 | 16.15 | 20/20 (100 %) | 0 |
+| 16 | Jardin ajouré | 32 | 22.00 | 20/20 (100 %) | 0 |
+| 17 | Iris voyageur | 11 | 14.20 | 20/20 (100 %) | 0 |
+| 18 | Éventail des marées | 13 | 18.40 | 20/20 (100 %) | 0 |
+| 19 | Clairière calme | 18 | 15.20 | 20/20 (100 %) | 0 |
+| 20 | Banquise fendue | 15 | 15.65 | 20/20 (100 %) | 0 |
+| 21 | Dentelle polaire | 24 | 16.95 | 20/20 (100 %) | 0 |
+| 22 | Le dégel doux | 17 | 19.00 | 20/20 (100 %) | 0 |
+| 23 | Constellation captive | 13 | 21.70 | 20/20 (100 %) | 0 |
+| 24 | Passerelles du soir | 19 | 26.60 | 20/20 (100 %) | 0 |
+| 25 | Le coffre du ciel | 21 | 28.85 | 20/20 (100 %) | 0 |
+| 26 | Ricochets de cuivre | 37 | 38.15 | 20/20 (100 %) | 0 |
+| 27 | Les trois cloches | 34 | indisponible | 15/20 (75 %) | 5 |
+| 28 | Souffle paisible | 34 | indisponible | 1/20 (5 %) | 19 |
+| 29 | Couronne des échos | 43 | indisponible | 0/20 (0 %) | 20 |
+| 30 | La voûte aux six secrets | 39 | indisponible | 5/20 (25 %) | 15 |
 
-### Extension et mécaniques (B-LVL-01–04)
+
+Mesure de passe 49 : 600 essais, graines 0 à 19, plafond de 160 tirs.
+Le calcul statistique a duré 1104.60 secondes, soit moins de vingt
+minutes. Deux workers persistants sont préchargés ; leur création ne consomme pas
+le délai d’un essai mais reste incluse dans le temps total. Le délai est de 2 000 ms
+par essai, porté à 30 000 ms pour les niveaux historiques 9 et 10, où la recherche
+approfondie est nécessaire. Le JSON est réécrit après chaque résultat terminé.
+Il conserve les graines, les interruptions et les tirs réellement mesurés : une
+interruption compte comme non-victoire. Les tirs d’un échec interrompu sont ceux de
+la tentative gloutonne terminée ; si elle n’a pas terminé, la moyenne est indisponible.
+Ces taux mesurent un pilote sous budget, et ne prouvent pas l’impossibilité d’un niveau.
+Les tirs ne comptent pas le travail interne des branches de recherche.
+
+### Oracles B-LVL-01–05, passe 49
+
+- B-LVL-01 : dix définitions et toutes les cellules historiques ; sauvegardes ;
+  déterminisme et influence des graines pour les trente grilles.
+- B-LVL-02 : pierre ; bombe/pierre et chaîne de deux bombes de couleurs différentes ;
+  glace locale sur deux éclatements, glace éloignée intacte ; arc-en-ciel aux tirs
+  1, 4 et 7, tirs ordinaires intermédiaires ; victoire refusée tant qu’une seconde
+  étoile reste captive ; position et réflexion des deux butoirs.
+- B-LVL-03 : les cellules réelles fournissent pierre, bombe, glace et étoile ; le
+  moteur fournit le tir arc-en-ciel et les butoirs actifs. Le contrôle des clones
+  passe trente fois le même index au vrai générateur, constate une seule grille et
+  100 % de clones, puis rejette cette campagne par le seuil de clones < 0,2.
+- B-LVL-04 : le solveur complet joue les trente niveaux sur la graine 28, sans
+  modifier les grilles, les couleurs disponibles ou les règles d’accrochage.
+- B-LVL-05 : les moyennes par cinq sont 14.8, 37.6, 13.6, 17.8, 18.8, 37.4. De 11–15 à 26–30,
+  elles augmentent strictement ; 26–30 vaut au moins 1,5 fois 1–5. Les seuils et
+  les bornes sont des littéraux dans `tests/bubble-campaign.ts`.
+
+Le pilote glouton perd 9 et 10, mais la recherche en faisceau les gagne en
+70 et 56 tirs. Les grilles historiques ne sont donc pas
+modifiées. Le solveur conserve 279 angles, les échanges de réserve, 64 états par
+profondeur et le plafond de 160 tirs. Les caches géométriques évitent des calculs
+répétés, avec copies des trajectoires et réassociation de la couleur touchée à la
+grille courante ; B-HEX-17 contrôle couleur, isolation des retours, rechargement et
+butoirs. La largeur et l’intervalle qualifié d’urgent peuvent être explicités pour
+reproduire des recherches ; les valeurs par défaut restent 64 et 6.
+
+**Limite non résolue : B-LVL-04 reste en échec sur le temps.** Les trente victoires
+ont demandé 203.75 secondes sur cet hôte, au lieu des moins de dix
+secondes exigées. Le seuil et le délai du test n’ont pas été relâchés ; le validateur
+sort avec un code non nul après sauvegarde des statistiques. Une suite contenant ce
+test ne peut donc pas être annoncée verte. Vitest et Playwright n’ont pas été lancés.
+
+Le validateur Node partage les oracles avec les tests et rejette quinze mutations
+en mémoire : quatre de géométrie ; bombe sans explosion ; pierre matchable ; glace
+ouverte au premier éclatement ; bombe ne propageant pas à une autre bombe ; pierre
+détruite par bombe ; glace éloignée endommagée ; arc-en-ciel à chaque tir ; victoire
+avec une étoile encore captive ; butoir droit déplacé ; masque historique du niveau
+2 modifié ; glace supprimée du vrai générateur. Le contrôle séparé des clones
+vérifie son taux exact avant de rejeter les définitions répétées.
+
+### B-HEX-14 : événements tactiles synthétiques
+
+La scène utilise correctement les coordonnées logiques transformées par le moteur
+d’entrée. Le test envoyait des dictionnaires avec seulement `clientX/clientY` ; le
+moteur d’entrée lit `pageX/pageY`, qui restaient à zéro lors de la création des
+contacts synthétiques. La conversion du zéro depuis le décalage du canvas explique
+les angles négatifs différents selon le viewport. Ce n’est pas une erreur de
+`devicePixelRatio` dans le jeu.
+
+L’E2E construit maintenant de vrais objets `Touch` et `TouchEvent`, avec les
+coordonnées de page incluant le défilement. L’angle attendu reste
+0,04995839572194276, sa tolérance reste inchangée. `scripts/bubble-input-check.js`
+exécute les méthodes d’entrée et d’échelle réellement installées, sous Node, sur
+trois configurations de taille/décalage/défilement ; il reproduit également
+l’erreur avec des coordonnées de page nulles. Il ne remplace pas une exécution
+navigateur : l’E2E corrigé n’a pas été lancé pendant cette passe.
+
+### Mécaniques
 
 Les nouveautés arrivent à 11 (pierre), 14 (bombe), 17 (arc-en-ciel), 20 (glace),
-23 (étoiles) et 26 (butoirs). Les niveaux 13, 16, 19, 22 et 28 sont des respirations ;
-15, 20, 25 et 30 réactivent une descente tous les six tirs. Le défi historique 10
-reste inchangé. Les îlots suspendus ont des cols, branches, profondeurs et trous
-calculés depuis des données déterministes, avec permutation de palette par graine.
+23 (étoiles) et 26 (butoirs).
 
 - Pierre : exclue des groupes de couleur et des explosions ; tombe seulement détachée.
-- Bombe : un groupe de trois l’active ; détruit ses six voisins colorés, avec chaînes de bombes.
-- Arc-en-ciel : un tir sur trois, à partir du premier, adopte la couleur de la bulle frappée.
-- Glace : deux résolutions distinctes contenant un éclatement adjacent enlèvent sa coque ; plusieurs voisins éclatés dans un même tir ne comptent qu’une fois. La bulle libérée reste dans la grille.
-- Étoiles : insensibles aux couleurs et bombes ; toutes doivent tomber. Des bulles ordinaires peuvent rester au plafond après la victoire.
-- Butoirs : segments verticaux à x=100 et x=260, y=290–380 ; réflexion exacte de la direction horizontale, aussi dans le guide et le vol.
-
-La clé et la structure de sauvegarde restent inchangées. La scène lit désormais
-la borne 30 ; une sauvegarde historique débloquant 10 conserve exactement sa valeur.
-B-LVL-01 compare les dix définitions et des cellules littérales des niveaux 1, 5, 10.
-B-LVL-02 partage ses six oracles avec le validateur Node ; B-LVL-03 réutilise la mesure
-du rapport (seuil de clones < 0,2, six mécaniques). La cadence est vérifiée dans
-l’extension : conserver strictement les dix premiers niveaux empêche de supprimer
-l’écart historique de huit niveaux sans nouveauté. Le solveur choisit d’abord gloutonnement le meilleur tir simulé ; en cas d’échec,
-un faisceau glouton conserve 64 états par profondeur, sur au plus 160 tirs. Il
-utilise les angles et l’échange de réserve, sans injecter de couleur ni de grille.
-Les rayons sont mis en cache par géométrie (256 entrées maximum), indépendamment
-des couleurs ; les voisins par parité conservent exactement les anciennes listes.
-La recherche complète sur trente niveaux dépassant le budget rapide, B-LVL-04
-emploie les jalons représentatifs 1, 5, 10, 15, 20, 25, 30 à graine 28 : départ,
-jalons de cinq niveaux, introductions combinées et final. Il exige sept victoires
-avec la politique gloutonne, au plus 160 tirs et moins de 10 secondes au total.
-Le validateur Node exécute le même oracle sans lancer le moteur de tests et
-renvoie un code non nul si un jalon échoue ; les statistiques restent enregistrées. Résultat de cette passe : 1.63 s, six victoires sur sept ; échec du niveau 10 à graine 28 après 24 tirs. B-LVL-04 reste donc non satisfait. Les captures `bubble-level15` et
-`bubble-level30` se produisent via `scripts/capture-bubble.js`, sans outil E2E externe.
-
-Mutations vérifiées par le script Node (substitution en mémoire, sans changer les fichiers) :
-
-| Mutation | Point de mutation | Oracle |
-| --- | --- | --- |
-| Trente copies du niveau 1 | `src/engines/bubble/levels.ts:20` (collection `LEVELS`) ; injection dans `scripts/validate-bubble.js:68` | B-LVL-03 |
-| Bombe sans explosion | `src/engines/bubble/engine.ts:268` | B-LVL-02 bombe |
-| Pierre incluse dans le groupe coloré | `src/engines/bubble/engine.ts:263` | B-LVL-02 pierre |
-| Glace libérée dès le premier éclatement | `src/engines/bubble/engine.ts:277` | B-LVL-02 glace |
+- Bombe : un groupe de trois l’active ; détruit ses voisins colorés, avec chaînes
+  entre bombes de couleurs différentes ; pierres, glaces et étoiles résistent.
+- Arc-en-ciel : un tir sur trois à partir du premier adopte la couleur touchée.
+- Glace : deux résolutions contenant un éclatement adjacent enlèvent la coque ;
+  plusieurs voisins éclatés au même tir ne comptent qu’une fois. La bulle libérée reste.
+- Étoiles : insensibles aux couleurs et aux bombes ; toutes doivent tomber. Des
+  bulles ordinaires peuvent rester au plafond après la victoire.
+- Butoirs : x=100 et x=260, y=290–380 ; réflexion exacte de la direction horizontale.
 
 ### Plafond mobile
 

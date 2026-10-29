@@ -1,4 +1,5 @@
 import { expect, test } from 'vitest';
+import { trajectoryCopies } from './bubble-cases';
 import { Engine, center, ORIGIN, type Cell } from '../src/engines/bubble/engine';
 // All shots originate at the literal launcher (180, 570); angles are from up.
 const cases: [string, Cell[], number, number, number, number][] = [
@@ -56,3 +57,5 @@ test('B-HEX-13 déterminisme et échange sans consommer le générateur', () => 
  expect(e.next).toBe(before.queued);expect(e.queued).toBe(before.next);expect(e.random.state).toBe(before.random);
  e.shoot();expect(e.swap()).toBe(false);
 });
+
+test('B-HEX-17 cache isolé : couleur, copie, chargement et butoirs',()=>{trajectoryCopies();});

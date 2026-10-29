@@ -44,8 +44,9 @@ export interface Resolution {
 export function center(cell: Pick<Cell, 'row' | 'col'>, drops = 0): Point {
     return { x: RADIUS + cell.col * 2 * RADIUS + (cell.row % 2) * RADIUS, y: RADIUS + (cell.row + drops) * ROW_STEP };
 }
+const CELL_KEYS = Array.from({length:ROWS},(_,row)=>Array.from({length:9},(_,col)=>`${String(row)}:${String(col)}`));
 export function key(cell: Pick<Cell, 'row' | 'col'>): string {
-    return `${String(cell.row)}:${String(cell.col)}`;
+    return CELL_KEYS[cell.row]?.[cell.col] ?? `${String(cell.row)}:${String(cell.col)}`;
 }
 export function valid(row: number, col: number): boolean {
     return row >= 0 && row < ROWS && col >= 0 && col < (row % 2 ? 8 : 9);
@@ -70,6 +71,9 @@ export function neighbors(cell: Cell): readonly {
 function distance(a: Point, b: Point): number {
     return Math.hypot(a.x - b.x, a.y - b.y);
 }
+// A trace samples the same rest grid at many angles. Keep its geometry once.
+const geometryCache = new WeakMap<Cell[], { length: number; drops: number; cells: {cell:Cell;p:Point}[]; occupied:Set<string>; shape:string }>();
+const trajectoryCache = new Map<string,Map<number,Trajectory>>();
 export class Engine {
     level = 0;
     get rainbow(): boolean { return !!levelAt(this.level).mechanics?.includes('rainbow') && this.shots % 3 === 0; }
@@ -172,6 +176,28 @@ export class Engine {
         return true;
     }
     trace(angle = this.angle): Trajectory {
+        const shape = `${String(this.drops)}:${JSON.stringify(this.bumpers)}:${this.grid.map(key).join(';')}`;
+        let geometry = geometryCache.get(this.grid);
+        if (!geometry || geometry.length !== this.grid.length || geometry.drops !== this.drops || geometry.shape !== shape) {
+            geometry = {length:this.grid.length,drops:this.drops,cells:this.grid.map(cell=>({cell,p:center(cell,this.drops)})),occupied:new Set(this.grid.map(key)),shape};
+            geometryCache.set(this.grid,geometry);
+        }
+        let paths = trajectoryCache.get(geometry.shape);
+        if (!paths) {
+            paths = new Map();
+            if (trajectoryCache.size >= 256) {
+                const oldest = trajectoryCache.keys().next().value;
+                if (oldest !== undefined) trajectoryCache.delete(oldest);
+            }
+            trajectoryCache.set(geometry.shape,paths);
+        }
+        const copy = (path:Trajectory):Trajectory => ({...path,
+            segments:path.segments.map(s=>({...s,from:{...s.from},to:{...s.to},direction:{...s.direction}})),
+            target:path.target ? {...path.target,color:this.next} : null,
+            struck:path.struck ? this.grid.find(c=>key(c) === key(path.struck as Cell)) ?? null : null});
+        const cached = paths.get(angle);
+        if (cached) return copy(cached);
+        const finish = (path:Trajectory):Trajectory => { paths.set(angle,path); return copy(path); };
         let from: Point = { ...ORIGIN };
         let direction = { x: Math.sin(angle), y: -Math.cos(angle) };
         const segments: Segment[] = [];
@@ -181,8 +207,7 @@ export class Engine {
             const wallTime = Math.abs(direction.x) < 1e-10 ? Infinity : (wall - from.x) / direction.x;
             let t = (RADIUS + this.drops * ROW_STEP - from.y) / direction.y;
             let hit: Cell | null = null;
-            for (const cell of this.grid) {
-                const p = center(cell, this.drops);
+            for (const {cell,p} of geometry.cells) {
                 const dx = from.x - p.x, dy = from.y - p.y;
                 const b = dx * direction.x + dy * direction.y;
                 const discriminant = b * b - (dx * dx + dy * dy - (2 * RADIUS * CONTACT_SCALE) ** 2);
@@ -207,7 +232,7 @@ export class Engine {
             segments.push({ from: { ...from }, to, direction: { ...direction }, bounce: reflects });
             length += t;
             if (!reflects) {
-                const occupied = new Set(this.grid.map(key));
+                const occupied = geometry.occupied;
                 const candidates = hit ? neighbors(hit) : Array.from({ length: 9 }, (_, col) => ({ row: 0, col }));
                 // Contact is on the struck bubble surface, not at the projectile center.
                 const struck = hit ? center(hit, this.drops) : null;
@@ -218,20 +243,20 @@ export class Engine {
                     // Only sockets facing the incoming ray; never snap behind the hit.
                     if (struck && ((p.x - struck.x) * direction.x + (p.y - struck.y) * direction.y > 1e-9 || p.y < struck.y - 1e-9)) return false;
                     // The short settling segment must not cross another bubble.
-                    return this.grid.every(other => {
+                    return geometry.cells.every(({cell:other,p:q}) => {
                         if (other === hit) return true;
-                        const q = center(other, this.drops), dx = p.x - to.x, dy = p.y - to.y;
+                        const dx = p.x - to.x, dy = p.y - to.y;
                         const fraction = Math.max(0, Math.min(1, ((q.x - to.x) * dx + (q.y - to.y) * dy) / (dx * dx + dy * dy || 1)));
                         return Math.hypot(to.x + fraction * dx - q.x, to.y + fraction * dy - q.y) >= 2 * RADIUS * CONTACT_SCALE - 1e-9;
                     });
                 }).sort((a, b) => distance(center(a, this.drops), contact) - distance(center(b, this.drops), contact) || a.row - b.row || a.col - b.col);
                 const target = free[0];
-                return { segments, length, struck: hit, target: target ? { ...target, color: this.next } : null };
+                return finish({ segments, length, struck: hit, target: target ? { ...target, color: this.next } : null });
             }
             from = to;
             direction = { x: -direction.x, y: direction.y };
         }
-        return { segments, length, target: null };
+        return finish({ segments, length, target: null });
     }
     private rainbowShot = false;
     shoot(): boolean {

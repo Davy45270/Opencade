@@ -1,11 +1,11 @@
-/* global console, URL, setTimeout, clearTimeout, process, performance */
+/* global console, URL, process, performance */
+import './bubble-input-check.js';
 import './ts-loader.js';
+import { setTimeout as pause } from 'node:timers/promises';
 import assert from 'node:assert/strict';
-import { Worker } from 'node:worker_threads';
+import { collectStatistics, readStatistics, writeStatistics, fingerprint } from './bubble-statistics.js';
 const cases = await import('../tests/bubble-cases.ts');
-const { levelDiversity } = await import('../tests/bubble-diversity.ts');
-const { LEVELS } = await import('../src/engines/bubble/levels.ts');
-import { writeFileSync } from 'node:fs';
+const { levelDiversity, cloneDetection } = await import('../tests/bubble-diversity.ts');
 import { readFileSync } from 'node:fs';
 import ts from 'typescript';
 const { Engine } = await import('../src/engines/bubble/engine.ts');
@@ -64,12 +64,18 @@ for (const [name, before, after, oracle] of [
 console.log('B-HEX Node: nine literal geometries, reflection, drops and four mutations passed.');
 
 for (const oracle of Object.values(cases)) oracle();
-levelDiversity();
-assert.throws(() => levelDiversity(LEVELS.map(() => LEVELS[0])));
+levelDiversity(); cloneDetection();
+assert.throws(() => levelDiversity(Array.from({length:30},()=>0)));
 for (const [name, before, after, oracle] of [
     ['bomb without blast', "if (bomb?.kind !== 'bomb') continue;", 'continue;', cases.bomb],
     ['stone matched by color', "c.color === target.color && c.kind !== 'stone'", 'c.color === target.color', cases.stone],
     ['ice opens on first burst', 'if (frozen.ice === 0)', 'if (frozen.ice <= 1)', cases.ice],
+    ['bomb skips second bomb', "victim.kind !== 'star' && !popped.includes(victim)", "victim.kind !== 'star' && victim.kind !== 'bomb' && !popped.includes(victim)", cases.bomb],
+    ['bomb destroys stone', "victim && victim.kind !== 'stone' && victim.kind !== 'ice'", "victim && victim.kind !== 'ice'", cases.bomb],
+    ['distant ice damaged', 'if (popped.some(c => neighbors(frozen).some(n => key(n) === key(c)))) {', 'if (popped.length > 0) {', cases.ice],
+    ['rainbow every shot', 'this.shots % 3 === 0', 'this.shots % 1 === 0', cases.rainbow],
+    ['one star remains', "!this.grid.some(c => c.kind === 'star')", "this.grid.filter(c => c.kind === 'star').length < 2", cases.stars],
+    ['right bumper moved', '{ x: 260, top: 290, bottom: 380 }', '{ x: 280, top: 290, bottom: 380 }', cases.bumpers],
 ]) {
     assert.ok(source.includes(before), `Mutation anchor: ${name}`);
     const mutated = source.replace(before, after).replace(/from '([^']+)'/g, (_, path) => `from '${new URL(`${path}.ts`, new URL('../src/engines/bubble/engine.ts', import.meta.url)).href}'`);
@@ -78,55 +84,51 @@ for (const [name, before, after, oracle] of [
     assert.throws(() => oracle(Mutant), `Surviving mutation: ${name}`);
     console.log(`Rejected mutation: ${name}`);
 }
+const levelSource = readFileSync(new URL('../src/engines/bubble/levels.ts',import.meta.url),'utf8');
+for (const [name,before,after,oracle] of [
+    ['historical L2 mask', 'if (row === 0 || masks[index]) {', 'if (row === 0 || (index === 1 ? true : masks[index])) {', generator=>cases.historicalLevels(generator)],
+    ['generated ice missing', "if (level.mechanics?.includes('ice') && row === 2 && col === 6)", 'if (false)', generator=>levelDiversity(undefined,generator)],
+]) {
+    assert.ok(levelSource.includes(before),`Mutation anchor: ${name}`);
+    const mutated = levelSource.replace(before,after).replace(/from '([^']+)'/g,(_,path)=>`from '${new URL(`${path}.ts`,new URL('../src/engines/bubble/levels.ts',import.meta.url)).href}'`);
+    const js = ts.transpile(mutated,{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext});
+    const {generateLevel} = await import(`data:text/javascript,${encodeURIComponent(js)}`);
+    assert.throws(()=>oracle(generateLevel),`Surviving mutation: ${name}`);
+    console.log(`Rejected mutation: ${name}`);
+}
 console.log('B-LVL-01–03: historical data, six mechanics, clone mutation and mechanical mutations passed.');
-// Five recorded seeds keep the audit bounded; never infer unplayed outcomes.
-const STAT_SEEDS = 5;
-// Hard worker deadline per level/seed, including module loading and beam search.
-const LEVEL_TIMEOUT_MS = 2000;
-async function run(level, seed) {
-    const worker = new Worker(new URL('./bubble-validation-worker.js', import.meta.url), {workerData:{level,seed}});
-    return new Promise((resolve, reject) => {
-        let partial = {won:false, shots:null};
-        let settled = false;
-        const finish = result => {
-            if (settled) return;
-            settled = true;
-            clearTimeout(timer);
-            void worker.terminate();
-            resolve(result);
-        };
-        const timer = setTimeout(() => finish({...partial, timedOut:true}), LEVEL_TIMEOUT_MS);
-        worker.on('message', message => {
-            if (message.partial) partial = message.result;
-            else finish({...message.result, timedOut:false});
-        });
-        worker.on('error', error => { clearTimeout(timer); reject(error); });
-        worker.on('exit', code => {
-            if (!settled) { clearTimeout(timer); reject(new Error(`Worker exited before result: ${code}`)); }
-        });
-    });
-}
-// Same fast policy and representative levels as B-LVL-04; keep failures explicit.
-const { greedyLevel } = await import('../src/engines/bubble/solver.ts');
-const fixedLevels = [1,5,10,15,20,25,30];
+const { solveLevel } = await import('../src/engines/bubble/solver.ts');
+const { campaign, difficulty } = await import('../tests/bubble-campaign.ts');
 const fixedStarted = performance.now();
-const fixedResults = fixedLevels.map(level => ({level,...greedyLevel(level-1,28,160)}));
+const fixedResults = campaign(solveLevel);
 const fixedDurationMs = performance.now() - fixedStarted;
+const bands = difficulty(fixedResults);
 console.log(`B-LVL-04 (${fixedDurationMs.toFixed(0)} ms): ${JSON.stringify(fixedResults)}`);
-const results = [];
-for (let level = 0; level < 30; level++) {
-    const runs = [];
-    for (let seed = 0; seed < STAT_SEEDS; seed++) runs.push({seed,...await run(level,seed)});
-    const measured = runs.filter(r=>r.shots !== null);
-    const row = {level:level+1,name:LEVELS[level].name,mechanics:LEVELS[level].mechanics ?? [],
-        fixed:fixedResults.find(r=>r.level===level+1) ?? null, runs,
-        meanShots:measured.length === STAT_SEEDS ? measured.reduce((sum,r)=>sum+r.shots,0)/STAT_SEEDS : null,
-        winRate:runs.filter(r=>r.won).length/STAT_SEEDS};
-    results.push(row);
-    console.log(JSON.stringify(row));
-    // Preserve actual completed measurements even if an external runner stops the audit.
-    writeFileSync(new URL('../docs/bubble-validation.json',import.meta.url),JSON.stringify({seed:28,seeds:STAT_SEEDS,shotCap:160,levelTimeoutMs:LEVEL_TIMEOUT_MS,fixedLevels,fixedDurationMs,fixedResults,results},null,2)+'\n');
+console.log(`B-LVL-05: ${JSON.stringify(bands)}`);
+if (process.argv.includes('--checks-only')) {
+    assert.ok(fixedDurationMs < 10000);
+    process.exit(0);
 }
-const fixedPassed = fixedResults.every(r=>r.won) && fixedDurationMs < 10000;
-console.log(`B-LVL-04: ${fixedPassed ? 'PASS' : 'FAIL'}; five-seed statistics recorded without extrapolation.`);
-if (!fixedPassed) process.exitCode = 1;
+async function completedStatistics() {
+    const started=Date.now();
+    for (;;) {
+        try {
+            const report=readStatistics();
+            if(report.results.length === 30 && report.results.every(row=>row.runs.length === 20)) return report;
+        } catch(error) { if(!(error instanceof SyntaxError)) throw error; }
+        assert.ok(Date.now()-started < 1200000,'Statistics did not finish');
+        await pause(1000);
+    }
+}
+const report = process.argv.includes('--reuse-statistics') ? await completedStatistics() : await collectStatistics();
+assert.equal(report.fingerprint,fingerprint());
+assert.equal(report.seeds,20);
+assert.equal(report.results.length,30);
+assert.ok(report.durationMs < 1200000);
+for (const row of report.results) {
+    assert.deepEqual(row.runs.map(r=>r.seed),Array.from({length:20},(_,i)=>i));
+    row.fixed=fixedResults.find(r=>r.level===row.level);
+}
+writeStatistics({...report,fixedResults,fixedDurationMs,bands});
+assert.ok(fixedDurationMs < 10000);
+console.log('B-LVL-04–05: PASS; 600 attempts recorded without extrapolation.');
