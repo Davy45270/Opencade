@@ -1,41 +1,41 @@
-name: Signaler un bug
-description: Un jeu ne se comporte pas comme prévu.
+name: Report a bug
+description: A game is not behaving as expected.
 labels: [bug]
 body:
   - type: input
     id: jeu
     attributes:
-      label: Jeu concerné
-      placeholder: "ex. Empilo, niveau 12"
+      label: Affected game
+      placeholder: "e.g. Empilo, level 12"
     validations:
       required: true
   - type: textarea
     id: etapes
     attributes:
-      label: Étapes pour reproduire
-      placeholder: "1. Ouvrir…\n2. Toucher…\n3. Constater…"
+      label: Steps to reproduce
+      placeholder: "1. Open…\n2. Tap…\n3. Observe…"
     validations:
       required: true
   - type: textarea
     id: attendu
     attributes:
-      label: Comportement attendu et comportement observé
+      label: Expected and actual behavior
     validations:
       required: true
   - type: input
     id: environnement
     attributes:
-      label: Appareil et navigateur
-      placeholder: "ex. Android 15, Chrome 142 ; ou Windows 11, Firefox"
+      label: Device and browser
+      placeholder: "e.g. Android 15, Chrome 142; or Windows 11, Firefox"
     validations:
       required: true
   - type: dropdown
     id: controle
     attributes:
-      label: Contrôle utilisé
+      label: Input method
       multiple: true
-      options: [Tactile, Souris, Clavier]
+      options: [Touch, Mouse, Keyboard]
   - type: textarea
     id: capture
     attributes:
-      label: Capture d'écran ou erreurs de la console (facultatif)
+      label: Screenshot or console errors (optional)

@@ -1,25 +1,24 @@
-# Politique de sécurité
+# Security policy
 
-Opencade est un site statique sans serveur, sans compte et sans collecte de
-données : il ne stocke que des scores et des préférences dans le `localStorage`
-du navigateur.
+Opencade is a static site with no backend, accounts or data collection. Scores,
+unlocked levels and preferences are stored locally in the browser's
+`localStorage`.
 
-## Signaler une vulnérabilité
+## Reporting a vulnerability
 
-Merci de **ne pas ouvrir d'issue publique**. Utilisez le signalement privé de
-GitHub : onglet **Security** du dépôt, puis **Report a vulnerability**
-([lien direct](https://github.com/Davy45270/Opencade/security/advisories/new)).
+Please **do not open a public issue**. Use GitHub's private reporting feature:
+open the repository's **Security** tab and select **Report a vulnerability**
+([direct link](https://github.com/Davy45270/Opencade/security/advisories/new)).
 
-Indiquez la version ou le commit concerné, le navigateur, et les étapes pour
-reproduire. Vous recevrez une réponse dès que possible ; le projet étant
-maintenu bénévolement, aucun délai n'est garanti.
+Include the affected version or commit, your browser and steps to reproduce.
+We will respond as soon as possible. This is a volunteer-maintained project,
+so no response time is guaranteed.
 
-## Versions prises en charge
+## Supported versions
 
-Seule la dernière version de la branche `main` (celle publiée sur GitHub Pages)
-reçoit des correctifs.
+Only the latest version on `main`, published on GitHub Pages, receives fixes.
 
-## Hors périmètre
+## Out of scope
 
-Le crochet de test exposé avec le paramètre `?test=1` permet de modifier l'état
-d'une partie locale : c'est voulu et ce n'est pas une vulnérabilité.
+The test hooks enabled by `?test=1` intentionally allow changes to a local game's
+state. This is expected behavior, not a vulnerability.

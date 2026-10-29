@@ -1,62 +1,74 @@
-# Journal des modifications
+# Changelog
 
-Format inspiré de [Keep a Changelog](https://keepachangelog.com/fr/1.1.0/) ;
-le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
+Based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+This project follows [Semantic Versioning](https://semver.org/).
 
-## [Non publié]
+## [Unreleased]
 
-- Dérapage : douzième jeu, moteur de course pur en coordonnées du monde,
-  30 circuits, sept coupes, cinq IA, glisse et quatre bonus originaux.
-  Caméra tournante, mini-carte, commandes sur une rangée de 64 px, sons
-  synthétisés, vignette et démo ; tests Z01–Z16 et validation Node.
-  Aucun changement de `src/shell`, aucune dépendance ni ressource binaire.
+### Added — preparing 0.3.0
 
-- Traverse : onzième jeu original, 30 traversées à graine, trois à cinq abris,
-  convois, rivière et flotteurs plongeants. Moteur pur, preuve BFS rejouée,
-  commandes tactiles, démo, sons et tests R01–R12 ; aucun changement du socle.
+- Twelve animated, deterministic Canvas previews on the home screen, driven by
+  pure game engines. Previews pause off screen, in the background and during
+  play. Reduced-motion preferences show still images; mobile uses two columns.
+  The initial eight previews now include all four new games.
+- Alunir, the ninth game: 30 seeded landscapes, thrust, rotation, wind, fuel and
+  continuous collision detection; held controls, animated preview, progression
+  and synthesized sounds. U01–U12 rule tests and desktop/mobile journeys.
+- Caisses, the tenth game: 30 original workshops, crate pushing, unlimited undo,
+  solver-proven records, touch controls and an animated preview.
+- Traverse, the eleventh game: 30 seeded crossings, three to five shelters,
+  traffic, a river and diving floats. Pure engine, replayed BFS solutions,
+  touch controls, demo, sounds and R01–R12 tests; no shared shell changes.
+- Dérapage, the twelfth game: a pure racing engine in world coordinates,
+  30 tracks, seven cups, five AI opponents, drifting and four original bonuses.
+  Rotating camera, minimap, a single row of 64 px controls, synthesized sounds,
+  preview and demo; Z01–Z16 tests and Node validation. No shared shell changes,
+  new dependencies or binary assets.
+- English primary README and matching French README, with language links,
+  current game controls, offline installation and development guidance.
 
-- Passe 34 : seuils littéraux d’Alunir, module agrandi et HUD dégagé ; puzzles Caisses compacts, minimums exacts en pas/poussées, virages, détours et effort contrôlés par script Node.
+### Changed
 
-- Caisses : dixième jeu, 30 ateliers originaux, poussées, annulation illimitée, records prouvés par solveur, commandes tactiles et vignette animée.
+- Alunir uses explicit landing thresholds, a larger module and an unobstructed
+  HUD. Caisses has compact puzzles with exact minimum move/push counts; turns,
+  detours and required effort are checked by a Node script.
+- Contribution and security guidance, changelog, issue forms and pull request
+  template are now in English. Game names and the French interface are unchanged.
 
-### Ajouté — préparation de 0.3.0
+### Fixed
 
-- Alunir, neuvième jeu : trente terrains à graine, poussée, rotation, vent,
-  carburant et collision continue ; commandes maintenues, vignette animée,
-  progression et sons synthétisés. Oracle U01–U12 et parcours bureau/mobile.
-
-- Huit vignettes Canvas animées et déterministes sur l’accueil, jouées par les
-  moteurs purs ; suspension hors écran, en arrière-plan et pendant un jeu.
-- Image fixe avec réduction des animations et grille à deux colonnes sur mobile.
+- Guidance assertions in Essaim, Orbite, Briqueterie and Ferraille E2E tests now
+  advance engine time after real input, avoiding dependence on rendering speed
+  without loosening position tolerances.
 
 ## [0.2.0] - 2026-10-29
 
-### Ajouté
+### Added
 
-- Installation PWA sur téléphone, manifeste et icônes originales ; les huit jeux
-  et leurs sauvegardes locales restent accessibles hors connexion après chargement.
-- Mise à jour au prochain lancement après fermeture des fenêtres, annoncée sans
-  interrompre le jeu.
-- Confort sur téléphone : écran allumé pendant le jeu actif, vibrations liées
-  au son global et plein écran facultatif depuis le menu mobile.
+- Phone installation as a PWA, with a manifest and original icons. All eight
+  games and their local progress remain available offline after loading.
+- Updates announced without interrupting play and applied on the next launch
+  after all windows have closed.
+- Phone comfort features: screen wake lock during active play, vibrations tied
+  to global sound and optional fullscreen from the mobile menu.
 
-### Modifié
+### Changed
 
-- Titre visible « Opencade » ; clés de sauvegarde historiques conservées pour
-  préserver les progrès existants.
+- Visible title changed to “Opencade”; historical storage keys preserved to
+  retain existing progress.
 
 ## [0.1.0] - 2026-10-29
 
-### Ajouté
+### Added
 
-- Arcade de 8 jeux originaux : Bubble Lab (10 niveaux), Serpentin, Briqueterie,
-  Empilo, Orbite, Essaim, Dédale et Ferraille (30 niveaux chacun).
-- Socle commun : accueil, pause, panneaux de résultat, choix des niveaux,
-  sauvegarde locale facultative, son synthétisé global.
-- Contrôles tactiles, souris et clavier ; mise en page plein écran sur téléphone.
-- Moteurs purs à graine testés par Vitest ; parcours E2E Playwright bureau et
-  mobile.
-- CI GitHub Actions et déploiement sur GitHub Pages.
+- Eight original games: Bubble Lab (10 levels), Serpentin, Briqueterie, Empilo,
+  Orbite, Essaim, Dédale and Ferraille (30 levels each).
+- Shared shell: home screen, pause, result panels, level selection, optional
+  local storage and global synthesized sound.
+- Touch, mouse and keyboard controls; fullscreen layout on phones.
+- Pure seeded engines tested with Vitest; desktop and mobile Playwright E2E journeys.
+- GitHub Actions CI and GitHub Pages deployment.
 
-[Non publié]: https://github.com/Davy45270/Opencade/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Davy45270/Opencade/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/Davy45270/Opencade/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Davy45270/Opencade/releases/tag/v0.1.0

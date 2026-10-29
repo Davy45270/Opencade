@@ -1,188 +1,154 @@
+English | [Français](README.fr.md)
+
+The detailed game specification, [GAME_SPEC.md](GAME_SPEC.md), is in French.
+
 # Opencade
 
 [![CI](https://github.com/Davy45270/Opencade/actions/workflows/ci.yml/badge.svg)](https://github.com/Davy45270/Opencade/actions/workflows/ci.yml)
 [![Pages](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml/badge.svg)](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml)
-[![Licence MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Une petite arcade de **12 jeux originaux** dans le navigateur, sans serveur ni
-compte : TypeScript strict, [Phaser 3](https://phaser.io/), Vite. Tout se joue
-au doigt, à la souris ou au clavier, sur téléphone comme sur ordinateur.
+Twelve original games, one browser arcade. Opencade runs on phones and desktops,
+with touch, mouse and keyboard controls and no account or backend. It is built
+with strict TypeScript, Phaser 3 and Vite. **The interface is in French.**
 
-**▶ Jouer : <https://davy45270.github.io/Opencade/>**
+**[Play the demo](https://davy45270.github.io/Opencade/)**
 
-> **English summary** — Opencade is a small browser arcade of twelve original
-> games (bubble shooter, snake-like, brick breaker, falling blocks, fixed
-> shooter, wave shooter, maze chase, run-and-gun, lunar lander, crate puzzle, road-and-river crossing, top-down kart racing), built with TypeScript,
-> Phaser 3 and Vite. Each game's rules live in a pure, seeded engine that is
-> unit-tested with Vitest without a browser; Phaser scenes only draw and read
-> input. End-to-end tests (Playwright, desktop and mobile Chromium) drive the
-> real inputs and use an `advance(ms)` hook so that results do not depend on
-> CPU speed. Touch, mouse and keyboard are supported. The interface is in
-> French. MIT licensed. Play it at <https://davy45270.github.io/Opencade/>.
+The home screen features twelve animated Canvas previews driven by the games'
+pure engines. Previews pause off screen, in the background and during play;
+reduced-motion preferences switch them to still images. Phones use a two-column grid.
 
-L’accueil présente douze vignettes Canvas animées par les moteurs purs, suspendues hors écran et fixes si la réduction des animations est demandée.
+## Games and controls
 
-## Les jeux
+Bubble Lab has 10 levels; every other game has 30. The table lists each game's
+keyboard and touch controls. Mouse controls are listed where supported; you can
+also click the on-screen controls. P or Escape pauses real-time games. Each game
+includes its own help, and the mobile ☰ menu opens status, help, levels and restart
+while pausing play.
 
-| Jeu | En une ligne | Niveaux |
+| Game | How to play | Controls |
 |---|---|---|
-| **Dérapage** | Piloter un kart, charger les dérapages et viser le podium en sept coupes originales. | 30 |
-| **Traverse** | Rejoindre les abris entre convois routiers, rondins mobiles et flotteurs plongeants. | 30 |
-| **Caisses** | Pousser de une à sept caisses sur leurs cibles, avec annulation illimitée et record possible. | 30 |
-| **Bubble Lab** | Viser et tirer des bulles pour former des groupes de trois couleurs identiques avant que le plafond ne descende. | 10 |
-| **Serpentin** | Guider une tête lumineuse qui s'allonge vers les étincelles et les cristaux, entre murs ou sur un tore. | 30 |
-| **Briqueterie** | Casser des briques à la balle avec une raquette, des bonus et des briques à plusieurs points de vie. | 30 |
-| **Empilo** | Empiler des pièces de cristal dans un puits de 9 × 16 et compléter des lignes, dont certaines sont scellées. | 30 |
-| **Orbite** | Défendre quatre boucliers érodables contre une flotte de sondes qui accélère. | 30 |
-| **Essaim** | Abattre des vagues aux trajectoires déterministes, avec piqués, blindés, scindeurs et nacelle à double canon. | 30 |
-| **Dédale** | Récolter les graines d'un labyrinthe en échappant à quatre follets, qui deviennent vulnérables après un soleil. | 30 |
-| **Alunir** | Poser un module lunaire en dosant rotation, poussée et carburant, entre relief et rafales. | 30 |
-| **Ferraille** | Traverser des ateliers en courant, sautant et tirant, avec un gardien à phases tous les cinq niveaux. | 30 |
+| **Bubble Lab** | Match groups of at least three bubbles of the same color before the ceiling comes down. | Mouse or touch: aim and fire; arrows: aim; Space: fire; touch buttons: adjust and fire. |
+| **Serpentin** | Grow a glowing trail by collecting sparks and crystals, avoiding walls or wrapping around the board. | Arrows, ZQSD or WASD; touch: swipe or direction pad. |
+| **Briqueterie** | Break bricks with a ball and paddle, collecting bonuses and wearing down tougher bricks. | Mouse: guide the paddle; Left/Right or A/D: move; Space: launch; touch: drag along the bottom, tap or use Launch. |
+| **Empilo** | Fit crystal pieces into a 9 × 16 well and complete rows, including sealed ones. | Left/Right/Down: move; X/W/Up and Z/C: rotate; Space: drop; touch: drag, tap to rotate, swipe down quickly to drop. |
+| **Orbite** | Defend four erodible shields against an accelerating fleet of probes. | Mouse: guide; Left/Right or A/D: move; Space: fire; touch: drag along the bottom and hold Fire, or enable auto-fire. |
+| **Essaim** | Fight patterned waves with diving, armored and splitting enemies and a twin-cannon pod. | Mouse: guide and fire; Left/Right or A/D: move; Space: hold to fire; touch: drag below the line to guide and fire. |
+| **Dédale** | Gather maze seeds while evading four wisps, then turn the tables by collecting a sun. | Arrows or ZQSD; touch: swipe or direction pad. |
+| **Ferraille** | Run, jump and shoot through workshops, facing a multi-phase guardian every five levels. | Left/Right or A/D: run; Up/W and Down/S: aim or crouch; Space/Z: jump; X/J: fire; touch: joystick, hold Jump and Fire. |
+| **Alunir** | Land a lunar module gently while managing rotation, thrust and fuel over rough terrain and gusts. | Up/W: thrust; Left/Right or A/D: rotate; touch: hold the rotation and Thrust buttons. |
+| **Caisses** | Push one to six crates onto targets, with unlimited undo and solver-proven records to beat. | Arrows or Q/S/D and Shift+Z: move; Z/Backspace: undo; R: restart; touch: swipe or direction pad, Undo button. |
+| **Traverse** | Reach shelters across traffic, moving logs and diving floats. | Arrows or ZQSD: step; mouse click or touch tap: up; swipe or direction pad: step. |
+| **Dérapage** | Steer a kart, charge drifts and race for the podium across seven original cups. | Left/Right: steer; Space/Shift: drift; X/Ctrl: bonus; touch: hold steering and Drift, tap Bonus; optional tilt and mouse steering. |
 
-Les noms, règles, niveaux, formes et sons sont originaux : tout est dessiné et
-synthétisé par le code, sans ressource de jeu externe, police ni fichier audio. Les icônes PWA sont des PNG originaux produits par code. Le meilleur score,
-les niveaux débloqués et les préférences sont gardés dans `localStorage` quand il
-est disponible ; le jeu fonctionne sans.
+Names, rules, levels, artwork and sounds are original. Graphics and synthesized
+sounds are generated in code, with no external game assets, fonts or audio files.
+The original PWA icons are also generated in code. Best scores, unlocked levels
+and preferences use `localStorage` when available; play still works without it.
+Existing `arcade-lab:*` and `bubble-lab:*` storage keys preserve earlier progress.
 
-## Installer sur son téléphone et jouer hors ligne
+## Install on your phone and play offline
 
-Ouvrir **https://davy45270.github.io/Opencade/** avec une connexion et attendre
-le chargement complet de l’accueil : les douze jeux sont alors précachés.
-Sur **Android (Chrome)**, ouvrir le menu ⋮ puis « Installer l’application »
-ou « Ajouter à l’écran d’accueil ». Sur **iOS (Safari)**, ouvrir Partager puis
-« Sur l’écran d’accueil » et confirmer l’ajout. Relancer depuis cette icône.
-Les intitulés peuvent varier selon la version du navigateur.
+Open [the demo](https://davy45270.github.io/Opencade/) online and let the home
+screen finish loading so all twelve games can be cached.
 
-Après ce premier chargement, l’accueil et les douze jeux fonctionnent sans
-connexion. Scores, niveaux débloqués et préférences restent dans le stockage
-local du navigateur ou de l’application installée ; leur effacement supprime
-ces données et peut imposer un nouveau chargement en ligne.
+- **Android / Chrome:** open the ⋮ menu and choose “Install app” or “Add to Home screen”.
+- **iOS / Safari:** open Share, choose “Add to Home Screen” and confirm.
 
-Une mise à jour trouvée en ligne est annoncée discrètement, sans interrompre
-le jeu. Fermer toutes les fenêtres Opencade puis relancer pour l’appliquer.
-Le mode `prompt` conserve le nouveau service worker en attente : aucune
-activation forcée au milieu d’une partie. Aucun serveur tiers, police distante
-ou cache de données externes n’est utilisé.
+Launch Opencade from the new icon. Menu wording varies by browser version.
+After the initial cache is ready, the home screen and all twelve games work
+offline. Scores, unlocked levels and settings stay in the browser or installed
+app's local storage. Clearing that storage removes progress and may require
+another online visit.
 
-Le manifeste et le service worker emploient des chemins relatifs : `./`
-désigne la racine locale ou `/Opencade/` sur Pages. Le workflow Pages publie
-tout `dist/` et conserve `base: './'`. Les trois PNG livrés (192, 512 et
-512 maskable) dessinent une borne lumineuse originale, produite par code :
-ils ne nécessitent aucun outil graphique ni dépendance au build. Le fond est
-opaque et le motif central reste dans le cercle de sûreté de l’icône maskable.
-Tous les fichiers HTML, JS, CSS et icônes du build sont précachés, Phaser compris.
+Updates are announced without interrupting a game. Close every Opencade window
+and reopen to apply an available update. The service worker waits for the next
+launch rather than forcing activation during play. All build HTML, JavaScript,
+CSS and icons, including Phaser, are precached; there are no remote fonts,
+third-party servers or external data caches.
 
-Les clés historiques `arcade-lab:*` et `bubble-lab:*` sont conservées malgré
-le nom affiché « Opencade », pour préserver les progrès existants, hors ligne
-comme en ligne.
+## Phone comfort
 
-## Confort sur téléphone
+Where supported, Opencade keeps the screen awake during active play and releases
+it on pause, in the background or at the end of a level. Vibrations mark lost
+lives, wins and defeats when global sound is enabled. The mobile menu offers
+optional fullscreen and attempts portrait orientation. Unsupported or declined
+features are silently skipped. See the device section of [GAME_SPEC.md](GAME_SPEC.md).
 
-Quand le navigateur le permet, l’écran reste allumé pendant une partie active,
-puis est libéré en pause, en arrière-plan ou à la fin du niveau. Des vibrations
-accompagnent perte de vie, victoire et défaite si le son global est activé.
-Le menu mobile propose « Plein écran » sur les appareils compatibles et tente
-l’orientation portrait. Ces fonctions facultatives restent silencieuses si
-elles sont indisponibles ou refusées ; voir la section Appareil de
-[GAME_SPEC.md](GAME_SPEC.md).
+## Development
 
-## Contrôles
-
-- **Tactile** : boutons et zones de glisser sous le canevas (croix, joystick,
-  boutons Tir et Saut de 56 à 64 px). Sur téléphone, ☰ ouvre le statut, l'aide,
-  les niveaux et « Recommencer », et met le jeu en pause.
-- **Souris** : viser, guider, cliquer pour tirer ou lancer selon le jeu.
-- **Clavier** : flèches, ZQSD ou WASD ; Espace pour l'action principale ;
-  **P** ou **Échap** pour la pause.
-
-L'aide propre à chaque jeu s'affiche dans le jeu. Les règles détaillées sont dans
-[GAME_SPEC.md](GAME_SPEC.md).
-
-## Architecture
-
-```
-src/
-  engines/<jeu>/   moteurs purs : règles, collisions, niveaux, score
-  engines/shared/  PRNG à graine partagé
-  games/<jeu>/     scène Phaser (dessin, animations, entrées) et sons synthétisés
-  games/registry.ts  liste des jeux, aides et contrôles déclarés
-  shell/           socle commun : entrées, pause, menus, niveaux, son, sauvegarde
-tests/             Vitest (moteurs et socle)
-tests/e2e/         Playwright (parcours réels, bureau et mobile)
-```
-
-- **Moteurs purs.** Chaque moteur est du TypeScript sans Phaser ni DOM. ESLint
-  y interdit les imports de Phaser, les globales du navigateur et
-  `Math.random`. Le hasard passe par un **PRNG à graine** : une même graine et
-  les mêmes entrées donnent exactement la même partie, ce qui rend les niveaux et
-  les tests reproductibles.
-- **Scènes Phaser.** Elles dessinent l'état du moteur et lui transmettent les
-  entrées. Le socle recrée Phaser proprement à chaque changement de jeu et libère
-  les écouteurs à la fermeture.
-- **Ajouter un jeu** : un moteur et une scène originaux, puis une entrée dans
-  `src/games/registry.ts`.
-
-## Lancer en local
-
-Node **22.12 ou plus** (voir `.nvmrc`).
+Use **Node 22.12 or later** (see `.nvmrc`).
 
 ```sh
 npm ci
-npm run dev        # serveur de développement
-npm run build      # site statique dans dist/
-npm run preview    # sert dist/ sur http://127.0.0.1:4173
-```
-
-`dist/` est un site statique autonome. Le build utilise `base: './'` : il se sert
-tel quel depuis un sous-répertoire (c'est le cas de GitHub Pages, sous
-`/Opencade/`). Ouvrir par HTTP, pas par `file://`.
-
-## Tests
-
-```sh
-npm run lint         # ESLint strict, 0 avertissement toléré
-npm run typecheck    # tsc --noEmit
-npm test             # Vitest : moteurs et socle, sans navigateur
+npm run dev        # development server
+npm run lint       # ESLint, no warnings allowed
+npm run typecheck  # TypeScript without emitting files
+npm test           # Vitest engine and shell tests
+npm run build      # static site in dist/
 npx playwright install --with-deps chromium
-npm run test:e2e     # Playwright sur le build de production
+npm run test:e2e   # Playwright against the production build
+npm run preview    # preview dist/ over HTTP
 ```
 
-- **Vitest** vérifie l'oracle de chaque jeu (identifiants `T01`, `N01`, `K01`…
-  repris dans [GAME_SPEC.md](GAME_SPEC.md)) sur des grilles et des graines fixées.
-- **Playwright** lance `vite preview` sur `127.0.0.1:4173` et joue le build de
-  production en Chromium bureau (1280 × 900) et mobile (390 × 844, tactile). Les
-  tirs, sauts et glisser passent par les vraies entrées. La fixture commune fait
-  échouer un test à la moindre erreur de page ou de console.
-- **Crochet de test.** Avec `?test=1` dans l'URL seulement, la page expose
-  `window.__ARCADE_TEST__` (et `window.__BUBBLE_TEST__`) : lecture de l'état,
-  chargement d'un niveau ou d'une graine, scénarios, et `advance(ms)` qui fait
-  avancer la simulation sans attendre le rendu. Les E2E restent ainsi
-  indépendants de la vitesse du CPU. Sans ce paramètre, rien n'est exposé. Le
-  crochet reste volontairement dans le build publié pour que les tests portent
-  sur le produit livré ; ce n'est pas une frontière de sécurité, le jeu n'ayant
-  ni serveur ni données à protéger.
+The build is a standalone static site. Relative paths (`base: './'`) support
+hosting at a domain root or under a subdirectory such as `/Opencade/`. Serve it
+over HTTP, rather than opening files directly. The manifest and service worker
+also use relative paths. The three shipped icons (192, 512 and 512 maskable) have
+opaque backgrounds and a central design within the maskable safe area; building
+requires no graphics tools.
 
-La CI GitHub Actions rejoue lint, typecheck, Vitest, build et E2E à chaque push
-et pull request ; le rapport Playwright est joint en artefact en cas d'échec.
+Vitest checks game rules against fixed boards and seeds, using the rule IDs in
+[GAME_SPEC.md](GAME_SPEC.md). Playwright covers desktop and touch-enabled mobile
+Chromium, uses real inputs, and fails on page or console errors. The test-only
+URL parameter `?test=1` exposes `window.__ARCADE_TEST__` and per-game hooks for
+state inspection, levels, scenarios and `advance(ms)`. Advancing simulation time
+keeps gameplay assertions independent of rendering speed. Hooks are absent
+without the parameter. They are deliberately included in the published build so
+E2E tests exercise the shipped product; changing a local game's state is not a
+security boundary.
 
-## Limites connues
+GitHub Actions runs lint, typecheck, unit tests, build and E2E checks on pushes
+and pull requests, and attaches a Playwright report on failure.
 
-- Pas de classement en ligne ni de sauvegarde de partie en cours.
-- Le canevas n'offre pas une représentation complète aux lecteurs d'écran ; le
-  score, le statut et les boutons sont en HTML.
-- Seul Chromium est couvert par les tests automatiques.
-- Vite signale la taille du paquet Phaser ; cet avertissement est attendu.
+## Architecture
 
-## Comment ce projet a été fait
+```text
+src/
+  engines/<game>/    pure rules, collisions, levels and scoring
+  engines/shared/    seeded random number generator
+  games/<game>/      Phaser scene, animation, input and synthesized sound
+  games/registry.ts game list, help and declared controls
+  shell/            shared input, pause, menus, levels, sound and storage
+tests/              engine and shell unit tests
+tests/e2e/          desktop and mobile browser journeys
+```
 
-Le code a été écrit par l'agent de programmation Codex (OpenAI), relu et vérifié
-par Claude (Anthropic), sous la direction de David Sevin.
+Engines are pure TypeScript with no Phaser or DOM dependencies. ESLint forbids
+browser globals and `Math.random` there. A seeded random number generator makes
+the same inputs and seed produce the same game. Phaser scenes render engine
+state and pass inputs to it. The shared shell recreates Phaser when switching
+games and releases listeners on exit. To add a game, implement an original engine
+and scene, then register it in `src/games/registry.ts`.
 
-## Contribuer
+## Known limitations
 
-Voir [CONTRIBUTING.md](CONTRIBUTING.md), le [code de conduite](CODE_OF_CONDUCT.md)
-et la [politique de sécurité](SECURITY.md).
+- No online leaderboard or saving of an unfinished game.
+- Canvas gameplay has no complete screen-reader representation; scores, status and buttons use HTML.
+- Automated browser tests cover Chromium only.
+- Vite reports a large Phaser bundle; this warning is expected.
 
-## Licence
+## Credits
 
-[MIT](LICENSE) © 2026 David Sevin. Phaser est distribué sous licence MIT.
+Code written by Codex (OpenAI), reviewed and checked by Claude (Anthropic),
+under the direction of David Sevin.
+
+## Contributing
+
+Bug reports and pull requests are welcome in English or French. Read
+[CONTRIBUTING.md](CONTRIBUTING.md), the [code of conduct](CODE_OF_CONDUCT.md)
+and the [security policy](SECURITY.md) before contributing.
+
+## License
+
+[MIT](LICENSE) © 2026 David Sevin. Phaser is also MIT licensed.

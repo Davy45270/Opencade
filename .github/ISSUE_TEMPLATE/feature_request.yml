@@ -1,23 +1,23 @@
-name: Proposer une idée
-description: Une amélioration, un réglage de jouabilité ou un nouveau jeu.
+name: Suggest an idea
+description: An improvement, a gameplay adjustment or a new game.
 labels: [enhancement]
 body:
   - type: textarea
     id: idee
     attributes:
-      label: L'idée
-      description: Ce que vous aimeriez, et pourquoi.
+      label: Your idea
+      description: What you would like to see, and why.
     validations:
       required: true
   - type: textarea
     id: details
     attributes:
-      label: Détails (facultatif)
-      description: Jeu concerné, contrôles, exemples.
+      label: Details (optional)
+      description: Affected game, controls and examples.
   - type: checkboxes
     id: originalite
     attributes:
-      label: Originalité
+      label: Originality
       options:
-        - label: L'idée ne reprend ni nom, ni personnage, ni graphisme, ni niveau d'un jeu existant.
+        - label: This idea does not reuse names, characters, artwork or levels from an existing game.
           required: true

@@ -1,18 +1,16 @@
-# Contribuer à Opencade
+# Contributing to Opencade
 
-Merci de votre intérêt ! Les issues et pull requests sont les bienvenues, en
-français ou en anglais.
+Bug reports and pull requests are welcome in English or French.
 
-## Avant de commencer
+## Before you start
 
-- Pour une correction simple, ouvrez directement une pull request.
-- Pour un nouveau jeu ou un changement de règles, ouvrez d'abord une issue pour
-  en discuter.
-- Les jeux doivent rester **originaux** : pas de nom, personnage, graphisme, son
-  ou niveau repris d'un jeu existant, et pas de ressource dont la licence n'est
-  pas compatible MIT. Les formes et les sons sont produits par le code.
+- Small fixes can go straight into a pull request.
+- Open an issue before adding a game or changing its rules so we can discuss the approach.
+- Games must be **original**: do not reuse names, characters, artwork, sounds or levels from existing games, or assets with licenses incompatible with MIT. Shapes and sounds are generated in code.
 
-## Mettre en place
+## Set up
+
+Use Node 22.12 or later (see `.nvmrc`).
 
 ```sh
 npm ci
@@ -20,18 +18,15 @@ npx playwright install --with-deps chromium
 npm run dev
 ```
 
-## Règles du code
+## Code guidelines
 
-- Les règles d'un jeu vivent dans `src/engines/<jeu>/` : pas de Phaser, pas de
-  DOM, pas de `Math.random` (utiliser le PRNG de `src/engines/shared/random.ts`).
-  ESLint le vérifie.
-- La scène Phaser (`src/games/<jeu>/`) dessine et transmet les entrées ; elle
-  libère ses écouteurs à la fermeture.
-- Toute règle nouvelle s'accompagne d'un test Vitest ; tout parcours visible
-  d'un test Playwright passant par de vraies entrées.
-- Aucune nouvelle dépendance sans discussion préalable.
+- Put game rules in `src/engines/<game>/`, without Phaser, the DOM or `Math.random`. Use the seeded generator in `src/engines/shared/random.ts`. ESLint enforces these boundaries.
+- Phaser scenes in `src/games/<game>/` render state and forward input. Release their listeners on exit.
+- Cover new rules with Vitest tests and visible user journeys with Playwright tests using real inputs. For real-time gameplay assertions, advance the engine with `advance(ms)` rather than waiting for rendering to move a character.
+- Discuss new dependencies before adding them.
+- Keep the English and French READMEs in sync. The detailed game specification remains in French.
 
-## Avant d'envoyer
+## Before submitting
 
 ```sh
 npm run lint
@@ -41,10 +36,9 @@ npm run build
 npm run test:e2e
 ```
 
-Messages de commit au format [Conventional Commits](https://www.conventionalcommits.org/fr/)
-(`feat:`, `fix:`, `docs:`, `test:`, `chore:`…). Notez les changements visibles
-dans `CHANGELOG.md`.
+Use [Conventional Commits](https://www.conventionalcommits.org/en/)
+(`feat:`, `fix:`, `docs:`, `test:`, `chore:`, etc.). Document user-visible changes
+in `CHANGELOG.md`.
 
-En contribuant, vous acceptez que votre contribution soit publiée sous
-[licence MIT](LICENSE) et vous vous engagez à respecter le
-[code de conduite](CODE_OF_CONDUCT.md).
+By contributing, you agree to release your contribution under the
+[MIT license](LICENSE) and follow the [code of conduct](CODE_OF_CONDUCT.md).

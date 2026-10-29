@@ -1,18 +1,19 @@
-## Ce que change cette pull request
+## What this pull request changes
 
-<!-- Une ou deux phrases : l'effet pour le joueur ou le développeur. -->
+<!-- One or two sentences explaining the effect on players or developers. -->
 
-## Comment c'est vérifié
+## Validation
 
 - [ ] `npm run lint`
 - [ ] `npm run typecheck`
 - [ ] `npm test`
 - [ ] `npm run build`
-- [ ] `npm run test:e2e` (ou laissé à la CI)
-- [ ] Testé à la main sur : <!-- ordinateur, téléphone… -->
+- [ ] `npm run test:e2e` (or left to CI)
+- [ ] Manually tested on: <!-- desktop, phone, etc. -->
 
-## Points d'attention
+## Review checklist
 
-- [ ] Les règles restent dans un moteur pur (pas de Phaser, DOM ni `Math.random`).
-- [ ] Aucune ressource ou nom repris d'un jeu existant.
-- [ ] `CHANGELOG.md` mis à jour si le changement est visible.
+- [ ] Game rules remain in a pure engine (no Phaser, DOM or `Math.random`).
+- [ ] No assets or names copied from an existing game.
+- [ ] `CHANGELOG.md` updated for user-visible changes.
+- [ ] English and French READMEs updated together where relevant.
