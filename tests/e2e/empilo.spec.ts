@@ -28,7 +28,7 @@ async function layout(page: Page): Promise<void> {
     expect(scroll).toBeLessThanOrEqual(height);
 }
 async function swipe(page: Page, dx: number, dy: number): Promise<void> {
-    const box = await page.locator('canvas').boundingBox(); if (!box) throw new Error('Canevas absent');
+    const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent');
     const x = box.x + box.width / 2, y = box.y + box.height / 3;
     const client = await page.context().newCDPSession(page);
     await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
@@ -76,8 +76,8 @@ test('E01 E02 E05 contrôles, gestes au doigt, pause et isolation du crochet', a
     if (mobile) await swipe(page, -61, 0); else await page.keyboard.press('ArrowLeft');
     expect((await read(page))?.active.x).toBe((x ?? 0) - (mobile ? 2 : 1));
     const cells = (await read(page))?.active.cells;
-    if (mobile) { const box = await page.locator('canvas').boundingBox(); if (!box) throw new Error('Canevas absent'); await page.touchscreen.tap(box.x + 10, box.y + 10); }
-    else { const box = await page.locator('canvas').boundingBox(); if (!box) throw new Error('Canevas absent'); await page.mouse.click(box.x + 10, box.y + 10); }
+    if (mobile) { const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent'); await page.touchscreen.tap(box.x + 10, box.y + 10); }
+    else { const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent'); await page.mouse.click(box.x + 10, box.y + 10); }
     expect((await read(page))?.active.cells).not.toEqual(cells);
     await tap(page, '#empilo-counterclockwise', mobile); expect((await read(page))?.active.cells).toEqual(cells);
     await tap(page, '#empilo-right', mobile); await tap(page, '#empilo-soft', mobile); expect((await read(page))?.score).toBeGreaterThanOrEqual(1);
@@ -86,7 +86,7 @@ test('E01 E02 E05 contrôles, gestes au doigt, pause et isolation du crochet', a
     expect((await read(page))?.board).not.toEqual(before);
     await tap(page, '#pause', mobile); const paused = await read(page); await page.waitForTimeout(200); expect(await read(page)).toEqual(paused);
     await tap(page, '#resume', mobile); await layout(page);
-    await page.goto('/#/empilo'); await expect(page.locator('canvas')).toBeVisible();
+    await page.goto('/#/empilo'); await expect(page.locator('#game canvas')).toBeVisible();
     expect(await page.evaluate(() => [window.__ARCADE_TEST__, window.__EMPILO_TEST__])).toEqual([undefined, undefined]);
 });
 

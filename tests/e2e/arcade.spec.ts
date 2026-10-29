@@ -9,7 +9,7 @@ test('A01 registre accueil navigation et retour navigateur', async ({ page }, in
     await page.screenshot({ path: `test-results/screenshots/home-${info.project.name}.png` });
     await page.getByRole('button', { name: /Bubble Lab/ }).focus();
     await page.keyboard.press('Enter');
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('#game canvas')).toBeVisible();
     await expect.poll(() => page.evaluate(() => window.__ARCADE_TEST__?.current())).toBe('bubble');
     await page.screenshot({ path: `test-results/screenshots/bubble-in-arcade-${info.project.name}.png` });
     await page.locator('#topbar [data-home]').click();
@@ -17,7 +17,7 @@ test('A01 registre accueil navigation et retour navigateur', async ({ page }, in
     await expect(page.locator('#game canvas')).toHaveCount(0);
     await expect.poll(() => page.evaluate(() => Boolean(window.__BUBBLE_TEST__))).toBe(false);
     await page.goBack();
-    await expect(page.locator('canvas')).toHaveCount(1);
+    await expect(page.locator('#game canvas')).toHaveCount(1);
     await expect.poll(() => page.evaluate(() => Boolean(window.__BUBBLE_TEST__))).toBe(true);
     await openGameMenu(page, '#levels'); await page.locator('#levels').click();
     await expect(page.locator('#level-select')).toBeVisible();
@@ -26,7 +26,7 @@ test('A01 registre accueil navigation et retour navigateur', async ({ page }, in
 });
 test('A02 A04 ouverture directe son global persistant', async ({ page }) => {
     await ready(page);
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('#game canvas')).toBeVisible();
     await expect(page.locator('#sound')).toHaveCount(1);
     await page.locator('#sound').click();
     await page.locator('#topbar [data-home]').click();
@@ -34,7 +34,7 @@ test('A02 A04 ouverture directe son global persistant', async ({ page }) => {
     await page.reload();
     await expect(page.locator('#sound')).toHaveAttribute('aria-pressed', 'false');
     await page.evaluate(() => { window.__ARCADE_TEST__?.open('bubble'); });
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('#game canvas')).toBeVisible();
 });
 test('A05 A06 sélecteur et panneaux communs', async ({ page }) => {
     await ready(page);
@@ -53,7 +53,7 @@ test('A05 A06 sélecteur et panneaux communs', async ({ page }) => {
 test('A07 mobile sans scroll et cibles tactiles accessibles', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await ready(page);
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('#game canvas')).toBeVisible();
     expect(await page.evaluate(() => (document.scrollingElement?.scrollHeight ?? 0) <= innerHeight + 1)).toBe(true);
     for (const button of await page.locator('button:visible').all()) {
         const box = await button.boundingBox();
@@ -69,7 +69,7 @@ test('A07 mobile sans scroll et cibles tactiles accessibles', async ({ page }) =
 });
 test('A08 aucun crochet sans paramètre', async ({ page }) => {
     await page.goto('/#/bubble');
-    await expect(page.locator('canvas')).toBeVisible();
+    await expect(page.locator('#game canvas')).toBeVisible();
     expect(await page.evaluate(() => [window.__ARCADE_TEST__, window.__BUBBLE_TEST__])).toEqual([undefined, undefined]);
 });
 
@@ -77,7 +77,7 @@ test('A07b barre compacte et canevas mobile', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await ready(page);
     const bar = await page.locator('#topbar').boundingBox();
-    const canvas = await page.locator('canvas').boundingBox();
+    const canvas = await page.locator('#game canvas').boundingBox();
     expect(bar?.height).toBeLessThanOrEqual(64);
     expect(canvas?.height).toBeGreaterThanOrEqual(844 * 0.6);
     for (const button of await page.locator('#topbar button:visible').all()) {

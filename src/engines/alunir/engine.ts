@@ -11,7 +11,7 @@ export interface Pad { x: number; y: number; width: number; multiplier: number }
 export interface Controls { thrust: boolean; left: boolean; right: boolean }
 export function difficulty(level: number) {
     const n = Math.max(0, Math.min(29, Math.floor(level))), t = n / 29;
-    return { width: 90 - 62 * t, relief: 20 + 70 * t, wind: 0.002 * t, gust: n >= 14 ? 0.001 * (n - 13) / 16 : 0, gravity: 0.018 + 0.006 * t, fuel: 950 - 200 * t };
+    return { width: 90 - 62 * t, relief: 20 + 70 * t, wind: 0.002 * t, gust: n >= 14 ? 0.001 * (n - 13) / 16 : 0, gravity: 0.018 + 0.006 * t, fuel: 950 - 200 * t, offset: 40 + 70 * t };
 }
 export function generate(level: number, seed: number) {
     const r = new Random(seed), d = difficulty(level);
@@ -62,7 +62,8 @@ export class Engine {
     loadLevel(level: number, seed = 28): void {
         this.level = Math.max(0, Math.min(29, Math.floor(level))); this.seed = seed >>> 0;
         this.terrain = generate(this.level, this.seed); const p = required(this.terrain.pads[0]);
-        this.state = { x: p.x + p.width / 2, y: 100, vx: 0, vy: 0, angle: 0, fuel: difficulty(this.level).fuel, score: 0, ticks: 0 };
+        const d = difficulty(this.level), direction = new Random(this.seed ^ 0x51a7).next() < 0.5 ? -1 : 1;
+        this.state = { x: p.x + p.width / 2 + direction * d.offset, y: 100, vx: 0, vy: 0, angle: 0, fuel: difficulty(this.level).fuel, score: 0, ticks: 0 };
         this.status = 'playing'; this.remainder = 0; this.input({ thrust: false, left: false, right: false });
     }
     input(controls: Controls): void { this.controls = { ...controls }; }
@@ -106,11 +107,16 @@ export class Engine {
         }
     }
 }
-/** Proportional position/velocity controller using ordinary held inputs only. */
+/** Position/velocity controller: brake above the relief before final descent. */
 export function pilot(e: Engine): Controls {
-    const s = e.state, p = required(e.terrain.pads[0]);
-    const target = Math.max(-0.12, Math.min(0.12, (p.x + p.width / 2 - s.x) * 0.015 - s.vx * 0.7 - windAt(e.level, e.seed, s.ticks) * 50));
-    const altitude = p.y - s.y - 8;
-    const speed = Math.min(1, Math.max(0.35, altitude * 0.025));
-    return { thrust: s.vy > speed || (altitude < 20 && s.vy > 0.5), left: s.angle > target + 0.0125, right: s.angle < target - 0.0125 };
+    const s = e.state, p = required(e.terrain.pads[0]), d = difficulty(e.level);
+    const dx = p.x + p.width / 2 - s.x;
+    const acceleration = dx * 0.0008 - s.vx * 0.065 - windAt(e.level, e.seed, s.ticks);
+    // Finish rotating before contact; keep the hull upright during the last metres.
+    const target = p.y - s.y < 35 ? 0 : Math.max(-0.55, Math.min(0.55, Math.atan(acceleration / d.gravity)));
+    const aligned = Math.abs(dx) < 5 && Math.abs(s.vx) < 0.15;
+    const approachY = Math.min(...e.terrain.points.map(v => v.y)) - 60;
+    const destination = aligned ? p.y - 8 : Math.min(p.y - 80, approachY);
+    const speed = Math.max(-1, Math.min(1, (destination - s.y) * 0.025));
+    return { thrust: s.vy > (aligned ? Math.max(0.35, speed) : speed), left: s.angle > target + 0.0125, right: s.angle < target - 0.0125 };
 }

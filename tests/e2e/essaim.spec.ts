@@ -110,7 +110,7 @@ test('G12 crochet inerte sans test et nettoyage à la sortie', async ({ page }, 
     const mobile = info.project.name === 'mobile-chromium'; await open(page);
     await tap(page, '#topbar [data-home]', mobile); await expect(page.locator('#game canvas')).toHaveCount(0);
     expect(await page.evaluate(() => window.__ESSAIM_TEST__)).toBeUndefined(); await expect(page.locator('#essaim-auto')).toHaveCount(0);
-    await page.goto('/#/essaim'); await expect(page.locator('canvas')).toBeVisible();
+    await page.goto('/#/essaim'); await expect(page.locator('#game canvas')).toBeVisible();
     expect(await page.evaluate(() => [window.__ARCADE_TEST__, window.__ESSAIM_TEST__])).toEqual([undefined, undefined]);
 });
 

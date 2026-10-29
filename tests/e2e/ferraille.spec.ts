@@ -88,7 +88,7 @@ test('F01 F03 F11 F14 niveau 30, saut et tir maintenus, pause et nettoyage', asy
         await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await client.detach();
     } else { await page.keyboard.up('Space'); await page.keyboard.up('KeyX'); await page.keyboard.press('KeyP'); await expect(page.locator('#pause-title')).toHaveText('En pause'); }
     await tap(page, '#topbar [data-home]', mobile); await expect(page.locator('#game canvas')).toHaveCount(0); expect(await page.evaluate(() => window.__FERRAILLE_TEST__)).toBeUndefined();
-    await page.goto('/#/ferraille'); await expect(page.locator('canvas')).toBeVisible(); expect(await page.evaluate(() => window.__FERRAILLE_TEST__)).toBeUndefined();
+    await page.goto('/#/ferraille'); await expect(page.locator('#game canvas')).toBeVisible(); expect(await page.evaluate(() => window.__FERRAILLE_TEST__)).toBeUndefined();
 });
 
 test('F09 F12 sauvegarde et déblocage après victoire réelle', async ({ page }, info) => {

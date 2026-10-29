@@ -29,7 +29,7 @@ test('PWA : accueil, victoire et sauvegarde sans connexion', async ({ page, cont
         await expect(page.locator('#result')).toBeVisible();
         await expect(page.locator('#result-title')).toContainText('réussi');
         await page.reload();
-        await expect(page.locator('canvas')).toBeVisible();
+        await expect(page.locator('#game canvas')).toBeVisible();
         await page.locator('#topbar [data-home]').click();
         await expect(page.locator('h1')).toHaveText('Opencade');
         await expect(page.getByRole('button', { name: /^Dédale/ })).toContainText('Niveaux débloqués : 2/30');

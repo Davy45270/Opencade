@@ -34,7 +34,7 @@ test('U04 vent constant puis rafales bornées, à graine et intégrées', () => 
     const e = new Engine(); e.loadLevel(29, 45); e.step(STEP); expect(e.state.vx).toBe(windAt(29, 45, 0));
 });
 test('U05 collision continue du polygone, grande vitesse et bord de plateforme', () => {
-    const e = new Engine(), p = required(e.terrain.pads[0]); e.loadState({ vy: 1000 }); e.step(STEP);
+    const e = new Engine(), p = required(e.terrain.pads[0]); e.loadState({ x: p.x + p.width / 2, vy: 1000 }); e.step(STEP);
     expect(e.status).toBe('lost'); expect(e.state.y).toBeCloseTo(p.y - 8);
     const edge = contact(); edge.loadState({ x: p.x - 2 }); edge.step(STEP); expect(edge.status).toBe('lost');
 });
@@ -66,14 +66,14 @@ test('U09 carburant, précision, temps, multiplicateur et score réel', () => {
     const frozen = e.snapshot(); e.step(1000); expect(e.snapshot()).toEqual(frozen);
 });
 test('U10 politique proportionnelle : chacun des trente niveaux complets', () => {
-    for (let level = 0; level < 30; level++) {
-        const e = new Engine(); e.loadLevel(level, 28);
+    for (const seed of [28, 1, 2026]) for (let level = 0; level < 30; level++) {
+        const e = new Engine(); e.loadLevel(level, seed);
         for (let t = 0; t < 2500 && e.status === 'playing'; t++) { e.input(pilot(e)); e.step(STEP); }
-        expect(e.status, `niveau ${String(level + 1)}`).toBe('won');
+        expect(e.status, `graine ${String(seed)}, niveau ${String(level + 1)}`).toBe('won');
     }
 });
 test('U11 chaque paramètre monotone et strict aux extrêmes, génération mesurable', () => {
-    const signs = { width: -1, relief: 1, wind: 1, gust: 1, gravity: 1, fuel: -1 } as const;
+    const signs = { width: -1, relief: 1, wind: 1, gust: 1, gravity: 1, fuel: -1, offset: 1 } as const;
     for (const key of Object.keys(signs) as (keyof typeof signs)[]) {
         for (let l = 1; l < 30; l++) expect((difficulty(l)[key] - difficulty(l - 1)[key]) * signs[key], key).toBeGreaterThanOrEqual(0);
         expect((difficulty(29)[key] - difficulty(0)[key]) * signs[key], key).toBeGreaterThan(0);
@@ -82,6 +82,10 @@ test('U11 chaque paramètre monotone et strict aux extrêmes, génération mesur
     for (let l = 0; l < 30; l++) for (const seed of [1, 28, 2026]) {
         const terrain = generate(l, seed), p = required(terrain.pads[0]);
         expect(p.width).toBe(difficulty(l).width);
+        const e = new Engine(); e.loadLevel(l, seed);
+        expect(Math.abs(e.state.x - p.x - p.width / 2)).toBeCloseTo(difficulty(l).offset, 10);
+        expect(e.state.x).toBeGreaterThan(7); expect(e.state.x).toBeLessThan(353);
+        const repeat = new Engine(); repeat.loadLevel(l, seed); expect(repeat.state).toEqual(e.state);
         expect(terrain.points.some((v, i) => v.x === p.x && terrain.points[i + 1]?.x === p.x + p.width && v.y === terrain.points[i + 1]?.y)).toBe(true);
         expect(terrain.points.every((v, i) => i === 0 || v.x > required(terrain.points[i - 1]).x)).toBe(true);
     }

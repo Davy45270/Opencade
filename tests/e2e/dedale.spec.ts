@@ -107,7 +107,7 @@ test('D09 D10 défaite par entrée réelle puis rejouer, glisser et pause', asyn
 
 test('D12 crochet inerte et nettoyage lors du retour à l’accueil', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium';
-    await page.goto('/#/dedale'); await expect(page.locator('canvas')).toBeVisible();
+    await page.goto('/#/dedale'); await expect(page.locator('#game canvas')).toBeVisible();
     expect(await page.evaluate(() => window.__DEDALE_TEST__)).toBeUndefined();
     await page.goto('/?test=1#/dedale');
     await expect.poll(() => page.evaluate(() => Boolean(window.__ARCADE_TEST__?.games.dedale))).toBe(true);

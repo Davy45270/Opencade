@@ -3,7 +3,7 @@ test('T12 toucher et T13 canevas et contrôles mobiles accessibles', async ({ pa
     await ready(page);
     await load(page);
     const before = await read(page);
-    const canvas = await page.locator('canvas').boundingBox();
+    const canvas = await page.locator('#game canvas').boundingBox();
     const viewport = page.viewportSize();
     if (!canvas || !viewport)
         throw new Error('Géométrie absente');

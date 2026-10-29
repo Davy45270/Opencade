@@ -35,7 +35,7 @@ export async function load(page: Page, grid: Cell[] = []): Promise<void> {
     }, grid);
 }
 export async function point(page: Page, x: number, y: number) {
-    const box = await page.locator('canvas').boundingBox();
+    const box = await page.locator('#game canvas').boundingBox();
     if (!box)
         throw new Error('Canvas absent');
     return { x: box.x + x * box.width / 360, y: box.y + y * box.height / 640 };

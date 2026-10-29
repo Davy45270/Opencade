@@ -82,7 +82,7 @@ for (const viewport of windows) for (const id of ids) {
         await expect(page.locator('#game-help')).toBeVisible();
         await expect(page.locator('#status')).toBeVisible();
         if (id === 'bubble') {
-            const canvas = await page.locator('canvas').boundingBox();
+            const canvas = await page.locator('#game canvas').boundingBox();
             if (!canvas) throw new Error('Canevas absent');
             await page.touchscreen.tap(canvas.x + canvas.width / 2, canvas.y + canvas.height / 4);
             await page.locator('#levels').blur();
@@ -112,15 +112,15 @@ for (const viewport of windows) for (const id of ids) {
 test('M01 conteneur redimensionné sans resize puis sortie et retour au jeu', async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto('/?test=1#/serpentin');
-    await expect(page.locator('canvas')).toBeVisible();
-    const initial = await page.locator('canvas').boundingBox();
+    await expect(page.locator('#game canvas')).toBeVisible();
+    const initial = await page.locator('#game canvas').boundingBox();
     if (!initial) throw new Error('Canevas absent');
     await page.locator('#game').evaluate(element => { (element as HTMLElement).style.height = '320px'; });
-    await expect.poll(async () => (await page.locator('canvas').boundingBox())?.height).toBeCloseTo(320, 0);
+    await expect.poll(async () => (await page.locator('#game canvas').boundingBox())?.height).toBeCloseTo(320, 0);
     await page.locator('#game').evaluate(element => { (element as HTMLElement).style.removeProperty('height'); });
-    await expect.poll(async () => (await page.locator('canvas').boundingBox())?.height).toBeCloseTo(initial.height, 0);
+    await expect.poll(async () => (await page.locator('#game canvas').boundingBox())?.height).toBeCloseTo(initial.height, 0);
     await page.locator('#topbar [data-home]').tap();
     await expect(page.locator('#game canvas')).toHaveCount(0);
     await page.getByRole('button', { name: /Serpentin/ }).tap();
-    await expect.poll(async () => (await page.locator('canvas').boundingBox())?.height).toBeCloseTo(initial.height, 0);
+    await expect.poll(async () => (await page.locator('#game canvas').boundingBox())?.height).toBeCloseTo(initial.height, 0);
 });

@@ -11,7 +11,7 @@ async function tap(page: Page, selector: string, mobile: boolean): Promise<void>
 }
 async function expectPauseOutsideCanvas(page: Page): Promise<void> {
     const pause = await page.locator('#pause').boundingBox();
-    const canvas = await page.locator('canvas').boundingBox();
+    const canvas = await page.locator('#game canvas').boundingBox();
     if (!pause || !canvas) throw new Error('Pause ou canevas absent');
     expect(pause.width).toBeGreaterThanOrEqual(44);
     expect(pause.height).toBeGreaterThanOrEqual(44);
@@ -83,7 +83,7 @@ test('N09 niveau 30 et mise en page', async ({ page }, info) => {
     await page.screenshot({ path: `test-results/screenshots/serpentin-level30-${info.project.name}.png` });
     if (mobile) {
         expect(await page.evaluate(() => (document.scrollingElement?.scrollHeight ?? 0) <= innerHeight)).toBe(true);
-        const canvas = await page.locator('canvas').boundingBox();
+        const canvas = await page.locator('#game canvas').boundingBox();
         expect(canvas?.y).toBeGreaterThanOrEqual(56);
         expect(canvas?.x).toBeGreaterThanOrEqual(0);
         expect((canvas?.x ?? 0) + (canvas?.width ?? 0)).toBeLessThanOrEqual(390);
