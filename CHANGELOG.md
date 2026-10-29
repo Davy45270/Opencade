@@ -5,6 +5,12 @@ le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+- Dérapage : douzième jeu, moteur de course pur en coordonnées du monde,
+  30 circuits, sept coupes, cinq IA, glisse et quatre bonus originaux.
+  Caméra tournante, mini-carte, commandes sur une rangée de 64 px, sons
+  synthétisés, vignette et démo ; tests Z01–Z16 et validation Node.
+  Aucun changement de `src/shell`, aucune dépendance ni ressource binaire.
+
 - Traverse : onzième jeu original, 30 traversées à graine, trois à cinq abris,
   convois, rivière et flotteurs plongeants. Moteur pur, preuve BFS rejouée,
   commandes tactiles, démo, sons et tests R01–R12 ; aucun changement du socle.

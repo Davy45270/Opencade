@@ -222,3 +222,7 @@ body.caisses #restart, body.caisses #replay-level { min-height: 56px; min-width:
 body.traverse #touch-controls { gap: 4px; justify-content: center; }
 body.traverse #touch-controls .touch-slot { flex: 0; gap: 4px; flex-direction: row; }
 body.traverse #touch-controls button { width: 56px; height: 56px; padding: 0; }
+
+body.derapage #touch-controls { gap: 4px; justify-content: center; }
+body.derapage #touch-controls .touch-slot { flex: 0; gap: 4px; flex-direction: row; }
+body.playing.derapage #touch-controls button { width: 64px; height: 64px; min-width: 64px !important; min-height: 64px !important; padding: 0; font-size: 16px; }

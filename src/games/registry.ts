@@ -1,3 +1,6 @@
+import { DerapageScene, derapageButtons } from './derapage/scene';
+import { derapageEffects } from './derapage/sound';
+import { createThumbnail as derapageThumbnail, createDemo as derapageDemo } from './derapage/thumbnail';
 import { TraverseScene, traverseButtons } from './traverse/scene';
 import { traverseEffects } from './traverse/sound';
 import { createThumbnail as traverseThumbnail, createDemo as traverseDemo } from './traverse/thumbnail';
@@ -63,6 +66,7 @@ export const bubbleButtons: readonly TouchButton[] = [
     { id: 'touch-right', label: '→', ariaLabel: 'Viser à droite', size: 44, placement: 'right', mode: 'tap' },
 ];
 export const games: readonly GameDefinition[] = [
+    { thumbnail: derapageThumbnail, demo: derapageDemo, id: 'derapage', name: 'Dérapage', levelCount: 30, realtime: true, keyboardHelp: '← → : braquer · Espace/Maj : dérapage · X/Ctrl : bonus · P/Échap : pause', touchHelp: 'Maintenir ◀ ▶ et Glisse (Dérapage) · Bonus : utiliser · Inclinaison et souris en option', createScene: session => new DerapageScene(session), effects: derapageEffects, testHook: () => window.__DERAPAGE_TEST__, touchControls: derapageButtons },
     { thumbnail: traverseThumbnail, demo: traverseDemo, id: 'traverse', name: 'Traverse', levelCount: 30, realtime: true, keyboardHelp: 'Flèches ou ZQSD : un pas · P/Échap : pause', touchHelp: 'Toucher : monter · Glisser ou croix : un pas · Attendre les fenêtres de passage', createScene: session => new TraverseScene(session), effects: traverseEffects, testHook: () => window.__TRAVERSE_TEST__, touchControls: traverseButtons },
     { thumbnail: caissesThumbnail, demo: caissesDemo, id: 'caisses', name: 'Caisses', levelCount: 30, realtime: false, keyboardHelp: 'Flèches / QSD / Maj+Z : déplacer · Z ou Retour arrière : annuler · R : recommencer', touchHelp: 'Glisser ou croix : un pas · ↶ : annuler · Recommencer dans ☰', createScene: session => new CaissesScene(session), effects: caissesEffects, testHook: () => window.__CAISSES_TEST__, touchControls: caissesButtons },
     { thumbnail: alunirThumbnail, demo: alunirDemo, id: 'alunir', name: 'Alunir', levelCount: 30, realtime: true, keyboardHelp: '↑ ou W : poussée · ← → ou A/D : rotation · P/Échap : pause', touchHelp: 'Maintenir ↺ ↻ : tourner · Maintenir Poussée : freiner la chute · Poser doucement et droit', createScene: session => new AlunirScene(session), effects: alunirEffects, testHook: () => window.__ALUNIR_TEST__, touchControls: alunirButtons },

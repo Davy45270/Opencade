@@ -12,8 +12,8 @@ function recording() {
     }) as CanvasRenderingContext2D;
     return { calls, context };
 }
-test('V01 onze rendus déterministes sur contexte 2D', () => {
-    expect(games).toHaveLength(11);
+test('V01 douze rendus déterministes sur contexte 2D', () => {
+    expect(games).toHaveLength(12);
     for (const game of games) {
         expect(game.demo(28)).toBeDefined();
         const a = game.thumbnail(28), b = game.thumbnail(28);
