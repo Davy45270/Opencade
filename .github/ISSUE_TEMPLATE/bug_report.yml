@@ -1,0 +1,41 @@
+name: Signaler un bug
+description: Un jeu ne se comporte pas comme prévu.
+labels: [bug]
+body:
+  - type: input
+    id: jeu
+    attributes:
+      label: Jeu concerné
+      placeholder: "ex. Empilo, niveau 12"
+    validations:
+      required: true
+  - type: textarea
+    id: etapes
+    attributes:
+      label: Étapes pour reproduire
+      placeholder: "1. Ouvrir…\n2. Toucher…\n3. Constater…"
+    validations:
+      required: true
+  - type: textarea
+    id: attendu
+    attributes:
+      label: Comportement attendu et comportement observé
+    validations:
+      required: true
+  - type: input
+    id: environnement
+    attributes:
+      label: Appareil et navigateur
+      placeholder: "ex. Android 15, Chrome 142 ; ou Windows 11, Firefox"
+    validations:
+      required: true
+  - type: dropdown
+    id: controle
+    attributes:
+      label: Contrôle utilisé
+      multiple: true
+      options: [Tactile, Souris, Clavier]
+  - type: textarea
+    id: capture
+    attributes:
+      label: Capture d'écran ou erreurs de la console (facultatif)

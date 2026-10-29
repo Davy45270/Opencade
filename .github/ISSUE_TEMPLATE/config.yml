@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Signaler une vulnérabilité
+    url: https://github.com/Davy45270/Opencade/security/advisories/new
+    about: En privé, via GitHub Security Advisories (voir SECURITY.md).
