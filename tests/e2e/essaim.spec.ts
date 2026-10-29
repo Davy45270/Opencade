@@ -80,30 +80,38 @@ test('G06 G10 défaite après guidage réel puis rejouer restaure vies et score'
 });
 test('G01 G03 G12 guidage clavier souris doigt, tir auto sauvé et pause', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium'; await open(page); await tap(page, '#resume', mobile);
+    // Use simulation time for guidance, independently of rendering.
+    await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(0); });
     if (mobile) {
-        await drag(page, 180, 280); await expect.poll(async () => (await read(page))?.cannon).toBeCloseTo(280);
+        await drag(page, 180, 280); await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(500); }); await expect.poll(async () => (await read(page))?.cannon).toBeCloseTo(280);
         // La moitié haute ne déplace pas le canon au toucher.
         await drag(page, 280, 80, 200); expect((await read(page))?.target).toBe(280);
     } else {
-        await page.keyboard.down('ArrowRight'); await expect.poll(async () => (await read(page))?.cannon ?? 0).toBeGreaterThan(215); await page.keyboard.up('ArrowRight');
-        await page.keyboard.down('KeyA'); await expect.poll(async () => (await read(page))?.cannon ?? 360).toBeLessThan(180); await page.keyboard.up('KeyA');
-        const target = await point(page, 280, 610); await page.mouse.move(target.x, target.y); await expect.poll(async () => (await read(page))?.cannon).toBeCloseTo(280);
+        await page.keyboard.down('ArrowRight'); await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(200); }); await expect.poll(async () => (await read(page))?.cannon ?? 0).toBeGreaterThan(215); await page.keyboard.up('ArrowRight');
+        await page.keyboard.down('KeyA'); await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(400); }); await expect.poll(async () => (await read(page))?.cannon ?? 360).toBeLessThan(180); await page.keyboard.up('KeyA');
+        const target = await point(page, 280, 610); await page.mouse.move(target.x, target.y);
+        // 600 ms covers the return from keyboard guidance at 300 px/s.
+        await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(600); }); await expect.poll(async () => (await read(page))?.cannon).toBeCloseTo(280);
     }
     if (mobile) {
         const a = await point(page, 280, 618), client = await page.context().newCDPSession(page);
         await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [a] });
         await expect.poll(async () => (await read(page))?.firing).toBe(true);
+        await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(100); });
         await expect.poll(async () => (await read(page))?.shots.some(s => s.owner === 'player')).toBe(true);
         await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await client.detach();
         await expect.poll(async () => (await read(page))?.firing).toBe(false);
     }
-    await tap(page, '#essaim-fire', mobile); await expect.poll(async () => (await read(page))?.shots.some(s => s.owner === 'player')).toBe(true);
+    await tap(page, '#essaim-fire', mobile); await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(100); });
+    await expect.poll(async () => (await read(page))?.shots.some(s => s.owner === 'player')).toBe(true);
     if (mobile) await tap(page, '#pause', true); else await page.keyboard.press('KeyP');
     const paused = await read(page); await page.waitForTimeout(200); expect(await read(page)).toEqual(paused);
     if (mobile) await tap(page, '#resume', true); else await page.keyboard.press('Escape');
+    await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(100); });
     await expect.poll(async () => (await read(page))?.ticks ?? 0).toBeGreaterThan(paused?.ticks ?? 0);
     await tap(page, '.essaim-options', mobile); expect((await read(page))?.autoFire).toBe(true);
     await page.reload(); await expect(page.locator('#essaim-auto')).toBeChecked(); await tap(page, '#resume', mobile);
+    await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(100); });
     await expect.poll(async () => (await read(page))?.shots.some(s => s.owner === 'player')).toBe(true); await layout(page);
 });
 test('G12 crochet inerte sans test et nettoyage à la sortie', async ({ page }, info) => {

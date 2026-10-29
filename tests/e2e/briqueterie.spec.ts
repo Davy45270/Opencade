@@ -66,9 +66,10 @@ test('K02 contrôles, glisser tactile et pause', async ({ page }, info) => {
         const box = await page.locator('#briqueterie-left').boundingBox(); if (!box) throw new Error('Contrôle absent');
         const client = await page.context().newCDPSession(page);
         await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: box.x + 28, y: box.y + 28 }] });
+        await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(200); });
         await expect.poll(async () => (await read(page))?.paddle).toBeLessThan(240);
         await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await client.detach();
-    } else { await page.keyboard.down('KeyA'); await expect.poll(async () => (await read(page))?.paddle).toBeLessThan(240); await page.keyboard.up('KeyA'); }
+    } else { await page.keyboard.down('KeyA'); await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(200); }); await expect.poll(async () => (await read(page))?.paddle).toBeLessThan(240); await page.keyboard.up('KeyA'); }
     expect((await read(page))?.paddle).toBeLessThan(240);
     await tap(page, '#pause', mobile); const paused = await read(page); await page.waitForTimeout(200); expect(await read(page)).toEqual(paused); await layout(page); await tap(page, '#resume', mobile);
 });

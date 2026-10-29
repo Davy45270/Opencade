@@ -17,8 +17,10 @@ test('V04–V05 douze vignettes non vides et animées', async ({ page }) => {
         if (!id) throw new Error('Identifiant absent');
         await expect.poll(() => page.evaluate(id => window.__ARCADE_TEST__?.thumbnails()[id] ?? 0, id)).toBeGreaterThan(0);
         const before = await pixels(page, id);
+        const frames = await page.evaluate(id => window.__ARCADE_TEST__?.thumbnails()[id] ?? 0, id);
         expect(new Set(before.filter((_, i) => i % 4 !== 3)).size).toBeGreaterThan(4);
-        await page.waitForTimeout(600);
+        // Wait for real thumbnail frames rather than wall time: on a slow host fewer frames fit in 600 ms.
+        await expect.poll(() => page.evaluate(id => window.__ARCADE_TEST__?.thumbnails()[id] ?? 0, id)).toBeGreaterThanOrEqual(frames + 4);
         expect(await pixels(page, id), id).not.toEqual(before);
     }
 });

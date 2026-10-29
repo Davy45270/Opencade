@@ -52,7 +52,7 @@ test('F09 F12 victoire par déplacement, niveau suivant et contrôles', async ({
     await victory(page, mobile);
     await page.screenshot({ path: `test-results/screenshots/ferraille-won-${info.project.name}.png` });
     await tap(page, '#next-level', mobile); expect((await read(page))?.level).toBe(1); await layout(page);
-    await walk(page, mobile, async () => { await expect.poll(async () => (await read(page))?.hero.x ?? 0).toBeGreaterThan(64); });
+    await walk(page, mobile, async () => { await page.evaluate(() => { window.__FERRAILLE_TEST__?.advance(400); }); await expect.poll(async () => (await read(page))?.hero.x ?? 0).toBeGreaterThan(64); });
     await page.screenshot({ path: `test-results/screenshots/ferraille-play-${info.project.name}.png` });
 });
 test('F07 F08 chute par entrée réelle, défaite et rejouer', async ({ page }, info) => {
@@ -77,11 +77,13 @@ test('F01 F03 F11 F14 niveau 30, saut et tir maintenus, pause et nettoyage', asy
     const paused = await read(page); await page.waitForTimeout(200); expect(await read(page)).toEqual(paused); await layout(page);
     await tap(page, '#pause', mobile);
     await page.screenshot({ path: `test-results/screenshots/ferraille-level30-${info.project.name}.png` });
+    await page.evaluate(() => { window.__FERRAILLE_TEST__?.advance(0); });
     const client = mobile ? await page.context().newCDPSession(page) : null;
     if (client) {
         const points = []; for (const id of ['#ferraille-jump', '#ferraille-fire']) { const r = await page.locator(id).boundingBox(); if (!r) throw new Error(id); points.push({ x: r.x + r.width / 2, y: r.y + r.height / 2, id: points.length + 1 }); }
         await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: points });
     } else { await page.keyboard.down('Space'); await page.keyboard.down('KeyX'); }
+    await page.evaluate(() => { window.__FERRAILLE_TEST__?.advance(300); });
     await expect.poll(async () => (await read(page))?.hero.y ?? 300).toBeLessThan(220);
     await expect.poll(async () => (await read(page))?.shots.filter(p => p.friendly).length ?? 0).toBeGreaterThan(1);
     if (client) {
