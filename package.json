@@ -1,8 +1,8 @@
 {
   "name": "opencade",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
-  "description": "Arcade de 9 jeux originaux en HTML5 (Phaser 3, TypeScript), jouable au doigt, à la souris et au clavier.",
+  "description": "Twelve original HTML5 arcade games (Phaser 3, TypeScript), playable by touch, mouse and keyboard.",
   "license": "MIT",
   "author": "David Sevin",
   "homepage": "https://davy45270.github.io/Opencade/",

@@ -5,12 +5,14 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-### Added — preparing 0.3.0
+## [0.3.0] - 2026-10-29
+
+### Added
 
 - Twelve animated, deterministic Canvas previews on the home screen, driven by
   pure game engines. Previews pause off screen, in the background and during
   play. Reduced-motion preferences show still images; mobile uses two columns.
-  The initial eight previews now include all four new games.
+  Previews cover all twelve games.
 - Alunir, the ninth game: 30 seeded landscapes, thrust, rotation, wind, fuel and
   continuous collision detection; held controls, animated preview, progression
   and synthesized sounds. U01–U12 rule tests and desktop/mobile journeys.
@@ -69,6 +71,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Pure seeded engines tested with Vitest; desktop and mobile Playwright E2E journeys.
 - GitHub Actions CI and GitHub Pages deployment.
 
-[Unreleased]: https://github.com/Davy45270/Opencade/compare/v0.2.0...HEAD
+[Unreleased]: https://github.com/Davy45270/Opencade/compare/v0.3.0...HEAD
+[0.3.0]: https://github.com/Davy45270/Opencade/releases/tag/v0.3.0
 [0.2.0]: https://github.com/Davy45270/Opencade/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Davy45270/Opencade/releases/tag/v0.1.0
