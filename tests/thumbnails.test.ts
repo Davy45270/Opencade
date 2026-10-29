@@ -46,8 +46,10 @@ test('V03 horloge, intersection, arrière-plan, reduce et nettoyage', () => {
     let visibility: () => void = () => {};
     let motion: () => void = () => {};
     const disposed = vi.fn();
+    const request = vi.fn((cb: (time: number) => void) => { callbacks.set(++next, cb); return next; });
+    const cancel = vi.fn((id: number) => { callbacks.delete(id); });
     const ports: ThumbnailPorts = {
-        request: cb => { callbacks.set(++next, cb); return next; }, cancel: id => { callbacks.delete(id); },
+        request, cancel,
         observe: (_canvas, cb) => { intersection = cb; return disposed; },
         visibility: cb => { visibility = cb; return disposed; },
         motion: cb => { motion = cb; return disposed; },
@@ -67,10 +69,27 @@ test('V03 horloge, intersection, arrière-plan, reduce et nettoyage', () => {
     intersection(true); hidden = true; visibility(); tick(200);
     expect(draw).toHaveBeenCalledTimes(2); expect(callbacks.size).toBe(0);
     hidden = false; visibility(); tick(300); expect(draw).toHaveBeenCalledTimes(3);
-    reduced = true; motion(); tick(500); expect(callbacks.size).toBe(0);
+    // A queued frame can observe reduce before the media change notification.
+    reduced = true;
+    request.mockClear(); tick(400);
+    expect(request).not.toHaveBeenCalled(); expect(callbacks.size).toBe(0);
+    reduced = false; motion(); expect(callbacks.size).toBe(1);
+    reduced = true; request.mockClear(); motion();
+    expect(request).not.toHaveBeenCalled(); expect(callbacks.size).toBe(0);
+    tick(500); expect(callbacks.size).toBe(0);
     controller.stop(); expect(disposed).toHaveBeenCalledTimes(3);
     intersection(true); visibility(); tick(600); expect(draw).toHaveBeenCalledTimes(3);
     const fixed = startThumbnail(canvas, demo, ports, painted);
-    intersection(true); tick(800); visibility();
-    expect(draw).toHaveBeenCalledTimes(4); expect(callbacks.size).toBe(0); fixed.stop();
+    request.mockClear();
+    intersection(true);
+    expect(request).not.toHaveBeenCalled(); expect(callbacks.size).toBe(0);
+    tick(800); visibility();
+    expect(request).not.toHaveBeenCalled();
+    expect(draw).toHaveBeenCalledTimes(4); expect(callbacks.size).toBe(0);
+    reduced = false; motion();
+    expect(callbacks.size).toBe(1);
+    const pendingId = next;
+    cancel.mockClear(); fixed.stop();
+    expect(cancel).toHaveBeenCalledExactlyOnceWith(pendingId);
+    expect(callbacks.size).toBe(0);
 });
