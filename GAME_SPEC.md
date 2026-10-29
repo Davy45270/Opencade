@@ -1268,7 +1268,9 @@ carburant produit une poussée proportionnelle. À zéro, la chute continue et
 ne provoque de défaite qu'au contact d'un terrain ou d'un mur.
 
 La rotation est appliquée à la frontière du pas, puis le polygone convexe à
-cinq sommets est translaté continûment. Un SAT balayé contre chaque segment
+cinq sommets est translaté continûment. Le dessin et la collision utilisent
+le même polygone agrandi ×1,5 : largeur 21 px, hauteur 27 px à angle nul
+(sommets locaux d’origine multipliés par 1,5, pied à y+12). Un SAT balayé contre chaque segment
 calcule les intervalles d'entrée/sortie sur toutes les normales, puis conserve
 le premier contact : aucun saut par-dessus le terrain, même à 1000 px/pas.
 Les murs latéraux et supérieur sont fatals, sans repli. Les sommets du module
@@ -1289,7 +1291,8 @@ temps = `max(0, 300 − pasÉcoulés/6)`. Aucun score en cas d'échec.
 
 Indice `n=0…29`, `t=n/29`. Le PRNG reçoit directement la graine. Il choisit
 le centre de la plateforme dans [150,210[ et son altitude dans [510,540[.
-Une plateforme par terrain ; départ à son aplomb, y=100, vitesse et angle nuls.
+Une plateforme par terrain ; départ y=85, décalage horizontal défini ci-dessous,
+vitesse et angle nuls.
 De part et d'autre, des sommets espacés de 24 px ont une altitude
 `plateforme.y − random() × relief`, avec extrémités x=0 et 360.
 Les extrémités de la plateforme sont insérées explicitement dans la ligne.
@@ -1322,6 +1325,11 @@ La vignette applique cette même politique au niveau 3, quatre pas par image.
 ↑/W : poussée ; ← →/A D : rotation à maintenir. Une seule rangée tactile :
 ↺ et ↻ à gauche (56 px), Poussée à droite (76×64 px). La zone utile exposée
 par le crochet est tout le canevas ; aucun bouton ne la recouvre.
+Le HUD tient en deux lignes de 13 px. Il est à y=10, ou à y=590 si le
+haut du module passe au-dessus de y=65, pour ne jamais masquer celui-ci.
+Le crochet Alunir expose aussi `bounds()` (polygone avec contour et HUD).
+Le parcours E2E convertit ces boîtes vers le rectangle écran du canevas et
+vérifie leur absence d’intersection sur bureau comme sur mobile.
 Prêt, pause, menu mobile, niveaux, panneaux, sauvegarde `arcade-lab:alunir:v1`
 et son global utilisent les services existants **sans modification de src/shell**.
 Effets synthétisés `thrust`, `life`, `won`, `lost` ; pas de vie intermédiaire.
@@ -1343,7 +1351,7 @@ Ils ne changent aucun seuil, collision, carburant ni condition de victoire.
 | U03 | Vitesse angulaire, deux signes, annulation simultanée |
 | U04 | Vent intégré, constant puis rafales bornées à graine |
 | U05 | Premier contact à grande vitesse et bord du polygone |
-| U06 | Trois seuils exactement inclusifs, deux signes |
+| U06 | Seuils littéraux 0,6 / 1,2 / 10°, égalité gagnante et excès perdant, deux signes |
 | U07 | Excès de vitesse/angle, hors plateforme, trois murs |
 | U08 | Réservoir vide : aucune poussée, chute puis contact fatal |
 | U09 | Termes du score, multiplicateur, score réel et gel terminal |
@@ -1361,3 +1369,169 @@ comptent désormais neuf vignettes.
 
 Vitest et Playwright sont écrits et relus ici, mais leur exécution appartient
 à l'orchestrateur. Aucun résultat de ces suites n'est présumé.
+
+
+## Caisses
+
+Dixième jeu, `caisses`, puzzle au tour par tour (`realtime: false`). Aucun
+hasard de règle, aucune défaite, aucun écran Prêt ni pause. Les effets nommés
+`move`, `push`, `undo`, `won` utilisent le son commun ; la victoire utilise donc
+également la vibration commune. Le verrou écran et les menus restent ceux du
+socle. Aucun fichier de `src/shell` modifié.
+
+### Règles et présentation
+
+Un pas cardinal traverse le sol libre ; une seule caisse peut être poussée si
+la case suivante est libre. Aucune traction. Toutes les caisses sur des cibles
+terminent le niveau. Les entrées directionnelles sont alors gelées ; Annuler
+reste possible et restaure le cumul d'avant le niveau. Le panneau de
+progression propose de poursuivre ou rejouer. Annulation illimitée des pas
+réussis, avec copie exacte des compteurs, caisses et position. Recommencer
+restaure le niveau, sans annuler le déblocage déjà acquis.
+
+Score = `max(1, round(1000 × minimumSteps / moves))` à la victoire, zéro avant.
+Le record affiché est le minimum de **poussées**, pas de pas. L'impasse est un
+simple avertissement : caisse hors cible ayant un mur sur un voisin vertical
+et un voisin horizontal. Cette détection ne prétend pas repérer les blocages
+entre caisses. Aucun panneau de défaite ni bouton « Rejouer le niveau » pour
+une défaite inexistante : le menu propose Recommencer et ↶ reste disponible.
+
+Flèches ou QSD / **Maj+Z** pour monter ; W/A aussi acceptés. **Z** sans Maj
+ou Retour arrière annule ; R recommence. Ce choix explicite résout le conflit
+entre ZQSD et Z pour annuler. Glisser déclenche un pas ; quatre boutons
+fléchés et ↶ sont alignés, chacun 56×56 px, sur une rangée de 64 px maximum.
+Recommencer est dans ☰ sur mobile pour tenir à 360 px ; sur bureau il est dans
+le menu commun. Aucun contrôle ne recouvre le canevas 360×640, qui est la zone
+utile exposée. Les cinq boutons prennent 296 px avec leurs espacements.
+
+### Trente ateliers originaux
+
+`levels.ts` contient les trente grilles textuelles littérales composées pour
+ce jeu, sans collection externe : `#` mur, espace sol, `.` cible, `$` caisse,
+`@` joueur. L'analyseur accepte aussi `*` caisse sur cible et `+` joueur sur
+cible ; il refuse les rectangles irréguliers, symboles inconnus, bords ouverts,
+nombres de caisses/cibles différents et joueurs absents ou multiples.
+
+Les grilles sont des petites salles originales (au plus 8×8), avec six
+familles de géométrie : pilier central, piliers décalés, double pilier,
+étranglement, îlots alternés et cour centrale. Les positions de caisses,
+cibles et joueur sont propres à chaque atelier ; aucune collection externe
+n'est utilisée. Les grilles finales sont figées en littéraux, sans génération
+à l'exécution. Le premier atelier garde l'apprentissage en deux entrées ;
+les suivants imposent repositionnements et virages autour des obstacles.
+
+Les six paliers de cinq niveaux ont respectivement 1, 2, 3, 4, 5 et 6 caisses.
+Les minimums de poussées ne décroissent pas (1 à 13). Certaines caisses
+commencent sur cible : il faut décider si elles doivent rester en place ou
+être déplacées. `minimumSteps` est le véritable minimum de déplacements,
+calculé indépendamment du minimum de poussées ; les deux solutions optimales
+peuvent donc différer. C06 rejoue le témoin optimal en pas et vérifie le score.
+
+C10b suit les identités des caisses pendant la solution optimale en poussées.
+Un **virage** est un changement de direction entre deux poussées de la même
+caisse (demi-tour inclus, même si une autre caisse est poussée entre-temps).
+Un **détour** est une séquence d'au moins deux déplacements sans poussée
+entre deux poussées consécutives, approche initiale exclue. Un simple pas
+pour rejoindre l'arrière d'une caisse ne compte donc pas. Dès le niveau 4,
+chaque solution comporte au moins un virage et un détour. C10c compare la
+**moyenne arithmétique de `visited` par palier de cinq**, sans imposer une
+hausse à chaque niveau individuel. `visited` compte les états distincts
+retenus par la recherche en poussées, avec ordre de départage déterministe.
+
+### Mesure Node, passe 34
+
+Commande reproductible, sans Vitest ni Playwright ni nouvelle dépendance :
+`node --import ./scripts/ts-loader.js scripts/validate-caisses.js`.
+Le chargeur utilise le compilateur TypeScript déjà installé dans le dépôt.
+Le script vérifie C08/C09, les deux minimums, rejoue les deux solutions dans
+le moteur, vérifie les dimensions, C10b, C10c et le budget de 1 s par niveau
+pour les deux recherches cumulées. Les durées dépendent de la machine.
+
+| Niveau | Caisses | Pas min. | Poussées min. | visited | Durée ms¹ | Virages | Détours |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 1 | 2 | 1 | 2 | 1.8 | 0 | 0 |
+| 2 | 1 | 5 | 2 | 3 | 0.9 | 1 | 1 |
+| 3 | 1 | 8 | 2 | 3 | 0.7 | 1 | 1 |
+| 4 | 1 | 6 | 2 | 3 | 0.6 | 1 | 1 |
+| 5 | 1 | 9 | 2 | 3 | 45.0 | 1 | 1 |
+| 6 | 2 | 10 | 4 | 5 | 2.4 | 1 | 2 |
+| 7 | 2 | 12 | 4 | 5 | 2.9 | 2 | 2 |
+| 8 | 2 | 14 | 4 | 5 | 2.0 | 1 | 2 |
+| 9 | 2 | 15 | 4 | 5 | 4.1 | 2 | 3 |
+| 10 | 2 | 14 | 4 | 5 | 1.5 | 1 | 2 |
+| 11 | 3 | 16 | 6 | 7 | 3.4 | 2 | 3 |
+| 12 | 3 | 18 | 6 | 7 | 5.2 | 1 | 3 |
+| 13 | 3 | 19 | 6 | 8 | 5.2 | 1 | 3 |
+| 14 | 3 | 10 | 7 | 10 | 2.0 | 1 | 3 |
+| 15 | 3 | 11 | 7 | 15 | 0.8 | 3 | 4 |
+| 16 | 4 | 14 | 8 | 27 | 7.3 | 3 | 4 |
+| 17 | 4 | 11 | 8 | 30 | 2.0 | 2 | 3 |
+| 18 | 4 | 17 | 10 | 31 | 10.3 | 2 | 4 |
+| 19 | 4 | 15 | 10 | 136 | 46.1 | 2 | 8 |
+| 20 | 4 | 20 | 10 | 284 | 26.2 | 4 | 7 |
+| 21 | 5 | 21 | 11 | 102 | 19.4 | 1 | 4 |
+| 22 | 5 | 23 | 11 | 104 | 26.6 | 2 | 7 |
+| 23 | 5 | 23 | 11 | 143 | 18.4 | 1 | 3 |
+| 24 | 5 | 20 | 11 | 195 | 115.2 | 1 | 3 |
+| 25 | 5 | 21 | 11 | 218 | 24.6 | 4 | 7 |
+| 26 | 6 | 20 | 12 | 208 | 26.9 | 1 | 4 |
+| 27 | 6 | 21 | 12 | 233 | 88.9 | 1 | 4 |
+| 28 | 6 | 21 | 13 | 210 | 53.4 | 1 | 5 |
+| 29 | 6 | 19 | 13 | 251 | 30.8 | 1 | 4 |
+| 30 | 6 | 19 | 13 | 779 | 86.0 | 2 | 4 |
+
+Moyennes visited : 2.8 → 5 → 9.4 → 101.6 → 152.4 → 336.2.
+¹ Deux recherches exactes (poussées puis pas), hors chargement TS.
+
+### Solveur et oracle
+
+A* minimise les poussées. Chaque nœud contient les caisses triées et la plus
+petite case de la région accessible au joueur sans poussée : ses déplacements
+à pied sont reconstruits par BFS. Un parcours inverse depuis les cibles
+marque les cases où une caisse peut théoriquement atteindre une cible ; les
+autres destinations de poussée sont éliminées. La somme des distances de
+Manhattan à la cible la plus proche est une borne admissible, même si plusieurs
+caisses partagent la même cible dans cette estimation. Priorité aux nœuds plus
+profonds à borne égale, puis au dernier inséré ; un tas binaire évite de trier
+toute la frontière. Les meilleures distances par état sont conservées.
+En mode pas, la clé conserve la position exacte du joueur et chaque arête
+coûte la marche BFS plus la poussée. Une affectation minimale des caisses à
+des cibles distinctes, avec distances de poussée inverses ignorant les autres
+caisses, fournit une borne admissible plus forte.
+Aucune limite arbitraire ne transforme un abandon en preuve d'insolubilité.
+C08/C09 exigent une solution réelle, rejouée via `input`, et l'égalité du
+minimum calculé au minimum stocké, avec une mesure inférieure à 1 s par niveau.
+
+| Oracle | Preuve Vitest `tests/caisses.test.ts` |
+| --- | --- |
+| C01 | Pas, murs et absence de changement sur mouvement interdit |
+| C02 | Une caisse poussée, deux caisses et mur refusés |
+| C03 | Départ en sens inverse sans traction |
+| C04 | Toutes les cibles requises, victoire et gel directionnel |
+| C05 | Retour exact de chaque annulation, victoire incluse, reprise initiale |
+| C06 | Compteurs, détour pénalisé, score optimal sur les 30 témoins |
+| C07 | Analyse des 30 grilles et rejets de données malformées |
+| C08 | Solveur, solution de chacun des 30 ateliers rejouée dans le moteur |
+| C09 | Minimum calculé = minimum stocké pour chacun des 30 ateliers |
+| C10 | Caisses et minimum de poussées non décroissants, extrêmes distincts |
+| C10b | Virage d’une caisse et détour entre poussées, niveaux 4–30 |
+| C10c | Moyenne de visited non décroissante par palier de cinq |
+| C11 | Coin hors cible, cible exemptée, annulation et niveau insoluble |
+| C12 | Entrées déterministes, graine, cadence fixe, copies sérialisables |
+
+`__ARCADE_TEST__.games.caisses` expose read/loadLevel/hudText/usefulArea.
+Pas de `advance` nécessaire pour ce jeu au tour par tour. Les scénarios typés
+`finish` (un pas légal du niveau 1) et `corner` (petit plateau validé ordinaire)
+ne modifient aucune règle. Les E2E gagnent le **niveau 1 complet** par deux
+vraies entrées, vérifient Niveau suivant, sauvegarde après rechargement,
+impasse récupérable, annulation exacte, recommencement et niveau 30. Sur mobile
+seuls boutons tactiles et glisser CDP sont utilisés. La capture `caisses-lost`
+montre l'impasse, puisque la règle interdit une défaite. Une seconde E2E
+vérifie le glisser et l'interdiction d'entrée lorsque ☰ est ouvert.
+M01–M04 incluent Caisses aux trois dimensions demandées. V01–V08 comptent dix
+vignettes. La démo rejoue une politique déterministe de poussées légales au
+niveau 3 ; la vignette Canvas dessine le plateau réel, sans asset externe.
+
+Vitest et Playwright ne sont pas exécutés sur cette machine : l'orchestrateur
+doit vérifier les preuves, les budgets de temps et les captures sur les deux
+projets. Aucun résultat d'exécution de ces suites n'est présumé.

@@ -5,6 +5,10 @@ le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+- Passe 34 : seuils littéraux d’Alunir, module agrandi et HUD dégagé ; puzzles Caisses compacts, minimums exacts en pas/poussées, virages, détours et effort contrôlés par script Node.
+
+- Caisses : dixième jeu, 30 ateliers originaux, poussées, annulation illimitée, records prouvés par solveur, commandes tactiles et vignette animée.
+
 ### Ajouté — préparation de 0.3.0
 
 - Alunir, neuvième jeu : trente terrains à graine, poussée, rotation, vent,

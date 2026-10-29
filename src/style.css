@@ -212,3 +212,9 @@ body { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16
 
 body.alunir #touch-controls .touch-slot.left { gap: 4px; }
 body.alunir #touch-controls #alunir-thrust { width: 76px !important; height: 64px !important; min-width: 64px !important; min-height: 64px !important; padding: 0; font-size: 16px; }
+
+body.caisses #touch-controls { gap: 4px; justify-content: center; }
+body.caisses #touch-controls .touch-slot { flex: 0; gap: 4px; }
+body.caisses #touch-controls button { width: 56px; height: 56px; padding: 0; }
+body.caisses #touch-controls .touch-slot:empty { display: none; }
+body.caisses #restart, body.caisses #replay-level { min-height: 56px; min-width: 56px; }
