@@ -38,6 +38,7 @@ export class Sound {
         } catch { this.ready = false; }
     }
     effects: SoundEffects = {};
+    onEffect?: (name: string) => void;
     stop(): void {
         for (const gain of this.active) {
             try { gain.disconnect(); } catch { /* Optional audio. */ }
@@ -45,6 +46,7 @@ export class Sound {
         this.active.clear();
     }
     playEffect(name: string, size = 1): void {
+        if (this.enabled) this.onEffect?.(name);
         if (!this.enabled || !this.unlocked || !this.ready) return;
         const tone = this.effects[name]?.(size);
         if (tone) this.tone(tone.frequency, tone.duration, tone.type);

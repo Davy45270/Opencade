@@ -53,7 +53,10 @@ test('A09 tous les moteurs restent purs', () => {
 });
 
 test('A01 registre non vide et identifiants uniques', async () => {
-    vi.stubGlobal('window', {});
+    vi.stubGlobal('window', undefined);
+    vi.stubGlobal('document', undefined);
+    vi.stubGlobal('navigator', undefined);
+    vi.stubGlobal('screen', undefined);
     try {
         const { games } = await import('../src/games/registry');
         expect(games.length).toBeGreaterThan(0);

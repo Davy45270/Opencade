@@ -2,6 +2,24 @@
 
 ## Socle
 
+### Appareil
+
+`src/shell/device.ts` isole les API facultatives derrière des ports injectables.
+Le Wake Lock écran est demandé au début du jeu actif, puis relâché en pause,
+menu ouvert, sélection de niveaux, panneau de fin, sortie ou page masquée.
+Une autorisation tardive après la pause est aussitôt relâchée ; une reprise
+visible redemande le verrou. Aucun verrou pendant « Prêt ? ».
+Les événements de présentation déclenchent 30 ms à la perte de vie,
+[30, 40, 60] ms à la victoire et [60, 40, 60] ms à la défaite, uniquement
+si le son global est activé, indépendamment du déverrouillage audio.
+Le menu mobile propose « Plein écran » si la méthode existe ; après accord,
+il tente le portrait. Absence, exception et rejet de ces API restent silencieux.
+Sur l’aire et les contrôles, sélection, menu contextuel, callout et surlignage
+tactile sont bloqués. Un toucher dans l’aire à « Prêt ? » démarre au relâchement ;
+sa séquence est consommée sans action moteur. Le clavier et la souris gardent
+leur comportement. Aucun changement de hauteur logique ni PWA.
+
+
 Accueil `#/` (également `#home`), carte accessible par jeu livré, titre de page
 Arcade Lab. Le registre `src/games/registry.ts` associe identifiant, nom, nombre
 de niveaux, fabrique de scène, effets nommés et contrôles tactiles. Ajouter une

@@ -1,4 +1,6 @@
+import { device } from './services';
 export function renderPanels(status: string, state: string, level: number, score: number, total: number, selecting: boolean): void {
+    device.setFinished(status !== 'playing' || selecting);
     const panel = document.querySelector<HTMLElement>('#result');
     if (panel) panel.hidden = status === 'playing' || selecting;
     const levels = document.querySelector<HTMLElement>('#levels');

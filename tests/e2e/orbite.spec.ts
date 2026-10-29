@@ -55,11 +55,20 @@ test('V04 V08 victoire par tir réel, niveau suivant et déblocage repris', asyn
 });
 test('V07 défaite après guidage réel puis rejouer restaure vies et score', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium'; await open(page);
-    await page.evaluate(() => { window.__ORBITE_TEST__?.scenario('danger'); });
+    await page.evaluate(mobile => {
+        window.__ORBITE_TEST__?.scenario('danger');
+        // Freeze rendering while preparing two distinct real touch gestures.
+        if (mobile) window.__ORBITE_TEST__?.advance(0);
+    }, mobile);
+    if (mobile) {
+        await tap(page, '#resume', true);
+        await expect(page.locator('#pause-panel')).toBeHidden();
+    }
     expect((await read(page))?.status).toBe('playing');
-    // Démarrer et guider dans le même événement, sans course avec la préparation du geste.
+    // Le toucher de démarrage est consommé ; le guidage vient ensuite.
     const target = await point(page, 240, 618);
     if (mobile) await page.touchscreen.tap(target.x, target.y); else await page.mouse.click(target.x, target.y);
+    if (mobile) expect((await read(page))?.target).toBe(240);
     await page.evaluate(() => { window.__ORBITE_TEST__?.advance(10000); });
     await expect.poll(async () => (await read(page))?.status).toBe('lost');
     await expect(page.locator('#result-title')).toContainText('Défaite');

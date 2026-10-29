@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { games, type GameTestHook } from './games/registry';
 import { readSave, browserStorage } from './shell/storage';
-import { setupSound, sound } from './shell/services';
+import { setupSound, sound, device } from './shell/services';
 import './style.css';
 import { Inputs } from './shell/input';
 import { PlaySession, setupPause } from './shell/pause';
@@ -66,8 +66,13 @@ function route(): void {
     if (keyboardHelp) keyboardHelp.textContent = definition.keyboardHelp;
     if (touchHelp) touchHelp.textContent = definition.touchHelp;
     sound.effects = definition.effects;
-    const session = new PlaySession(definition.realtime);
+    const session = new PlaySession(definition.realtime, device);
+    device.setFinished(false);
     setupPause(sessionInputs, session);
+    for (const selector of ['#play', '#topbar']) sessionInputs.on(document.querySelector(selector), 'contextmenu', event => { event.preventDefault(); });
+    const fullscreen = document.querySelector<HTMLButtonElement>('#fullscreen');
+    if (fullscreen) fullscreen.hidden = !device.fullscreenAvailable || !matchMedia('(pointer: coarse), (width < 600px)').matches;
+    sessionInputs.on(fullscreen, 'click', () => { void device.fullscreen(); });
     setupGameMenu(sessionInputs, session);
     const scene = definition.createScene(session);
     const update = scene.update.bind(scene);

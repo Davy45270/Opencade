@@ -190,3 +190,10 @@ body { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16
   .desktop-pause { display: none; }
   .mobile-pause { display: inline; }
 }
+
+#play-area, #touch-controls, #topbar button, #game-menu button {
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+}

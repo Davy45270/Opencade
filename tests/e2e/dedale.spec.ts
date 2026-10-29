@@ -75,13 +75,22 @@ test('D09 D10 défaite par entrée réelle puis rejouer, glisser et pause', asyn
     const mobile = info.project.name === 'mobile-chromium';
     await page.goto('/?test=1#/dedale');
     await expect.poll(() => page.evaluate(() => Boolean(window.__DEDALE_TEST__))).toBe(true);
-    await page.evaluate(() => { window.__DEDALE_TEST__?.scenario('danger'); });
+    await page.evaluate(mobile => {
+        window.__DEDALE_TEST__?.scenario('danger');
+        // Freeze rendering while preparing two distinct real touch gestures.
+        if (mobile) window.__DEDALE_TEST__?.advance(0);
+    }, mobile);
+    if (mobile) {
+        await tap(page, '#resume', true);
+        await expect(page.locator('#pause-panel')).toBeHidden();
+    }
     if (mobile) {
         const client = await page.context().newCDPSession(page);
         await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 100, y: 180 }] });
         await client.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 100, y: 160 }] });
         await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
         await client.detach();
+        expect((await read(page))?.requested).toBe('up');
     } else await page.keyboard.press('KeyW');
     await page.evaluate(() => { window.__DEDALE_TEST__?.advance(10000); });
     await expect.poll(async () => (await read(page))?.status).toBe('lost');

@@ -1,6 +1,13 @@
+import { Device, browserDevicePort } from './device';
 import { Sound, browserAudioFactory } from './sound';
 import { browserStorage } from './storage';
-export const sound = new Sound(browserAudioFactory(window), browserStorage());
+export const sound = new Sound(browserAudioFactory(typeof window === 'undefined' ? {} : window), browserStorage());
+export const device = new Device(
+    typeof document === 'undefined' || typeof navigator === 'undefined' ? {}
+        : browserDevicePort(navigator, document.documentElement, typeof screen === 'undefined' ? {} : screen.orientation),
+    () => sound.enabled,
+);
+sound.onEffect = name => { device.effect(name); };
 export function setupSound(): void {
     const button = document.querySelector<HTMLButtonElement>('#sound');
     const sync = (): void => {
