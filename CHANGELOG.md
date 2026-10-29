@@ -9,6 +9,16 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- Dérapage simulation-step race/lap timers, best lap and crossing deltas in the reserved
+  mobile HUD; per-circuit historical records in the existing save, record announcements
+  and race results with total time, best lap, circuit record and ranking.
+- Z28 deterministic timing and Z29 persistence tests, plus a mobile input/advance/reload journey.
+
+- Replace Dérapage's shared deformed loop with 30 hand-drawn spline layouts, cup themes,
+  urban collision scenery, forest routes and reserved slalom/BMX feature data.
+- Draw a full-width finish checker from the engine's lap gate geometry, with a starting grid,
+  lap messages and mini-map marker; add Z26 shape diversity, Z27 finish checks and overview captures.
+
 - Dérapage, after play-testing: continuous thumb steering with a dead zone and steering indicator,
   an 88 px held Drift button and a 56 px Bonus button above it. The old touch
   arrows are removed; keyboard, optional mouse steering and tilt remain available.

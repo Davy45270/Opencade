@@ -1,5 +1,5 @@
 import { required } from './access';
-import { distance, type Track, type Vec } from './track';
+import { distance, gateLine, type Track, type Vec } from './track';
 import type { Kart } from './physics';
 export const POINTS = [10, 8, 6, 5, 4, 3] as const;
 export function checkpoint(k: Kart, previous: Vec, t: Track, time: number): void {
@@ -8,7 +8,10 @@ export function checkpoint(k: Kart, previous: Vec, t: Track, time: number): void
     const index = required(t.gates[k.gate]), p = required(t.points[index]), before = required(t.points[(index + 95) % 96]), after = required(t.points[(index + 1) % 96]);
     const dx = after.x - before.x, dy = after.y - before.y;
     const a = (previous.x - p.x) * dx + (previous.y - p.y) * dy, b = (k.x - p.x) * dx + (k.y - p.y) * dy;
-    if (a < 0 && b >= 0 && distance(k, p) <= required(t.widths[index]) / 2 + 1.2) {
+    const line = gateLine(t, k.gate), u = a / (a-b);
+    const crossing = { x: previous.x+(k.x-previous.x)*u, y: previous.y+(k.y-previous.y)*u };
+    const lateral = ((crossing.x-line.a.x)*(line.b.x-line.a.x)+(crossing.y-line.a.y)*(line.b.y-line.a.y)) / (required(t.widths[index])**2);
+    if (a < 0 && b >= 0 && lateral >= 0 && lateral <= 1) {
         k.passed++;
         if (k.gate === 0) {
             k.lap++;

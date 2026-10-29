@@ -44,6 +44,10 @@ partie en pause.
 | **Traverse** | Rejoindre les abris entre trafic routier, rondins mobiles et flotteurs plongeants. | Flèches ou ZQSD : un pas ; clic souris ou tap : monter ; glisser ou croix : un pas. |
 | **Dérapage** | Piloter un kart, charger les dérapages et viser le podium en sept coupes originales. | Gauche/Droite : braquer ; Espace/Maj : dérapage ; X/Ctrl : bonus ; toucher : glisser dans la moitié gauche pour braquer (zone morte 6 px, maximum à 60 px), relâcher pour centrer ; maintenir Dérapage (88 px), toucher Bonus (56 px) au-dessus ; inclinaison et souris en option. |
 
+Dérapage propose 30 tracés dessinés à la main, des thèmes par coupe, un damier sur toute la largeur et une preuve de diversité géométrique.
+
+Dérapage affiche les chronos de course et de tour en temps de simulation, le meilleur tour, les écarts colorés et les records par circuit conservés après rechargement. Le HUD mobile reste au-dessus de la piste ; le résultat récapitule temps et classement. Z28/Z29 couvrent le rejeu et la persistance tolérante aux erreurs.
+
 Les noms, règles, niveaux, graphismes et sons sont originaux. Les graphismes et
 sons synthétisés sont produits par le code, sans ressource de jeu externe,
 police ni fichier audio. Les icônes PWA originales sont également produites par

@@ -41,6 +41,10 @@ while pausing play.
 | **Traverse** | Reach shelters across traffic, moving logs and diving floats. | Arrows or ZQSD: step; mouse click or touch tap: up; swipe or direction pad: step. |
 | **Dérapage** | Steer a kart, charge drifts and race for the podium across seven original cups. | Left/Right: steer; Space/Shift: drift; X/Ctrl: bonus; touch: drag anywhere in the left half to steer (6 px dead zone, full lock at 60 px), release to center; hold the 88 px Drift button, tap the 56 px Bonus above it; optional tilt and mouse steering. |
 
+Dérapage now has 30 hand-drawn layouts with cup themes, a full-width finish checker and geometry-based diversity checks.
+
+Dérapage includes simulation-time race/lap clocks, best laps, coloured crossing deltas and per-circuit records retained across reloads. The mobile HUD stays above the road; race results include times and ranking. Z28/Z29 cover replay timing and resilient persistence.
+
 Names, rules, levels, artwork and sounds are original. Graphics and synthesized
 sounds are generated in code, with no external game assets, fonts or audio files.
 The original PWA icons are also generated in code. Best scores, unlocked levels

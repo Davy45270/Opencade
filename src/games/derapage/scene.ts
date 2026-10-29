@@ -6,19 +6,25 @@ import { nearest, at } from '../../engines/derapage/track';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
 import { Progression } from '../../shell/progression';
-import { browserStorage, readSave, writeSave } from '../../shell/storage';
+import { browserStorage, readSave, writeSave, recordCircuitLap } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
+export function formatTime(ms: number | null): string {
+    if (ms === null) return '—';
+    const cs = Math.floor(ms / 10);
+    return `${String(Math.floor(cs / 6000)).padStart(2, '0')}:${String(Math.floor(cs / 100) % 60).padStart(2, '0')}.${String(cs % 100).padStart(2, '0')}`;
+}
 export const derapageButtons: readonly TouchButton[] = [
     { id: 'derapage-drift', label: 'Dérapage', ariaLabel: 'Dérapage', size: 64, placement: 'right', mode: 'hold' },
     { id: 'derapage-bonus', label: 'Bonus', ariaLabel: 'Bonus', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface DerapageHook {
+    overview(enabled: boolean): void;
     read(): ReturnType<Engine['snapshot']>;
     loadLevel(i: number, seed?: number): void;
     advance(ms: number): void;
-    scenario(name: 'finish' | 'danger' | 'trees-boost'): void;
+    scenario(name: 'finish' | 'danger' | 'trees-boost' | 'lap'): void;
     hudText(): string;
     usefulArea(): {
         x: number;
@@ -47,11 +53,14 @@ declare global {
     }
 }
 export class DerapageScene extends Phaser.Scene {
+    private recordedLaps = 0;
+    private newRecord = false;
     private engine = new Engine();
     private progress = new Progression(readSave(browserStorage(), 'derapage', 30), 30);
     private inputs = new Inputs();
     private selecting = false;
     private manual = false;
+    private overviewMode = false;
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: HTMLElement;
     private held = new Set<string>();
@@ -67,8 +76,16 @@ export class DerapageScene extends Phaser.Scene {
         y: number;
     }[] = [];
     constructor(private session = new PlaySession(true)) { super('derapage'); }
-    private panels(): void { renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.score, this.progress.total, this.selecting); }
+    private panels(): void {
+        renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.score, this.progress.total, this.selecting);
+        if (this.engine.status !== 'playing') {
+            const scores = document.querySelector('#result-scores'), s = this.engine.snapshot();
+            if (scores) scores.textContent = `Temps total ${formatTime(s.timing.raceMs)} · Meilleur tour ${formatTime(s.timing.bestLapMs)} · Record du circuit ${formatTime(this.progress.save.circuitRecords?.[String(this.engine.level)] ?? null)} · Classement ${s.order.map((id, i) => `${String(i + 1)}. Kart ${String(id + 1)}`).join(' · ')}`;
+        }
+    }
     private start(i: number, seed?: number, fresh = false): void {
+        this.recordedLaps = 0;
+        this.newRecord = false;
         this.manual = false;
         this.held.clear();
         this.pointer = 0;
@@ -146,10 +163,11 @@ export class DerapageScene extends Phaser.Scene {
         this.inputs.on(document.querySelector('#next-level'), 'click', () => { if (this.progress.state === 'won')
             this.start(this.engine.level + 1); });
         for (const id of ['retry-level', 'replay-level', 'restart'])
-            this.inputs.on(document.querySelector(`#${id}`), 'click', () => { this.progress.retry(); this.engine.loadLevel(this.engine.level, this.engine.seed); this.manual = false; this.panels(); });
+            this.inputs.on(document.querySelector(`#${id}`), 'click', () => { this.recordedLaps = 0; this.newRecord = false; this.progress.retry(); this.engine.loadLevel(this.engine.level, this.engine.seed); this.manual = false; this.panels(); });
         this.game.canvas.setAttribute('aria-label', 'Dérapage : course de karts, vue de dessus');
         if (new URLSearchParams(location.search).get('test') === '1')
             window.__DERAPAGE_TEST__ = {
+                overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
                 read: () => this.engine.snapshot(), loadLevel: (i, seed) => { this.start(i, seed, true); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
@@ -172,7 +190,7 @@ export class DerapageScene extends Phaser.Scene {
                     this.start(0, 28, true);
                     this.engine.frames = 6000; this.engine.time = 100000;
                     const k = required(this.engine.karts[0]), t = this.engine.track, p = at(t, t.length - 3), q = at(t, 0);
-                    Object.assign(k, p, { angle: Math.atan2(q.y - p.y, q.x - p.x) - 1.45, vx: 0, vy: 0, lap: 2, gate: 0, passed: 35, item: 'turbo' });
+                    Object.assign(k, p, { angle: Math.atan2(q.y - p.y, q.x - p.x) - 1.45, vx: 0, vy: 0, lap: name === 'lap' ? 0 : 2, gate: 0, passed: name === 'lap' ? 11 : 35, item: 'turbo' });
                     if (name === 'danger')
                         for (const rival of this.engine.karts.slice(1)) {
                             rival.lap = 3;
@@ -224,6 +242,10 @@ export class DerapageScene extends Phaser.Scene {
                     this.traces.shift();
             }
         }
+        while (this.recordedLaps < this.engine.lapTimesMs.length) {
+            this.newRecord = recordCircuitLap(browserStorage(), this.progress.save, this.engine.level, required(this.engine.lapTimesMs[this.recordedLaps]));
+            this.recordedLaps++;
+        }
         if (this.engine.status !== 'playing' && this.progress.state === 'playing') {
             this.progress.finish(this.engine.status, this.engine.score);
             writeSave(browserStorage(), this.progress.save, 'derapage');
@@ -237,9 +259,13 @@ export class DerapageScene extends Phaser.Scene {
         if (!g)
             return;
         const e = this.engine, p = required(e.karts[0]), t = e.track, angle = -p.angle - Math.PI / 2;
-        const project = (x: number, y: number) => ({ x: 180 + ((x - p.x) * Math.cos(angle) - (y - p.y) * Math.sin(angle)) * 5, y: 466 + ((x - p.x) * Math.sin(angle) + (y - p.y) * Math.cos(angle)) * 5 });
+        const xs = t.points.map(q=>q.x), ys = t.points.map(q=>q.y);
+        const cx = (Math.min(...xs)+Math.max(...xs))/2, cy = (Math.min(...ys)+Math.max(...ys))/2;
+        const fit = Math.min(300/(Math.max(...xs)-Math.min(...xs)+30),450/(Math.max(...ys)-Math.min(...ys)+30));
+        const scale = this.overviewMode ? fit : 5;
+        const project = (x: number, y: number) => this.overviewMode ? { x:180+(x-cx)*fit, y:360+(y-cy)*fit } : ({ x: 180 + ((x - p.x) * Math.cos(angle) - (y - p.y) * Math.sin(angle)) * 5, y: 466 + ((x - p.x) * Math.sin(angle) + (y - p.y) * Math.cos(angle)) * 5 });
         g.clear();
-        g.fillStyle(0x285a45);
+        g.fillStyle(t.circuit.theme.ground);
         g.fillRect(0, 96, 360, 544);
         // Clip geometry to the useful rectangle so the reserved HUD never hides the road ahead.
         const line = (a: {
@@ -254,25 +280,73 @@ export class DerapageScene extends Phaser.Scene {
             g.lineStyle(width, color);
             g.lineBetween(a.x, Math.max(96, a.y), b.x, Math.max(96, b.y));
         };
+        if (t.circuit.plaza) {
+            const plaza = [[-28,-18],[22,-18],[22,15],[-28,15]].map(([x,y])=>project(required(x),required(y)));
+            g.fillStyle(0xb6aa91); g.fillPoints(plaza,true);
+            for (const q of [{ x:-50,y:-5 },{ x:53,y:15 }]) {
+                const a=project(q.x,q.y);
+                g.fillStyle(t.circuit.theme.border); g.fillCircle(a.x,a.y,7*scale);
+                g.fillStyle(t.circuit.theme.ground); g.fillCircle(a.x,a.y,5*scale);
+            }
+        }
         for (let i = 0; i < 96; i++) {
             const a = project(required(t.points[i]).x, required(t.points[i]).y), b = project(required(t.points[(i + 1) % 96]).x, required(t.points[(i + 1) % 96]).y);
-            line(a, b, required(t.widths[i]) * 5 + 5, t.walls[i] ? 0xeab789 : 0x91c6ae);
-            line(a, b, required(t.widths[i]) * 5, 0x38434d);
+            line(a, b, required(t.widths[i]) * scale + (t.circuit.theme.urban ? 6*scale : 5), t.circuit.theme.border);
+            line(a, b, required(t.widths[i]) * scale, 0x38434d);
+        }
+        if (t.circuit.theme.urban) {
+            // Short paving joints follow the road; the continuous border is the kerb/rail.
+            for (let i=0;i<96;i+=2) {
+                const q=required(t.points[i]), n=nearest(t,q), half=required(t.widths[i])/2-1;
+                line(project(q.x+n.nx*half,q.y+n.ny*half),project(q.x-n.nx*half,q.y-n.ny*half),1,0x65717a);
+            }
         }
         for (const b of t.boosts) {
             const a = project(b.x, b.y);
-            if (a.y > 110 && a.y < 620) { g.fillStyle(0x68edc0); g.fillCircle(a.x, a.y, b.radius * 5); g.fillStyle(0xffffff); g.fillTriangle(a.x - 6, a.y + 4, a.x + 6, a.y + 4, a.x, a.y - 6); }
+            if (a.y > 110 && a.y < 620) { g.fillStyle(0x68edc0); g.fillCircle(a.x, a.y, b.radius * scale); g.fillStyle(0xffffff); g.fillTriangle(a.x - 6, a.y + 4, a.x + 6, a.y + 4, a.x, a.y - 6); }
         }
         for (const tree of t.trees) {
             const a = project(tree.x, tree.y);
-            if (a.y > 110 && a.y < 620) { g.fillStyle(0x553c29); g.fillCircle(a.x + 2, a.y + 3, tree.radius * 5); g.fillStyle(0x37865a); g.fillCircle(a.x, a.y, tree.radius * 5); g.fillStyle(0x69a865); g.fillCircle(a.x - 3, a.y - 3, tree.radius * 2); }
-        }
-        for (const i of t.gates) {
-            const q = required(t.points[i]), a = project(q.x, q.y);
-            if (a.y > 102 && a.y < 630) {
-                g.fillStyle(i === 0 ? 0xffffff : 0x627d86);
-                g.fillCircle(a.x, a.y, i === 0 ? 4 : 2);
+            if (t.circuit.theme.urban) {
+                if (a.y>105 && a.y<630) { g.fillStyle(t.circuit.theme.decor); g.fillRect(a.x-tree.radius*scale,a.y-tree.radius*scale,tree.radius*2*scale,tree.radius*2*scale); }
+                continue;
             }
+            if (a.y > 110 && a.y < 620) { g.fillStyle(0x553c29); g.fillCircle(a.x + 2, a.y + 3, tree.radius * scale); g.fillStyle(t.circuit.theme.decor); g.fillCircle(a.x, a.y, tree.radius * scale); g.fillStyle(0x69a865); g.fillCircle(a.x - 3, a.y - 3, tree.radius * scale * .4); }
+        }
+        for (const section of t.circuit.tunnel) {
+            const index = Math.floor(section * 96/t.circuit.controls.length);
+            for (let j=0;j<7;j++) {
+                const q = required(t.points[(index+j)%96]), r = required(t.points[(index+j+1)%96]);
+                line(project(q.x,q.y),project(r.x,r.y),required(t.widths[index])*scale,0x19212d);
+            }
+        }
+        for (const section of t.circuit.port) {
+            const q = required(t.circuit.controls[section]), n = nearest(t,{ x:q[0],y:q[1] });
+            const offset = required(t.widths[n.index])/2+24;
+            const a = project(n.x-n.nx*offset,n.y-n.ny*offset);
+            g.fillStyle(0x246b94); g.fillCircle(a.x,a.y,12*scale);
+            g.lineStyle(2,0xe8d8af); g.strokeCircle(a.x,a.y,12*scale);
+            g.fillStyle(0xf0e4c4); g.fillRect(a.x-5*scale,a.y,10*scale,2*scale);
+        }
+        const finishA = t.finishLine.a, finishB = t.finishLine.b;
+        const fx = finishB.x-finishA.x, fy = finishB.y-finishA.y, fw = Math.hypot(fx,fy);
+        const tx = -fy/fw, ty = fx/fw;
+        // Two checker rows span exactly the exposed gate segment.
+        for (let row=0;row<2;row++) for (let cell=0;cell<12;cell++) {
+            const polygon = [[cell/12,row-1],[(cell+1)/12,row-1],[(cell+1)/12,row],[cell/12,row]].map(([u,v])=>project(finishA.x+fx*required(u)+tx*required(v),finishA.y+fy*required(u)+ty*required(v)));
+            g.fillStyle((row+cell)%2 ? 0xffffff : 0x080b10);
+            g.fillPoints(polygon,true);
+        }
+        if (t.circuit.theme.urban) {
+            const left=project(finishA.x-fx/fw*4+tx*5,finishA.y-fy/fw*4+ty*5);
+            const right=project(finishB.x+fx/fw*4+tx*5,finishB.y+fy/fw*4+ty*5);
+            line(left,right,3,t.circuit.theme.border);
+            g.fillStyle(0xf7f3e3); g.fillCircle(left.x,left.y,3); g.fillCircle(right.x,right.y,3);
+        }
+        for (let row=0;row<3;row++) for (const side of [-1,1]) {
+            const q = { x:(finishA.x+finishB.x)/2-tx*(4+row*4)+fx/fw*side*2, y:(finishA.y+finishB.y)/2-ty*(4+row*4)+fy/fw*side*2 };
+            const a=project(q.x,q.y), b=project(q.x+fx/fw*2,q.y+fy/fw*2);
+            line(a,b,2,0xffffff);
         }
         for (const mark of this.traces) {
             const a = project(mark.x, mark.y);
@@ -295,7 +369,8 @@ export class DerapageScene extends Phaser.Scene {
                 continue;
             g.save();
             g.translateCanvas(a.x, a.y);
-            g.rotateCanvas(k.angle + angle);
+            g.rotateCanvas(k.angle + (this.overviewMode ? 0 : angle));
+            if (this.overviewMode) g.scaleCanvas(scale/5,scale/5);
             g.fillStyle(0x17202d);
             g.fillRect(-8, -8, 16, 16);
             g.fillStyle(required(colors[k.id]));
@@ -318,18 +393,40 @@ export class DerapageScene extends Phaser.Scene {
         g.fillRect(0, 0, 360, 96);
         // Mini-map is entirely in the reserved HUD band.
         g.lineStyle(2, 0x91c6ae);
+        const miniScale = Math.min(88/(Math.max(...xs)-Math.min(...xs)),72/(Math.max(...ys)-Math.min(...ys)));
+        const mini = (x:number,y:number) => ({ x:309+(x-cx)*miniScale, y:47+(y-cy)*miniScale });
         for (let i = 0; i < 96; i++) {
             const a = required(t.points[i]), b = required(t.points[(i + 1) % 96]);
-            g.lineBetween(309 + a.x * .42, 47 + a.y * .42, 309 + b.x * .42, 47 + b.y * .42);
+            const ma=mini(a.x,a.y), mb=mini(b.x,b.y); g.lineBetween(ma.x,ma.y,mb.x,mb.y);
         }
         for (const k of e.karts) {
             g.fillStyle(required(colors[k.id]));
-            g.fillCircle(309 + k.x * .42, 47 + k.y * .42, 2);
+            const m=mini(k.x,k.y); g.fillCircle(m.x,m.y,2);
         }
+        const fa=mini(finishA.x,finishA.y), fb=mini(finishB.x,finishB.y);
+        g.lineStyle(4,0x080b10); g.lineBetween(fa.x,fa.y,fb.x,fb.y);
+        g.lineStyle(2,0xffffff); g.lineBetween(fa.x,fa.y,fb.x,fb.y);
         const s = e.snapshot();
-        const text = `DÉRAPAGE ${String(e.level + 1)}/30 · SCORE ${String(e.score)}\nPLACE ${String(s.order.indexOf(0) + 1)}/6 · TOUR ${String(Math.min(3, p.lap + 1))}/3\nBONUS ${p.item ?? '—'} · ${String(Math.floor(e.time / 1000))} s\nCOUPE ${String(s.cup.races)}/4 · ${s.cup.order.map(id => `${String(id + 1)}:${String(s.cup.scores[id])}`).join(' ')}`;
+        const timing = s.timing;
+        const delta = timing.lastLapDeltaMs;
+        const crossing = timing.lapTimesMs.length === 0 ? '' : `Écart ${delta === null ? '—' : `${delta < 0 ? '−' : '+'}${formatTime(Math.abs(delta))}`} ${this.newRecord ? 'Nouveau record !' : ''}`;
+        const text = `DÉRAPAGE ${String(e.level + 1)}/30 · PLACE ${String(s.order.indexOf(0) + 1)}/6 · TOUR ${String(Math.min(3, p.lap + 1))}/3
+COURSE ${formatTime(timing.raceMs)} · TOUR ${formatTime(timing.currentLapMs)}
+MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${p.item ?? '—'}
+${crossing || (p.lap === 2 ? 'Dernier tour !' : 'Trois tours pour le podium')}
+COUPE ${String(s.cup.races)}/4 · ${s.cup.order.map(id => `${String(id + 1)}:${String(s.cup.scores[id])}`).join(' ')}`;
         if (this.hud) {
-            this.hud.textContent = text;
+            this.hud.replaceChildren();
+            const lines = text.split('\n');
+            lines.forEach((line, i) => {
+                const span = document.createElement('span');
+                span.textContent = line + (i < lines.length - 1 ? '\n' : '');
+                if (i === 3 && crossing) {
+                    span.dataset.lapDelta = 'true';
+                    span.style.color = delta !== null && delta < 0 ? '#80efac' : '#ff9b9b';
+                }
+                this.hud?.append(span);
+            });
             this.hud.style.visibility = this.session.paused || this.selecting ? 'hidden' : 'visible';
             const box = this.game.canvas.getBoundingClientRect(), scale = box.width / 360;
             this.hud.style.left = `${String(box.x + 8 * scale)}px`;

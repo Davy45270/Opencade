@@ -8,6 +8,10 @@ import { updateItems, useItem, type Crate, type Puddle } from './items';
 export { LEVELS, difficulty } from './track';
 export const FIXED_MS = 1000 / 60;
 export class Engine {
+    lapStartFrame = 0;
+    lapTimesMs: number[] = [];
+    bestLapMs: number | null = null;
+    lastLapDeltaMs: number | null = null;
     level = 0;
     seed = 28;
     track!: Track;
@@ -38,6 +42,10 @@ export class Engine {
         this.seed = seed;
         this.random = new Random(seed);
         this.track = createTrack(level, seed);
+        this.lapStartFrame = 0;
+        this.lapTimesMs = [];
+        this.bestLapMs = null;
+        this.lastLapDeltaMs = null;
         this.time = 0;
         this.frames = 0;
         this.remainder = 0;
@@ -75,8 +83,17 @@ export class Engine {
             for (let i = 0; i < 6; i++)
                 for (let j = i + 1; j < 6; j++)
                     collide(required(this.karts[i]), required(this.karts[j]));
-            for (const k of this.karts)
+            for (const k of this.karts) {
+                const lap = k.lap;
                 checkpoint(k, required(previous[k.id]), this.track, this.time);
+                if (k.id === 0 && k.lap > lap) {
+                    const elapsed = (this.frames - this.lapStartFrame) * FIXED_MS;
+                    this.lastLapDeltaMs = this.bestLapMs === null ? null : elapsed - this.bestLapMs;
+                    this.lapTimesMs.push(elapsed);
+                    this.bestLapMs = Math.min(this.bestLapMs ?? Infinity, elapsed);
+                    this.lapStartFrame = this.frames;
+                }
+            }
             const order = ranking(this.karts, this.track);
             updateItems(this.karts, this.crates, this.puddles, order, this.random, FIXED_MS);
             if (required(this.karts[0]).finishMs !== null) {
@@ -90,6 +107,6 @@ export class Engine {
         }
     }
     snapshot() {
-        return structuredClone({ level: this.level, seed: this.seed, status: this.status, score: this.score, time: this.time, frames: this.frames, remainder: this.remainder, random: this.random.state, controls: this.controls, track: this.track, karts: this.karts, crates: this.crates, puddles: this.puddles, order: ranking(this.karts, this.track), cup: { races: this.cup.races, scores: this.cup.scores, order: this.cup.standings() } });
+        return structuredClone({ level: this.level, seed: this.seed, status: this.status, score: this.score, time: this.time, timing: { raceMs: this.time, currentLapMs: required(this.karts[0]).finishMs === null ? (this.frames - this.lapStartFrame) * FIXED_MS : 0, lapTimesMs: this.lapTimesMs, bestLapMs: this.bestLapMs, lastLapDeltaMs: this.lastLapDeltaMs }, frames: this.frames, remainder: this.remainder, random: this.random.state, controls: this.controls, track: this.track, karts: this.karts, crates: this.crates, puddles: this.puddles, order: ranking(this.karts, this.track), cup: { races: this.cup.races, scores: this.cup.scores, order: this.cup.standings() } });
     }
 }

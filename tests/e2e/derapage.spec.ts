@@ -91,3 +91,52 @@ test('Z25 commandes analogiques mobiles, tailles et captures', async ({ page }, 
     expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().karts[0]?.boostMs)).toBeGreaterThan(0);
     await page.screenshot({ path: 'test-results/screenshots/derapage-trees-boost.png' });
 });
+
+test('Z26 Z27 vues entières et arrivée visible', async ({ page }, info) => {
+    await page.goto('/?test=1#/derapage');
+    if (info.project.name === 'mobile-chromium') await page.locator('#resume').tap();
+    else await page.locator('#resume').click();
+    for (const [level, name] of [
+        [0,'circuit-01'],[7,'circuit-08'],[14,'circuit-15'],[21,'circuit-22'],[29,'circuit-30'],
+        [0,'le-rocher'],[1,'invalides'],[16,'ardennes'],[28,'slalom'],[29,'bmx'],
+    ] as const) {
+        await page.evaluate(i => { const hook=window.__DERAPAGE_TEST__; hook?.loadLevel(i,28); hook?.overview(true); },level);
+        const track=await page.evaluate(()=>window.__DERAPAGE_TEST__?.read().track);
+        expect(track?.finishLine).toBeDefined();
+        await page.screenshot({ path:`test-results/screenshots/derapage-${name}-${info.project.name}.png` });
+    }
+});
+
+test('Z28 Z29 chronos mobiles réservés, franchissement piloté et record persistant', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium');
+    await page.goto('/?test=1#/derapage'); await page.locator('#resume').tap();
+    await page.evaluate(() => { window.__DERAPAGE_TEST__?.loadLevel(0, 28); window.__DERAPAGE_TEST__?.advance(1000); });
+    const hud = page.locator('[data-derapage-hud]');
+    await expect(hud).toBeVisible();
+    await expect(hud).toContainText('COURSE 00:01.00');
+    await expect(hud).toContainText('TOUR 00:01.00');
+    await expect(hud).toContainText('MEILLEUR');
+    const bounds = await page.evaluate(() => window.__DERAPAGE_TEST__?.bounds());
+    if (!bounds) throw new Error('Boîtes absentes');
+    expect(bounds.hud.y + bounds.hud.height).toBeLessThanOrEqual(bounds.forward.y);
+    await page.evaluate(() => window.__DERAPAGE_TEST__?.scenario('lap'));
+    const canvas = await page.locator('canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
+    const cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: canvas.x + 32, y: canvas.y + 32 }] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: canvas.x + 92, y: canvas.y + 32 }] });
+    await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(1500));
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await cdp.detach();
+    expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().timing.lapTimesMs.length)).toBe(1);
+    await expect(page.locator('[data-lap-delta]')).toBeVisible();
+    await expect(hud).toContainText('Nouveau record !');
+    const record = await page.evaluate(() => {
+        const raw = localStorage.getItem('arcade-lab:derapage:v1');
+        return (JSON.parse(raw ?? '{}') as { circuitRecords?: Record<string, number> }).circuitRecords?.['0'];
+    });
+    expect(record).toBeGreaterThan(0);
+    await page.reload(); await page.locator('#resume').tap();
+    expect(await page.evaluate(() => {
+        const raw = localStorage.getItem('arcade-lab:derapage:v1');
+        return (JSON.parse(raw ?? '{}') as { circuitRecords?: Record<string, number> }).circuitRecords?.['0'];
+    })).toBe(record);
+});

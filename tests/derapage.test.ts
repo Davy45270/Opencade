@@ -1,8 +1,9 @@
+import { readSave, recordCircuitLap, type StoragePort } from '../src/shell/storage';
 import { required } from '../src/engines/derapage/access';
 import { test, expect } from 'vitest';
 import { Engine } from '../src/engines/derapage/engine';
 import { analogSteer, physics, collide, type Kart } from '../src/engines/derapage/physics';
-import { createTrack, validateTrack, difficulty, at, nearest, distance } from '../src/engines/derapage/track';
+import { createTrack, validateTrack, difficulty, at, nearest, distance, gateLine, shapeSignature, signatureDistance } from '../src/engines/derapage/track';
 import { checkpoint, ranking, Cup } from '../src/engines/derapage/race';
 import { controller, aiInput, aiSpeed } from '../src/engines/derapage/ai';
 import { drawItem, useItem, updateItems, type Puddle } from '../src/engines/derapage/items';
@@ -201,17 +202,7 @@ test('Z12 trente circuits fermés, portes ordonnées, largeur au moins 12 et san
             expect(Math.min(...t.widths)).toBeGreaterThanOrEqual(12);
             expect(t.gates).toEqual([0, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88]);
             expect(at(t, 0)).toEqual(at(t, t.length));
-            // Independent polar geometry proof: every edge stays in its own
-            // angular sector (< π), hence nonadjacent edges cannot intersect.
-            let winding = 0;
-            for (let j = 0; j < 96; j++) {
-                const a = required(t.points[j]), b = required(t.points[(j + 1) % 96]);
-                const delta = Math.atan2(a.x * b.y - a.y * b.x, a.x * b.x + a.y * b.y);
-                expect(delta).toBeGreaterThan(0); expect(delta).toBeLessThan(.1); winding += delta;
-                expect(Math.hypot(a.x, a.y)).toBeGreaterThan(50);
-                expect(distance(a, b)).toBeLessThan(8);
-            }
-            expect(winding).toBeCloseTo(2 * Math.PI, 10);
+
         }
 });
 test('Z13 pilote simulé trois tours sur chacun des trente circuits en moins de 90 s', () => {
@@ -252,7 +243,7 @@ test('Z15 rejeu complet horodaté et cadences regroupées, copies et temps inval
 }, 30000);
 test('Z16 contrat monde sérialisable sans notion de vue', () => {
     const s = new Engine().snapshot();
-    expect(Object.keys(s).sort()).toEqual(['controls', 'crates', 'cup', 'frames', 'karts', 'level', 'order', 'puddles', 'random', 'remainder', 'score', 'seed', 'status', 'time', 'track']);
+    expect(Object.keys(s).sort()).toEqual(['controls', 'crates', 'cup', 'frames', 'karts', 'level', 'order', 'puddles', 'random', 'remainder', 'score', 'seed', 'status', 'time', 'timing', 'track']);
     expect(JSON.stringify(s)).not.toMatch(/camera|screen|viewport|pixel|canvas/i);
     expect(Object.getOwnPropertyNames(Engine.prototype).sort()).toEqual(['constructor', 'input', 'loadLevel', 'snapshot', 'step']);
 });
@@ -362,3 +353,92 @@ test('Z23 zone morte, saturation et rejeu analogique pas à pas', () => {
 test('Z24 IA au plus 5 % sur herbe aux niveaux 1, 15, 30', () => {
     for (const level of [0, 14, 29]) { const p = pilot(level, true); expect(p.laps).toBe(3); expect(p.grass).toBeLessThanOrEqual(.05); }
 }, 30000);
+
+test('Z26 signatures géométriques distinctes et invariantes', () => {
+    const tracks = Array.from({ length: 30 }, (_, i) => createTrack(i));
+    const signatures = tracks.map(shapeSignature);
+    for (let i = 0; i < 30; i++) for (let j = i+1; j < 30; j++)
+        expect(signatureDistance(required(signatures[i]), required(signatures[j]))).toBeGreaterThan(.15);
+    for (const t of tracks) {
+        const transformed = { ...t, points: t.points.map(p => ({ x: -p.y*1.3, y: p.x*1.3 })), racingLine: t.racingLine.map(p => ({ x: -p.y*1.3, y: p.x*1.3 })), distances: t.distances.map(d => d*1.3), length: t.length*1.3 };
+        expect(signatureDistance(shapeSignature(t),shapeSignature(transformed))).toBeLessThan(1e-6);
+        const turns=shapeSignature(t).turns, rotated=shapeSignature(transformed).turns;
+        expect(rotated.length).toBe(turns.length);
+        turns.forEach((angle,i)=>{ expect(Math.abs(angle-required(rotated[i]))).toBeLessThan(1e-6); });
+    }
+});
+test('Z27 arrivée exactement sur la porte zéro et largeur locale', () => {
+    for (let i = 0; i < 30; i++) {
+        const t = createTrack(i), line = gateLine(t,0), p = required(t.points[0]);
+        expect(distance(t.finishLine.a,line.a)).toBeLessThan(1e-6);
+        expect(distance(t.finishLine.b,line.b)).toBeLessThan(1e-6);
+        expect(Math.abs(distance(t.finishLine.a,t.finishLine.b)-required(t.widths[0]))).toBeLessThan(1e-6);
+        expect(Math.abs((line.a.x+line.b.x)/2-p.x)).toBeLessThan(1e-6);
+        expect(Math.abs((line.a.y+line.b.y)/2-p.y)).toBeLessThan(1e-6);
+        const k = kart(); k.gate=0;
+        const before = required(t.points[95]), after = required(t.points[1]), len = distance(before,after);
+        const dx = (after.x-before.x)/len, dy = (after.y-before.y)/len;
+        const half=required(t.widths[0])/2;
+        expect(distance(t.finishLine.a,{ x:p.x-dy*half,y:p.y+dx*half })).toBeLessThan(1e-6);
+        expect(distance(t.finishLine.b,{ x:p.x+dy*half,y:p.y-dx*half })).toBeLessThan(1e-6);
+        Object.assign(k,{ x:p.x+dx*.01,y:p.y+dy*.01 });
+        checkpoint(k,{ x:p.x-dx*.01,y:p.y-dy*.01 },t,100);
+        expect(k.lap).toBe(1);
+    }
+});
+
+test('Z28 rejeux horodatés : tours et meilleur exactement identiques', () => {
+    const first = new Engine(0, 28), replay = new Engine(0, 28);
+    const events: { ms: number; input: ReturnType<typeof controller> }[] = [];
+    while (first.status === 'playing' && first.frames < 6000) {
+        const input = controller(required(first.karts[0]), first.track);
+        events.push({ ms: first.time, input });
+        first.input(input); first.step(1000 / 60);
+    }
+    for (const event of events) {
+        expect(replay.time).toBe(event.ms);
+        replay.input(event.input); replay.step(1000 / 120); replay.step(1000 / 120);
+    }
+    expect(first.lapTimesMs).toHaveLength(3);
+    expect(replay.snapshot().timing).toEqual(first.snapshot().timing);
+    expect(first.bestLapMs).toBe(Math.min(...first.lapTimesMs));
+});
+
+test('Z28 temps construits : nombre de pas entre franchissements et minimum', () => {
+    const e = new Engine(), k = required(e.karts[0]);
+    const t = e.track, p = required(t.points[0]), a = required(t.points[95]), b = required(t.points[1]);
+    const angle = Math.atan2(b.y - a.y, b.x - a.x);
+    for (const frame of [120, 300, 390]) {
+        e.frames = frame - 1;
+        Object.assign(k, { x: p.x - Math.cos(angle) * .1, y: p.y - Math.sin(angle) * .1, angle, vx: Math.cos(angle) * 24, vy: Math.sin(angle) * 24, gate: 0 });
+        e.input(neutral); e.step(1000 / 60);
+        expect(e.frames).toBe(frame);
+    }
+    expect(e.lapTimesMs).toEqual([120, 180, 90].map(n => n * (1000 / 60)));
+    expect(e.bestLapMs).toBe(90 * (1000 / 60));
+    expect(e.lastLapDeltaMs).toBe(90 * (1000 / 60) - 120 * (1000 / 60));
+    const frozen = e.snapshot().timing; e.step(5000);
+    expect(e.snapshot().timing).toEqual(frozen);
+    e.loadLevel(1); expect(e.snapshot().timing.lapTimesMs).toEqual([]);
+});
+
+test('Z29 records stricts par circuit, ancienne sauvegarde et stockage défaillant', () => {
+    const data = new Map<string, string>();
+    let writes = 0;
+    const storage: StoragePort = { getItem: key => data.get(key) ?? null, setItem: (key, value) => { writes++; data.set(key, value); } };
+    data.set('arcade-lab:derapage:v1', JSON.stringify({ unlocked: 7, best: 42 }));
+    const save = readSave(storage, 'derapage', 30);
+    expect(save).toEqual({ unlocked: 7, best: 42 });
+    expect(recordCircuitLap(storage, save, 0, 2000)).toBe(true);
+    expect(recordCircuitLap(storage, save, 0, 2000)).toBe(false);
+    expect(recordCircuitLap(storage, save, 0, 3000)).toBe(false);
+    expect(writes).toBe(1);
+    expect(recordCircuitLap(storage, save, 1, 4000)).toBe(true);
+    expect(recordCircuitLap(storage, save, 0, 1500)).toBe(true);
+    expect(readSave(storage, 'derapage', 30)).toEqual({ unlocked: 7, best: 42, circuitRecords: { 0: 1500, 1: 4000 } });
+    const broken: StoragePort = { getItem: () => { throw new Error('read'); }, setItem: () => { throw new Error('write'); } };
+    const fallback = readSave(broken, 'derapage', 30);
+    expect(fallback).toEqual({ unlocked: 1, best: 0 });
+    expect(() => recordCircuitLap(broken, fallback, 2, 1234)).not.toThrow();
+    expect(fallback.circuitRecords).toEqual({ 2: 1234 });
+});

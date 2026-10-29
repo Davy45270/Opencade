@@ -1764,14 +1764,33 @@ et une mini-carte dans la bande réservée y=0…96 ; la zone utile est
 devant le kart. La vignette Canvas utilise une vraie démo au niveau 3,
 avec politique de suivi et pas de 1/15 s : elle évolue en moins de 600 ms.
 
-### Générateur et difficulté
+### Tracés de données et difficulté
 
-Indice n=0…29. Les 96 sommets échantillonnent l’angle a=2πi/96.
-Le rayon vaut `65 × (1 + bend × cos(3a + phase))`, avec phase et
-aplatissement horizontal issus du PRNG partagé (graine canonique 28).
-La fermeture est explicite par l’arête du dernier au premier sommet.
-Cette courbe radiale bornée fournit des tracés simples, sans croisement.
-La largeur par segment est `width + 0,5 × (1+sin(iπ/24))`.
+Les trente listes de points de contrôle de `circuits.ts` sont dessinées
+séparément en coordonnées du monde. Chaque triplet contient x, y et la
+largeur du tronçon (référence 20, ajustée par la largeur du niveau).
+Une spline cubique fermée mélange une B-spline uniforme et Catmull-Rom :
+B + (C−B) × 2,75 × (bend−0,015). La tension croît de 0 à 0,119625,
+accentuant progressivement les enchaînements à points de contrôle constants.
+La spline est évaluée à 40 points par tronçon, puis rééchantillonnée à
+96 positions équidistantes. Les graines
+ne changent que le décor. Le contrôle géométrique vérifie les intersections
+de la ligne centrale et des deux polylignes de bord, entre elles et avec
+elles-mêmes ; aucun pont ni croisement n’est permis.
+
+Sept coupes de quatre ont chacune un thème sol/bordure/décor ; les deux
+entraînements complètent les trente niveaux. Les familles sont urbain lent,
+rapide à longues lignes droites, technique à enchaînements, ovale et nature.
+Les inspirations restent génériques : circuit urbain en bord de mer avec
+port, tunnel sombre, épingle et chicane ; avenues, esplanade et pavés ;
+parcours forestier vallonné avec gauche-droite, ligne droite et épingle.
+Le tunnel est purement visuel. Les profils d’altitude sont des métadonnées,
+sans changement de physique. En ville, les obstacles circulaires deviennent
+des blocs de trottoir et les bords des rails, avec les collisions ordinaires.
+Les parcours de nature ont un décor forestier plus dense. Le slalom et le
+petit parcours sinueux d’entraînement ne reprennent que leurs formes :
+les champs `gates`, `snow`, `berms`, `jumps` restent vides pour la passe suivante.
+
 Les portes sont aux sommets 0,8,…88. Bandes et arbres sont des éléments
 sérialisables du circuit, en coordonnées du monde, utilisables par une future
 vue pseudo-3D. Dès le niveau 3, `1+floor((n−2)/4)` bandes de rayon 2,5
@@ -1781,8 +1800,8 @@ sont réparties parmi les sommets dont le changement de direction est ≤0,09 ra
 normale ; rester sur une bande ne recharge pas le boost. Les IA peuvent
 les emprunter. Flèche claire, couleur menthe, flamme et son signalent le boost.
 
-Les arbres ont un rayon de 1,5 à 2,5, une densité variable (un candidat tous
-les `2+n%3` sommets), un côté et un décalage issus de la même graine.
+Les obstacles ont un rayon de 1,5 à 2,5, une densité variable (un candidat par
+sommet en nature, sinon tous les `2+n%3` sommets), un côté et un décalage issus de la même graine.
 La distance au centre de piste doit dépasser demi-largeur + deux rayons :
 il reste au moins un rayon libre entre bordure et tronc. La trajectoire idéale
 reste libre. Le kart de rayon 1,2 balaie son segment contre chaque cercle,
@@ -1796,7 +1815,7 @@ Troncs et feuillages sont dessinés par code.
 | Vitesse cible IA | 15+0,23n | 15 → 21,67 |
 | Bruit de braquage | 0,18−0,005n | 0,18 → 0,035 |
 | Retard de freinage | 0,45−0,012n | 0,45 → 0,102 s |
-| Amplitude des courbures | 0,015+0,0015n | 0,015 → 0,0585 |
+| Paramètre de tension des enchaînements | 0,015+0,0015n | 0,015 → 0,0585 |
 | Fraction de murs | 0,12+0,02n | 0,12 → 0,70 |
 | Facteur de vitesse sur herbe | 0,45−0,001n | 0,45 → 0,421 |
 
@@ -1809,45 +1828,75 @@ circuit, au pas 1/60 s, avec la physique et les portes ordinaires, sans
 repositionnement ; abandon après 300 s. Deux courses complètes aux niveaux
 extrêmes vérifient aussi collisions et objets avec les cinq adversaires.
 Temps par tour = temps des trois tours / 3, départ arrêté inclus ;
-« virages » = nombre de sommets avec changement de direction > 0,06 rad.
+« virages » = nombre de groupes de courbure signée de la signature Z26.
 L’écart IA est la distance moyenne à la ligne de course, en unités du monde.
 Herbe IA compte les pas hors piste en pourcentage du temps total (≤5 %
-aux niveaux 1, 15 et 30). Les collisions d’arbres comptent celles du pilote.
+sur les trente niveaux dans le script Node). Les collisions d’arbres comptent celles du pilote.
 Les temps ne sont pas forcés à être monotones entre tracés différents ;
 la vitesse et la précision des paramètres IA le sont. Mesures graine 28 :
 
-| Niveau | Longueur | Largeur min. | Virages | Tour pilote (s) | Tour IA (s) | Écart IA | Herbe IA (%) | Bandes | Arbres | Chocs arbres pilote |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | 433.4 | 20.00 | 70 | 18.33 | 28.56 | 0.820 | 0.00 | 0 | 48 | 0 |
-| 2 | 441.9 | 19.73 | 67 | 18.68 | 28.69 | 0.783 | 0.00 | 0 | 32 | 0 |
-| 3 | 433.5 | 19.46 | 68 | 18.03 | 26.76 | 0.780 | 0.00 | 1 | 24 | 0 |
-| 4 | 442.0 | 19.19 | 66 | 18.38 | 26.93 | 0.733 | 0.00 | 1 | 48 | 0 |
-| 5 | 437.8 | 18.92 | 63 | 18.21 | 26.32 | 0.716 | 0.00 | 1 | 32 | 0 |
-| 6 | 442.1 | 18.65 | 61 | 18.39 | 26.23 | 0.684 | 0.00 | 1 | 24 | 0 |
-| 7 | 437.9 | 18.38 | 61 | 17.91 | 24.77 | 0.677 | 0.00 | 2 | 48 | 0 |
-| 8 | 433.8 | 18.11 | 60 | 17.74 | 24.22 | 0.652 | 0.00 | 2 | 32 | 0 |
-| 9 | 438.1 | 17.84 | 59 | 17.92 | 24.18 | 0.620 | 0.00 | 2 | 24 | 0 |
-| 10 | 434.0 | 17.57 | 58 | 17.74 | 23.66 | 0.593 | 0.00 | 2 | 48 | 0 |
-| 11 | 438.3 | 17.30 | 58 | 17.62 | 22.86 | 0.563 | 0.00 | 3 | 32 | 0 |
-| 12 | 434.1 | 17.03 | 57 | 17.46 | 22.38 | 0.505 | 0.00 | 3 | 24 | 0 |
-| 13 | 442.7 | 16.76 | 57 | 17.80 | 22.62 | 0.495 | 0.00 | 3 | 48 | 0 |
-| 14 | 434.3 | 16.49 | 56 | 17.46 | 21.92 | 0.458 | 0.00 | 3 | 32 | 0 |
-| 15 | 442.9 | 16.22 | 56 | 17.51 | 21.48 | 0.408 | 0.00 | 4 | 24 | 0 |
-| 16 | 434.5 | 15.95 | 57 | 17.17 | 20.83 | 0.384 | 0.00 | 4 | 48 | 0 |
-| 17 | 443.1 | 15.68 | 56 | 17.52 | 21.08 | 0.351 | 0.00 | 4 | 32 | 0 |
-| 18 | 439.0 | 15.41 | 55 | 17.35 | 20.68 | 0.320 | 0.00 | 4 | 24 | 0 |
-| 19 | 443.3 | 15.14 | 55 | 17.22 | 20.10 | 0.282 | 0.00 | 5 | 48 | 0 |
-| 20 | 439.2 | 14.87 | 55 | 17.06 | 19.73 | 0.251 | 0.00 | 5 | 32 | 0 |
-| 21 | 435.1 | 14.60 | 56 | 16.89 | 19.38 | 0.224 | 0.00 | 5 | 24 | 0 |
-| 22 | 439.5 | 14.33 | 56 | 17.07 | 19.45 | 0.205 | 0.00 | 5 | 48 | 0 |
-| 23 | 435.4 | 14.06 | 56 | 16.59 | 18.56 | 0.192 | 0.00 | 6 | 32 | 0 |
-| 24 | 439.8 | 13.79 | 54 | 16.78 | 18.69 | 0.173 | 0.00 | 6 | 24 | 0 |
-| 25 | 435.7 | 13.52 | 54 | 16.61 | 18.37 | 0.174 | 0.00 | 6 | 48 | 0 |
-| 26 | 444.3 | 13.25 | 54 | 16.97 | 18.69 | 0.164 | 0.00 | 6 | 32 | 0 |
-| 27 | 436.0 | 12.98 | 54 | 16.31 | 17.72 | 0.170 | 0.00 | 7 | 24 | 0 |
-| 28 | 444.6 | 12.71 | 55 | 16.68 | 18.07 | 0.163 | 0.00 | 7 | 48 | 0 |
-| 29 | 436.3 | 12.44 | 54 | 16.33 | 17.56 | 0.172 | 0.00 | 7 | 32 | 0 |
-| 30 | 445.0 | 12.17 | 54 | 16.68 | 17.88 | 0.175 | 0.00 | 7 | 24 | 0 |
+| Niveau | Nom | Famille | Longueur | Largeur min. | Virages | Signature voisine | Tour pilote (s) | Tour IA (s) | Écart IA | Herbe IA (%) | Bandes | Décor | Chocs pilote |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | Le Rocher | urbain | 462.8 | 20.00 | 6 | 0.5625 | 19.87 | 31.66 | 1.133 | 0.00 | 0 | 44 | 0 |
+| 2 | Autour des Invalides | urbain | 440.9 | 19.73 | 6 | 0.5625 | 18.86 | 28.61 | 1.039 | 0.00 | 0 | 32 | 0 |
+| 3 | Les Docks clairs | urbain | 564.4 | 19.46 | 6 | 0.5625 | 23.84 | 35.59 | 0.903 | 0.00 | 1 | 23 | 0 |
+| 4 | La Cour des arches | urbain | 457.8 | 19.19 | 6 | 0.4167 | 19.33 | 28.08 | 0.968 | 0.00 | 1 | 48 | 0 |
+| 5 | La Flèche des prés | rapide | 476.2 | 18.92 | 2 | 0.3958 | 20.01 | 29.04 | 0.639 | 0.00 | 1 | 32 | 0 |
+| 6 | Le Grand détour | rapide | 495.6 | 18.65 | 3 | 0.3542 | 20.82 | 29.98 | 0.685 | 0.00 | 1 | 24 | 0 |
+| 7 | Les Deux horizons | rapide | 481.6 | 18.38 | 3 | 0.5208 | 19.93 | 28.14 | 0.684 | 0.00 | 2 | 48 | 0 |
+| 8 | Le Vent des plaines | rapide | 492.3 | 18.11 | 3 | 0.3125 | 20.36 | 28.07 | 0.669 | 0.00 | 2 | 32 | 0 |
+| 9 | Les Trois replis | technique | 492.5 | 17.84 | 6 | 0.4375 | 20.49 | 28.29 | 0.892 | 0.00 | 2 | 24 | 0 |
+| 10 | La Clef des champs | technique | 483.9 | 17.57 | 6 | 0.5208 | 20.08 | 28.21 | 0.809 | 0.00 | 2 | 48 | 0 |
+| 11 | Le Ruban plié | technique | 490.6 | 17.30 | 6 | 0.4167 | 20.07 | 26.76 | 0.733 | 0.00 | 3 | 32 | 0 |
+| 12 | Les Coudes de cuivre | technique | 478.4 | 17.03 | 6 | 0.4583 | 19.54 | 26.19 | 0.759 | 0.00 | 3 | 24 | 0 |
+| 13 | La Grande ellipse | ovale | 473.2 | 16.76 | 2 | 0.3958 | 19.27 | 24.72 | 0.456 | 0.00 | 3 | 48 | 0 |
+| 14 | Le Bol incliné | ovale | 466.4 | 16.49 | 2 | 0.3958 | 18.98 | 24.13 | 0.445 | 0.00 | 3 | 32 | 0 |
+| 15 | L’Anneau des vents | ovale | 475.5 | 16.22 | 2 | 0.4167 | 19.06 | 24.13 | 0.411 | 0.00 | 4 | 24 | 0 |
+| 16 | Le Triangle arrondi | ovale | 451.7 | 15.95 | 3 | 0.3958 | 18.07 | 23.17 | 0.429 | 0.00 | 4 | 48 | 0 |
+| 17 | La Côte des Ardennes | nature | 563.2 | 15.68 | 6 | 0.4583 | 22.84 | 28.71 | 0.457 | 0.00 | 4 | 95 | 0 |
+| 18 | Le Lac des fougères | nature | 477.8 | 15.41 | 5 | 0.3125 | 19.20 | 24.28 | 0.430 | 0.00 | 4 | 95 | 0 |
+| 19 | La Clairière brisée | nature | 502.8 | 15.14 | 4 | 0.5208 | 19.96 | 23.75 | 0.417 | 0.00 | 5 | 96 | 0 |
+| 20 | Les Roches rousses | nature | 503.5 | 14.87 | 7 | 0.4792 | 19.97 | 24.71 | 0.452 | 0.00 | 5 | 96 | 0 |
+| 21 | Les Pavés du levant | urbain | 490.2 | 14.60 | 8 | 0.4375 | 19.53 | 25.81 | 0.515 | 0.00 | 5 | 24 | 0 |
+| 22 | La Terrasse des quais | urbain | 503.6 | 14.33 | 5 | 0.4167 | 20.00 | 25.26 | 0.416 | 0.00 | 5 | 47 | 0 |
+| 23 | Le Passage des halles | technique | 505.4 | 14.06 | 6 | 0.4167 | 19.97 | 23.62 | 0.361 | 0.00 | 6 | 31 | 0 |
+| 24 | Les Balcons de pierre | urbain | 504.5 | 13.79 | 5 | 0.3542 | 19.71 | 24.84 | 0.351 | 0.00 | 6 | 24 | 0 |
+| 25 | La Combe des échos | technique | 519.0 | 13.52 | 8 | 0.4375 | 20.47 | 25.82 | 0.412 | 0.00 | 6 | 48 | 0 |
+| 26 | Le Serpent des joncs | nature | 504.6 | 13.25 | 7 | 0.4167 | 19.70 | 23.63 | 0.284 | 0.00 | 6 | 96 | 0 |
+| 27 | La Boucle des falaises | rapide | 519.6 | 12.98 | 5 | 0.5208 | 20.04 | 24.86 | 0.313 | 0.00 | 7 | 24 | 0 |
+| 28 | Les Sept lacets | technique | 510.4 | 12.71 | 8 | 0.4792 | 19.82 | 25.07 | 0.384 | 0.00 | 7 | 46 | 0 |
+| 29 | La Descente en ruban | slalom | 671.5 | 12.44 | 5 | 1.1667 | 26.35 | 32.35 | 0.246 | 0.00 | 7 | 32 | 0 |
+| 30 | Le Petit guidon | bmx | 423.8 | 12.17 | 6 | 0.4583 | 16.17 | 20.39 | 0.417 | 0.00 | 7 | 24 | 0 |
+
+### Diversité Z26 et arrivée Z27
+
+On rééchantillonne la ligne centrale en N=96 points équidistants. Pour chaque
+point, θᵢ est l’angle signé entre les deux segments adjacents, obtenu par
+atan2(produit vectoriel, produit scalaire). Avec Δs=L/N, la courbure
+adimensionnelle est κᵢL=(θᵢ/Δs)L=Nθᵢ. L’histogramme H est normalisé
+par N, avec 32 classes de largeur 2 sur [-32,32], plus deux classes de
+saturation. La signature ne dépend ni de l’échelle ni de la rotation.
+Les groupes contigus de même signe avec |Nθᵢ|>4 définissent les virages ;
+leurs angles intégrés sont triés, et leur nombre et leurs angles sont exposés.
+La distance utilisée est D(H,G)=Σ|Hⱼ−Gⱼ|, sur les 435 paires.
+
+Minimum mesuré : **0,312500**, seuil littéral **0,15** : marge de 0,162500,
+soit environ 52 % du minimum, pour éviter un seuil ajusté au dernier
+échantillon. La comparaison n’utilise ni nom, ni niveau, ni thème.
+Z26 vérifie aussi chaque tracé tourné de 90° et agrandi ×1,3 (distance
+<1e-6). Remplacer toutes les géométries par la première, ou seulement la
+deuxième par cette transformation de la première, ramène la distance
+sous le seuil 0,15 et doit faire échouer Z26.
+
+`finishLine` expose deux extrémités, calculées à la porte 0 par la normale
+à la tangente centrée, à ±largeur/2. Le comptage teste le franchissement
+orienté de ce segment fini, par interpolation du déplacement du kart.
+La scène dessine deux rangées de damier noir/blanc sur ce même segment,
+sur toute sa largeur, une grille de six places derrière et un portique en ville. La mini-carte
+montre aussi l’arrivée. Le HUD affiche Tour 2/3, Dernier tour ! et le
+drapeau à damier à l’arrivée. Z27 compare les extrémités à la porte 0,
+leur milieu au point 0, et leur distance à la largeur locale, avec
+tolérance littérale 1e-6 ; décaler la porte d’un point est détecté.
 
 
 ### Oracle
@@ -1879,6 +1928,8 @@ la vitesse et la précision des paramètres IA le sont. Mesures graine 28 :
 | Z23 | Fonction pure : zone morte 6 px, saturation 60 px, rejeu continu |
 | Z24 | IA ≤5 % sur herbe aux niveaux 1,15,30 ; Z13 conservé |
 | Z25 | E2E mobile : glisser signé, relâcher, dérapage maintenu, tailles 88/56 et captures |
+| Z26 | 435 paires, distance >0,15 et invariance rotation/échelle <1e-6 |
+| Z27 | Segment de la porte 0, largeur et centre indépendants à 1e-6 |
 
 Le crochet `__ARCADE_TEST__.games.derapage` expose read/loadLevel/advance,
 hudText/usefulArea/bounds et trois états de course ordinaires : finish
@@ -1893,6 +1944,48 @@ derapage-play/level30/won/lost sur chaque projet, et
 la séparation HUD/aire devant le kart et contrôles/canevas. M01–M04,
 A11 et les douze vignettes communes incluent Dérapage.
 
+Le crochet dédié `__DERAPAGE_TEST__.overview(true)` fige la simulation et
+cadre le circuit entier, arrivée visible. Les captures desktop et mobile
+prévues sont `derapage-circuit-01`, `-08`, `-15`, `-22`, `-30`,
+`derapage-le-rocher`, `derapage-invalides`, `derapage-ardennes`,
+`derapage-slalom`, `derapage-bmx`, suffixées par projet.
+
 Vitest et Playwright ne sont pas exécutés sur cette machine. L’orchestrateur
 doit exécuter ces suites, inspecter les captures aux trois tailles mobiles,
 vérifier les capteurs optionnels et mesurer la fluidité sur téléphone.
+
+
+### Chronos et records Dérapage — Z28/Z29
+
+`snapshot().timing` expose `raceMs`, `currentLapMs`, `lapTimesMs`,
+`bestLapMs` et `lastLapDeltaMs`. La course commence au pas zéro ; le premier
+chrono de tour inclut le départ sur la grille. Chaque tour terminé vaut
+exactement le nombre de pas depuis le départ ou le franchissement précédent
+multiplié par `1000 / 60`. Le meilleur est le minimum des tours terminés ;
+il vaut `null` avant le premier. Aucun temps mural n’intervient. Le temps
+se fige à l’arrivée et se réinitialise au chargement/rejeu du niveau.
+`advance(ms)` suit le même accumulateur de pas fixes que le moteur.
+
+Le HUD réservé aux 96 premiers pixels affiche course, tour courant et meilleur
+au format `mm:ss.cc`. À chaque franchissement, l’écart au meilleur précédent
+est vert si strictement négatif, rouge sinon (premier passage : écart « — »).
+L’annonce persiste jusqu’au passage suivant. Le résultat affiche temps total,
+meilleur tour, record historique du circuit et classement des six karts.
+
+Le champ optionnel `circuitRecords` de la sauvegarde existante
+`arcade-lab:derapage:v1` associe l’indice stable du circuit (0–29) à son meilleur
+tour en millisecondes. Seule une amélioration stricte écrit le record, dès le
+franchissement, avec « Nouveau record ! ». Les anciennes sauvegardes sont
+compatibles ; lectures, sérialisation et écritures sont protégées par try/catch.
+
+Z28 rejoue les mêmes entrées horodatées avec des pas regroupés différemment,
+compare exactement les chronos et construit des tours de 120, 180 et 90 pas
+pour vérifier la durée et le minimum. Z29 vérifie égalité/dégradation sans
+écriture, isolation des circuits, relecture, migration implicite et exceptions
+lecture/écriture. L’E2E mobile utilise un état avant la dernière porte d’un tour,
+des gestes tactiles réels puis `advance`, contrôle le HUD hors piste, l’écart,
+l’annonce et le record après rechargement. Vitest et Playwright ne sont pas
+exécutés dans cette passe.
+
+Mutations à essayer : fausser le minimum du meilleur tour ; remplacer les pas
+par une horloge murale ; écraser le record par un tour égal ou plus lent.
