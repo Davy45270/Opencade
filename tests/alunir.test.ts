@@ -1,12 +1,12 @@
 import { test, expect } from 'vitest';
-import { Engine, STEP, LIMITS, difficulty, generate, windAt, polygon, pilot, landingScore, required } from '../src/engines/alunir/engine';
+import { Engine, STEP, difficulty, generate, windAt, polygon, pilot, landingScore, required } from '../src/engines/alunir/engine';
 const idle = { thrust: false, left: false, right: false };
 function contact(vx = 0, vy = 1.2, angle = 0, outside = false) {
     const e = new Engine(), p = required(e.terrain.pads[0]);
     const extent = Math.max(...polygon(0, 0, angle).map(v => v.y));
     const first = required(e.terrain.points[0]), second = required(e.terrain.points[1]);
     const ground = first.y + (second.y - first.y) * 12 / second.x;
-    e.loadState({ x: outside ? 12 : p.x + p.width / 2, y: (outside ? ground - 8 : p.y - extent) - 0.1, vx, vy: vy - difficulty(0).gravity, angle });
+    e.loadState({ x: outside ? 12 : p.x + p.width / 2, y: (outside ? ground - extent : p.y - extent) - 0.1, vx, vy: vy - difficulty(0).gravity, angle });
     return e;
 }
 test('U01 gravité, intégration semi-implicite et reliquat fixe', () => {
@@ -35,19 +35,27 @@ test('U04 vent constant puis rafales bornées, à graine et intégrées', () => 
 });
 test('U05 collision continue du polygone, grande vitesse et bord de plateforme', () => {
     const e = new Engine(), p = required(e.terrain.pads[0]); e.loadState({ x: p.x + p.width / 2, vy: 1000 }); e.step(STEP);
-    expect(e.status).toBe('lost'); expect(e.state.y).toBeCloseTo(p.y - 8);
+    expect(e.status).toBe('lost'); expect(e.state.y).toBeCloseTo(p.y - 12);
     const edge = contact(); edge.loadState({ x: p.x - 2 }); edge.step(STEP); expect(edge.status).toBe('lost');
 });
 test('U06 seuils exacts inclusifs, deux signes et polygone incliné', () => {
+    // Literal specification: changing LIMITS must break these boundary witnesses.
     for (const sign of [-1, 1]) {
-        const e = contact(sign * LIMITS.vx, LIMITS.vy, sign * LIMITS.angle); e.step(STEP); expect(e.status).toBe('won');
+        for (const [vx, vy, angle, status] of [
+            [sign * 0.6, 1, 0, 'won'], [sign * 0.60001, 1, 0, 'lost'],
+            [0, 1.2, 0, 'won'], [0, 1.20001, 0, 'lost'],
+            [0, 1, sign * 10 * Math.PI / 180, 'won'],
+            [0, 1, sign * (10 * Math.PI / 180 + 0.00001), 'lost'],
+        ] as const) {
+            const e = contact(vx, vy, angle); e.step(STEP); expect(e.status).toBe(status);
+        }
     }
 });
 test('U07 vitesse, angle, terrain et murs fatals', () => {
-    for (const e of [contact(0.60001), contact(0, 1.20001), contact(0, 1, LIMITS.angle + 0.00001), contact(0, 1, 0, true)]) {
+    for (const e of [contact(0.60001), contact(0, 1.20001), contact(0, 1, 10 * Math.PI / 180 + 0.00001), contact(0, 1, 0, true)]) {
         e.step(STEP); expect(e.status).toBe('lost'); expect(e.state.score).toBe(0);
     }
-    for (const state of [{ x: 8, vx: -100 }, { x: 352, vx: 100 }, { y: 11, vy: -100 }]) {
+    for (const state of [{ x: 12, vx: -100 }, { x: 348, vx: 100 }, { y: 16, vy: -100 }]) {
         const e = new Engine(); e.loadState(state); e.step(STEP); expect(e.status).toBe('lost');
     }
 });

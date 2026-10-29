@@ -15,6 +15,7 @@ export const alunirButtons: readonly TouchButton[] = [
 export interface AlunirHook {
     advance(ms: number): void;
     hudText(): string;
+    bounds(): { module: { x: number; y: number; width: number; height: number }; hud: { x: number; y: number; width: number; height: number } };
     usefulArea(): { x: number; y: number; width: number; height: number };
     read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string };
     loadLevel(index: number, seed?: number): void;
@@ -42,7 +43,7 @@ export class AlunirScene extends Phaser.Scene {
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         this.graphics = this.add.graphics();
-        this.hud = this.add.text(15, 20, '', { fontFamily: 'system-ui', fontSize: '17px', color: '#e5f3ff', lineSpacing: 8 });
+        this.hud = this.add.text(10, 10, '', { fontFamily: 'system-ui', fontSize: '13px', color: '#e5f3ff', lineSpacing: 2 });
         const control = (id: string, held: boolean): void => {
             if (held && !this.session.menuOpen && !this.selecting && this.session.state === 'ready') this.session.send('start');
             if (held && !this.session.paused && !this.selecting) {
@@ -69,13 +70,20 @@ export class AlunirScene extends Phaser.Scene {
         if (new URLSearchParams(location.search).get('test') === '1') window.__ALUNIR_TEST__ = {
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
+            bounds: () => {
+                const s = this.engine.state, body = polygon(s.x, s.y, s.angle);
+                const x = Math.min(...body.map(p => p.x)) - 1, y = Math.min(...body.map(p => p.y)) - 1;
+                const hud = this.hud?.getBounds();
+                return { module: { x, y, width: Math.max(...body.map(p => p.x)) + 1 - x, height: Math.max(...body.map(p => p.y)) + 1 - y },
+                    hud: { x: hud?.x ?? 0, y: hud?.y ?? 0, width: hud?.width ?? 0, height: hud?.height ?? 0 } };
+            },
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             read: () => ({ ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 this.start(0, 454, true);
                 const p = required(this.engine.terrain.pads[0]);
-                this.engine.loadState({ x: p.x + p.width / 2, y: p.y - 11, vy: name === 'finish' ? 1.21 : 4, fuel: 100 });
+                this.engine.loadState({ x: p.x + p.width / 2, y: p.y - 15, vy: name === 'finish' ? 1.21 : 4, fuel: 100 });
 
             },
         };
@@ -128,9 +136,12 @@ export class AlunirScene extends Phaser.Scene {
         g.fillStyle(0xffd080); g.fillPoints(body, true); g.lineStyle(2, 0xffffff); g.strokePoints(body, true);
         g.fillStyle(0x70cfff); g.fillCircle(s.x, s.y - 2, 3);
         if (this.engine.controls.thrust && s.fuel > 0 && this.engine.status === 'playing') {
-            g.lineStyle(4, 0xff9955); g.lineBetween(s.x - Math.sin(s.angle) * 8, s.y + Math.cos(s.angle) * 8, s.x - Math.sin(s.angle) * 22, s.y + Math.cos(s.angle) * 22);
+            g.lineStyle(4, 0xff9955); g.lineBetween(s.x - Math.sin(s.angle) * 12, s.y + Math.cos(s.angle) * 12, s.x - Math.sin(s.angle) * 22, s.y + Math.cos(s.angle) * 22);
         }
-        this.hud?.setText(`ALUNIR · ${String(this.engine.level + 1)}/30 · ×${String(required(this.engine.terrain.pads[0]).multiplier)}   SCORE ${String(s.score)}\nCARBURANT ${s.fuel.toFixed(0)} · VX ${s.vx.toFixed(2)} VY ${s.vy.toFixed(2)}\nANGLE ${(s.angle * 180 / Math.PI).toFixed(0)}° · Cible : ≤ 0,6 / 1,2 / 10°`);
+        this.hud?.setText(`ALUNIR ${String(this.engine.level + 1)}/30 · ×${String(required(this.engine.terrain.pads[0]).multiplier)} · SCORE ${String(s.score)} · F ${s.fuel.toFixed(0)}\nVX ${s.vx.toFixed(2)} /0,6 · VY ${s.vy.toFixed(2)} /1,2 · ${(s.angle * 180 / Math.PI).toFixed(0)}° /10°`);
+        // Place the two-line HUD on the opposite side of the module at every frame.
+        const top = Math.min(...body.map(p => p.y));
+        this.hud?.setY(top < 65 ? 590 : 10);
         const status = document.querySelector('#status');
         if (status) status.textContent = `Score : ${String(s.score)} · ${this.engine.status === 'playing' ? 'En vol' : this.engine.status === 'won' ? 'Victoire' : 'Défaite'}`;
     }

@@ -30,7 +30,7 @@ export function windAt(level: number, seed: number, tick: number): number {
     return d.wind + (r.next() * 2 - 1) * d.gust;
 }
 export function polygon(x: number, y: number, angle: number): Point[] {
-    return [{ x: -7, y: 8 }, { x: 7, y: 8 }, { x: 6, y: -5 }, { x: 0, y: -10 }, { x: -6, y: -5 }].map(p => ({ x: x + p.x * Math.cos(angle) - p.y * Math.sin(angle), y: y + p.x * Math.sin(angle) + p.y * Math.cos(angle) }));
+    return [{ x: -7, y: 8 }, { x: 7, y: 8 }, { x: 6, y: -5 }, { x: 0, y: -10 }, { x: -6, y: -5 }].map(p => ({ x: x + 1.5 * (p.x * Math.cos(angle) - p.y * Math.sin(angle)), y: y + 1.5 * (p.x * Math.sin(angle) + p.y * Math.cos(angle)) }));
 }
 /** Swept SAT: exact first contact of a translating convex polygon and a segment. */
 export function sweep(body: Point[], motion: Point, a: Point, b: Point): number | null {
@@ -55,7 +55,7 @@ export function landingScore(fuel: number, x: number, pad: Pad, ticks: number): 
 export class Engine {
     level = 0; seed = 28; status: 'playing' | 'won' | 'lost' = 'playing';
     terrain = generate(0, 28);
-    state = { x: 180, y: 100, vx: 0, vy: 0, angle: 0, fuel: 950, score: 0, ticks: 0 };
+    state = { x: 180, y: 85, vx: 0, vy: 0, angle: 0, fuel: 950, score: 0, ticks: 0 };
     controls: Controls = { thrust: false, left: false, right: false };
     private remainder = 0;
     constructor() { this.loadLevel(0); }
@@ -63,7 +63,7 @@ export class Engine {
         this.level = Math.max(0, Math.min(29, Math.floor(level))); this.seed = seed >>> 0;
         this.terrain = generate(this.level, this.seed); const p = required(this.terrain.pads[0]);
         const d = difficulty(this.level), direction = new Random(this.seed ^ 0x51a7).next() < 0.5 ? -1 : 1;
-        this.state = { x: p.x + p.width / 2 + direction * d.offset, y: 100, vx: 0, vy: 0, angle: 0, fuel: difficulty(this.level).fuel, score: 0, ticks: 0 };
+        this.state = { x: p.x + p.width / 2 + direction * d.offset, y: 85, vx: 0, vy: 0, angle: 0, fuel: difficulty(this.level).fuel, score: 0, ticks: 0 };
         this.status = 'playing'; this.remainder = 0; this.input({ thrust: false, left: false, right: false });
     }
     input(controls: Controls): void { this.controls = { ...controls }; }
@@ -116,7 +116,7 @@ export function pilot(e: Engine): Controls {
     const target = p.y - s.y < 35 ? 0 : Math.max(-0.55, Math.min(0.55, Math.atan(acceleration / d.gravity)));
     const aligned = Math.abs(dx) < 5 && Math.abs(s.vx) < 0.15;
     const approachY = Math.min(...e.terrain.points.map(v => v.y)) - 60;
-    const destination = aligned ? p.y - 8 : Math.min(p.y - 80, approachY);
+    const destination = aligned ? p.y - 12 : Math.min(p.y - 80, approachY);
     const speed = Math.max(-1, Math.min(1, (destination - s.y) * 0.025));
     return { thrust: s.vy > (aligned ? Math.max(0.35, speed) : speed), left: s.angle > target + 0.0125, right: s.angle < target - 0.0125 };
 }

@@ -32,6 +32,14 @@ test('U06 U07 U09 victoire, défaite et progression par entrées réelles', asyn
     await page.screenshot({ path: `test-results/screenshots/alunir-won-${info.project.name}.png` });
     await activate(page, '#next-level', mobile); expect((await read(page))?.level).toBe(1);
     await page.evaluate(() => { window.__ALUNIR_TEST__?.advance(0); });
+    const bounds = await page.evaluate(() => {
+        const b = window.__ALUNIR_TEST__?.bounds(), canvas = document.querySelector('#game canvas')?.getBoundingClientRect();
+        if (!b || !canvas) throw new Error('Géométrie absente');
+        const convert = (r: typeof b.module) => ({ x: canvas.x + r.x * canvas.width / 360, y: canvas.y + r.y * canvas.height / 640, width: r.width * canvas.width / 360, height: r.height * canvas.height / 640 });
+        return { module: convert(b.module), hud: convert(b.hud) };
+    });
+    const { module: m, hud: h } = bounds;
+    expect(m.x + m.width <= h.x || h.x + h.width <= m.x || m.y + m.height <= h.y || h.y + h.height <= m.y).toBe(true);
     await page.screenshot({ path: `test-results/screenshots/alunir-play-${info.project.name}.png` });
     await page.reload(); await expect(page.locator('#resume')).toBeVisible();
     await activate(page, '#resume', mobile);
