@@ -6,6 +6,10 @@ export default defineConfig({
     testDir: 'tests/e2e',
     workers: 1,
     fullyParallel: false,
+    // Les scénarios mobiles rendent Phaser en logiciel : sur une machine de 2 cœurs, les plus longs
+    // (guidage et victoire d'Orbite, mise en page en 390×600) approchent les 30 s par défaut.
+    // Les issues lointaines passent déjà par le crochet advance(ms) ; les attentes d'état restent courtes.
+    timeout: 60_000,
     forbidOnly: ci,
     reporter: ci ? [['github'], ['html', { open: 'never' }], ['list']] : 'list',
     use: {
