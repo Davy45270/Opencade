@@ -1,0 +1,162 @@
+/* global console, Buffer, URL */
+// Read-only analysis; uses the repository's existing TypeScript loader.
+import './ts-loader.js';
+import ts from 'typescript';
+import { readFileSync } from 'node:fs';
+const ids = ['bubble', 'briqueterie', 'empilo', 'serpentin', 'orbite', 'essaim', 'dedale', 'caisses', 'alunir', 'ferraille', 'traverse', 'derapage'];
+const names = ['Bulles', 'Briqueterie', 'Empilo', 'Serpentin', 'Orbite', 'Essaim', 'Dédale', 'Caisses', 'Alunir', 'Ferraille', 'Traverse', 'Dérapage'];
+const SEED = 28, CAP = 1800, CLONE = 0.08, FLAT = 0.08;
+const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : 0;
+const jaccard = (a, b) => { const x = new Set(a), y = new Set(b); return 1 - [...x].filter(v => y.has(v)).length / (new Set([...x, ...y]).size || 1); };
+const numeric = (o, prefix = '') => Object.fromEntries(Object.entries(o).flatMap(([k, v]) => typeof v === 'number' || typeof v === 'boolean' ? [[prefix + k, Number(v)]] : []));
+const cells = (a, kind) => a.map(p => `${kind}:${p.x},${p.y}`);
+function extract(id, e, d) {
+    const s = e.snapshot(), elements = new Set(), layout = [], params = {};
+    const add = (...a) => a.forEach(x => elements.add(x));
+    const typed = (a, prefix, field = 'kind') => (a ?? []).forEach(x => add(`${prefix}:${x[field]}`));
+    switch (id) {
+    case 'bubble':
+        add('bubble', 'match-three', 'detach'); if (d.interval) add('ceiling-drop');
+        layout.push(...s.grid.map(c => `${c.row},${c.col}:${c.color}`)); break;
+    case 'briqueterie':
+        add('ball', 'paddle', 'breakable-brick'); if (s.bricks.some(b => b.solid)) add('solid-brick');
+        if (s.bricks.some(b => b.hp > 1 && !b.solid)) add('multi-hit-brick'); typed(s.bonuses, 'bonus');
+        layout.push(...s.bricks.map(b => `${b.x},${b.y}:${b.solid ? 'solid' : 'brick'}`)); break;
+    case 'empilo':
+        add('rotation', 'line-clear', 'hard-drop'); for (let i = 0; i < d.shapes; i++) add(`shape:${i}`);
+        s.board.forEach((r, y) => r.forEach((v, x) => { if (v) { add(`tile:${v}`); layout.push(`${x},${y}:${v}`); } })); break;
+    case 'serpentin':
+        add('apple', 'growth', d.walls ? 'boundary-wall' : 'wrap'); if (s.obstacles.length) add('obstacle'); if (s.crystal) add('crystal');
+        layout.push(...cells(s.obstacles, 'obstacle')); break;
+    case 'orbite':
+        add('probe', 'shield', 'shoot'); if (s.probes.some(p => p.hp > 1)) add('armored-probe'); if (s.comet) add('comet');
+        if (d.shotLimit > 1) add('two-player-shots');
+        layout.push(...s.probes.map(p => `${p.row},${p.column}:probe`)); break;
+    case 'essaim':
+        typed(s.enemies, 'enemy', 'type'); typed(s.enemies, 'phase', 'phase'); add('shoot'); if (e.challenge) add('challenge'); if (s.double) add('double-cannon');
+        layout.push(...s.enemies.map(p => `${p.homeX},${p.homeY}:formation`)); break;
+    case 'dedale':
+        add('maze', 'seed', 'sun', 'scatter', 'chase'); typed(s.wisps, 'wisp');
+        layout.push(...s.maze.flatMap((v, i) => v ? [String(i)] : [])); break;
+    case 'caisses':
+        add('wall', 'box', 'target', 'push', 'undo', 'deadlock');
+        for (const k of ['walls', 'targets', 'boxes']) layout.push(...e.board[k].map(i => `${i % e.board.width},${Math.floor(i / e.board.width)}:${k}`));
+        Object.assign(params, { width: e.board.width, height: e.board.height }); break;
+    case 'alunir':
+        add('terrain', 'landing-pad', 'thrust', 'fuel'); if (d.wind) add('wind'); if (d.gust) add('gust');
+        // Fixed screen bins, not per-level rescaling: retain relief and pad width.
+        for (let x = 0; x <= 360; x += 12) {
+            const p = s.terrain.points; let i = 0; while (i < p.length - 2 && p[i + 1].x < x) i++;
+            const a = p[i], b = p[i + 1], y = a.y + (b.y - a.y) * (x - a.x) / (b.x - a.x);
+            layout.push(`${x}:${Math.floor(y / 12)}`);
+        } Object.assign(params, { padMultiplier: s.terrain.pads[0].multiplier }); break;
+    case 'ferraille':
+        add('shoot', 'jump', 'checkpoint'); typed(s.blocks, 'block'); typed(s.enemies, 'enemy'); typed(s.bonuses, 'bonus'); if (s.boss) add('boss');
+        s.tiles.forEach((v, i) => { if (v) layout.push(`${i % s.columns},${Math.floor(i / s.columns)}`); });
+        Object.assign(params, { columns: s.columns, platforms: s.platforms.length, enemies: s.enemies.length, bonuses: s.bonuses.length }); break;
+    case 'traverse':
+        add('shelter', 'road', 'river', 'log', 'traffic'); if (d.diveDuration && s.board.lanes.some(l => l.diver)) add('diving-log');
+        layout.push(...s.board.lanes.map(l => `${l.y}:${l.kind}:${l.direction}:${l.offset}:${l.diver}`)); break;
+    case 'derapage': {
+        add('kart', 'drift', 'item-crate', 'grass'); const t = e.track, c = t.circuit;
+        for (const k of ['snow', 'berms', 'jumps', 'gates']) if (c[k].length) add(`track:${k}`);
+        if (t.boosts.length) add('boost-pad'); if (c.theme.urban) add('urban-rail');
+        for (const k of s.karts) if (k.item) add(`item:${k.item}`); if (s.puddles.length) add('puddle');
+        Object.assign(params, { length: t.length, boosts: t.boosts.length, slalom: t.slalom.length, trees: t.trees.length, elevationRange: Math.max(...t.heights) - Math.min(...t.heights) });
+        break;
+    }
+    }
+    params.layoutCells = layout.length;
+    return { elements: [...elements].sort(), layout, params };
+}
+async function policy(id, mod, level) {
+    if (id === 'caisses') {
+        const e = new mod.Engine(); e.loadLevel(level, SEED);
+        const { solve } = await import('../src/engines/caisses/solver.ts'); const proof = solve(e.board);
+        return { engine: e, decide: (e, f) => { if (proof?.inputs[f]) e.input(proof.inputs[f]); }, advance: e => e.step(1000 / 15), limit: proof?.inputs.length ?? 0 };
+    }
+    if (id === 'derapage') {
+        const { controller } = await import('../src/engines/derapage/ai.ts');
+        return { engine: new mod.Engine(level, SEED), decide: e => e.input(controller(e.karts[0], e.track)), advance: e => e.step(1000 / 15) };
+    }
+    const url = new URL(`../src/engines/${id}/demo.ts`, import.meta.url);
+    let source = readFileSync(url, 'utf8').replace(/import \{ demo \} from '..\/shared\/demo';/, 'const demo = (engine, seed, decide, advance) => ({engine, decide, advance});');
+    source = source.replace(/from '(\.\.?\/[^']+)'/g, (_, path) => `from '${new URL(path + '.ts', url).href}'`);
+    const { createDemo } = await import('data:text/javascript;base64,' + Buffer.from(ts.transpile(source, { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext })).toString('base64'));
+    const p = createDemo(SEED); p.engine.loadLevel(level, SEED); return p;
+}
+const variations = [
+    'Ten authored masks, palette size, row count and ceiling-drop cadence; twenty requested levels are absent.',
+    'Brick masks, density, solid bricks, hit points, ball speed and paddle width.',
+    'Piece vocabulary, initial rubble and sealed tiles, gravity and line target.',
+    'Obstacle placement and patterns, boundary wrapping, speed and apple target.',
+    'Formation dimensions, armor, movement tier, fire cadence and shot allowance.',
+    'Enemy mixture, formation size, wave count, dive cadence and every-fifth-level challenge.',
+    'Seeded maze loops and corridors, pursuit timing and vulnerability duration.',
+    'Authored room topology, box/target positions and solution length; the rules stay fixed.',
+    'Terrain relief, landing width, wind, gusts, fuel and initial offset.',
+    'Course length, block composition, enemy mixture, bonuses and every-fifth-level boss.',
+    'Lane placement, direction and phase, diving logs, shelters and flow speed.',
+    'Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning.'
+];
+const games = [];
+for (const [index, id] of ids.entries()) {
+    const mod = await import(`../src/engines/${id}/engine.ts`);
+    const levelsMod = id === 'bubble' ? await import('../src/engines/bubble/levels.ts') : mod;
+    const track = id === 'derapage' ? await import('../src/engines/derapage/track.ts') : null;
+    const rows = [];
+    for (let level = 0; level < 30; level++) {
+        if (level >= levelsMod.LEVELS.length) { rows.push({ level: level + 1, unavailable: 'No level data in this revision' }); continue; }
+        const d = mod.difficulty ? mod.difficulty(level) : { colors: levelsMod.LEVELS[level].colors, rows: levelsMod.LEVELS[level].rows, interval: levelsMod.LEVELS[level].interval };
+        const p = await policy(id, mod, level), e = p.engine;
+        const initial = extract(id, e, d), initialSnapshot = e.snapshot();
+        let actions = 0, elapsedMs = 0;
+        for (const method of ['input', 'move', 'moveTo', 'aim', 'shoot', 'launch', 'holdFire']) if (typeof e[method] === 'function') {
+            const original = e[method].bind(e); e[method] = (...args) => { actions++; return original(...args); };
+        }
+        const advance = e.step?.bind(e) ?? e.advance.bind(e);
+        if (e.step) e.step = ms => { elapsedMs += ms; advance(ms); };
+        else e.advance = ms => { elapsedMs += ms; advance(ms); };
+        let frames = 0;
+        const limit = Math.min(CAP, p.limit ?? CAP);
+        while (e.status === 'playing' && frames < limit) { p.decide(e, frames++); p.advance(e); }
+        const final = e.snapshot(), midpointFrame = Math.floor(frames / 2);
+        // Replay the same policy to the midpoint of the observed attempt, not of an invented victory.
+        const replay = await policy(id, mod, level);
+        for (let f = 0; f < midpointFrame; f++) { replay.decide(replay.engine, f); replay.advance(replay.engine); }
+        const middle = extract(id, replay.engine, d);
+        rows.push({ level: level + 1, parameters: { ...numeric(d), ...initial.params }, initialElements: initial.elements, midpointElements: middle.elements,
+            elements: [...new Set([...initial.elements, ...middle.elements])].sort(), layout: track ? track.shapeSignature(e.track) : initial.layout,
+            initialSnapshot, midpointSnapshot: replay.engine.snapshot(), curve: { status: e.status, completionMs: e.status === 'won' ? elapsedMs : null, observedMs: elapsedMs, actions, frames, midpointFrame, failures: e.status === 'lost' ? 1 : 0, livesLost: initialSnapshot.lives !== undefined ? initialSnapshot.lives - final.lives : null, censored: e.status === 'playing' } });
+    }
+    const available = rows.filter(r => !r.unavailable), keys = Object.keys(available[0].parameters);
+    const ranges = Object.fromEntries(keys.map(k => [k, { min: Math.min(...available.map(r => r.parameters[k])), max: Math.max(...available.map(r => r.parameters[k])) }]));
+    for (const r of available) r.normalizedParameters = Object.fromEntries(keys.map(k => [k, ranges[k].max === ranges[k].min ? 0 : (r.parameters[k] - ranges[k].min) / (ranges[k].max - ranges[k].min)]));
+    const varyingKeys = keys.filter(k => ranges[k].max !== ranges[k].min);
+    const seen = new Set(), novelty = [], transitions = []; let gap = 0, maxGap = 0;
+    for (const [i, r] of available.entries()) {
+        r.newElements = r.elements.filter(x => !seen.has(x)); r.elements.forEach(x => seen.add(x));
+        if (r.newElements.length) novelty.push({ level: r.level, elements: r.newElements, baseline: i === 0 });
+        if (i) { gap = r.newElements.length ? 0 : gap + 1; maxGap = Math.max(maxGap, gap);
+            const prev = available[i - 1], parameterDistance = mean(varyingKeys.map(k => Math.abs(r.normalizedParameters[k] - prev.normalizedParameters[k])));
+            const layoutDistance = track ? track.signatureDistance(r.layout, prev.layout) / 2 : jaccard(r.layout, prev.layout);
+            transitions.push({ from: prev.level, to: r.level, parameterDistance, layoutDistance, distance: (parameterDistance + layoutDistance) / 2, clone: (parameterDistance + layoutDistance) / 2 < CLONE });
+        }
+    }
+    // Maximal windows with <= FLAT range in EVERY normalized parameter, no new element.
+    const plateaus = [];
+    for (let start = 1; start < available.length; start++) {
+        let end = start;
+        while (end < available.length && !available[end].newElements.length && keys.every(k => {
+            const v = available.slice(start, end + 1).map(r => r.normalizedParameters[k]); return Math.max(...v) - Math.min(...v) <= FLAT + 1e-12;
+        })) end++;
+        if (end - start >= 3 && !plateaus.some(p => p.from <= available[start].level && p.to >= available[end - 1].level)) plateaus.push({ from: available[start].level, to: available[end - 1].level, length: end - start });
+    }
+    const noveltyCount = novelty.filter(n => !n.baseline).length, cloneShare = transitions.filter(t => t.clone).length / transitions.length;
+    const score = Math.round(1000 * (0.5 * cloneShare + 0.25 * (1 - noveltyCount / (available.length - 1)) + 0.25 * maxGap / (available.length - 1))) / 10;
+    games.push({ id, game: names[index], coverage: `${available.length}/30`, partial: available.length !== 30, ranges, novelty, noveltyCount, noveltyLevels: novelty.filter(n => !n.baseline).map(n => n.level), maxGapWithoutNovelty: maxGap, cloneShare, clones: transitions.filter(t => t.clone), transitions, plateaus, longestPlateau: Math.max(0, ...plateaus.map(p => p.length)), plateauBasis: 'normalized configuration proxy; not a measured human difficulty plateau', score, varies: variations[index], levels: rows });
+}
+games.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
+const table = ['| Game | Score | Novelties (count; levels) | Clone share | Longest flat plateau | What actually varies |', '| --- | ---: | --- | ---: | ---: | --- |', ...games.map(g => `| ${g.game}${g.partial ? ' *' : ''} | ${g.score} | ${g.noveltyCount}; ${g.noveltyLevels.join(', ') || 'none'} | ${(g.cloneShare * 100).toFixed(1)}% | ${g.longestPlateau} | ${g.varies} |`)].join('\n');
+console.log(JSON.stringify({ revision: '409d801', seed: SEED, thresholds: { clone: CLONE, flatParameterRange: FLAT, minPlateauLevels: 3, maxPolicySteps: CAP }, games }, null, 2));
+console.log('\n' + table);
