@@ -2,7 +2,7 @@ import { aiInput } from '../src/engines/derapage/ai';
 import { checkpoint } from '../src/engines/derapage/race';
 import { Random } from '../src/engines/shared/random';
 import { Engine } from '../src/engines/derapage/engine';
-import { physics } from '../src/engines/derapage/physics';
+import { physics, type Kart } from '../src/engines/derapage/physics';
 import { createTrack, nearest, at } from '../src/engines/derapage/track';
 import { required } from '../src/engines/derapage/access';
 const neutral = { steer: 0, drift: false, bonus: false };
@@ -92,3 +92,33 @@ export const mechanics: { name: string; run: (check: Check) => void }[] = [
         }
     } },
 ];
+
+/** A legal final-line crossing includes all previously incurred gate penalties. */
+export function finishPenalty(cross = checkpoint, check: Check): void {
+    const t = createTrack(28), p = required(t.points[0]);
+    const a = required(t.points[95]), b = required(t.points[1]);
+    const angle = Math.atan2(b.y - a.y, b.x - a.x);
+    for (const penaltyMs of [0, 2000, 4000]) {
+        const k = kart();
+        Object.assign(k, { x: p.x + Math.cos(angle), y: p.y + Math.sin(angle), lap: 2, gate: 0, penaltyMs });
+        cross(k, { x: p.x - Math.cos(angle), y: p.y - Math.sin(angle) }, t, 12000);
+        check(k.lap === 3 && k.finishMs === 12000 + penaltyMs, 'temps final avec pénalités');
+    }
+}
+/** Take-off happens this frame: grass must not clamp the initial launch speed. */
+export function airborneGrass(move: (k: Kart, input: typeof neutral, t: ReturnType<typeof surface>, dt: number, grip: number) => void = physics, check: Check): void {
+    const t = surface(); t.circuit.theme = { ...t.circuit.theme, urban: false };
+    t.widths.fill(1); t.circuit.jumps = Array.from({ length: 96 }, (_, i) => i);
+    const k = kart(); Object.assign(k, { x: 1000, y: 1000, angle: 0, vx: 22, vy: 0 });
+    check(nearest(t, k).distance > 1, 'départ sur herbe');
+    move(k, neutral, t, 1 / 60, .45);
+    check(k.jumpMs > 0 && k.vx > 22 && k.vx < 23 && k.vy === 0, 'vitesse conservée au décollage sur herbe');
+    t.circuit.jumps = [];
+    const ground = kart(); Object.assign(ground, { x: 1000, y: 1000, angle: 0, vx: 22, vy: 0 });
+    move(ground, neutral, t, 1 / 60, .45);
+    check(ground.jumpMs === 0 && ground.vx === 10.8, 'herbe active au sol');
+}
+mechanics.push(
+    { name: 'Z30 temps final : pénalités de porte', run: check => { finishPenalty(checkpoint, check); } },
+    { name: 'Z34 herbe : vitesse de décollage', run: check => { airborneGrass(physics, check); } },
+);

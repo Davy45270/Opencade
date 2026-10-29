@@ -97,16 +97,15 @@ for (const [name,before,after,oracle] of [
     console.log(`Rejected mutation: ${name}`);
 }
 console.log('B-LVL-01–03: historical data, six mechanics, clone mutation and mechanical mutations passed.');
-const { solveLevel } = await import('../src/engines/bubble/solver.ts');
 const { campaign, difficulty } = await import('../tests/bubble-campaign.ts');
 const fixedStarted = performance.now();
-const fixedResults = campaign(solveLevel);
+const fixedResults = campaign();
 const fixedDurationMs = performance.now() - fixedStarted;
 const bands = difficulty(fixedResults);
 console.log(`B-LVL-04 (${fixedDurationMs.toFixed(0)} ms): ${JSON.stringify(fixedResults)}`);
 console.log(`B-LVL-05: ${JSON.stringify(bands)}`);
 if (process.argv.includes('--checks-only')) {
-    assert.ok(fixedDurationMs < 10000);
+    assert.ok(fixedDurationMs < 5000);
     process.exit(0);
 }
 async function completedStatistics() {
@@ -130,5 +129,5 @@ for (const row of report.results) {
     row.fixed=fixedResults.find(r=>r.level===row.level);
 }
 writeStatistics({...report,fixedResults,fixedDurationMs,bands});
-assert.ok(fixedDurationMs < 10000);
+assert.ok(fixedDurationMs < 5000);
 console.log('B-LVL-04–05: PASS; 600 attempts recorded without extrapolation.');

@@ -1,4 +1,6 @@
-import { Engine, center, neighbors, key, type Cell } from './engine';
+import { Engine, center, neighbors, key, type Cell } from '../src/engines/bubble/engine';
+type Shot = { angle: number; swap: boolean };
+const histories = new WeakMap<Engine, Shot[]>();
 // Geometry is independent of palette and reserve; bound the shared ray cache.
 const rayCache = new Map<string, { angle: number; target: Cell | null }[]>();
 function candidates(e: Engine, keepReserve = false) {
@@ -22,6 +24,7 @@ function candidates(e: Engine, keepReserve = false) {
             if (targets.has(signature)) continue;
             targets.add(signature);
             const trial = new Engine(e.seed, e);
+            histories.set(trial, [...(histories.get(e) ?? []), { angle, swap }]);
             if (swap) trial.swap();
             trial.aim(angle); trial.shoot(); trial.advance(10000);
             const adjacent = neighbors(target).filter(n => e.grid.some(c => key(c) === key(n) && c.color === color && !c.kind)).length;
@@ -60,17 +63,18 @@ export function chooseShot(e: Engine): { angle: number; swap: boolean } {
     const choice = candidates(e)[0];
     return choice ? { angle: choice.angle, swap: choice.swap } : { angle: 0, swap: false };
 }
-export function greedyLevel(level: number, seed = 28, limit = 160): { won: boolean; shots: number } {
+export function greedyLevel(level: number, seed = 28, limit = 160): { won: boolean; shots: number; sequence: Shot[] } {
     const e = new Engine(seed); e.loadLevel(level, seed);
     while (e.status === 'playing' && e.shots < limit) {
         const shot = chooseShot(e);
+        histories.set(e, [...(histories.get(e) ?? []), shot]);
         if (shot.swap) e.swap();
         e.aim(shot.angle); e.shoot(); e.advance(10000);
     }
-    return { won: e.status === 'won', shots: e.shots };
+    return { won: e.status === 'won', shots: e.shots, sequence: histories.get(e) ?? [] };
 }
 
-export function solveLevel(level: number, seed = 28, limit = 160, onDepth?: (depth: number) => void, beamWidth = 64, urgentInterval = 6): { won: boolean; shots: number } {
+export function solveLevel(level: number, seed = 28, limit = 160, onDepth?: (depth: number) => void, beamWidth = 64, urgentInterval = 6): { won: boolean; shots: number; sequence: Shot[] } {
     const quick = greedyLevel(level, seed, limit);
     if (quick.won) return quick;
     const initial = new Engine(seed); initial.loadLevel(level, seed);
@@ -82,7 +86,7 @@ export function solveLevel(level: number, seed = 28, limit = 160, onDepth?: (dep
         const expanded = new Map<string, {engine: Engine; rank: number}>();
         for (const state of beam) for (const option of candidates(state, !urgent)) {
             const e = option.engine;
-            if (e.status === 'won') return { won: true, shots: e.shots };
+            if (e.status === 'won') return { won: true, shots: e.shots, sequence: histories.get(e) ?? [] };
             if (e.status !== 'playing') continue;
             const signature = JSON.stringify([e.grid, e.next, e.queued, e.random.state]);
             const colors = new Map(e.grid.map(c => [key(c), c.color]));

@@ -5,7 +5,7 @@ import { readFileSync, writeFileSync, renameSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 const { LEVELS } = await import('../src/engines/bubble/levels.ts');
 export function fingerprint() {
-    return createHash('sha256').update(['levels','engine','solver'].map(name=>readFileSync(new URL(`../src/engines/bubble/${name}.ts`,import.meta.url),'utf8')).join('\n')).digest('hex');
+    return createHash('sha256').update(['levels','engine'].map(name=>readFileSync(new URL(`../src/engines/bubble/${name}.ts`,import.meta.url),'utf8')).join('\n') + readFileSync(new URL('./bubble-solver.ts',import.meta.url),'utf8')).digest('hex');
 }
 const output = new URL('../docs/bubble-validation.json',import.meta.url);
 export function readStatistics() {

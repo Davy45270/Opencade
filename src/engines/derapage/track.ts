@@ -98,15 +98,28 @@ export function bendAt(t: Track, i: number): number {
 }
 export const distance = (a: Vec, b: Vec): number => Math.hypot(a.x - b.x, a.y - b.y);
 export const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
+const nearestHints = new WeakMap<Vec, { points: Vec[]; index: number }>();
 export function nearest(t: Track, p: Vec) {
     let best = { index: 0, distance: Infinity, x: 0, y: 0, along: 0, nx: 0, ny: 0 };
-    for (let i = 0; i < t.points.length; i++) {
-        const a = required(t.points[i]), b = required(t.points[(i + 1) % t.points.length]), dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
+    const visit = (i: number): void => {
+        const a = required(t.points[i]), b = required(t.points[(i + 1) % t.points.length]);
+        // A segment outside the current distance box cannot improve the result.
+        // Keep a margin for rounding and visit ties in the original index order.
+        const reach = best.distance + 1e-9;
+        if (p.x < Math.min(a.x, b.x) - reach || p.x > Math.max(a.x, b.x) + reach
+            || p.y < Math.min(a.y, b.y) - reach || p.y > Math.max(a.y, b.y) + reach) return;
+        const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
         const u = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (len * len)));
         const x = a.x + dx * u, y = a.y + dy * u, dist = Math.hypot(p.x - x, p.y - y);
-        if (dist < best.distance)
+        if (dist < best.distance || (dist === best.distance && i < best.index))
             best = { index: i, distance: dist, x, y, along: required(t.distances[i]) + len * u, nx: -dy / len, ny: dx / len };
-    }
+    };
+    // Seed the bound with the previous section, then prove it against every segment.
+    // Teleports, edited points and nearby parallel sections still use the global minimum.
+    const hint = nearestHints.get(p);
+    if (hint?.points === t.points && hint.index < t.points.length) visit(hint.index);
+    for (let i = 0; i < t.points.length; i++) visit(i);
+    nearestHints.set(p, { points: t.points, index: best.index });
     return best;
 }
 export function at(t: Track, along: number, ideal = false): Vec {

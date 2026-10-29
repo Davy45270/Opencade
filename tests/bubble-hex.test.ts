@@ -59,3 +59,7 @@ test('B-HEX-13 déterminisme et échange sans consommer le générateur', () => 
 });
 
 test('B-HEX-17 cache isolé : couleur, copie, chargement et butoirs',()=>{trajectoryCopies();});
+
+import { facingAttachment, clearSettlingPath } from './bubble-attachment';
+test('B-HEX-18 accroche face au tir', () => { facingAttachment(); });
+test('B-HEX-19 trajet court sans traversée', () => { clearSettlingPath(); });

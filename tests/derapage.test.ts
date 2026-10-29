@@ -466,3 +466,6 @@ test('Z15 slalom et BMX : snapshot identique à chaque pas', () => {
         }
     }
 });
+
+import { exactNearest } from './derapage-nearest';
+test('Z15 nearest exact : téléportations, égalités et pistes éditées', exactNearest);

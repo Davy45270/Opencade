@@ -11,7 +11,7 @@ let fixedResults: ReturnType<typeof campaign> | undefined;
 test('B-LVL-04 graine 28 : les trente niveaux',()=>{
     const started = performance.now();
     fixedResults = campaign();
-    assert.ok(performance.now() - started < 10000);
-}, 10000);
+    assert.ok(performance.now() - started < 5000);
+}, 5000);
 
 test('B-LVL-05 tirs moyens croissants et respirations',()=>{difficulty(fixedResults ?? campaign());});
