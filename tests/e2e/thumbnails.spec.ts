@@ -7,10 +7,10 @@ async function pixels(page: Page, id: string) {
         return Array.from(c.getImageData(0, 0, canvas.width, canvas.height).data);
     });
 }
-test('V04–V05 huit vignettes non vides et animées', async ({ page }) => {
+test('V04–V05 neuf vignettes non vides et animées', async ({ page }) => {
     await page.goto('/?test=1#/');
     const canvases = page.locator('.game-thumbnail');
-    await expect(canvases).toHaveCount(8);
+    await expect(canvases).toHaveCount(9);
     for (const canvas of await canvases.all()) {
         await canvas.scrollIntoViewIfNeeded();
         const id = await canvas.getAttribute('data-game');

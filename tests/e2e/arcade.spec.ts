@@ -87,14 +87,14 @@ test('A07b barre compacte et canevas mobile', async ({ page }) => {
     }
 });
 
-for (const id of ['serpentin', 'briqueterie', 'empilo', 'orbite', 'essaim', 'dedale', 'ferraille', 'bubble'] as const) {
+for (const id of ['alunir', 'serpentin', 'briqueterie', 'empilo', 'orbite', 'essaim', 'dedale', 'ferraille', 'bubble'] as const) {
     test(`A11 ${id} horloge manuelle, regroupement et pause`, async ({ page }) => {
         await page.goto(`/?test=1#/${id}`);
         await expect.poll(() => page.evaluate(id => Boolean(window.__ARCADE_TEST__?.games[id]), id)).toBe(true);
         if (id !== 'bubble') await page.locator('#resume').click();
         const states = await page.evaluate(id => {
             const hook = {
-                serpentin: window.__SERPENTIN_TEST__, briqueterie: window.__BRIQUETERIE_TEST__,
+                alunir: window.__ALUNIR_TEST__, serpentin: window.__SERPENTIN_TEST__, briqueterie: window.__BRIQUETERIE_TEST__,
                 empilo: window.__EMPILO_TEST__, orbite: window.__ORBITE_TEST__,
                 essaim: window.__ESSAIM_TEST__, dedale: window.__DEDALE_TEST__,
                 ferraille: window.__FERRAILLE_TEST__, bubble: window.__BUBBLE_TEST__,

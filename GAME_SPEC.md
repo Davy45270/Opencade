@@ -1248,3 +1248,116 @@ Les E2E mesurent le non-chevauchement du canevas avec Pause, joystick,
 Saut, Tir, Niveaux et Recommencer, les tailles minimales et l'absence de scroll.
 Chromium seul, un worker et fixture commune échouant sur toute erreur JS ou
 `console.error`. Captures play/level30/won/lost pour bureau et mobile.
+
+## Alunir
+
+Neuvième jeu original : un module doré doit se poser sur une terrasse turquoise.
+Aire logique 360×640, aucun asset externe, aucune marque ni dépendance ajoutée.
+Le moteur pur utilise le PRNG partagé ; état, commandes et reliquat temporel
+sont copiés dans `snapshot()`, sans référence mutable vers le moteur.
+
+### Physique et contacts
+
+Les valeurs de vitesse sont en **px/pas de 1000/60 ms**, les accélérations en
+px/pas². `step(dtMs)` conserve le reliquat ; intégration semi-implicite :
+rotation de ±0,025 rad/pas, accélérations, puis déplacement selon la nouvelle
+vitesse. L'angle est ramené dans [−π,π]. Rotation gauche et droite simultanées
+s'annulent. La gravité pointe vers le bas. Poussée : 0,055 selon
+(sin(angle), −cos(angle)), consommation 1 unité/pas ; la dernière fraction de
+carburant produit une poussée proportionnelle. À zéro, la chute continue et
+ne provoque de défaite qu'au contact d'un terrain ou d'un mur.
+
+La rotation est appliquée à la frontière du pas, puis le polygone convexe à
+cinq sommets est translaté continûment. Un SAT balayé contre chaque segment
+calcule les intervalles d'entrée/sortie sur toutes les normales, puis conserve
+le premier contact : aucun saut par-dessus le terrain, même à 1000 px/pas.
+Les murs latéraux et supérieur sont fatals, sans repli. Les sommets du module
+comptent pour les murs et pour la largeur de la plateforme.
+
+Victoire seulement si tout le polygone tient dans la largeur d'une plateforme,
+avec contact sur son altitude, **|vx| ≤ 0,6, vy ≤ 1,2 et |angle| ≤ 10°**.
+Les seuils incluent leur valeur limite (tolérance numérique 10⁻¹⁰).
+Un contact ailleurs ou au-delà d'un seuil donne la défaite. Les états terminaux
+sont gelés. Le module ne perd pas de vie intermédiaire ; `won` et `lost`
+passent par les effets communs, donc par les vibrations et le service appareil.
+
+Score entier arrondi : `(carburant restant + précision + temps) × multiplicateur`.
+Précision = `100 × max(0, 1 − distanceAuCentre/(largeur/2))` ;
+temps = `max(0, 300 − pasÉcoulés/6)`. Aucun score en cas d'échec.
+
+### Générateur des trente terrains
+
+Indice `n=0…29`, `t=n/29`. Le PRNG reçoit directement la graine. Il choisit
+le centre de la plateforme dans [150,210[ et son altitude dans [510,540[.
+Une plateforme par terrain ; départ à son aplomb, y=100, vitesse et angle nuls.
+De part et d'autre, des sommets espacés de 24 px ont une altitude
+`plateforme.y − random() × relief`, avec extrémités x=0 et 360.
+Les extrémités de la plateforme sont insérées explicitement dans la ligne.
+
+| Paramètre `difficulty(n)` | Formule | Niveau 1 → 30 |
+| --- | --- | --- |
+| Largeur | 90−62t px | 90 → 28 |
+| Relief maximal | 20+70t px | 20 → 90 |
+| Vent constant | 0,002t px/pas² | 0 → 0,002 |
+| Amplitude des rafales | 0 avant n=14, puis 0,001(n−13)/16 | 0 → 0,001 |
+| Gravité | 0,018+0,006t px/pas² | 0,018 → 0,024 |
+| Carburant initial | 950−200t | 950 → 750 |
+
+Multiplicateur de plateforme = `1+floor(n/10)` (×1, ×2, ×3).
+Une rafale dure 90 pas. Son PRNG reçoit `seed + 7919×floor(pas/90)` modulo
+2³² ; sa composante signée est uniforme dans l'amplitude du niveau.
+Le vent total maximal vaut 0,003 px/pas². Le relief mesure l'enveloppe de
+génération, pas une obligation que chaque tirage réalise son maximum.
+
+La politique `pilot` utilise les erreurs proportionnelles de position/vitesse,
+compense le vent, borne l'inclinaison cible à ±0,12 rad et dose la poussée
+selon la vitesse de descente et l'altitude. U10 la fait jouer séparément sur
+**chacun des trente niveaux**, graine témoin 28, depuis l'état initial ordinaire,
+au plus 2500 pas. Le test exige une victoire pour chaque niveau ; cette preuve
+sur témoin n'affirme pas que le contrôleur gagne toutes les graines.
+La vignette applique cette même politique au niveau 3, quatre pas par image.
+
+### Commandes et intégration
+
+↑/W : poussée ; ← →/A D : rotation à maintenir. Une seule rangée tactile :
+↺ et ↻ à gauche (56 px), Poussée à droite (76×64 px). La zone utile exposée
+par le crochet est tout le canevas ; aucun bouton ne la recouvre.
+Prêt, pause, menu mobile, niveaux, panneaux, sauvegarde `arcade-lab:alunir:v1`
+et son global utilisent les services existants **sans modification de src/shell**.
+Effets synthétisés `thrust`, `life`, `won`, `lost` ; pas de vie intermédiaire.
+
+Avec `?test=1`, `__ARCADE_TEST__.games.alunir` expose `read`, `loadLevel`,
+`advance`, `hudText`, `usefulArea` et `scenario('finish'|'danger')`.
+`advance` fige l'horloge automatique jusqu'au prochain chargement, respecte
+pause et sélection, valide le temps puis synchronise les panneaux.
+Les scénarios placent un module trois pixels au-dessus du contact : la vitesse
+1,21 demande une vraie poussée pour gagner ; la vitesse 4 reste fatale.
+Ils ne changent aucun seuil, collision, carburant ni condition de victoire.
+
+### Oracle et vérifications déléguées
+
+| ID | `tests/alunir.test.ts` |
+| --- | --- |
+| U01 | Gravité, intégration semi-implicite, reliquat du pas fixe |
+| U02 | Direction de poussée, consommation, dernière fraction |
+| U03 | Vitesse angulaire, deux signes, annulation simultanée |
+| U04 | Vent intégré, constant puis rafales bornées à graine |
+| U05 | Premier contact à grande vitesse et bord du polygone |
+| U06 | Trois seuils exactement inclusifs, deux signes |
+| U07 | Excès de vitesse/angle, hors plateforme, trois murs |
+| U08 | Réservoir vide : aucune poussée, chute puis contact fatal |
+| U09 | Termes du score, multiplicateur, score réel et gel terminal |
+| U10 | Politique simulée sur les trente niveaux complets |
+| U11 | Chaque paramètre monotone et strict entre extrêmes ; 90 terrains structurés |
+| U12 | Entrées identiques, cadences regroupées, graine, sérialisation, temps invalides |
+
+`tests/e2e/alunir.spec.ts` couvre bureau et mobile : vraie poussée maintenue,
+victoire puis Niveau suivant, progression persistante après reload, défaite
+puis Rejouer le niveau, pause et quatre captures play/level30/won/lost.
+Sur mobile, seules les entrées tactiles sont utilisées. La fixture commune
+refuse toute erreur JS/console. M01–M04 incluent Alunir aux trois dimensions
+390×844, 360×640 et 390×600. A11 inclut son horloge manuelle et V01–V08
+comptent désormais neuf vignettes.
+
+Vitest et Playwright sont écrits et relus ici, mais leur exécution appartient
+à l'orchestrateur. Aucun résultat de ces suites n'est présumé.

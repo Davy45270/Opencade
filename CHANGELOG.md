@@ -7,6 +7,10 @@ le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ### Ajouté — préparation de 0.3.0
 
+- Alunir, neuvième jeu : trente terrains à graine, poussée, rotation, vent,
+  carburant et collision continue ; commandes maintenues, vignette animée,
+  progression et sons synthétisés. Oracle U01–U12 et parcours bureau/mobile.
+
 - Huit vignettes Canvas animées et déterministes sur l’accueil, jouées par les
   moteurs purs ; suspension hors écran, en arrière-plan et pendant un jeu.
 - Image fixe avec réduction des animations et grille à deux colonnes sur mobile.

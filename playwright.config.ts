@@ -19,7 +19,7 @@ export default defineConfig({
     projects: [
         {
             name: 'desktop-chromium',
-            testMatch: ['thumbnails.spec.ts', 'offline.spec.ts', 'game.spec.ts', 'levels.spec.ts', 'sound.spec.ts', 'arcade.spec.ts', 'serpentin.spec.ts', 'briqueterie.spec.ts', 'empilo.spec.ts', 'orbite.spec.ts', 'essaim.spec.ts', 'dedale.spec.ts', 'ferraille.spec.ts'],
+            testMatch: ['alunir.spec.ts', 'thumbnails.spec.ts', 'offline.spec.ts', 'game.spec.ts', 'levels.spec.ts', 'sound.spec.ts', 'arcade.spec.ts', 'serpentin.spec.ts', 'briqueterie.spec.ts', 'empilo.spec.ts', 'orbite.spec.ts', 'essaim.spec.ts', 'dedale.spec.ts', 'ferraille.spec.ts'],
             use: {
                 viewport: {
                     width: 1280,

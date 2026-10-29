@@ -209,3 +209,6 @@ body { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16
   font-size: 0.8rem;
   pointer-events: none;
 }
+
+body.alunir #touch-controls .touch-slot.left { gap: 4px; }
+body.alunir #touch-controls #alunir-thrust { width: 76px !important; height: 64px !important; min-width: 64px !important; min-height: 64px !important; padding: 0; font-size: 16px; }
