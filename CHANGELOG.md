@@ -7,6 +7,9 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [0.3.1] - 2026-10-29
 
+- Add slalom gate penalties, snow grip and downhill gravity, BMX banking and speed-dependent jumps, continuous urban rail collisions, elevation shading and themed scenery.
+- Add shared Z30–Z35 mechanics oracles to unit tests and the Node validator, and gameplay gate/jump capture scenarios for desktop and mobile.
+
 ### Changed
 
 - Dérapage simulation-step race/lap timers, best lap and crossing deltas in the reserved

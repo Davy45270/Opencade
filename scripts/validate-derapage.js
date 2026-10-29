@@ -107,3 +107,16 @@ for (const steer of [0,1]) {
     recordCircuitLap(broken,readSave(broken,'derapage',30),2,1234);
     console.log('Z29 : records stricts par circuit, sauvegarde ancienne et exceptions validés.');
 }
+
+const { mechanics } = await import('../tests/derapage-cases.ts');
+for (const scenario of mechanics) { scenario.run((ok, message) => { if (!ok) throw new Error(`${scenario.name}: ${message}`); }); console.log(`${scenario.name}: OK`); }
+
+for (const level of [28,29]) {
+    const a = new Engine(level), b = new Engine(level);
+    for (let frame = 0; frame < 600; frame++) {
+        const input = controller(a.karts[0], a.track);
+        a.input(input); b.input(input); a.step(1000/60); b.step(1000/120); b.step(1000/120);
+        if (JSON.stringify(a.snapshot()) !== JSON.stringify(b.snapshot())) throw new Error('Z15 rejeu mécanique');
+    }
+}
+console.log('Z15 : snapshots slalom/BMX identiques à chaque pas.');

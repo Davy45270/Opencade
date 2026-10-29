@@ -1784,12 +1784,38 @@ rapide à longues lignes droites, technique à enchaînements, ovale et nature.
 Les inspirations restent génériques : circuit urbain en bord de mer avec
 port, tunnel sombre, épingle et chicane ; avenues, esplanade et pavés ;
 parcours forestier vallonné avec gauche-droite, ligne droite et épingle.
-Le tunnel est purement visuel. Les profils d’altitude sont des métadonnées,
-sans changement de physique. En ville, les obstacles circulaires deviennent
-des blocs de trottoir et les bords des rails, avec les collisions ordinaires.
-Les parcours de nature ont un décor forestier plus dense. Le slalom et le
-petit parcours sinueux d’entraînement ne reprennent que leurs formes :
-les champs `gates`, `snow`, `berms`, `jumps` restent vides pour la passe suivante.
+Le tunnel et le port restent purement visuels ; le tunnel est sombre.
+Les profils d’altitude sont interpolés dans le moteur. En forêt, ils modulent
+uniquement la teinte du sol, sans effet physique ; le décor dense conserve
+sa marge Z21. Les blocs urbains sont décoratifs. Les rails continus bordent
+le trottoir : contact du centre à demi-largeur + 1,8 (rayon 1,2), correction
+à +1,79, réflexion normale 1,7 avec perte de vitesse. Aucune herbe en ville.
+
+Le slalom possède six paires de piquets alternant rouge et bleu, décalées
+alternativement de ±1,5 unité, ouverture 6,2 (diamètre du kart 2,4).
+Le franchissement avant du tronçon, hors de l’ouverture, ajoute exactement
+2000 ms au temps du kart, joueur et IA ; un même passage n’est compté
+qu’une fois par tour. Le snapshot expose `missedGates`, `penaltyMs`,
+`noticeMs` et les passages. Pendant 2000 ms le HUD affiche
+« Porte manquée +2,0 s ». Les temps de course, de tour et d’arrivée incluent
+ces pénalités. La ligne IA traverse les portes ; son erreur stable par kart
+est proportionnelle au dosage de difficulté, plus forte au niveau facile.
+La neige multiplie l’adhérence latérale par 0,6, y compris en glisse ; hors
+piste la neige profonde plafonne la vitesse à 28 % de la cible.
+La pente accélère selon 9,8 × différence d’altitude / longueur du tronçon,
+et relève le plafond de 3 en descente, uniquement en slalom et BMX.
+Sol blanc bleuté, sapins superposés enneigés et piquets sont dessinés par code.
+
+Le BMX utilise de la terre battue et des bottes de paille hors piste.
+Les berms désignés multiplient l’adhérence par 1,4 et permettent de conserver
+une cible plus haute de 3 × (coefficient−1). Leur bord extérieur est clair.
+À l’entrée d’une bosse, vitesse ≥16 : envol de 220 + vitesse × 6 ms ;
+sous ce seuil la vitesse est multipliée par 0,75. En vol, ni braquage ni
+ralentissement hors piste ; hauteur sinusoïdale de 0 à 3 exposée dans le
+snapshot, ombre au sol et kart agrandi/surélevé au rendu. Le contrôleur
+prépare la direction d’atterrissage avant la bosse. La rampe initiale descend.
+Toutes les mécaniques restent dans le moteur en coordonnées du monde ;
+la scène dessine le snapshot.
 
 Les portes sont aux sommets 0,8,…88. Bandes et arbres sont des éléments
 sérialisables du circuit, en coordonnées du monde, utilisables par une future
@@ -1865,8 +1891,8 @@ la vitesse et la précision des paramètres IA le sont. Mesures graine 28 :
 | 26 | Le Serpent des joncs | nature | 504.6 | 13.25 | 7 | 0.4167 | 19.70 | 23.63 | 0.284 | 0.00 | 6 | 96 | 0 |
 | 27 | La Boucle des falaises | rapide | 519.6 | 12.98 | 5 | 0.5208 | 20.04 | 24.86 | 0.313 | 0.00 | 7 | 24 | 0 |
 | 28 | Les Sept lacets | technique | 510.4 | 12.71 | 8 | 0.4792 | 19.82 | 25.07 | 0.384 | 0.00 | 7 | 46 | 0 |
-| 29 | La Descente en ruban | slalom | 671.5 | 12.44 | 5 | 1.1667 | 26.35 | 32.35 | 0.246 | 0.00 | 7 | 32 | 0 |
-| 30 | Le Petit guidon | bmx | 423.8 | 12.17 | 6 | 0.4583 | 16.17 | 20.39 | 0.417 | 0.00 | 7 | 24 | 0 |
+| 29 | La Descente en ruban | slalom | 671.5 | 12.44 | 5 | 1.1667 | 25.20 | 30.32 | 0.513 | 0.00 | 7 | 32 | 0 |
+| 30 | Le Petit guidon | bmx | 423.8 | 12.17 | 6 | 0.4583 | 16.13 | 20.29 | 0.454 | 0.00 | 7 | 24 | 0 |
 
 ### Diversité Z26 et arrivée Z27
 
@@ -1926,7 +1952,7 @@ tolérance littérale 1e-6 ; décaler la porte d’un point est détecté.
 | Z21 | Trois graines : arbres reproductibles, marge et ligne idéale libre |
 | Z22 | Collision balayée à 24/32, rebond, perte et absence de traversée |
 | Z23 | Fonction pure : zone morte 6 px, saturation 60 px, rejeu continu |
-| Z24 | IA ≤5 % sur herbe aux niveaux 1,15,30 ; Z13 conservé |
+| Z24 | IA ≤5 % hors piste sur les 30 circuits ; Z13 conservé |
 | Z25 | E2E mobile : glisser signé, relâcher, dérapage maintenu, tailles 88/56 et captures |
 | Z26 | 435 paires, distance >0,15 et invariance rotation/échelle <1e-6 |
 | Z27 | Segment de la porte 0, largeur et centre indépendants à 1e-6 |
@@ -1989,3 +2015,50 @@ exécutés dans cette passe.
 
 Mutations à essayer : fausser le minimum du meilleur tour ; remplacer les pas
 par une horloge murale ; écraser le record par un tour égal ou plus lent.
+
+
+### Passe B : oracle Z30–Z35
+
+Les scénarios de `tests/derapage-cases.ts` sont enregistrés comme tests dans
+`tests/derapage.test.ts` et exécutés aussi par le validateur Node, sans Vitest.
+
+| ID | Preuve et seuils littéraux |
+| --- | --- |
+| Z30 | Joueur et IA : passage central sans pénalité, passage décalé de 5 avec exactement 2000 ms et un manqué, sans double comptage ; un tour IA à vitesse 18 donne 6 manqués au dosage facile et 0 au dosage élevé ; ouverture ≥6 et ligne IA à <0,1 du centre |
+| Z31 | Même vitesse et braquage : rapport de dérive neige/asphalte entre 1,45 et 1,55 ; en glisse entre 1,04 et 1,08 |
+| Z32 | Après 180 pas, gain de vitesse en pente >2 ; plafond 50 pour mesurer la gravité indépendamment du relèvement du plafond |
+| Z33 | Après 60 pas de virage identique, gain en berm >0,1 |
+| Z34 | Hauteur positive, vol entre 20 et 35 pas à vitesse 22 ; position et angle identiques avec/sans braquage ; pas de saut à 10 et ralentissement sous 9 ; durée >380 ms à 30 |
+| Z35 | Cinq tracés urbains : composante normale inversée, vitesse <22 et confinement sous demi-largeur +1,81 pendant 120 pas |
+
+Captures desktop/mobile : les vues `derapage-slalom`, `derapage-bmx`,
+`derapage-le-rocher` et `derapage-invalides` utilisent le nouveau rendu.
+Deux captures supplémentaires en vue de jeu, `derapage-slalom-porte` et
+`derapage-bmx-saut`, utilisent les scénarios de placement puis `advance(100)`
+et `advance(150)` ; aucune hauteur ni pénalité n’est injectée.
+Les images doivent être générées et inspectées par l’orchestrateur :
+Playwright et Vitest ne sont pas exécutés pendant cette passe.
+
+
+Mutations vérifiées par exécution des scénarios Node : les six sont détectées.
+Toutes les lignes ci-dessous sont dans `src/engines/derapage/physics.ts`.
+
+| Oracle | Ligne | Modification |
+| --- | --- | --- |
+| Z30 | 124 | Pénalité `+ 2000` → `+ 0` |
+| Z31 | 78 | Coefficient neige `.6` → `1` |
+| Z32 | 67 | Gravité `9.8` → `0` |
+| Z33 | 75 | Coefficient berm `1.4` → `1` |
+| Z34 | 58 | Seuil `16` → `Infinity` |
+| Z35 | 138 | Condition de collision du rail forcée à `false` |
+
+Validation de la passe : lint, typecheck, build et validateur Node réussis.
+Z12/Z13/Z24/Z26 passent sur les trente tracés ; hors piste IA mesuré à
+0,00 % partout, signatures distantes d’au moins 0,3125. Les courses
+complètes aux deux niveaux extrêmes terminent sur le podium. Les snapshots
+slalom/BMX restent identiques après chacun des 600 pas rejoués en demi-pas.
+Le build conserve son avertissement de taille de bundle.
+L’orchestrateur doit exécuter Vitest, les mutations et les E2E desktop/mobile,
+puis inspecter les six captures demandées : portes lisibles, ombre et hauteur
+du saut, berm extérieur clair, rails continus, tunnel sombre, neige et décor
+hors piste, relief forestier et HUD hors de la zone de conduite.

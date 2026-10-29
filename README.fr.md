@@ -163,3 +163,5 @@ et la [politique de sécurité](SECURITY.md) avant de contribuer.
 ## Licence
 
 [MIT](LICENSE) © 2026 David Sevin. Phaser est également distribué sous licence MIT.
+
+Dérapage ajoute les portes de slalom avec pénalités, la neige et la gravité en descente, les virages relevés et sauts BMX et les rails urbains continus.

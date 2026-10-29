@@ -16,7 +16,7 @@ export function checkpoint(k: Kart, previous: Vec, t: Track, time: number): void
         if (k.gate === 0) {
             k.lap++;
             if (k.lap === 3)
-                k.finishMs = time;
+                k.finishMs = time + (k.penaltyMs ?? 0);
         }
         k.gate = (k.gate + 1) % t.gates.length;
     }

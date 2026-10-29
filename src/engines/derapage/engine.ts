@@ -1,7 +1,7 @@
 import { required } from './access';
 import { Random } from '../shared/random';
 import { at, createTrack, difficulty, type Track } from './track';
-import { physics, collide, type Input, type Kart } from './physics';
+import { physics, collide, resolveRail, type Input, type Kart } from './physics';
 import { aiInput, aiSpeed } from './ai';
 import { checkpoint, ranking, Cup, POINTS } from './race';
 import { updateItems, useItem, type Crate, type Puddle } from './items';
@@ -9,6 +9,7 @@ export { LEVELS, difficulty } from './track';
 export const FIXED_MS = 1000 / 60;
 export class Engine {
     lapStartFrame = 0;
+    lapPenaltyStartMs = 0;
     lapTimesMs: number[] = [];
     bestLapMs: number | null = null;
     lastLapDeltaMs: number | null = null;
@@ -43,6 +44,7 @@ export class Engine {
         this.random = new Random(seed);
         this.track = createTrack(level, seed);
         this.lapStartFrame = 0;
+        this.lapPenaltyStartMs = 0;
         this.lapTimesMs = [];
         this.bestLapMs = null;
         this.lastLapDeltaMs = null;
@@ -55,7 +57,7 @@ export class Engine {
         this.controls = { steer: 0, drift: false, bonus: false };
         this.karts = Array.from({ length: 6 }, (_, id) => {
             const p = at(this.track, -3 - Math.floor(id / 2) * 4), next = at(this.track, 1 - Math.floor(id / 2) * 4), angle = Math.atan2(next.y - p.y, next.x - p.x), offset = id % 2 === 0 ? -2 : 2;
-            return { id, x: p.x - Math.sin(angle) * offset, y: p.y + Math.cos(angle) * offset, angle, vx: 0, vy: 0, lap: 0, gate: 1, passed: 0, driftMs: 0, boostMs: 0, jumpMs: 0, slipMs: 0, shield: false, item: null, finishMs: null, hits: 0 };
+            return { id, x: p.x - Math.sin(angle) * offset, y: p.y + Math.cos(angle) * offset, angle, vx: 0, vy: 0, lap: 0, gate: 1, passed: 0, driftMs: 0, boostMs: 0, jumpMs: 0, slipMs: 0, shield: false, item: null, finishMs: null, hits: 0, penaltyMs: 0, missedGates: 0, noticeMs: 0, jumpHeight: 0, slalomPassed: [] };
         });
         this.crates = [16, 40, 64, 88].map(i => ({ ...required(this.track.points[i]), cooldown: 0 }));
     }
@@ -84,10 +86,12 @@ export class Engine {
                 for (let j = i + 1; j < 6; j++)
                     collide(required(this.karts[i]), required(this.karts[j]));
             for (const k of this.karts) {
+                if (this.track.circuit.theme.urban) resolveRail(k, this.track);
                 const lap = k.lap;
                 checkpoint(k, required(previous[k.id]), this.track, this.time);
                 if (k.id === 0 && k.lap > lap) {
-                    const elapsed = (this.frames - this.lapStartFrame) * FIXED_MS;
+                    const elapsed = (this.frames - this.lapStartFrame) * FIXED_MS + (k.penaltyMs ?? 0) - this.lapPenaltyStartMs;
+                    this.lapPenaltyStartMs = k.penaltyMs ?? 0;
                     this.lastLapDeltaMs = this.bestLapMs === null ? null : elapsed - this.bestLapMs;
                     this.lapTimesMs.push(elapsed);
                     this.bestLapMs = Math.min(this.bestLapMs ?? Infinity, elapsed);
@@ -107,6 +111,6 @@ export class Engine {
         }
     }
     snapshot() {
-        return structuredClone({ level: this.level, seed: this.seed, status: this.status, score: this.score, time: this.time, timing: { raceMs: this.time, currentLapMs: required(this.karts[0]).finishMs === null ? (this.frames - this.lapStartFrame) * FIXED_MS : 0, lapTimesMs: this.lapTimesMs, bestLapMs: this.bestLapMs, lastLapDeltaMs: this.lastLapDeltaMs }, frames: this.frames, remainder: this.remainder, random: this.random.state, controls: this.controls, track: this.track, karts: this.karts, crates: this.crates, puddles: this.puddles, order: ranking(this.karts, this.track), cup: { races: this.cup.races, scores: this.cup.scores, order: this.cup.standings() } });
+        return structuredClone({ level: this.level, seed: this.seed, status: this.status, score: this.score, time: this.time, timing: { raceMs: this.time + (required(this.karts[0]).penaltyMs ?? 0), currentLapMs: required(this.karts[0]).finishMs === null ? (this.frames - this.lapStartFrame) * FIXED_MS + (required(this.karts[0]).penaltyMs ?? 0) - this.lapPenaltyStartMs : 0, lapTimesMs: this.lapTimesMs, bestLapMs: this.bestLapMs, lastLapDeltaMs: this.lastLapDeltaMs }, frames: this.frames, remainder: this.remainder, random: this.random.state, controls: this.controls, track: this.track, karts: this.karts, crates: this.crates, puddles: this.puddles, order: ranking(this.karts, this.track), cup: { races: this.cup.races, scores: this.cup.scores, order: this.cup.standings() } });
     }
 }

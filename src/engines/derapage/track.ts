@@ -7,6 +7,9 @@ export interface Vec {
 }
 export interface Track {
     circuit: Circuit;
+    slalom: (Vec & { nx: number; ny: number; half: number; index: number })[];
+    heights: number[];
+    bermEdges: { a: Vec; b: Vec }[];
     finishLine: { a: Vec; b: Vec };
     boosts: (Vec & { radius: number; index: number })[];
     trees: (Vec & { radius: number })[];
@@ -55,7 +58,22 @@ export function createTrack(level: number, seed = 28): Track {
     }
     const distances = [0];
     for (let i = 0; i < 96; i++) distances.push(required(distances[i]) + distance(required(points[i]), required(points[(i+1)%96])));
-    const track: Track = { circuit, finishLine: { a: { x: 0, y: 0 }, b: { x: 0, y: 0 } }, boosts: [], trees: [], points, racingLine: points.map(p => ({ ...p })), widths, gates: Array.from({ length: 12 }, (_, i) => i*8), walls: points.map((_, i) => circuit.theme.urban || i%24 < Math.round(d.wallFraction*24)), length: required(distances[96]), distances };
+    const track: Track = { circuit, slalom: [], bermEdges: [], heights: points.map((_, i) => (circuit.elevation[Math.floor(i * circuit.elevation.length / 96)] ?? 0) * (1 - (i * circuit.elevation.length / 96) % 1) + (circuit.elevation[(Math.floor(i * circuit.elevation.length / 96) + 1) % circuit.elevation.length] ?? 0) * ((i * circuit.elevation.length / 96) % 1)), finishLine: { a: { x: 0, y: 0 }, b: { x: 0, y: 0 } }, boosts: [], trees: [], points, racingLine: points.map(p => ({ ...p })), widths, gates: Array.from({ length: 12 }, (_, i) => i*8), walls: points.map((_, i) => circuit.theme.urban || i%24 < Math.round(d.wallFraction*24)), length: required(distances[96]), distances };
+    for (const [j, index] of circuit.gates.entries()) {
+        const p = required(points[index]), n = nearest(track, p), offset = j % 2 ? 1.5 : -1.5;
+        const gate = { x: p.x + n.nx * offset, y: p.y + n.ny * offset, nx: n.nx, ny: n.ny, half: 3.1, index };
+        track.slalom.push(gate);
+        for (let d = -2; d <= 2; d++) {
+            const i = (index + d + 96) % 96, q = required(points[i]);
+            track.racingLine[i] = { x: q.x + n.nx * offset * (1 - Math.abs(d) / 3), y: q.y + n.ny * offset * (1 - Math.abs(d) / 3) };
+        }
+    }
+    for (const i of circuit.berms) {
+        const a = required(points[i]), b = required(points[(i + 1) % 96]), previous = required(points[(i + 95) % 96]);
+        const n = nearest(track, a), side = Math.sign((a.x-previous.x)*(b.y-a.y)-(a.y-previous.y)*(b.x-a.x)) || 1;
+        const offset = -side * required(widths[i]) / 2;
+        track.bermEdges.push({ a: { x: a.x+n.nx*offset, y:a.y+n.ny*offset }, b: { x:b.x+n.nx*offset, y:b.y+n.ny*offset } });
+    }
     track.finishLine = gateLine(track, 0);
     const candidates = points.map((_, i) => i).filter(i => bendAt(track, i) <= .09);
     const count = level < 2 ? 0 : 1 + Math.floor((level - 2) / 4);

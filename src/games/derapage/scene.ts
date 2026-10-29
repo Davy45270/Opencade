@@ -24,7 +24,7 @@ export interface DerapageHook {
     read(): ReturnType<Engine['snapshot']>;
     loadLevel(i: number, seed?: number): void;
     advance(ms: number): void;
-    scenario(name: 'finish' | 'danger' | 'trees-boost' | 'lap'): void;
+    scenario(name: 'finish' | 'danger' | 'trees-boost' | 'lap' | 'slalom-gate' | 'bmx-jump'): void;
     hudText(): string;
     usefulArea(): {
         x: number;
@@ -177,6 +177,15 @@ export class DerapageScene extends Phaser.Scene {
                     return { hud: { x: ((hud?.x ?? canvas.x) - canvas.x) / scale, y: ((hud?.y ?? canvas.y) - canvas.y) / scale, width: (hud?.width ?? 0) / scale, height: (hud?.height ?? 0) / scale }, forward: { x: 0, y: 96, width: 360, height: 330 } };
                 },
                 scenario: name => {
+                    if (name === 'slalom-gate' || name === 'bmx-jump') {
+                        this.start(name === 'slalom-gate' ? 28 : 29, 28, true);
+                        const t = this.engine.track, k = required(this.engine.karts[0]);
+                        const index = name === 'slalom-gate' ? required(t.slalom[0]).index : required(t.circuit.jumps[0]);
+                        const p = at(t, required(t.distances[index]) - (name === 'slalom-gate' ? 8 : .1));
+                        const q = at(t, required(t.distances[index]) + 1), angle = Math.atan2(q.y - p.y, q.x - p.x);
+                        Object.assign(k, p, { angle, vx: 22 * Math.cos(angle), vy: 22 * Math.sin(angle) });
+                        this.overviewMode = false; this.manual = true; this.tick(0); return;
+                    }
                     if (name === 'trees-boost') {
                         this.start(14, 28, true);
                         const t = this.engine.track, b = required(t.boosts[0]), k = required(this.engine.karts[0]);
@@ -258,14 +267,14 @@ export class DerapageScene extends Phaser.Scene {
         const g = this.graphics;
         if (!g)
             return;
-        const e = this.engine, p = required(e.karts[0]), t = e.track, angle = -p.angle - Math.PI / 2;
+        const e = this.engine.snapshot(), p = required(e.karts[0]), t = e.track, angle = -p.angle - Math.PI / 2;
         const xs = t.points.map(q=>q.x), ys = t.points.map(q=>q.y);
         const cx = (Math.min(...xs)+Math.max(...xs))/2, cy = (Math.min(...ys)+Math.max(...ys))/2;
         const fit = Math.min(300/(Math.max(...xs)-Math.min(...xs)+30),450/(Math.max(...ys)-Math.min(...ys)+30));
         const scale = this.overviewMode ? fit : 5;
         const project = (x: number, y: number) => this.overviewMode ? { x:180+(x-cx)*fit, y:360+(y-cy)*fit } : ({ x: 180 + ((x - p.x) * Math.cos(angle) - (y - p.y) * Math.sin(angle)) * 5, y: 466 + ((x - p.x) * Math.sin(angle) + (y - p.y) * Math.cos(angle)) * 5 });
         g.clear();
-        g.fillStyle(t.circuit.theme.ground);
+        g.fillStyle(t.circuit.snow.length ? 0xe0eff5 : t.circuit.theme.ground);
         g.fillRect(0, 96, 360, 544);
         // Clip geometry to the useful rectangle so the reserved HUD never hides the road ahead.
         const line = (a: {
@@ -292,14 +301,28 @@ export class DerapageScene extends Phaser.Scene {
         for (let i = 0; i < 96; i++) {
             const a = project(required(t.points[i]).x, required(t.points[i]).y), b = project(required(t.points[(i + 1) % 96]).x, required(t.points[(i + 1) % 96]).y);
             line(a, b, required(t.widths[i]) * scale + (t.circuit.theme.urban ? 6*scale : 5), t.circuit.theme.border);
-            line(a, b, required(t.widths[i]) * scale, 0x38434d);
+            const height = required(t.heights[i]);
+            const shade = Math.min(12, Math.floor(height));
+            const road = t.circuit.snow.length ? 0xc9dfe9 : t.circuit.family === 'bmx' ? 0x9b744d : 0x38434d;
+            line(a, b, required(t.widths[i]) * scale, road + shade * 0x010101);
+
+            if (t.circuit.jumps.includes(i)) line(a, b, required(t.widths[i]) * scale, 0xb69366);
         }
+        for (const edge of t.bermEdges) line(project(edge.a.x,edge.a.y),project(edge.b.x,edge.b.y),2*scale,0xe4c99a);
         if (t.circuit.theme.urban) {
+            for (let i=0;i<96;i++) {
+                const q=required(t.points[i]), r=required(t.points[(i+1)%96]), n=nearest(t,q), half=required(t.widths[i])/2+3;
+                for (const side of [-1,1]) line(project(q.x+n.nx*half*side,q.y+n.ny*half*side),project(r.x+n.nx*half*side,r.y+n.ny*half*side),.5*scale,0xadb9c4);
+            }
             // Short paving joints follow the road; the continuous border is the kerb/rail.
             for (let i=0;i<96;i+=2) {
                 const q=required(t.points[i]), n=nearest(t,q), half=required(t.widths[i])/2-1;
                 line(project(q.x+n.nx*half,q.y+n.ny*half),project(q.x-n.nx*half,q.y-n.ny*half),1,0x65717a);
             }
+        }
+        for (const [i, gate] of t.slalom.entries()) for (const side of [-1, 1]) {
+            const a = project(gate.x + gate.nx * gate.half * side, gate.y + gate.ny * gate.half * side);
+            line(a, { x: a.x, y: a.y - 5 * scale }, .5 * scale, i % 2 ? 0x3285e8 : 0xe64049);
         }
         for (const b of t.boosts) {
             const a = project(b.x, b.y);
@@ -311,6 +334,11 @@ export class DerapageScene extends Phaser.Scene {
                 if (a.y>105 && a.y<630) { g.fillStyle(t.circuit.theme.decor); g.fillRect(a.x-tree.radius*scale,a.y-tree.radius*scale,tree.radius*2*scale,tree.radius*2*scale); }
                 continue;
             }
+            if (t.circuit.snow.length && a.y > 110 && a.y < 620) {
+                for (const h of [0, 1, 2]) { g.fillStyle(h === 2 ? 0xf4fbff : 0x327454); g.fillTriangle(a.x-2*scale,a.y-h*scale,a.x+2*scale,a.y-h*scale,a.x,a.y-(h+3)*scale); }
+                continue;
+            }
+            if (t.circuit.family === 'bmx' && a.y > 110 && a.y < 620) { g.fillStyle(0xdabc72); g.fillRect(a.x-2*scale,a.y-scale,4*scale,2*scale); continue; }
             if (a.y > 110 && a.y < 620) { g.fillStyle(0x553c29); g.fillCircle(a.x + 2, a.y + 3, tree.radius * scale); g.fillStyle(t.circuit.theme.decor); g.fillCircle(a.x, a.y, tree.radius * scale); g.fillStyle(0x69a865); g.fillCircle(a.x - 3, a.y - 3, tree.radius * scale * .4); }
         }
         for (const section of t.circuit.tunnel) {
@@ -368,7 +396,9 @@ export class DerapageScene extends Phaser.Scene {
             if (a.y < 114 || a.y > 622)
                 continue;
             g.save();
-            g.translateCanvas(a.x, a.y);
+            g.fillStyle(0x17202d, .4); g.fillEllipse(a.x, a.y + 4, 22, 10);
+            g.translateCanvas(a.x, a.y - (k.jumpHeight ?? 0) * scale);
+            g.scaleCanvas(1 + (k.jumpHeight ?? 0) * .06, 1 + (k.jumpHeight ?? 0) * .06);
             g.rotateCanvas(k.angle + (this.overviewMode ? 0 : angle));
             if (this.overviewMode) g.scaleCanvas(scale/5,scale/5);
             g.fillStyle(0x17202d);
@@ -406,13 +436,13 @@ export class DerapageScene extends Phaser.Scene {
         const fa=mini(finishA.x,finishA.y), fb=mini(finishB.x,finishB.y);
         g.lineStyle(4,0x080b10); g.lineBetween(fa.x,fa.y,fb.x,fb.y);
         g.lineStyle(2,0xffffff); g.lineBetween(fa.x,fa.y,fb.x,fb.y);
-        const s = e.snapshot();
+        const s = e;
         const timing = s.timing;
         const delta = timing.lastLapDeltaMs;
         const crossing = timing.lapTimesMs.length === 0 ? '' : `Écart ${delta === null ? '—' : `${delta < 0 ? '−' : '+'}${formatTime(Math.abs(delta))}`} ${this.newRecord ? 'Nouveau record !' : ''}`;
         const text = `DÉRAPAGE ${String(e.level + 1)}/30 · PLACE ${String(s.order.indexOf(0) + 1)}/6 · TOUR ${String(Math.min(3, p.lap + 1))}/3
 SCORE ${String(s.score)} · COURSE ${formatTime(timing.raceMs)} · TOUR ${formatTime(timing.currentLapMs)}
-MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${p.item ?? '—'}${crossing ? ` · ${crossing}` : ''}
+MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${(p.noticeMs ?? 0) > 0 ? 'Porte manquée +2,0 s' : p.item ?? '—'}${crossing ? ` · ${crossing}` : ''}
 COUPE ${String(s.cup.races)}/4 · ${s.cup.order.map(id => `${String(id + 1)}:${String(s.cup.scores[id])}`).join(' ')}`;
         if (this.hud) {
             this.hud.replaceChildren();

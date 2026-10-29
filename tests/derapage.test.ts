@@ -55,7 +55,7 @@ test('Z03 seuil 9, charge 600/1400 ms et paliers 700/1400 ms', () => {
 });
 test('Z04 herbe ralentit, ressort ignore herbe, mur renvoie', () => {
     const t = createTrack(0);
-    t.walls.fill(false); t.trees = [];
+    t.walls.fill(false); t.trees = []; t.circuit = { ...t.circuit, theme: { ...t.circuit.theme, urban: false } };
     const a = { ...kart(), vx: 24 }, b = { ...a, jumpMs: 1000 };
     physics(a, neutral, t, 1 / 60, .5);
     physics(b, neutral, t, 1 / 60, .5);
@@ -288,6 +288,7 @@ test('Z08 dernier franchissement exige le braquage réel, sans modifier les règ
 // Constructed straight road: measurements do not depend on the generator.
 function straight() {
     const t = createTrack(0);
+    t.circuit = { ...t.circuit, theme: { ...t.circuit.theme, urban: false } };
     t.points = Array.from({ length: 96 }, (_, i) => ({ x: i * 100, y: 0 }));
     t.widths.fill(20); t.walls.fill(false); t.boosts = []; t.trees = [];
     return t;
@@ -358,8 +359,8 @@ test('Z23 zone morte, saturation et rejeu analogique pas à pas', () => {
         expect(a.snapshot()).toEqual(b.snapshot());
     }
 });
-test('Z24 IA au plus 5 % sur herbe aux niveaux 1, 15, 30', () => {
-    for (const level of [0, 14, 29]) { const p = pilot(level, true); expect(p.laps).toBe(3); expect(p.grass).toBeLessThanOrEqual(.05); }
+test('Z24 IA au plus 5 % hors piste sur les 30 circuits', () => {
+    for (let level = 0; level < 30; level++) { const p = pilot(level, true); expect(p.laps).toBe(3); expect(p.grass).toBeLessThanOrEqual(.05); }
 }, 30000);
 
 test('Z26 signatures géométriques distinctes et invariantes', () => {
@@ -449,4 +450,19 @@ test('Z29 records stricts par circuit, ancienne sauvegarde et stockage défailla
     expect(fallback).toEqual({ unlocked: 1, best: 0 });
     expect(() => recordCircuitLap(broken, fallback, 2, 1234)).not.toThrow();
     expect(fallback.circuitRecords).toEqual({ 2: 1234 });
+});
+
+// Shared scenarios also run through the permitted Node validator.
+import { mechanics } from './derapage-cases';
+for (const scenario of mechanics) test(scenario.name, () => { scenario.run((ok, message) => { expect(ok, message).toBe(true); }); }, 30000);
+
+test('Z15 slalom et BMX : snapshot identique à chaque pas', () => {
+    for (const level of [28,29]) {
+        const a = new Engine(level), b = new Engine(level);
+        for (let frame=0;frame<600;frame++) {
+            const input = controller(required(a.karts[0]),a.track);
+            a.input(input); b.input(input); a.step(1000/60); b.step(1000/120); b.step(1000/120);
+            expect(b.snapshot()).toEqual(a.snapshot());
+        }
+    }
 });

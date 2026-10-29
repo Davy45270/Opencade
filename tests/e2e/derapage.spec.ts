@@ -140,3 +140,20 @@ test('Z28 Z29 chronos mobiles réservés, franchissement piloté et record persi
         return (JSON.parse(raw ?? '{}') as { circuitRecords?: Record<string, number> }).circuitRecords?.['0'];
     })).toBe(record);
 });
+
+
+test('Z30 Z34 porte et saut en vue de jeu', async ({ page }, info) => {
+    await page.goto('/?test=1#/derapage');
+    if (info.project.name === 'mobile-chromium') await page.locator('#resume').tap();
+    else await page.locator('#resume').click();
+    for (const [scenario, name, ms] of [['slalom-gate', 'slalom-porte', 100], ['bmx-jump', 'bmx-saut', 150]] as const) {
+        await page.evaluate(({ scenario, ms }) => {
+            const hook = window.__DERAPAGE_TEST__;
+            hook?.scenario(scenario); hook?.advance(ms);
+        }, { scenario, ms });
+        const state = await page.evaluate(() => window.__DERAPAGE_TEST__?.read());
+        if (scenario === 'bmx-jump') expect(state?.karts[0]?.jumpHeight).toBeGreaterThan(0);
+        else expect(state?.track.slalom.length).toBe(6);
+        await page.screenshot({ path: `test-results/screenshots/derapage-${name}-${info.project.name}.png` });
+    }
+});

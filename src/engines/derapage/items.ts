@@ -27,8 +27,10 @@ export function drawItem(r: Random, place: number): Item {
 export function useItem(k: Kart, puddles: Puddle[]): void {
     if (k.item === 'turbo')
         k.boostMs = 1800;
-    if (k.item === 'ressort')
+    if (k.item === 'ressort') {
         k.jumpMs = 1600;
+        k.jumpDurationMs = 1600;
+    }
     if (k.item === 'bulle')
         k.shield = true;
     if (k.item === 'flaque')

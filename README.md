@@ -156,3 +156,5 @@ and the [security policy](SECURITY.md) before contributing.
 ## License
 
 [MIT](LICENSE) © 2026 David Sevin. Phaser is also MIT licensed.
+
+Dérapage adds alternating slalom gates with time penalties, snow and downhill acceleration, banked BMX turns and jumps, and continuous urban rails.
