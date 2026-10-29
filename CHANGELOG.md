@@ -5,6 +5,9 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Refine Bubble Lab hex snapping with accessible contact sockets, reduced collision radius, exact wall reflections, one-bounce guidance, touch drag/release aiming, optional tap firing and next-bubble swapping.
+- Add B-HEX geometry, drop scoring, parity, determinism and desktop/mobile capture oracles; retain save formats.
+
 ## [0.3.1] - 2026-10-29
 
 - Add slalom gate penalties, snow grip and downhill gravity, BMX banking and speed-dependent jumps, continuous urban rail collisions, elevation shading and themed scenery.

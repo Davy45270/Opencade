@@ -250,15 +250,14 @@ L'espacement vertical est `20 * sqrt(3)`. Deux cellules voisines ont leurs centr
 à 40 pixels environ. Au niveau 1, les cinq premières rangées sont remplies au démarrage
 (43 bulles) ; les autres motifs sont décrits plus bas. Le lanceur est en (180, 570).
 
-La visée est bornée à ±1,35 radian autour de la verticale ascendante. Les flèches
-la modifient de 0,08 radian par événement clavier. Un clic/toucher au-dessus de
-y=555 vise ce point et tire. La trajectoire est calculée par intersection rayon /
-cercle (rayon de collision 40), plafond mobile y=`20 + drops * ROW_STEP` et murs x=20 / x=340. À chaque mur,
+La visée est bornée entre 10° et 170° depuis l’horizontale (±80° depuis le haut). Les flèches
+la modifient de 0,08 radian par événement clavier. La souris vise au survol et tire au clic au-dessus de y=555. Au doigt, glisser vise et relâcher tire ; le bouton Tap active « tirer au toucher ». Les boutons fléchés ajustent finement. ⇄ ou X échange la bulle courante et la suivante, sans tirage aléatoire, hors vol. La trajectoire est calculée par intersection rayon /
+cercle (distance effective des centres strictement inférieure à 40 × 0,85 = 34 ; une tangence seule ne bloque pas), plafond mobile y=`20 + drops * ROW_STEP` et murs x=20 / x=340. À chaque mur,
 la composante horizontale de direction est inversée ; la verticale est conservée.
-La trajectoire affichée et celle du projectile proviennent du même moteur.
+Les segments analytiques donnent exactement le premier contact, sans sous-pas. Le guide utilise ces mêmes segments jusqu’au premier rebond et son segment sortant inclus, avec arrêt au premier obstacle ou au deuxième mur.
 
 Au contact d'une bulle, on choisit parmi ses voisines libres la cellule dont le
-centre est le plus proche du point d'impact. Au plafond, on choisit la cellule
+centre est le plus proche du point de contact sur la surface de la bulle touchée. Les cellules au-dessus du contact, derrière la face incidente ou dont le segment de placement traverse une autre bulle sont exclues. Au plafond, on choisit la cellule
 libre la plus proche de la rangée 0. Les égalités sont départagées par rangée puis
 colonne croissantes. Aucune cellule occupée n'est remplacée. Sans place libre,
 la partie est perdue. La vitesse logique du projectile est 0,75 pixel/ms.
@@ -271,8 +270,7 @@ Le moteur refuse tout nouveau tir pendant le vol : aucune file d'attente.
    **tout** ce groupe (10 points par bulle).
 3. Après une suppression, parcourir les connexions depuis la rangée 0, toutes
    couleurs confondues. Retirer les bulles non reliées (20 points par bulle).
-4. Grille vide : victoire. Sinon, présence sur la rangée 12 : défaite. Le bas de
-   cette rangée atteint la ligne rose y≈455,7. Le trait visuel est à y=455.
+4. Grille vide : victoire. Sinon, bas d’une bulle atteignant la ligne rose y=455 : défaite (y du centre + 20 ≥ 455). Le plafond descend selon l’intervalle du niveau en translatant seulement y ; les indices et le décalage horizontal pair/impair ne changent jamais.
 5. Passer à la bulle en attente et tirer la nouvelle couleur du PRNG.
 
 Aucune suppression avec deux bulles. Les connexions sont hexagonales, jamais des
@@ -317,6 +315,29 @@ et les effets. Le niveau 1 n'a ni pression temporelle ni descente ; les suivants
 
 Cas limites unitaires dédiés : collision entre cellules, tirs près des bords,
 grille presque pleine, tirs rapides. Aucun test n'invoque une règle alternative.
+
+### Oracle B-HEX (passe 47)
+
+Les cas B-HEX-01–09 de `tests/bubble-hex.test.ts` utilisent des grilles,
+angles et cellules attendues littéraux ; origine (180,570). Ils prouvent dessous,
+biais gauche/droite, rebonds gauche/droite, traversée d’un trou, plafond,
+rangées impaire puis paire. B-HEX-10 vérifie la réflexion à 1e-9 et les bornes
+10°/170°. B-HEX-11 vérifie trois éclatements, une chute, deux bulles ancrées
+conservées et 50 points (10 par éclatement, 20 par chute). B-HEX-12 vérifie
+la descente au sixième tir, la parité et la défaite à 455. B-HEX-13 vérifie
+le déterminisme et l’échange sans consommation du PRNG.
+B-HEX-14/15 dans `tests/e2e/game.spec.ts`, sélectionnés sur desktop et mobile,
+exercent le vrai pipeline tactile, contrôlent le guide et la cellule (1,4),
+puis l’effet de chute et les 50 points ; captures `bubble-aim` et `bubble-drop`.
+Ces E2E doivent être exécutés par l’orchestrateur.
+
+Mutations : remplacer le classement au contact par le centre de la bulle touchée
+échoue sur B-HEX-03 ; neutraliser les chutes échoue sur B-HEX-11 ; porter
+CONTACT_SCALE à 1 échoue sur B-HEX-06 ; multiplier l’angle réfléchi par 1,05
+échoue sur B-HEX-10. Attention : classer depuis le centre du projectile arrêté
+peut être mathématiquement équivalent au contact radial pour six voisines à
+égale distance ; cette substitution seule ne constitue pas toujours une mutation
+observable. Le mutant « centre » prévu utilise le centre de la bulle touchée.
 
 ## Niveaux de Bubble Lab
 

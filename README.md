@@ -20,6 +20,8 @@ reduced-motion preferences switch them to still images. Phones use a two-column 
 
 ## Games and controls
 
+Bubble Lab now has precise hex snapping, gap shots, falling bonuses, and drag-to-aim/release-to-fire touch controls; ⇄ or X swaps the next bubble.
+
 Bubble Lab has 10 levels; every other game has 30. The table lists each game's
 keyboard and touch controls. Mouse controls are listed where supported; you can
 also click the on-screen controls. P or Escape pauses real-time games. Each game
@@ -28,7 +30,7 @@ while pausing play.
 
 | Game | How to play | Controls |
 |---|---|---|
-| **Bubble Lab** | Match groups of at least three bubbles of the same color before the ceiling comes down. | Mouse or touch: aim and fire; arrows: aim; Space: fire; touch buttons: adjust and fire. |
+| **Bubble Lab** | Match groups of at least three bubbles of the same color before the ceiling comes down. | Mouse: aim and fire; touch: drag and release; arrows: aim; Space: fire; touch buttons: adjust and fire. |
 | **Serpentin** | Grow a glowing trail by collecting sparks and crystals, avoiding walls or wrapping around the board. | Arrows, ZQSD or WASD; touch: swipe or direction pad. |
 | **Briqueterie** | Break bricks with a ball and paddle, collecting bonuses and wearing down tougher bricks. | Mouse: guide the paddle; Left/Right or A/D: move; Space: launch; touch: drag along the bottom, tap or use Launch. |
 | **Empilo** | Fit crystal pieces into a 9 × 16 well and complete rows, including sealed ones. | Left/Right/Down: move; X/W/Up and Z/C: rotate; Space: drop; touch: drag, tap to rotate, swipe down quickly to drop. |

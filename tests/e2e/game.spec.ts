@@ -1,4 +1,35 @@
 import { openGameMenu, test, expect, ready, read, load, point } from './fixture';
+test.describe('Bubble touch on desktop and mobile', () => {
+test.use({ hasTouch: true });
+test('B-HEX-14 glisser-relâcher, guide et cellule scriptée', async ({ page }, info) => {
+    await ready(page); await load(page, [{ row: 0, col: 4, color: 0 }]);
+    await page.evaluate(() => { window.__BUBBLE_TEST__?.advance(0); });
+    const start = await point(page, 100, 250), end = await point(page, 200, 170);
+    const canvas = page.locator('#game canvas');
+    await canvas.dispatchEvent('touchstart', { touches: [{ identifier: 7, clientX: start.x, clientY: start.y }], changedTouches: [{ identifier: 7, clientX: start.x, clientY: start.y }] });
+    await canvas.dispatchEvent('touchmove', { touches: [{ identifier: 7, clientX: end.x, clientY: end.y }], changedTouches: [{ identifier: 7, clientX: end.x, clientY: end.y }] });
+    expect((await read(page)).shots).toBe(0);
+    expect((await read(page)).angle).toBeCloseTo(0.04995839572194276, 8);
+    const guide = await page.evaluate(() => window.__BUBBLE_TEST__?.visuals().guide);
+    expect(guide).toHaveLength(1); expect(guide?.[0]?.to.y).toBeLessThan(54);
+    await page.screenshot({ path: `test-results/screenshots/bubble-aim-${info.project.name}.png` });
+    await canvas.dispatchEvent('touchend', { touches: [], changedTouches: [{ identifier: 7, clientX: end.x, clientY: end.y }] });
+    expect((await read(page)).shots).toBe(1);
+    await page.evaluate(() => window.__BUBBLE_TEST__?.advance(1000));
+    expect((await read(page)).grid).toEqual([{ row: 0, col: 4, color: 0 }, { row: 1, col: 4, color: 0 }]);
+});
+});
+test('B-HEX-15 chute animée et bonus', async ({ page }, info) => {
+    await ready(page); await load(page, [{ row: 0, col: 4, color: 0 }, { row: 1, col: 4, color: 0 }, { row: 1, col: 5, color: 1 }, { row: 0, col: 0, color: 2 }]);
+    await page.evaluate(() => window.__BUBBLE_TEST__?.advance(0));
+    await page.keyboard.press('Space'); await page.evaluate(() => window.__BUBBLE_TEST__?.advance(750));
+    expect((await read(page)).score).toBe(50);
+    expect((await read(page)).grid).toEqual([{ row: 0, col: 0, color: 2 }]);
+    expect(await page.evaluate(() => window.__BUBBLE_TEST__?.visuals().falling)).toBe(1);
+    await page.screenshot({ path: `test-results/screenshots/bubble-drop-${info.project.name}.png` });
+    await page.evaluate(() => window.__BUBBLE_TEST__?.advance(650));
+    expect(await page.evaluate(() => window.__BUBBLE_TEST__?.visuals().falling)).toBe(0);
+});
 test('T14 build statique et crochet inerte sans test=1', async ({ page }) => {
     await page.goto('/#/bubble');
     await expect(page.locator('#game canvas')).toBeVisible();

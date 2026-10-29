@@ -22,6 +22,8 @@ la grille comporte deux colonnes.
 
 ## Jeux et contrôles
 
+Bubble Lab propose un accrochage hexagonal précis, des tirs dans les trous, des bonus de chute et la visée par glisser-relâcher ; ⇄ ou X échange la prochaine bulle.
+
 Bubble Lab propose 10 niveaux ; chaque autre jeu en propose 30. Le tableau
 indique les commandes clavier et tactiles de chaque jeu, ainsi que les commandes
 souris disponibles. Les boutons à l’écran sont également cliquables. P ou Échap
@@ -31,7 +33,7 @@ partie en pause.
 
 | Jeu | Principe | Contrôles |
 |---|---|---|
-| **Bubble Lab** | Former des groupes d’au moins trois bulles de même couleur avant que le plafond ne descende. | Souris ou toucher : viser et tirer ; flèches : viser ; Espace : tirer ; boutons tactiles : ajuster et tirer. |
+| **Bubble Lab** | Former des groupes d’au moins trois bulles de même couleur avant que le plafond ne descende. | Souris : viser et tirer ; doigt : glisser puis relâcher ; flèches : viser ; Espace : tirer ; boutons tactiles : ajuster et tirer. |
 | **Serpentin** | Allonger une traînée lumineuse en récoltant étincelles et cristaux, entre murs ou sur un tore. | Flèches, ZQSD ou WASD ; toucher : glisser ou croix directionnelle. |
 | **Briqueterie** | Casser les briques avec une balle et une raquette, entre bonus et briques renforcées. | Souris : guider ; Gauche/Droite ou A/D : déplacer ; Espace : lancer ; toucher : glisser en bas, tap ou bouton Lancer. |
 | **Empilo** | Placer des pièces de cristal dans un puits de 9 × 16 et compléter des lignes, dont certaines sont scellées. | Gauche/Droite/Bas : déplacer ; X/W/Haut et Z/C : tourner ; Espace : chute ; toucher : glisser, tap pour tourner, glisser vite vers le bas pour lâcher. |

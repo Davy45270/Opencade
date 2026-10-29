@@ -3,6 +3,9 @@ export { Random } from '../shared/random';
 import { generateLevel, levelAt } from './levels';
 /** Pure deterministic geometry and rules. Coordinates are in logical pixels. */
 export const RADIUS = 20;
+// Effective center separation: 85% of the full diameter lets gap shots through.
+export const CONTACT_SCALE = 0.85;
+export const LOSS_LINE = 455;
 export const WIDTH = 360;
 export const ROWS = 13;
 export const ROW_STEP = Math.sqrt(3) * RADIUS;
@@ -34,6 +37,7 @@ export interface Resolution {
     fallen: Cell[];
     attached: Cell | null;
 }
+/** Odd-row offset coordinates; drops translate y only, never row parity. */
 export function center(cell: Pick<Cell, 'row' | 'col'>, drops = 0): Point {
     return { x: RADIUS + cell.col * 2 * RADIUS + (cell.row % 2) * RADIUS, y: RADIUS + (cell.row + drops) * ROW_STEP };
 }
@@ -146,7 +150,12 @@ export class Engine {
     }
     aim(angle: number): void {
         if (Number.isFinite(angle))
-            this.angle = Math.max(-1.35, Math.min(1.35, angle));
+            this.angle = Math.max((10 - 90) * Math.PI / 180, Math.min((170 - 90) * Math.PI / 180, angle));
+    }
+    swap(): boolean {
+        if (this.flight || this.status !== 'playing') return false;
+        [this.next, this.queued] = [this.queued, this.next];
+        return true;
     }
     trace(angle = this.angle): Trajectory {
         let from: Point = { ...ORIGIN };
@@ -162,8 +171,8 @@ export class Engine {
                 const p = center(cell, this.drops);
                 const dx = from.x - p.x, dy = from.y - p.y;
                 const b = dx * direction.x + dy * direction.y;
-                const discriminant = b * b - (dx * dx + dy * dy - 4 * RADIUS * RADIUS);
-                if (discriminant < 0)
+                const discriminant = b * b - (dx * dx + dy * dy - (2 * RADIUS * CONTACT_SCALE) ** 2);
+                if (discriminant <= 0)
                     continue;
                 const candidate = -b - Math.sqrt(discriminant);
                 if (candidate >= -1e-7 && candidate < t) {
@@ -180,7 +189,22 @@ export class Engine {
             if (!reflects) {
                 const occupied = new Set(this.grid.map(key));
                 const candidates = hit ? neighbors(hit) : Array.from({ length: 9 }, (_, col) => ({ row: 0, col }));
-                const free = candidates.filter(c => !occupied.has(key(c))).sort((a, b) => distance(center(a, this.drops), to) - distance(center(b, this.drops), to) || a.row - b.row || a.col - b.col);
+                // Contact is on the struck bubble surface, not at the projectile center.
+                const struck = hit ? center(hit, this.drops) : null;
+                const contact = struck ? { x: struck.x + (to.x - struck.x) / (2 * CONTACT_SCALE), y: struck.y + (to.y - struck.y) / (2 * CONTACT_SCALE) } : to;
+                const free = candidates.filter(c => {
+                    if (occupied.has(key(c))) return false;
+                    const p = center(c, this.drops);
+                    // Only sockets facing the incoming ray; never snap behind the hit.
+                    if (struck && ((p.x - struck.x) * direction.x + (p.y - struck.y) * direction.y > 1e-9 || p.y < struck.y - 1e-9)) return false;
+                    // The short settling segment must not cross another bubble.
+                    return this.grid.every(other => {
+                        if (other === hit) return true;
+                        const q = center(other, this.drops), dx = p.x - to.x, dy = p.y - to.y;
+                        const fraction = Math.max(0, Math.min(1, ((q.x - to.x) * dx + (q.y - to.y) * dy) / (dx * dx + dy * dy || 1)));
+                        return Math.hypot(to.x + fraction * dx - q.x, to.y + fraction * dy - q.y) >= 2 * RADIUS * CONTACT_SCALE - 1e-9;
+                    });
+                }).sort((a, b) => distance(center(a, this.drops), contact) - distance(center(b, this.drops), contact) || a.row - b.row || a.col - b.col);
                 const target = free[0];
                 return { segments, length, target: target ? { ...target, color: this.next } : null };
             }
@@ -220,7 +244,7 @@ export class Engine {
         this.score += popped.length * 10 + fallen.length * 20;
         this.resolved++;
         if (this.grid.length && this.shotsBeforeDrop === levelAt(this.level).interval && levelAt(this.level).interval > 0) this.drops++;
-        this.status = this.grid.length === 0 ? 'won' : this.grid.some(c => c.row === ROWS - 1 || center(c, this.drops).y + RADIUS >= 455) ? 'lost' : 'playing';
+        this.status = this.grid.length === 0 ? 'won' : this.grid.some(c => c.row === ROWS - 1 || center(c, this.drops).y + RADIUS >= LOSS_LINE) ? 'lost' : 'playing';
         if (this.grid.length) {
             this.next = this.queued;
             if (!this.availableColors().includes(this.next)) this.next = this.color();
