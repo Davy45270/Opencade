@@ -120,7 +120,7 @@ test('M01 conteneur redimensionné sans resize puis sortie et retour au jeu', as
     await page.locator('#game').evaluate(element => { (element as HTMLElement).style.removeProperty('height'); });
     await expect.poll(async () => (await page.locator('canvas').boundingBox())?.height).toBeCloseTo(initial.height, 0);
     await page.locator('#topbar [data-home]').tap();
-    await expect(page.locator('canvas')).toHaveCount(0);
+    await expect(page.locator('#game canvas')).toHaveCount(0);
     await page.getByRole('button', { name: /Serpentin/ }).tap();
     await expect.poll(async () => (await page.locator('canvas').boundingBox())?.height).toBeCloseTo(initial.height, 0);
 });

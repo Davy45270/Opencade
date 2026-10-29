@@ -20,6 +20,8 @@ au doigt, à la souris ou au clavier, sur téléphone comme sur ordinateur.
 > CPU speed. Touch, mouse and keyboard are supported. The interface is in
 > French. MIT licensed. Play it at <https://davy45270.github.io/Opencade/>.
 
+L’accueil présente huit vignettes Canvas animées par les moteurs purs, suspendues hors écran et fixes si la réduction des animations est demandée.
+
 ## Les jeux
 
 | Jeu | En une ligne | Niveaux |

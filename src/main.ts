@@ -1,3 +1,4 @@
+import { startThumbnail, browserThumbnailPorts } from './shell/thumbnails';
 import './shell/pwa';
 import Phaser from 'phaser';
 import { games, type GameTestHook } from './games/registry';
@@ -9,21 +10,26 @@ import { PlaySession, setupPause } from './shell/pause';
 import { setupGameMenu } from './shell/menu';
 declare global {
     interface Window {
-        __ARCADE_TEST__?: { open(id: string): void; current(): string | null; games: Record<string, GameTestHook | undefined> };
+        __ARCADE_TEST__?: { open(id: string): void; current(): string | null; thumbnails(): Record<string, number>; games: Record<string, GameTestHook | undefined> };
     }
 }
 setupSound();
 let game: Phaser.Game | undefined;
 let current: string | null = null;
+let thumbnails: { stop(): void }[] = [];
+const thumbnailFrames: Record<string, number> = {};
 let gameResizeObserver: ResizeObserver | undefined;
 let sessionInputs = new Inputs();
 const testing = new URLSearchParams(location.search).get('test') === '1';
 const hooks: Record<string, GameTestHook | undefined> = {};
 if (testing) {
     for (const entry of games) Object.defineProperty(hooks, entry.id, { enumerable: true, get: () => entry.testHook?.() });
-    window.__ARCADE_TEST__ = { open: id => { location.hash = `/${id}`; }, current: () => current, games: hooks };
+    window.__ARCADE_TEST__ = { open: id => { location.hash = `/${id}`; }, current: () => current, games: hooks, thumbnails: () => ({ ...thumbnailFrames }) };
 }
 function route(): void {
+    for (const thumbnail of thumbnails) thumbnail.stop();
+    thumbnails = [];
+    document.querySelector('#game-cards')?.replaceChildren();
     gameResizeObserver?.disconnect();
     gameResizeObserver = undefined;
     sessionInputs.dispose();
@@ -49,9 +55,9 @@ function route(): void {
             const save = readSave(browserStorage(), entry.id, entry.levelCount);
             const button = document.createElement('button');
             button.className = 'game-card';
-            // Original bubble motif drawn directly with CSS.
-            const icon = document.createElement('span');
-            icon.className = 'game-icon'; icon.setAttribute('aria-hidden', 'true');
+            const icon = document.createElement('canvas');
+            icon.className = 'game-thumbnail'; icon.setAttribute('aria-hidden', 'true');
+            icon.dataset.game = entry.id;
             const content = document.createElement('span'); content.className = 'card-content';
             const name = document.createElement('strong'); name.textContent = entry.name;
             const stats = document.createElement('small');
@@ -59,6 +65,8 @@ function route(): void {
             content.append(name, stats); button.append(icon, content);
             button.addEventListener('click', () => { location.hash = `/${entry.id}`; });
             cards?.append(button);
+            thumbnailFrames[entry.id] ??= 0;
+            thumbnails.push(startThumbnail(icon, entry.thumbnail(), browserThumbnailPorts(), () => { thumbnailFrames[entry.id] = (thumbnailFrames[entry.id] ?? 0) + 1; }));
         }
         return;
     }

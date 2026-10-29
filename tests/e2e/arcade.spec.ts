@@ -14,7 +14,7 @@ test('A01 registre accueil navigation et retour navigateur', async ({ page }, in
     await page.screenshot({ path: `test-results/screenshots/bubble-in-arcade-${info.project.name}.png` });
     await page.locator('#topbar [data-home]').click();
     await expect(page.locator('#home')).toBeVisible();
-    await expect(page.locator('canvas')).toHaveCount(0);
+    await expect(page.locator('#game canvas')).toHaveCount(0);
     await expect.poll(() => page.evaluate(() => Boolean(window.__BUBBLE_TEST__))).toBe(false);
     await page.goBack();
     await expect(page.locator('canvas')).toHaveCount(1);

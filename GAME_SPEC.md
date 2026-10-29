@@ -2,6 +2,32 @@
 
 ## Socle
 
+### Vignettes
+
+Chaque entrée du registre fournit `demo(seed)` et `thumbnail(seed)`. Les huit
+politiques pures `engines/<id>/demo.ts` utilisent le niveau 3, une graine fixe
+et les entrées ordinaires ; elles redémarrent après victoire, défaite ou 300 pas
+(20 secondes). Aucun changement des règles, aucune ressource externe.
+Les rendus `games/<id>/thumbnail.ts` dessinent l’état réel simplifié en Canvas
+2D, sans instance Phaser sur l’accueil. Dimensions 160×120 CSS, DPR borné à 2,
+au plus 15 images/s et un pas de 1000/15 ms par image, sans rattrapage.
+Le contrôleur injectable `shell/thumbnails.ts` attend IntersectionObserver,
+suspend hors écran et en arrière-plan, puis libère rappels et observateurs à
+la sortie de l’accueil. La préférence reduce produit une seule image fixe.
+La grille garde deux colonnes à 390 px, sans défilement horizontal.
+Avec `?test=1`, `window.__ARCADE_TEST__.thumbnails()` renvoie une copie des
+compteurs d’images par identifiant, conservés à la sortie et cumulés au retour.
+
+| ID | Preuve |
+| --- | --- |
+| V01 | Huit fabriques, dessin déterministe sur faux contexte 2D |
+| V02 | 2000 pas, état évolutif, redémarrage après fin et délai |
+| V03 | Horloge/observateur injectés, suspension et nettoyage complet |
+| V04–V05 | Huit canvas non vides, pixels animés en 600 ms |
+| V06 | Reduce : pixels et compteur fixes après première image |
+| V07 | Compteurs figés en jeu et relancés au retour |
+| V08 | Mobile 390×844 : deux colonnes, largeur ≥140 px, aucun scroll horizontal |
+
 ### Appareil
 
 `src/shell/device.ts` isole les API facultatives derrière des ports injectables.

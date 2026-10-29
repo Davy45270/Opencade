@@ -91,5 +91,5 @@ test('K07 défaite par chute réelle puis rejouer', async ({ page }, info) => {
 test('K12 crochet inerte sans mode test et sortie nettoyée', async ({ page }, info) => {
     await page.goto('/#/briqueterie'); await expect(page.locator('canvas')).toBeVisible();
     expect(await page.evaluate(() => window.__BRIQUETERIE_TEST__)).toBeUndefined();
-    await tap(page, '#topbar [data-home]', info.project.name === 'mobile-chromium'); await expect(page.locator('#home')).toBeVisible(); await expect(page.locator('canvas')).toHaveCount(0);
+    await tap(page, '#topbar [data-home]', info.project.name === 'mobile-chromium'); await expect(page.locator('#home')).toBeVisible(); await expect(page.locator('#game canvas')).toHaveCount(0);
 });

@@ -119,6 +119,6 @@ test('D12 crochet inerte et nettoyage lors du retour à l’accueil', async ({ p
         const before = await read(page); await page.waitForTimeout(200); expect(await read(page)).toEqual(before);
     }
     await tap(page, '#topbar [data-home]', mobile);
-    await expect(page.locator('canvas')).toHaveCount(0);
+    await expect(page.locator('#game canvas')).toHaveCount(0);
     expect(await page.evaluate(() => window.__DEDALE_TEST__)).toBeUndefined();
 });

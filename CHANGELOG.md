@@ -5,6 +5,12 @@ le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+### Ajouté — préparation de 0.3.0
+
+- Huit vignettes Canvas animées et déterministes sur l’accueil, jouées par les
+  moteurs purs ; suspension hors écran, en arrière-plan et pendant un jeu.
+- Image fixe avec réduction des animations et grille à deux colonnes sur mobile.
+
 ## [0.2.0] - 2026-10-29
 
 ### Ajouté
@@ -34,5 +40,5 @@ le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
   mobile.
 - CI GitHub Actions et déploiement sur GitHub Pages.
 
-[Non publié]: https://github.com/Davy45270/Opencade/compare/v0.1.0...HEAD
+[Non publié]: https://github.com/Davy45270/Opencade/compare/v0.2.0...HEAD
 [0.1.0]: https://github.com/Davy45270/Opencade/releases/tag/v0.1.0
