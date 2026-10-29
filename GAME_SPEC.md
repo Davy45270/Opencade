@@ -17,11 +17,11 @@ il tente le portrait. Absence, exception et rejet de ces API restent silencieux.
 Sur l’aire et les contrôles, sélection, menu contextuel, callout et surlignage
 tactile sont bloqués. Un toucher dans l’aire à « Prêt ? » démarre au relâchement ;
 sa séquence est consommée sans action moteur. Le clavier et la souris gardent
-leur comportement. Aucun changement de hauteur logique ni PWA.
+leur comportement. Aucun changement de hauteur logique.
 
 
 Accueil `#/` (également `#home`), carte accessible par jeu livré, titre de page
-Arcade Lab. Le registre `src/games/registry.ts` associe identifiant, nom, nombre
+Opencade. Le registre `src/games/registry.ts` associe identifiant, nom, nombre
 de niveaux, fabrique de scène, effets nommés et contrôles tactiles. Ajouter une
 entrée suffit à enregistrer une scène qui respecte les services du socle.
 Une URL `#/<id>` ouvre le jeu ; un identifiant inconnu revient à l’accueil.
@@ -80,6 +80,19 @@ CSS dans src/style.css, aucun asset importé, Phaser importé depuis phaser.
 | A09 | Parcours de tous les fichiers moteurs et interdiction DOM, Phaser et aléatoire natif |
 | A10 | Suite Bubble historique intégrale, assertions conservées |
 | A11 | Huit horloges manuelles : regroupement, zéro, temps invalides, absence de double avance et pause/sélecteur |
+
+### Installation et hors connexion
+
+Le build précache HTML, JS (Phaser inclus), CSS, manifeste et icônes via
+Workbox generateSW. Aucun cache de données externes ni requête tierce.
+Manifeste portrait standalone, couleurs #101827, scope et start_url relatifs.
+Le service worker en mode prompt attend la fermeture de toutes les fenêtres
+pour activer une mise à jour ; un statut discret et accessible l’annonce.
+Les PNG originaux représentent une borne lumineuse avec motif dans la zone
+sûre maskable. Les clés `arcade-lab:*` et `bubble-lab:*` restent inchangées
+afin de conserver la progression. Le stockage local fonctionne hors ligne.
+Le crochet `?test=1` reste identique ; le SW y est désactivé sauf si `pwa=1`
+est aussi présent pour le parcours E2E hors ligne.
 
 ### Contrôles et pause
 

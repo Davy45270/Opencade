@@ -2,7 +2,7 @@ import { openGameMenu, test, expect, ready, load, read } from './fixture';
 
 test('A01 registre accueil navigation et retour navigateur', async ({ page }, info) => {
     await page.goto('/?test=1#/');
-    await expect(page).toHaveTitle('Arcade Lab');
+    await expect(page).toHaveTitle('Opencade');
     const ids = await page.evaluate(() => Object.keys(window.__ARCADE_TEST__?.games ?? {}));
     expect(ids.length).toBeGreaterThan(0); expect(new Set(ids).size).toBe(ids.length);
     await expect(page.locator('#home')).toBeVisible();

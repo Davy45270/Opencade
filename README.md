@@ -34,9 +34,51 @@ au doigt, à la souris ou au clavier, sur téléphone comme sur ordinateur.
 | **Ferraille** | Traverser des ateliers en courant, sautant et tirant, avec un gardien à phases tous les cinq niveaux. | 30 |
 
 Les noms, règles, niveaux, formes et sons sont originaux : tout est dessiné et
-synthétisé par le code, sans image, police ni fichier audio. Le meilleur score,
+synthétisé par le code, sans ressource de jeu externe, police ni fichier audio. Les icônes PWA sont des PNG originaux produits par code. Le meilleur score,
 les niveaux débloqués et les préférences sont gardés dans `localStorage` quand il
 est disponible ; le jeu fonctionne sans.
+
+## Installer sur son téléphone et jouer hors ligne
+
+Ouvrir **https://davy45270.github.io/Opencade/** avec une connexion et attendre
+le chargement complet de l’accueil : les huit jeux sont alors précachés.
+Sur **Android (Chrome)**, ouvrir le menu ⋮ puis « Installer l’application »
+ou « Ajouter à l’écran d’accueil ». Sur **iOS (Safari)**, ouvrir Partager puis
+« Sur l’écran d’accueil » et confirmer l’ajout. Relancer depuis cette icône.
+Les intitulés peuvent varier selon la version du navigateur.
+
+Après ce premier chargement, l’accueil et les huit jeux fonctionnent sans
+connexion. Scores, niveaux débloqués et préférences restent dans le stockage
+local du navigateur ou de l’application installée ; leur effacement supprime
+ces données et peut imposer un nouveau chargement en ligne.
+
+Une mise à jour trouvée en ligne est annoncée discrètement, sans interrompre
+le jeu. Fermer toutes les fenêtres Opencade puis relancer pour l’appliquer.
+Le mode `prompt` conserve le nouveau service worker en attente : aucune
+activation forcée au milieu d’une partie. Aucun serveur tiers, police distante
+ou cache de données externes n’est utilisé.
+
+Le manifeste et le service worker emploient des chemins relatifs : `./`
+désigne la racine locale ou `/Opencade/` sur Pages. Le workflow Pages publie
+tout `dist/` et conserve `base: './'`. Les trois PNG livrés (192, 512 et
+512 maskable) dessinent une borne lumineuse originale, produite par code :
+ils ne nécessitent aucun outil graphique ni dépendance au build. Le fond est
+opaque et le motif central reste dans le cercle de sûreté de l’icône maskable.
+Tous les fichiers HTML, JS, CSS et icônes du build sont précachés, Phaser compris.
+
+Les clés historiques `arcade-lab:*` et `bubble-lab:*` sont conservées malgré
+le nom affiché « Opencade », pour préserver les progrès existants, hors ligne
+comme en ligne.
+
+## Confort sur téléphone
+
+Quand le navigateur le permet, l’écran reste allumé pendant une partie active,
+puis est libéré en pause, en arrière-plan ou à la fin du niveau. Des vibrations
+accompagnent perte de vie, victoire et défaite si le son global est activé.
+Le menu mobile propose « Plein écran » sur les appareils compatibles et tente
+l’orientation portrait. Ces fonctions facultatives restent silencieuses si
+elles sont indisponibles ou refusées ; voir la section Appareil de
+[GAME_SPEC.md](GAME_SPEC.md).
 
 ## Contrôles
 

@@ -1,6 +1,6 @@
 {
   "name": "opencade",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Arcade de 8 jeux originaux en HTML5 (Phaser 3, TypeScript), jouable au doigt, à la souris et au clavier.",
   "license": "MIT",
@@ -38,12 +38,13 @@
     "phaser": "3.90.0"
   },
   "devDependencies": {
-    "vite": "8.3.5",
-    "vitest": "5.0.5",
+    "@eslint/js": "10.0.1",
     "@playwright/test": "1.64.1",
-    "typescript": "6.0.3",
     "eslint": "10.13.0",
+    "typescript": "6.0.3",
     "typescript-eslint": "8.72.1",
-    "@eslint/js": "10.0.1"
+    "vite": "8.3.5",
+    "vite-plugin-pwa": "2.0.0",
+    "vitest": "5.0.5"
   }
 }

@@ -5,6 +5,22 @@ le projet suit le [versionnage sémantique](https://semver.org/lang/fr/).
 
 ## [Non publié]
 
+## [0.2.0] - 2026-10-29
+
+### Ajouté
+
+- Installation PWA sur téléphone, manifeste et icônes originales ; les huit jeux
+  et leurs sauvegardes locales restent accessibles hors connexion après chargement.
+- Mise à jour au prochain lancement après fermeture des fenêtres, annoncée sans
+  interrompre le jeu.
+- Confort sur téléphone : écran allumé pendant le jeu actif, vibrations liées
+  au son global et plein écran facultatif depuis le menu mobile.
+
+### Modifié
+
+- Titre visible « Opencade » ; clés de sauvegarde historiques conservées pour
+  préserver les progrès existants.
+
 ## [0.1.0] - 2026-10-29
 
 ### Ajouté

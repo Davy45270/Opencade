@@ -1,3 +1,4 @@
+import './shell/pwa';
 import Phaser from 'phaser';
 import { games, type GameTestHook } from './games/registry';
 import { readSave, browserStorage } from './shell/storage';
@@ -31,7 +32,7 @@ function route(): void {
     const definition = games.find(entry => entry.id === id);
     current = definition?.id ?? null;
     const heading = document.querySelector('h1');
-    if (heading) heading.textContent = definition?.name ?? 'Arcade Lab';
+    if (heading) heading.textContent = definition?.name ?? 'Opencade';
     if (game) {
         game.destroy(true);
         game = undefined;
