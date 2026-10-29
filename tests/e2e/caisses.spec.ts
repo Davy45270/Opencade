@@ -51,7 +51,7 @@ test('C01 C05 glisser tactile et menu bloquant les entrées', async ({ page }, i
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}); await cdp.detach();
     expect((await read(page))?.moves).toBe(1);
     await activate(page,'#game-menu-toggle',true); const before=await read(page);
-    await page.locator('#caisses-right').tap(); expect(await read(page)).toEqual(before);
+    await page.locator('#caisses-right').tap({ force: true }); expect(await read(page)).toEqual(before);
 });
 
 test('C12 crochet absent sans paramètre test', async ({ page }) => {
