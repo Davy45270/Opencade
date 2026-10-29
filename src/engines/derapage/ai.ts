@@ -4,7 +4,8 @@ import { jumpDuration, type Input, type Kart } from './physics';
 export function controller(k: Kart, t: Track, noise = 0, brakeDelay = 0): Input {
     const n = nearest(t, k), speed = Math.hypot(k.vx, k.vy);
     const jump = t.circuit.jumps.find(index => (required(t.distances[index]) - n.along + t.length) % t.length < 10);
-    const target = jump === undefined ? at(t, n.along + 8 + speed * brakeDelay, true)
+    // Anticipate urban bends before the outer rail forces repeated rebounds.
+    const target = jump === undefined ? at(t, n.along + (t.circuit.theme.urban ? 14 : 8) + speed * brakeDelay, true)
         : at(t, required(t.distances[jump]) + speed * jumpDuration(speed) / 1000 + 3, true);
     const error = wrap(Math.atan2(target.y - k.y, target.x - k.x) - k.angle);
     return { steer: Math.max(-1, Math.min(1, error * 2.8 + noise)), drift: false, bonus: k.item !== null };

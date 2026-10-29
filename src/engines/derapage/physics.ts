@@ -24,6 +24,9 @@ export interface Kart extends Vec {
     missedGates?: number;
     noticeMs?: number;
     slalomPassed?: number[];
+    slalomMissed?: number[];
+    railHitMs?: number;
+    landingMs?: number;
     treeHits?: number;
     stripActive?: boolean;
 }
@@ -39,6 +42,8 @@ export function analogSteer(delta: number): number {
 }
 export const jumpDuration = (speed: number): number => 220 + speed * 6;
 export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: number, targetSpeed = 24): void {
+    k.railHitMs = Math.max(0, (k.railHitMs ?? 0) - dt * 1000);
+    k.landingMs = Math.max(0, (k.landingMs ?? 0) - dt * 1000);
     const n = nearest(t, k), snow = t.circuit.snow.includes(n.index), berm = t.circuit.berms.includes(n.index);
     const bump = t.circuit.jumps.includes(n.index);
     const speed = Math.hypot(k.vx, k.vy), steer = Math.max(-1, Math.min(1, input.steer));
@@ -121,6 +126,7 @@ export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: 
             if (gap <= 2 || gap >= 94) {
                 k.slalomPassed[i] = k.lap;
                 if (Math.abs((x - gate.x) * gate.nx + (y - gate.y) * gate.ny) > gate.half) {
+                    (k.slalomMissed ??= [])[i] = k.lap;
                     k.penaltyMs = (k.penaltyMs ?? 0) + 2000;
                     k.missedGates = (k.missedGates ?? 0) + 1;
                     k.noticeMs = 2000;
@@ -130,6 +136,7 @@ export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: 
     }
     for (const key of ['boostMs', 'jumpMs', 'slipMs'] as const)
         k[key] = Math.max(0, k[key] - dt * 1000);
+    if (airborne && k.jumpMs === 0) k.landingMs = 280;
     k.jumpHeight = k.jumpMs > 0 ? 3 * Math.sin(Math.PI * k.jumpMs / (k.jumpDurationMs ?? 1600)) : 0;
 }
 /** Resolve the continuous boundary after motion or kart separation. */
@@ -142,6 +149,7 @@ export function resolveRail(k: Kart, t: Track): void {
         k.x = n.x + nx * (required(t.widths[n.index]) / 2 + (t.circuit.theme.urban ? 1.79 : 2));
         k.y = n.y + ny * (required(t.widths[n.index]) / 2 + (t.circuit.theme.urban ? 1.79 : 2));
         if (v > 0) {
+            k.railHitMs = 180;
             k.vx -= 1.7 * v * nx;
             k.vy -= 1.7 * v * ny;
             if (k.shield)

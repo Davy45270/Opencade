@@ -273,6 +273,7 @@ export class DerapageScene extends Phaser.Scene {
         const fit = Math.min(300/(Math.max(...xs)-Math.min(...xs)+30),450/(Math.max(...ys)-Math.min(...ys)+30));
         const scale = this.overviewMode ? fit : 5;
         const project = (x: number, y: number) => this.overviewMode ? { x:180+(x-cx)*fit, y:360+(y-cy)*fit } : ({ x: 180 + ((x - p.x) * Math.cos(angle) - (y - p.y) * Math.sin(angle)) * 5, y: 466 + ((x - p.x) * Math.sin(angle) + (y - p.y) * Math.cos(angle)) * 5 });
+        const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         g.clear();
         g.fillStyle(t.circuit.snow.length ? 0xe0eff5 : t.circuit.theme.ground);
         g.fillRect(0, 96, 360, 544);
@@ -311,8 +312,20 @@ export class DerapageScene extends Phaser.Scene {
         for (const edge of t.bermEdges) line(project(edge.a.x,edge.a.y),project(edge.b.x,edge.b.y),2*scale,0xe4c99a);
         if (t.circuit.theme.urban) {
             for (let i=0;i<96;i++) {
-                const q=required(t.points[i]), r=required(t.points[(i+1)%96]), n=nearest(t,q), half=required(t.widths[i])/2+3;
-                for (const side of [-1,1]) line(project(q.x+n.nx*half*side,q.y+n.ny*half*side),project(r.x+n.nx*half*side,r.y+n.ny*half*side),.5*scale,0xadb9c4);
+                if (!t.walls[i]) continue;
+                const q=required(t.points[i]), r=required(t.points[(i+1)%96]);
+                const n=nearest(t,q), m=nearest(t,r);
+                for (const side of [-1,1]) {
+                    const edge = (p: { x:number; y:number }, normal: { nx:number; ny:number }, half:number) => project(p.x+normal.nx*half*side,p.y+normal.ny*half*side);
+                    line(edge(q,n,required(t.widths[i])/2+.9),edge(r,m,required(t.widths[(i+1)%96])/2+.9),Math.max(2,1.8*scale),0xbec5ca);
+                    const a=edge(q,n,required(t.widths[i])/2+1.8), b=edge(r,m,required(t.widths[(i+1)%96])/2+1.8);
+                    line(a,b,Math.max(2.5,.65*scale),0xf1f5f8);
+                    const posts=Math.max(1,Math.ceil(Math.hypot(r.x-q.x,r.y-q.y)/3));
+                    for (let j=0;j<posts;j++) {
+                        const x=a.x+(b.x-a.x)*j/posts, y=a.y+(b.y-a.y)*j/posts;
+                        line({ x,y },{ x,y:y-Math.max(3,1.1*scale) },Math.max(1.5,.45*scale),0x647583);
+                    }
+                }
             }
             // Short paving joints follow the road; the continuous border is the kerb/rail.
             for (let i=0;i<96;i+=2) {
@@ -320,9 +333,16 @@ export class DerapageScene extends Phaser.Scene {
                 line(project(q.x+n.nx*half,q.y+n.ny*half),project(q.x-n.nx*half,q.y-n.ny*half),1,0x65717a);
             }
         }
-        for (const [i, gate] of t.slalom.entries()) for (const side of [-1, 1]) {
-            const a = project(gate.x + gate.nx * gate.half * side, gate.y + gate.ny * gate.half * side);
-            line(a, { x: a.x, y: a.y - 5 * scale }, .5 * scale, i % 2 ? 0x3285e8 : 0xe64049);
+        for (const [i, gate] of t.slalom.entries()) {
+            const passed=p.slalomPassed?.[i] === p.lap, missed=p.slalomMissed?.[i] === p.lap;
+            const color=missed ? (!reduced && Math.floor(e.frames/10)%2 ? 0xffb7b7 : 0xe64049) : passed ? 0x49e087 : i%2 ? 0x3285e8 : 0xe64049;
+            const tops=[-1,1].map(side => {
+                const a=project(gate.x+gate.nx*gate.half*side,gate.y+gate.ny*gate.half*side);
+                const top={ x:a.x,y:a.y-Math.max(9,7*scale) };
+                line(a,top,Math.max(2,.7*scale),color);
+                return top;
+            });
+            line(required(tops[0]),required(tops[1]),Math.max(4,1.7*scale),color);
         }
         for (const b of t.boosts) {
             const a = project(b.x, b.y);
@@ -396,9 +416,21 @@ export class DerapageScene extends Phaser.Scene {
             if (a.y < 114 || a.y > 622)
                 continue;
             g.save();
-            g.fillStyle(0x17202d, .4); g.fillEllipse(a.x, a.y + 4, 22, 10);
+            const height=k.jumpHeight ?? 0, size=this.overviewMode ? scale/5 : 1;
+            g.fillStyle(0x101522, height > 0 ? .8 : .4);
+            g.fillEllipse(a.x+height*scale*1.4, a.y+4+height*scale*1.2, 22*size, 10*size);
+            if (!reduced && (k.landingMs ?? 0) > 0) {
+                g.fillStyle(0xd5bd91,.65);
+                for (const side of [-1,0,1]) g.fillCircle(a.x+side*9*size,a.y+5*size,4*size);
+            }
+            if (!reduced && (k.railHitMs ?? 0) > 0) {
+                const n=nearest(t,k), side=(k.x-n.x)*n.nx+(k.y-n.y)*n.ny > 0 ? 1 : -1;
+                const impact=project(n.x+n.nx*side*(required(t.widths[n.index])/2+1.8),n.y+n.ny*side*(required(t.widths[n.index])/2+1.8));
+                for (const dx of [-5,0,5]) line(impact,{ x:impact.x+dx,y:impact.y-7 },2,0xffe5a0);
+            }
             g.translateCanvas(a.x, a.y - (k.jumpHeight ?? 0) * scale);
-            g.scaleCanvas(1 + (k.jumpHeight ?? 0) * .06, 1 + (k.jumpHeight ?? 0) * .06);
+            const jumpScale=1+Math.min(.35,height/3*.35);
+            g.scaleCanvas(jumpScale,jumpScale);
             g.rotateCanvas(k.angle + (this.overviewMode ? 0 : angle));
             if (this.overviewMode) g.scaleCanvas(scale/5,scale/5);
             g.fillStyle(0x17202d);
@@ -412,7 +444,7 @@ export class DerapageScene extends Phaser.Scene {
                 g.lineStyle(2, 0x8cefff);
                 g.strokeCircle(0, 0, 16);
             }
-            if (k.driftMs >= 600) {
+            if (!reduced && k.driftMs >= 600) {
                 g.fillStyle(k.driftMs >= 1400 ? 0xff67bd : 0x66dcff);
                 g.fillCircle(-14, 8, 3);
                 g.fillCircle(-14, -8, 3);
