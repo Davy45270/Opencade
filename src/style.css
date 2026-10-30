@@ -267,3 +267,7 @@ body:not(.playing) #topbar > button { min-width: 48px; min-height: 48px; }
 #home footer { margin-top: 24px; text-align: center; }
 #home-menu summary { cursor: pointer; }
 body.playing #game-menu [data-build] { grid-column: 1 / -1; order: -2; }
+/* The build line lives in the home footer and in the open ☰ game menu only: on desktop the game menu
+   is laid out inline, and an extra line would push the game page past the viewport. */
+#game-menu > [data-build] { display: none; }
+body.playing.menu-open #game-menu > [data-build] { display: block; }
