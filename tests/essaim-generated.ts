@@ -1,6 +1,5 @@
 import { Engine, difficulty, TICK, type Shot } from '../src/engines/essaim/engine';
 import { pilot } from '../src/engines/essaim/pilot';
-import { observeEssaim } from '../scripts/essaim-diversity.js';
 type EngineClass = typeof Engine;
 function check(value: unknown, message: string): asserts value { if (!value) throw new Error(message); }
 function tick(e: Engine): void { e.step(TICK); }
@@ -30,14 +29,6 @@ export const generatedBehaviors: Record<string, (E: EngineClass) => void> = {
                 if (e.state.rescue && e.state.enemies.some(p => p.phase === 'formation')) seen = true;
             }
             check(seen, 'rescue remains present with arrived generated enemies');
-        }
-    },
-    'E-GEN-03 diversity witnesses come from simulated behavior': E => {
-        const required: [number,string][] = [[1,'burst-fan'],[2,'fast-ellipse'],[3,'frontal-block'],[6,'mine-explosion'],[9,'split-fragments'],[12,'spiral-approach'],[15,'guided-turn'],[18,'rescue-present'],[21,'mirror-tracking'],[29,'command-phase-two-fire']];
-        for (const [level,behavior] of required) {
-            const result = observeEssaim(new E(level,28));
-            check(result.status === 'won', 'observation follows full generated attempt');
-            check(result.witnesses[behavior], `E-DIV-01 missing observed ${behavior}`);
         }
     },
     'E-GEN-04 fast ellipse and three-shot burst fan': E => {

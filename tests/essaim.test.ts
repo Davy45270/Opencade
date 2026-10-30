@@ -1,5 +1,8 @@
 import { expect, test } from 'vitest';
-import { behaviors, diversity, campaign } from './essaim-behavior';
+import { behaviors } from './essaim-behavior';
+import { recordings } from './essaim-recordings';
+import { replay } from './essaim-replay';
+import { measureDiversity } from '../scripts/diversity-metrics.js';
 import { Engine, difficulty, TICK, CANNON_Y, type Enemy } from '../src/engines/essaim/engine';
 function first(e: Engine): Enemy { const p = e.state.enemies[0]; if (!p) throw new Error("Ennemi absent"); return p; }
 function enemy(e: Engine, phase: Enemy['phase'] = 'formation', type: Enemy['type'] = 'scout'): Enemy { return { ...first(e), x: 180, y: 400, homeX: 180, homeY: 400, phase, age: 0, type, hp: 1, captured: false, curve: 0, originX: 180, originY: 400 }; }
@@ -45,8 +48,37 @@ test('G10 victoire après dernière vague et défaite sans vie', () => { const e
 test('G11 chaque paramètre croît sur trente niveaux', () => { const first = difficulty(0), last = difficulty(29); for (const key of Object.keys(first) as (keyof typeof first)[]) { expect(last[key]).toBeGreaterThan(first[key]); for (let i = 1; i < 30; i++) expect(difficulty(i)[key]).toBeGreaterThanOrEqual(difficulty(i - 1)[key]); } });
 test('G12 cadence indépendante, entrées horodatées et témoin graine', () => { const a = new Engine(), b = new Engine(); for (let i = 0; i < 20; i++) { a.moveTo(i * 13); b.moveTo(i * 13); a.holdFire(true); b.holdFire(true); a.step(100); for (let j = 0; j < 6; j++) b.step(TICK); } expect(a.snapshot()).toEqual(b.snapshot()); expect(new Engine(0, 9).snapshot()).not.toEqual(new Engine().snapshot()); expect(() => JSON.stringify(a.snapshot())).not.toThrow(); });
 for (const [name, run] of Object.entries(behaviors)) test(name, () => { run(Engine); });
-test('E-DIV-01 campagne variée', () => { diversity(); });
-test('E-PILOT trente niveaux, deux graines', () => { campaign(Engine,458); campaign(Engine,28); });
+const requiredWitnesses: [number, string][] = [[1,'burst-fan'],[2,'fast-ellipse'],[3,'frontal-block'],[6,'mine-explosion'],[9,'split-fragments'],[12,'spiral-approach'],[15,'guided-turn'],[18,'rescue-present'],[21,'mirror-tracking'],[29,'command-phase-two-fire']];
+for (const [level, behavior] of requiredWitnesses) test(`E-GEN-03 ${behavior}`, () => {
+    const record = recordings.find(r => r.level === level && r.seed === 28);
+    if (!record) throw new Error('Missing observed recording');
+    const result = replay(record);
+    expect(result.status).toBe('won');
+    expect(result.witnesses[behavior]).toBeDefined();
+});
+for (let level = 0; level < 30; level++) test(`E-DIV-01 rejeu niveau ${String(level+1)}`, () => {
+    const record = recordings.find(r => r.level === level && r.seed === 28);
+    if (!record) throw new Error('Missing diversity recording');
+    replay(record);
+});
+test('E-DIV-01 campagne variée', () => {
+    const records = recordings.filter(r => r.seed === 28);
+    expect(records.map(r => r.level)).toEqual(Array.from({ length: 30 }, (_, i) => i));
+    const result = measureDiversity(records.map(record => {
+        const f = record.observation;
+        return { level: record.level+1, parameters: { ...difficulty(record.level), ...f.params }, elements: f.elements.filter(name => !name.startsWith('weapon:')), layout: f.layout, observation: f };
+    }));
+    expect(result.noveltyCount).toBeGreaterThanOrEqual(8);
+    expect(result.cloneShare).toBeLessThan(0.25);
+    let previous = 1;
+    for (const level of result.noveltyLevels.filter(n => n <= 25)) { expect(level-previous).toBeLessThanOrEqual(5); previous = level; }
+    expect(25-previous).toBeLessThanOrEqual(5);
+});
+for (const seed of [458,28]) for (let level = 0; level < 30; level++) test(`E-PILOT niveau ${String(level+1)}, graine ${String(seed)}`, () => {
+    const record = recordings.find(r => r.seed === seed && r.level === level);
+    if (!record) throw new Error('Missing campaign recording');
+    expect(replay(record).status).toBe('won');
+});
 test('G07 génération sans superposition et un capteur par vague', () => {
     for (let level = 0; level < 30; level++) {
         const e = new Engine(level,28), cells = new Set<string>();

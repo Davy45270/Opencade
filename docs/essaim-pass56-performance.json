@@ -1,0 +1,845 @@
+{
+  "method": "Node executes the actual test callbacks with node:assert; no Vitest and no browser. Wall times on the current shared host, not a guarantee for another host. Commands run sequentially at nice 19 / ionice idle.",
+  "commands": {
+    "before": "nice -n 19 ionice -c3 node scripts/measure-pass56.js --baseline",
+    "after": "nice -n 19 ionice -c3 node scripts/measure-pass56.js",
+    "thumbnails": "nice -n 19 ionice -c3 node scripts/measure-thumbnails.js",
+    "regenerate": "nice -n 19 ionice -c3 node scripts/validate-essaim.js --record"
+  },
+  "baseline": "HEAD test bodies and pilot; thumbnail baseline uses a Node load hook to substitute HEAD pilot.",
+  "proof": "All 60 games replay every tick from their initial generated state. The original behavioral predicates run at recorded witness frames; dual decimal state digests check the full snapshot every 120 frames and at completion. Full policy campaigns and discovery run in the validator.",
+  "pilotEquivalence": {
+    "games": 60,
+    "frames": 163476,
+    "inputsAndFinalSnapshotsIdentical": true
+  },
+  "groups": [
+    {
+      "group": "E-GEN-03",
+      "beforeMs": 4261.49,
+      "afterCases": 10,
+      "afterTotalMs": 993.67,
+      "afterMaximumMs": 558.18
+    },
+    {
+      "group": "E-DIV-01",
+      "beforeMs": 7462.68,
+      "afterCases": 31,
+      "afterTotalMs": 1334.55,
+      "afterMaximumMs": 280.13
+    },
+    {
+      "group": "E-PILOT",
+      "beforeMs": 10755.74,
+      "afterCases": 60,
+      "afterTotalMs": 1853.94,
+      "afterMaximumMs": 205.41
+    },
+    {
+      "group": "V02",
+      "beforeMs": 4859.76,
+      "afterCases": 12,
+      "afterTotalMs": 4220.6,
+      "afterMaximumMs": 1821.13
+    }
+  ],
+  "before": [
+    {
+      "test": "E-GEN-03 diversity witnesses come from simulated behavior",
+      "ms": 4261.49
+    },
+    {
+      "test": "E-DIV-01 campagne variée",
+      "ms": 7462.68
+    },
+    {
+      "test": "E-PILOT trente niveaux, deux graines",
+      "ms": 10755.74
+    },
+    {
+      "test": "V02 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 4859.76
+    },
+    {
+      "test": "Total: 27339.67 ms; maximum",
+      "ms": 10755.74
+    }
+  ],
+  "after": [
+    {
+      "test": "E-GEN-03 burst-fan",
+      "ms": 20.47
+    },
+    {
+      "test": "E-GEN-03 fast-ellipse",
+      "ms": 14.27
+    },
+    {
+      "test": "E-GEN-03 frontal-block",
+      "ms": 101.41
+    },
+    {
+      "test": "E-GEN-03 mine-explosion",
+      "ms": 21.88
+    },
+    {
+      "test": "E-GEN-03 split-fragments",
+      "ms": 99.48
+    },
+    {
+      "test": "E-GEN-03 spiral-approach",
+      "ms": 28.92
+    },
+    {
+      "test": "E-GEN-03 guided-turn",
+      "ms": 73.99
+    },
+    {
+      "test": "E-GEN-03 rescue-present",
+      "ms": 33.13
+    },
+    {
+      "test": "E-GEN-03 mirror-tracking",
+      "ms": 41.94
+    },
+    {
+      "test": "E-GEN-03 command-phase-two-fire",
+      "ms": 558.18
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 1",
+      "ms": 6.36
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 2",
+      "ms": 7.12
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 3",
+      "ms": 9.71
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 4",
+      "ms": 13.06
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 5",
+      "ms": 73.48
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 6",
+      "ms": 2.12
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 7",
+      "ms": 9.42
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 8",
+      "ms": 10.8
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 9",
+      "ms": 7.86
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 10",
+      "ms": 52.59
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 11",
+      "ms": 3.77
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 12",
+      "ms": 19.81
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 13",
+      "ms": 11.97
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 14",
+      "ms": 9.71
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 15",
+      "ms": 159.59
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 16",
+      "ms": 25.01
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 17",
+      "ms": 14.22
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 18",
+      "ms": 82.07
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 19",
+      "ms": 280.13
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 20",
+      "ms": 20.53
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 21",
+      "ms": 79.99
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 22",
+      "ms": 13.51
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 23",
+      "ms": 22.62
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 24",
+      "ms": 5.1
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 25",
+      "ms": 26.64
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 26",
+      "ms": 130.02
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 27",
+      "ms": 106.63
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 28",
+      "ms": 10.38
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 29",
+      "ms": 17.43
+    },
+    {
+      "test": "E-DIV-01 rejeu niveau 30",
+      "ms": 97.97
+    },
+    {
+      "test": "E-DIV-01 campagne variée",
+      "ms": 4.93
+    },
+    {
+      "test": "E-PILOT niveau 1, graine 458",
+      "ms": 2.2
+    },
+    {
+      "test": "E-PILOT niveau 2, graine 458",
+      "ms": 4.99
+    },
+    {
+      "test": "E-PILOT niveau 3, graine 458",
+      "ms": 2.98
+    },
+    {
+      "test": "E-PILOT niveau 4, graine 458",
+      "ms": 7.25
+    },
+    {
+      "test": "E-PILOT niveau 5, graine 458",
+      "ms": 11.46
+    },
+    {
+      "test": "E-PILOT niveau 6, graine 458",
+      "ms": 0.95
+    },
+    {
+      "test": "E-PILOT niveau 7, graine 458",
+      "ms": 8.38
+    },
+    {
+      "test": "E-PILOT niveau 8, graine 458",
+      "ms": 12.75
+    },
+    {
+      "test": "E-PILOT niveau 9, graine 458",
+      "ms": 14.64
+    },
+    {
+      "test": "E-PILOT niveau 10, graine 458",
+      "ms": 59.34
+    },
+    {
+      "test": "E-PILOT niveau 11, graine 458",
+      "ms": 6.23
+    },
+    {
+      "test": "E-PILOT niveau 12, graine 458",
+      "ms": 38.74
+    },
+    {
+      "test": "E-PILOT niveau 13, graine 458",
+      "ms": 16.71
+    },
+    {
+      "test": "E-PILOT niveau 14, graine 458",
+      "ms": 18.36
+    },
+    {
+      "test": "E-PILOT niveau 15, graine 458",
+      "ms": 33.68
+    },
+    {
+      "test": "E-PILOT niveau 16, graine 458",
+      "ms": 42.02
+    },
+    {
+      "test": "E-PILOT niveau 17, graine 458",
+      "ms": 13.57
+    },
+    {
+      "test": "E-PILOT niveau 18, graine 458",
+      "ms": 163.51
+    },
+    {
+      "test": "E-PILOT niveau 19, graine 458",
+      "ms": 15.03
+    },
+    {
+      "test": "E-PILOT niveau 20, graine 458",
+      "ms": 95.08
+    },
+    {
+      "test": "E-PILOT niveau 21, graine 458",
+      "ms": 11.05
+    },
+    {
+      "test": "E-PILOT niveau 22, graine 458",
+      "ms": 12.08
+    },
+    {
+      "test": "E-PILOT niveau 23, graine 458",
+      "ms": 81.08
+    },
+    {
+      "test": "E-PILOT niveau 24, graine 458",
+      "ms": 3.8
+    },
+    {
+      "test": "E-PILOT niveau 25, graine 458",
+      "ms": 20.58
+    },
+    {
+      "test": "E-PILOT niveau 26, graine 458",
+      "ms": 18.09
+    },
+    {
+      "test": "E-PILOT niveau 27, graine 458",
+      "ms": 45.78
+    },
+    {
+      "test": "E-PILOT niveau 28, graine 458",
+      "ms": 203.82
+    },
+    {
+      "test": "E-PILOT niveau 29, graine 458",
+      "ms": 20.13
+    },
+    {
+      "test": "E-PILOT niveau 30, graine 458",
+      "ms": 205.41
+    },
+    {
+      "test": "E-PILOT niveau 1, graine 28",
+      "ms": 4.13
+    },
+    {
+      "test": "E-PILOT niveau 2, graine 28",
+      "ms": 3.08
+    },
+    {
+      "test": "E-PILOT niveau 3, graine 28",
+      "ms": 3.31
+    },
+    {
+      "test": "E-PILOT niveau 4, graine 28",
+      "ms": 9.77
+    },
+    {
+      "test": "E-PILOT niveau 5, graine 28",
+      "ms": 10.49
+    },
+    {
+      "test": "E-PILOT niveau 6, graine 28",
+      "ms": 0.76
+    },
+    {
+      "test": "E-PILOT niveau 7, graine 28",
+      "ms": 6.45
+    },
+    {
+      "test": "E-PILOT niveau 8, graine 28",
+      "ms": 8.36
+    },
+    {
+      "test": "E-PILOT niveau 9, graine 28",
+      "ms": 5.52
+    },
+    {
+      "test": "E-PILOT niveau 10, graine 28",
+      "ms": 21.08
+    },
+    {
+      "test": "E-PILOT niveau 11, graine 28",
+      "ms": 1.16
+    },
+    {
+      "test": "E-PILOT niveau 12, graine 28",
+      "ms": 11.31
+    },
+    {
+      "test": "E-PILOT niveau 13, graine 28",
+      "ms": 8.53
+    },
+    {
+      "test": "E-PILOT niveau 14, graine 28",
+      "ms": 7.58
+    },
+    {
+      "test": "E-PILOT niveau 15, graine 28",
+      "ms": 15.43
+    },
+    {
+      "test": "E-PILOT niveau 16, graine 28",
+      "ms": 17.77
+    },
+    {
+      "test": "E-PILOT niveau 17, graine 28",
+      "ms": 4.98
+    },
+    {
+      "test": "E-PILOT niveau 18, graine 28",
+      "ms": 32.2
+    },
+    {
+      "test": "E-PILOT niveau 19, graine 28",
+      "ms": 8.13
+    },
+    {
+      "test": "E-PILOT niveau 20, graine 28",
+      "ms": 11.21
+    },
+    {
+      "test": "E-PILOT niveau 21, graine 28",
+      "ms": 13.38
+    },
+    {
+      "test": "E-PILOT niveau 22, graine 28",
+      "ms": 10.24
+    },
+    {
+      "test": "E-PILOT niveau 23, graine 28",
+      "ms": 162.22
+    },
+    {
+      "test": "E-PILOT niveau 24, graine 28",
+      "ms": 3.24
+    },
+    {
+      "test": "E-PILOT niveau 25, graine 28",
+      "ms": 22.43
+    },
+    {
+      "test": "E-PILOT niveau 26, graine 28",
+      "ms": 15.69
+    },
+    {
+      "test": "E-PILOT niveau 27, graine 28",
+      "ms": 44.89
+    },
+    {
+      "test": "E-PILOT niveau 28, graine 28",
+      "ms": 11.08
+    },
+    {
+      "test": "E-PILOT niveau 29, graine 28",
+      "ms": 17.19
+    },
+    {
+      "test": "E-PILOT niveau 30, graine 28",
+      "ms": 172.64
+    },
+    {
+      "test": "V02 derapage 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 1821.13
+    },
+    {
+      "test": "V02 traverse 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 70.46
+    },
+    {
+      "test": "V02 caisses 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 7.41
+    },
+    {
+      "test": "V02 alunir 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 237.46
+    },
+    {
+      "test": "V02 ferraille 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 321.67
+    },
+    {
+      "test": "V02 dedale 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 138.78
+    },
+    {
+      "test": "V02 essaim 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 194.27
+    },
+    {
+      "test": "V02 orbite 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 436.24
+    },
+    {
+      "test": "V02 empilo 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 49.35
+    },
+    {
+      "test": "V02 briqueterie 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 701.72
+    },
+    {
+      "test": "V02 bubble 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 149.18
+    },
+    {
+      "test": "V02 serpentin 2000 pas, évolution et redémarrages ordinaires",
+      "ms": 92.93
+    },
+    {
+      "test": "Total: 8402.76 ms; maximum",
+      "ms": 1821.13
+    }
+  ],
+  "thumbnailsBefore": [
+    {
+      "game": "derapage",
+      "kind": "thumbnail",
+      "msPerStep": 0.757435,
+      "msFor2000Steps": 1514.87
+    },
+    {
+      "game": "derapage",
+      "kind": "demo",
+      "msPerStep": 0.669153,
+      "msFor2000Steps": 1338.31
+    },
+    {
+      "game": "traverse",
+      "kind": "thumbnail",
+      "msPerStep": 0.036489,
+      "msFor2000Steps": 72.98
+    },
+    {
+      "game": "traverse",
+      "kind": "demo",
+      "msPerStep": 0.047931,
+      "msFor2000Steps": 95.86
+    },
+    {
+      "game": "caisses",
+      "kind": "thumbnail",
+      "msPerStep": 0.002853,
+      "msFor2000Steps": 5.71
+    },
+    {
+      "game": "caisses",
+      "kind": "demo",
+      "msPerStep": 0.002713,
+      "msFor2000Steps": 5.43
+    },
+    {
+      "game": "alunir",
+      "kind": "thumbnail",
+      "msPerStep": 0.100413,
+      "msFor2000Steps": 200.83
+    },
+    {
+      "game": "alunir",
+      "kind": "demo",
+      "msPerStep": 0.068633,
+      "msFor2000Steps": 137.27
+    },
+    {
+      "game": "ferraille",
+      "kind": "thumbnail",
+      "msPerStep": 0.164311,
+      "msFor2000Steps": 328.62
+    },
+    {
+      "game": "ferraille",
+      "kind": "demo",
+      "msPerStep": 0.080527,
+      "msFor2000Steps": 161.05
+    },
+    {
+      "game": "dedale",
+      "kind": "thumbnail",
+      "msPerStep": 0.06896,
+      "msFor2000Steps": 137.92
+    },
+    {
+      "game": "dedale",
+      "kind": "demo",
+      "msPerStep": 0.010868,
+      "msFor2000Steps": 21.74
+    },
+    {
+      "game": "essaim",
+      "kind": "thumbnail",
+      "msPerStep": 0.208713,
+      "msFor2000Steps": 417.43
+    },
+    {
+      "game": "essaim",
+      "kind": "demo",
+      "msPerStep": 0.184658,
+      "msFor2000Steps": 369.32
+    },
+    {
+      "game": "orbite",
+      "kind": "thumbnail",
+      "msPerStep": 0.441382,
+      "msFor2000Steps": 882.76
+    },
+    {
+      "game": "orbite",
+      "kind": "demo",
+      "msPerStep": 0.099243,
+      "msFor2000Steps": 198.49
+    },
+    {
+      "game": "empilo",
+      "kind": "thumbnail",
+      "msPerStep": 0.028276,
+      "msFor2000Steps": 56.55
+    },
+    {
+      "game": "empilo",
+      "kind": "demo",
+      "msPerStep": 0.015531,
+      "msFor2000Steps": 31.06
+    },
+    {
+      "game": "briqueterie",
+      "kind": "thumbnail",
+      "msPerStep": 0.121117,
+      "msFor2000Steps": 242.23
+    },
+    {
+      "game": "briqueterie",
+      "kind": "demo",
+      "msPerStep": 0.17707,
+      "msFor2000Steps": 354.14
+    },
+    {
+      "game": "bubble",
+      "kind": "thumbnail",
+      "msPerStep": 0.046623,
+      "msFor2000Steps": 93.25
+    },
+    {
+      "game": "bubble",
+      "kind": "demo",
+      "msPerStep": 0.043662,
+      "msFor2000Steps": 87.32
+    },
+    {
+      "game": "serpentin",
+      "kind": "thumbnail",
+      "msPerStep": 0.042007,
+      "msFor2000Steps": 84.01
+    },
+    {
+      "game": "serpentin",
+      "kind": "demo",
+      "msPerStep": 0.038457,
+      "msFor2000Steps": 76.91
+    }
+  ],
+  "thumbnailsAfter": [
+    {
+      "game": "derapage",
+      "kind": "thumbnail",
+      "msPerStep": 0.836656,
+      "msFor2000Steps": 1673.31
+    },
+    {
+      "game": "derapage",
+      "kind": "demo",
+      "msPerStep": 0.671099,
+      "msFor2000Steps": 1342.2
+    },
+    {
+      "game": "traverse",
+      "kind": "thumbnail",
+      "msPerStep": 0.070454,
+      "msFor2000Steps": 140.91
+    },
+    {
+      "game": "traverse",
+      "kind": "demo",
+      "msPerStep": 0.112062,
+      "msFor2000Steps": 224.12
+    },
+    {
+      "game": "caisses",
+      "kind": "thumbnail",
+      "msPerStep": 0.001144,
+      "msFor2000Steps": 2.29
+    },
+    {
+      "game": "caisses",
+      "kind": "demo",
+      "msPerStep": 0.000572,
+      "msFor2000Steps": 1.14
+    },
+    {
+      "game": "alunir",
+      "kind": "thumbnail",
+      "msPerStep": 0.108508,
+      "msFor2000Steps": 217.02
+    },
+    {
+      "game": "alunir",
+      "kind": "demo",
+      "msPerStep": 0.093733,
+      "msFor2000Steps": 187.47
+    },
+    {
+      "game": "ferraille",
+      "kind": "thumbnail",
+      "msPerStep": 0.12863,
+      "msFor2000Steps": 257.26
+    },
+    {
+      "game": "ferraille",
+      "kind": "demo",
+      "msPerStep": 0.068408,
+      "msFor2000Steps": 136.82
+    },
+    {
+      "game": "dedale",
+      "kind": "thumbnail",
+      "msPerStep": 0.090786,
+      "msFor2000Steps": 181.57
+    },
+    {
+      "game": "dedale",
+      "kind": "demo",
+      "msPerStep": 0.010428,
+      "msFor2000Steps": 20.86
+    },
+    {
+      "game": "essaim",
+      "kind": "thumbnail",
+      "msPerStep": 0.110531,
+      "msFor2000Steps": 221.06
+    },
+    {
+      "game": "essaim",
+      "kind": "demo",
+      "msPerStep": 0.084105,
+      "msFor2000Steps": 168.21
+    },
+    {
+      "game": "orbite",
+      "kind": "thumbnail",
+      "msPerStep": 0.129932,
+      "msFor2000Steps": 259.86
+    },
+    {
+      "game": "orbite",
+      "kind": "demo",
+      "msPerStep": 0.074134,
+      "msFor2000Steps": 148.27
+    },
+    {
+      "game": "empilo",
+      "kind": "thumbnail",
+      "msPerStep": 0.08432,
+      "msFor2000Steps": 168.64
+    },
+    {
+      "game": "empilo",
+      "kind": "demo",
+      "msPerStep": 0.009824,
+      "msFor2000Steps": 19.65
+    },
+    {
+      "game": "briqueterie",
+      "kind": "thumbnail",
+      "msPerStep": 0.150068,
+      "msFor2000Steps": 300.14
+    },
+    {
+      "game": "briqueterie",
+      "kind": "demo",
+      "msPerStep": 0.134737,
+      "msFor2000Steps": 269.47
+    },
+    {
+      "game": "bubble",
+      "kind": "thumbnail",
+      "msPerStep": 0.078143,
+      "msFor2000Steps": 156.29
+    },
+    {
+      "game": "bubble",
+      "kind": "demo",
+      "msPerStep": 0.017608,
+      "msFor2000Steps": 35.22
+    },
+    {
+      "game": "serpentin",
+      "kind": "thumbnail",
+      "msPerStep": 0.026624,
+      "msFor2000Steps": 53.25
+    },
+    {
+      "game": "serpentin",
+      "kind": "demo",
+      "msPerStep": 0.005772,
+      "msFor2000Steps": 11.54
+    }
+  ],
+  "validation": {
+    "lint": "passed",
+    "typecheck": "passed",
+    "build": "passed",
+    "validatorChecks": 98,
+    "mutationsDetected": 22,
+    "replayDriftDetectedAtFrame": 120
+  },
+  "files": [
+    "docs/essaim-validation.json",
+    "scripts/essaim-diversity.d.ts",
+    "scripts/essaim-diversity.js",
+    "scripts/measure-thumbnails.js",
+    "scripts/validate-essaim.js",
+    "src/engines/essaim/pilot.ts",
+    "tests/essaim-behavior.ts",
+    "tests/essaim-generated.ts",
+    "tests/essaim.test.ts",
+    "tests/thumbnails.test.ts",
+    "docs/essaim-pass56-performance.json",
+    "scripts/essaim-campaigns.js",
+    "scripts/measure-pass56.js",
+    "scripts/node-test-assertions.js",
+    "scripts/record-essaim.js",
+    "tests/essaim-recordings.ts",
+    "tests/essaim-replay.ts"
+  ]
+}

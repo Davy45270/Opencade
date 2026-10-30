@@ -23,21 +23,19 @@ test('V01 douze rendus déterministes sur contexte 2D', () => {
         expect(x.calls, game.id).toEqual(y.calls);
     }
 });
-test('V02 2000 pas, évolution et redémarrages ordinaires', () => {
-    for (const game of games) {
-        for (const status of ['won', 'lost']) {
-            const demo = game.demo(28);
-            demo.engine.status = status;
-            demo.step();
-            expect(demo.restarts, game.id).toBe(1);
-            expect(demo.engine.status, game.id).toBe('playing');
-        }
-        const thumbnail = game.thumbnail(28), initial = thumbnail.read();
-        thumbnail.step();
-        expect(thumbnail.read(), game.id).not.toEqual(initial);
-        for (let i = 1; i < 2000; i++) thumbnail.step();
-        expect(thumbnail.restarts, game.id).toBeGreaterThan(0);
+for (const game of games) test(`V02 ${game.id} 2000 pas, évolution et redémarrages ordinaires`, () => {
+    for (const status of ['won', 'lost']) {
+        const demo = game.demo(28);
+        demo.engine.status = status;
+        demo.step();
+        expect(demo.restarts, game.id).toBe(1);
+        expect(demo.engine.status, game.id).toBe('playing');
     }
+    const thumbnail = game.thumbnail(28), initial = thumbnail.read();
+    thumbnail.step();
+    expect(thumbnail.read(), game.id).not.toEqual(initial);
+    for (let i = 1; i < 2000; i++) thumbnail.step();
+    expect(thumbnail.restarts, game.id).toBeGreaterThan(0);
 });
 test('V03 horloge, intersection, arrière-plan, reduce et nettoyage', () => {
     const callbacks = new Map<number, (time: number) => void>();

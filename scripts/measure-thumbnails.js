@@ -22,7 +22,10 @@ for (const id of ids) {
     thumbnail.step(); assert.notDeepEqual(thumbnail.read(),initial);
     for(let i=1;i<2000;i++) thumbnail.step();
     assert.ok(thumbnail.restarts>0,id);
-    total+=performance.now()-started;
+    const caseTime = performance.now()-started;
+    console.log(`V02 ${id}: ${caseTime.toFixed(2)} ms`);
+    total+=caseTime;
 }
 console.log(`V02: ${total.toFixed(2)} ms`);
+// V02 is parameterized by game; this also retains the aggregate budget.
 assert.ok(total<5000,'V02 must finish in 5 seconds');

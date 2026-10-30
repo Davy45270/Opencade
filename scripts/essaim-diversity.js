@@ -7,21 +7,22 @@ export function essaimFeatures(engine) {
     if (s.shots.some(p => p.owner === 'player')) elements.add('shoot');
     for (const pickup of s.weapons) elements.add(`weapon:${pickup.kind}`);
     if (s.rescue) elements.add('rescue-present');
-    const layout = s.enemies.map(e => `${e.homeX},${e.homeY}:${e.type}`);
+    const layout = s.enemies.map(e => `${Math.round(e.homeX*1000000)/1000000},${Math.round(e.homeY*1000000)/1000000}:${e.type}`);
     return { elements: [...elements].sort(), layout, params: { layoutCells: layout.length } };
 }
 /** Full generated attempt, controlled exclusively through the public pilot inputs.
  * Witnesses require motion, collisions or emitted shots, rather than enemy labels. */
-export function observeEssaim(engine, limit = 18000) {
+export function observeEssaim(engine, limit = 18000, control = pilot, witnessFrames) {
     const elements = new Set(), witnesses = {}, layout = essaimFeatures(engine).layout;
     const see = (name, frame, evidence) => { elements.add(name); witnesses[name] ??= { frame, ...evidence }; };
     let frame = 0;
     for (; frame < limit && engine.status === 'playing'; frame++) {
+        if (witnessFrames && !witnessFrames.has(frame)) { control(engine, frame); engine.step(TICK); continue; }
         const s = engine.state;
         const enemies = new Map(s.enemies.map(e => [e.id, { ...e }]));
         const shots = new Set(s.shots), oldShots = s.shots.map(p => ({ ref: p, ...p }));
         const boss = s.boss ? { ...s.boss } : null;
-        pilot(engine, frame); engine.step(TICK);
+        control(engine, frame); engine.step(TICK);
         const fresh = s.shots.filter(p => !shots.has(p) && p.owner === 'enemy');
         for (const p of s.weapons) see(`weapon:${p.kind}`, frame, { remaining: p.remaining });
         if (engine.events.includes('fire')) see('shoot', frame, { fired: s.fired });

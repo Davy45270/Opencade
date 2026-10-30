@@ -1,9 +1,8 @@
 import { weaponBenchmark, weaponScenarios } from './essaim-weapons';
 import type { Weapon } from '../src/engines/essaim/levels';
 import { generatedBehaviors } from './essaim-generated';
-import { Engine, difficulty, TICK, type Enemy } from '../src/engines/essaim/engine';
+import { Engine, TICK, type Enemy } from '../src/engines/essaim/engine';
 import { pilot } from '../src/engines/essaim/pilot';
-import { essaimDiversity } from '../scripts/essaim-diversity.js';
 type EngineClass = typeof Engine;
 function check(condition: unknown, message: string): void { if (!condition) throw new Error(message); }
 function item<T>(value: T | undefined): T { if (value === undefined) throw new Error('Missing fixture item'); return value; }
@@ -14,15 +13,6 @@ function flat(E: EngineClass): Engine {
     return e;
 }
 function frames(e: Engine, n: number): void { for (let i = 0; i < n; i++) e.step(TICK); }
-export function diversity(E: EngineClass = Engine) {
-    const r = essaimDiversity(E, difficulty);
-    check(r.noveltyCount >= 8, 'E-DIV-01: eight generated novelties');
-    check(r.cloneShare < 0.25, 'E-DIV-01: clones below 25 percent');
-    let previous = 1;
-    for (const level of r.noveltyLevels.filter(n => n <= 25)) { check(level-previous <= 5, 'E-DIV-01: discovery gap'); previous = level; }
-    check(25-previous <= 5, 'E-DIV-01: discoveries through 25');
-    return r;
-}
 export function escortBenchmark(E: EngineClass = Engine) {
     const run = (bounce: boolean) => {
         const e = flat(E); e.state.enemies = [100, 145, 190].map((y,id) => ({ ...item(e.state.enemies[0]), id, x: 105, homeX: 105, y, homeY: y, type: 'shield', hp: 1 }));
@@ -130,11 +120,3 @@ export const behaviors: Record<string, (E: EngineClass) => void> = {
         a.loadState(legacy as typeof a.state); frames(a,1); check(a.state.weapons.length === 0 && Number.isFinite(a.state.heat), 'legacy defaults');
     },
 };
-export function campaign(E: EngineClass, seed: number) {
-    return Array.from({ length:30 }, (_,level) => {
-        const e = new E(level,seed); let frame = 0;
-        for (; frame < 18000 && e.status === 'playing'; frame++) { pilot(e,frame); e.step(TICK); }
-        check(e.status === 'won', `E-PILOT level ${String(level+1)} seed ${String(seed)}: ${e.status}`);
-        return { level: level+1, frames: frame, lives: e.state.lives, score: e.state.score };
-    });
-}

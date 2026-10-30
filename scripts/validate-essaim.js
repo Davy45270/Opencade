@@ -2,17 +2,25 @@
 import './ts-loader.js';
 import assert from 'node:assert/strict';
 import { readFileSync, writeFileSync } from 'node:fs';
+const { recordEssaim } = await import('./record-essaim.js');
+if (process.argv.includes('--record')) recordEssaim();
 import { mutationModule } from './mutation-module.js';
+const { recordings } = await import('../tests/essaim-recordings.ts');
+const { replay } = await import('../tests/essaim-replay.ts');
 const { Engine } = await import('../src/engines/essaim/engine.ts');
-const { behaviors, diversity, campaign, escortBenchmark } = await import('../tests/essaim-behavior.ts');
+const { behaviors: focusedBehaviors, escortBenchmark } = await import('../tests/essaim-behavior.ts');
+const { diversity, campaign, generatedWitnesses } = await import('./essaim-campaigns.js');
+const behaviors = { ...focusedBehaviors, 'E-GEN-03 diversity witnesses come from simulated behavior': generatedWitnesses };
 const { weaponBenchmark, weaponScenarios } = await import('../tests/essaim-weapons.ts');
 const checks = [];
 const check = (name, run) => { try { const result = run(); checks.push({ name, passed: true }); return result; } catch (error) { checks.push({ name, passed: false, error: String(error) }); } };
 for (const [name, run] of Object.entries(behaviors)) check(name, () => run(Engine));
+for (const record of recordings) check(`E-REPLAY ${record.level+1}/${record.seed}`, () => replay(record));
 const diversityResult = check('E-DIV-01', diversity);
 const pilot = [458,28].map(seed => ({ seed, levels: check(`E-PILOT ${seed}`, () => campaign(Engine,seed)) }));
 const source = readFileSync('src/engines/essaim/engine.ts','utf8'), mutations = [];
 for (const [name,before,after,test] of [
+    ['recorded inputs detect engine drift', 's.cooldown = 150;', 's.cooldown = 151;', E => replay(recordings.find(r => r.level === 1 && r.seed === 28), E)],
     ['overheat disabled', 'if (s.heat >= 100) s.overheated = true;', 'if (s.heat >= 100) s.overheated = false;', behaviors['E-WPN-01 overheat blocks until cooled']],
     ['zero bounces', 'bounces: 2', 'bounces: 0', behaviors['E-WPN-02 two side reflections']],
     ['no drone interception', "p.owner === 'enemy' && this.has('drones')", "p.owner === 'player' && this.has('drones')", behaviors['E-WPN-03 drones intercept swept projectile']],
