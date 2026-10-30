@@ -97,6 +97,9 @@ if (enabled) {
                 if (sessionStorage.getItem(confirmationKey)) {
                     sessionStorage.removeItem(confirmationKey);
                     report(`Version obtenue : ${label}`);
+                    // A confirmation only informs: it fades after a few seconds so it never hides the ☰ menu.
+                    const shown = message?.textContent;
+                    setTimeout(() => { if (notice && message?.textContent === shown && document.querySelector('#pwa-apply')?.hasAttribute('hidden')) notice.hidden = true; }, 4000);
                 }
             } catch { /* Confirmation is optional when storage is blocked. */ }
         },

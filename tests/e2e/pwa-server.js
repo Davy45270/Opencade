@@ -25,7 +25,9 @@ export async function startDeployment(root) {
             if (worker) await writeFile(resolve(root, 'sw.js'), worker);
         },
         async close() {
-            await new Promise((resolve, reject) => { server.close(error => { if (error) reject(error); else resolve(); }); server.closeAllConnections(); });
+            // A controlled page and its service worker may keep connections open: close them all and
+            // do not wait for the 'close' callback, which can outlive the test.
+            server.close(); server.closeAllConnections();
             await rm(root, { recursive: true, force: true });
         },
     };
