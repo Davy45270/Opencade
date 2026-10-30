@@ -47,9 +47,39 @@ export const mechanicCases: Record<string, (move?: typeof walk) => void> = {
         check(a.next.pos === 26 && a.visited.length === 6, 'slide through all frozen cells to wall');
         j.ice = [21, 22]; j.doors = [{ at: 24, color: 0 }]; check(move(maze, j, start(), 'right').next.pos === 23, 'slide ends at locked obstacle even beyond ice');
     },
+    'D-SLIDE-CONTACT contact intermédiaire actif et vulnérable': () => {
+        for (const vulnerable of [0, 5000]) {
+            const e = new Engine(18), j = fixture(); j.ice = [21, 22, 23, 24, 25, 26];
+            e.state.journey = j; e.state.maze = [...maze]; e.state.hero = { x: 1, y: 1, direction: 'right' };
+            e.state.seeds = [26, 64]; e.state.suns = []; e.state.grace = 0; e.state.vulnerable = vulnerable;
+            const w = { x: 4, y: 1, direction: 'up' as const, kind: 'tracker' as const, wait: 0, returning: false };
+            e.state.wisps = [w]; e.input('right'); e.step(1000 / 6);
+            check(e.state.lives === (vulnerable ? 3 : 2), 'intermediate contact costs one life');
+            check(e.events.includes(vulnerable ? 'wisp' : 'life'), 'intermediate contact event');
+            check(vulnerable ? w.returning : e.state.seeds.includes(26), 'eat wisp or stop slide immediately');
+        }
+    },
+    'D-DEATH inventaire et interrupteur persistent': () => {
+        const e = new Engine(27), j = fixture(); j.held = 3; j.toggled = 1; j.wispStart = 64; j.turn = 7; j.remaining = 20000;
+        e.state.journey = j; e.state.maze = [...maze]; e.state.hero = { x: 1, y: 1, direction: 'right' };
+        e.state.grace = 0; e.state.suns = []; e.state.seeds = [64];
+        e.state.wisps = [{ x: 2, y: 1, direction: 'up', kind: 'tracker', wait: 0, returning: false }];
+        e.input('right'); e.step(1000 / 6);
+        check(e.state.lives === 2 && e.events.includes('life'), 'real death required');
+        check(e.state.wisps.every(w => w.y * 19 + w.x === 64 && e.state.maze[w.y * 19 + w.x]), 'wisps respawn on generated floor');
+        check(j.held === 3 && j.toggled === 1 && j.turn === 8 && j.remaining === 20000, 'persistent inventory switch phase and clock');
+    },
+    'D-CLOCK niveaux et durées exactes': () => {
+        for (let level = 0; level < 30; level++) {
+            const e = new Engine(level);
+            check(e.state.journey?.remaining === ((level + 1) % 5 === 0 ? (level === 29 ? 40000 : 25000) : 0), 'exact challenge schedule and duration');
+        }
+    },
     'D-MEC-07 obscurité limite la vision': () => {
         const j = fixture(); j.dark = [20];
-        check(visible(j, 20, 23) && !visible(j, 20, 24), 'literal sight radius three');
+        check(visible(j, 20, 23) && !visible(j, 20, 24), 'literal horizontal sight radius three');
+        check(visible(j, 20, 77) && !visible(j, 20, 96), 'literal vertical sight radius three');
+        check(!visible(j, 20, 60), 'Manhattan radius on both axes');
         check(visible(j, 21, 26), 'full sight outside darkness');
         const e = new Engine(); e.state.journey = j; e.state.maze = maze; e.state.hero = { x: 1, y: 1, direction: 'right' }; j.dark = [21]; e.state.wisps = [];
         e.input('right'); e.step(1000 / 6); check(e.events.includes('darkness'), 'darkness entered in live engine');

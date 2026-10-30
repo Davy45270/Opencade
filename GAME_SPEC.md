@@ -1172,23 +1172,32 @@ Le pilote utilise uniquement déplacement et maintien/relâchement du tir, en ob
 
 ## Dédale
 
-Une luciole cherche quatre graines et quatre soleils dans trente labyrinthes
+Une luciole cherche des graines et quatre soleils dans trente labyrinthes
 19×23. La progression et les clés de sauvegarde communes restent compatibles.
 `loadState` accepte aussi les anciens états sans extension `journey` : ils
 conservent les déplacements et collisions historiques. Aucun tirage aléatoire
 n'intervient pendant un déplacement ; graines, niveau et entrées fixent la partie.
 
-### Formes et mécaniques (passe 57)
+### Formes et mécaniques (passe 58)
 
-Le PRNG reçoit `seed + 7919*level` modulo 2³². Cinq générateurs alternent :
-arbre à couloirs étroits, salles connectées avec alcôves, anneau elliptique avec
-rayons, spirale avec raccourci radial, arbre réfléchi sur son axe central.
-La partie supérieure porte ces formes ; une galerie inférieure connectée
-introduit les interactions avant la recherche du quatrième soleil, placé à graine
-dans la forme supérieure. Chaque objectif est sur une case ouverte. Les graines
-ne couvrent plus automatiquement toutes les cases : les huit objectifs gardent
-l'exploration lisible. La signature de diversité contient les vraies cases de sol
-et les cases typées des mécanismes, jamais le nom de la forme ou du niveau.
+Le PRNG reçoit `seed + 7919*level + placementSalts[level]` modulo 2³².
+Les sels de génération ont été sélectionnés par les rejeux complets du solveur,
+la séparation des parcours et la courbe de campagne ; ce ne sont pas des positions
+préfabriquées. Cinq générateurs alternent : arbre à couloirs étroits, salles
+connectées, cycle rectangulaire autour d'un centre fermé, spirale carrée et arbre
+réfléchi sur son axe vertical. La spirale a un rayon de Chebyshev non croissant
+vers son centre. Position, rotation et réflexion varient à graine.
+
+Aucune galerie commune : un chemin principal est extrait de chaque forme et
+porte les clés, portes, flèches, portails, interrupteurs, murs, glace et ombres.
+Le départ et les objectifs suivent ce chemin. Quatre soleils et des graines
+supplémentaires sur les interactions assurent leur visite ; les spirales sont
+parcourues jusqu'à l'intérieur. Les follets commencent sur le sol de la forme,
+à une position générée dans les spirales.
+La signature de diversité contient les positions ordonnées du rejeu et les
+positions typées des mécaniques observées, jamais le sol inutilisé ni l'étiquette
+de forme. D-ROUTE compare les 435 paires de solutions : LCS divisée par la longueur
+du parcours le plus court, seuil littéral de 30 %.
 
 Les règles suivantes se cumulent, avec des marqueurs et une instruction dans le HUD :
 
@@ -1199,7 +1208,8 @@ Les règles suivantes se cumulent, avec des marqueurs et une instruction dans le
 - Niveau 16 : mur fermé pendant deux échéances de déplacement, ouvert pendant deux ;
   les tentatives bloquées font aussi avancer le cycle, soit 2/3 s par cycle.
 - Niveau 19 : entrer sur la glace lance une glissade jusqu'au prochain obstacle,
-  même au-delà des cases gelées ; toutes les collectes intermédiaires comptent.
+  même au-delà des cases gelées ; chaque case intermédiaire évalue collectes et
+  contacts avec les follets. Un décès interrompt immédiatement la glisse.
 - Niveau 22 : dans les ombres, vision limitée à une distance Manhattan de trois cases.
   La scène utilise la fonction de visibilité du moteur pour masquer réellement le décor.
 - Niveau 25 : le rôdeur change de point de patrouille toutes les deux secondes ;
@@ -1228,7 +1238,7 @@ Graines : 10 points ; soleils : 50 points et vulnérabilité
 1,8 s de grâce au départ et après une collision. Collectes, clés, interrupteurs,
 phase cyclique et temps restant sont conservés après une vie perdue.
 Les phases dispersion/poursuite, les échanges de cases et la chaîne de follets
-200/400/800/1600 restent déterministes. Victoire après les huit collectes ;
+200/400/800/1600 restent déterministes. Victoire après toutes les collectes ;
 zéro vie ou temps épuisé entraîne la défaite. Les états terminaux sont gelés.
 
 ### Preuves et tests
@@ -1240,12 +1250,14 @@ Le parcours complet est ensuite exécuté avec les follets, collisions et minute
 ordinaires ; il s'agit d'une preuve par rejeu, pas d'un optimum global ni d'une
 preuve sur toutes les graines possibles. Le validateur gagne les trente niveaux
 sur les graines 28 et 459. Les trente enregistrements de la graine 28 sont dans
-`tests/dedale-solutions.ts`. Aucun BFS de campagne n'est exécuté en test Vitest.
+`tests/dedale-solutions.ts`. D-SOLVER appelle aussi réellement le BFS sur les niveaux 1/9/19/30 ; les
+rejeux complets restent séparés de cet échantillon rapide.
 
 `tests/dedale-mechanics.ts` partage les huit micro-grilles littérales D-MEC-01…08
 avec le validateur Node. D-SOLVE rejoue trente victoires avec un délai maximal de
 2 s. D-DIV-01 mesure les observations de ces parties sur le vrai générateur,
-exige au moins sept types nouveaux, aucun intervalle de plus de cinq niveaux
+exige au moins sept mécaniques nouvelles (clé/porte, interrupteur/grille et
+attente/passage du mur cyclique sont chacun regroupés), aucun intervalle de plus de cinq niveaux
 sans découverte jusqu'au 25 et moins de 25 % de clones. Un contrôle négatif
 remplace les trente niveaux par le premier et exige 100 % de clones et zéro
 nouveauté. Les anciens tests de déplacement, score, cibles, collisions,
@@ -1257,7 +1269,8 @@ rejette les six mutations demandées en mémoire et inscrit leurs fichiers/ligne
 dans `dedale-validation.json`. Commande de régénération :
 
 ```sh
-nice -n 19 ionice -c3 node scripts/validate-dedale.js --record
+node scripts/test-dedale.js
+node scripts/validate-dedale.js --record
 nice -n 19 ionice -c3 node scripts/diversity-report.js
 ```
 
@@ -1268,38 +1281,47 @@ Aucun navigateur ni Vitest n'est lancé pendant cette passe.
 
 ### Les trente parcours enregistrés
 
-| Niveau | Forme | Mécanique / rythme (cumulatif) | Coups, graine 28 |
+Mécaniques effectivement observées au rejeu, graine 28 : C = clé/porte, U = sens unique, P = portail, I = interrupteur/grille, M = mur cyclique, G = glisse, O = obscurité, R = patrouille, F = fuite. « Base » = déplacement, graines et soleils. Une mécanique présente mais non déclenchée ne figure pas dans ce tableau.
+
+| Niveau | Forme | Mécaniques jouées | Coups |
 | ---: | --- | --- | ---: |
-| 1 | Couloirs étroits | Déplacement et soleils | 67 |
-| 2 | Salles reliées | Déplacement et soleils | 54 |
-| 3 | Anneau | Déplacement et soleils | 57 |
-| 4 | Spirale | + clés / portes | 80 |
-| 5 | Miroir | + sens unique ; défi 25 s | 48 |
-| 6 | Couloirs étroits | Mécaniques acquises ; respiration | 54 |
-| 7 | Salles reliées | Mécaniques acquises | 50 |
-| 8 | Anneau | Mécaniques acquises | 41 |
-| 9 | Spirale | + portails | 53 |
-| 10 | Miroir | Mécaniques acquises ; défi 25 s | 38 |
-| 11 | Couloirs étroits | Mécaniques acquises ; respiration | 62 |
-| 12 | Salles reliées | Mécaniques acquises | 59 |
-| 13 | Anneau | + interrupteurs | 58 |
-| 14 | Spirale | Mécaniques acquises | 100 |
-| 15 | Miroir | Mécaniques acquises ; défi 25 s | 37 |
-| 16 | Couloirs étroits | + murs cycliques | 44 |
-| 17 | Salles reliées | Mécaniques acquises ; respiration | 54 |
-| 18 | Anneau | Mécaniques acquises | 52 |
-| 19 | Spirale | + glace | 102 |
-| 20 | Miroir | Mécaniques acquises ; défi 25 s | 61 |
-| 21 | Couloirs étroits | Mécaniques acquises | 38 |
-| 22 | Salles reliées | + zones sombres ; respiration | 47 |
-| 23 | Anneau | Mécaniques acquises | 54 |
-| 24 | Spirale | Mécaniques acquises | 104 |
-| 25 | Miroir | + patrouille / fuite ; défi 25 s | 53 |
-| 26 | Couloirs étroits | Mécaniques acquises | 47 |
-| 27 | Salles reliées | Mécaniques acquises ; respiration | 43 |
-| 28 | Anneau | + seconde couleur | 36 |
-| 29 | Spirale | Mécaniques acquises | 46 |
-| 30 | Miroir | Mécaniques acquises ; final complet, 40 s | 129 |
+| 1 | Couloirs | Base | 25 |
+| 2 | Salles | Base | 29 |
+| 3 | Anneau | Base | 33 |
+| 4 | Spirale | C | 24 |
+| 5 | Miroir | C, U | 41 |
+| 6 | Couloirs | C, U | 45 |
+| 7 | Salles | C, U | 49 |
+| 8 | Anneau | C, U | 47 |
+| 9 | Spirale | C, U, P | 40 |
+| 10 | Miroir | C, U, P | 44 |
+| 11 | Couloirs | C, U, P | 64 |
+| 12 | Salles | C, U, P | 67 |
+| 13 | Anneau | C, U, P, I | 49 |
+| 14 | Spirale | C, U, P, I | 59 |
+| 15 | Miroir | C, U, P, I | 53 |
+| 16 | Couloirs | C, U, P, I, M | 80 |
+| 17 | Salles | C, U, P, I, M | 75 |
+| 18 | Anneau | C, U, P, I, M | 62 |
+| 19 | Spirale | C, U, P, I, M, G | 80 |
+| 20 | Miroir | C, U, P, I, M | 57 |
+| 21 | Couloirs | C, U, P, I, M, G | 85 |
+| 22 | Salles | C, U, P, I, M, O | 93 |
+| 23 | Anneau | C, U, P, I, M, O | 62 |
+| 24 | Spirale | C, U, P, I, M, G, O | 107 |
+| 25 | Miroir | C, U, P, I, M, G, O, R, F | 51 |
+| 26 | Couloirs | C, U, P, I, M, G, O, R, F | 72 |
+| 27 | Salles | C, U, P, I, M, G, O | 98 |
+| 28 | Anneau | C, U, P, I, M, G, O, R, F | 106 |
+| 29 | Spirale | C, U, P, I, M, G, O, R, F | 80 |
+| 30 | Miroir | C, U, P, I, M, G, O, R, F | 104 |
+
+D-ROUTE : maximum 29,333… % (17/27). D-CURVE : moyennes par cinq niveaux
+30,4 / 45 / 58,4 / 70,8 / 79,6 / 92 coups ; rapport final/initial 3,026.
+Les tests Node partagés vérifient aussi les durées exactes des défis et leur
+absence ailleurs, la conservation des deux couleurs et de l'interrupteur après
+un décès réel, l'obscurité horizontale et verticale, les témoins du final recalculés,
+le solveur réel et la géométrie des anneaux, spirales et miroirs.
 
 ## Ferraille
 

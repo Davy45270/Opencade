@@ -4,84 +4,121 @@ export const SHAPES = ['corridors', 'rooms', 'ring', 'spiral', 'mirror'] as cons
 export type Shape = typeof SHAPES[number];
 export type Heading = 'up' | 'left' | 'down' | 'right';
 export interface Journey {
-    shape: Shape; keys: { at: number; color: number }[]; doors: { at: number; color: number }[];
+    start?: number; wispStart?: number; principal?: number[]; corridor?: number[]; shape: Shape; keys: { at: number; color: number }[]; doors: { at: number; color: number }[];
     arrows: { at: number; direction: Heading }[]; portals: [number, number][];
     switches: number[]; gates: number[]; moving: number[]; ice: number[]; dark: number[];
     held: number; toggled: number; turn: number; remaining: number;
 }
 export interface Walker { pos: number; held: number; toggled: number; phase: number; direction: Heading }
+function required<T>(value: T | undefined): T {
+    if (value === undefined) throw new RangeError('Case absente');
+    return value;
+}
 const width = 19;
+// Seed salts selected by full engine replays, route separation and campaign pacing.
+const placementSalts = [0, 0, 0, 733103, 0, 0, 0, 209458, 104729, 104729, 0, 0, 0, 209458, 209458, 523645, 104729, 104729, 733103, 104729, 733103, 1256748, 117087022, 1570935, 418916, 22097819, 1361477, 223491686, 77813647, 45242928];
 const offsets: Record<Heading, number> = { up: -19, left: -1, down: 19, right: 1 };
-export const gallery = [
-    ...Array.from({ length: 9 }, (_, i) => 17 * width + 9 - i),
-    ...Array.from({ length: 4 }, (_, i) => (18 + i) * width + 1),
-    ...Array.from({ length: 16 }, (_, i) => 21 * width + 2 + i),
-    ...Array.from({ length: 6 }, (_, i) => (20 - i) * width + 17),
-];
-const point = (i: number): number => { const p = gallery[i]; if (p === undefined) throw new RangeError('Case absente'); return p; };
+/** The principal corridor is also the placement frame: there is no common gallery. */
+export const labyrinthSeed = (level: number, seed: number): number => (seed + level * 7919 + (placementSalts[level] ?? 0)) >>> 0;
 export function createLabyrinth(level: number, seed: number): { maze: boolean[]; journey: Journey; seeds: number[]; suns: number[] } {
-    const random = new Random((seed + level * 7919) >>> 0), shape = SHAPES[level % 5] ?? 'corridors';
+    const random = new Random(labyrinthSeed(level, seed)), shape = SHAPES[level % 5] ?? 'corridors';
     const maze = Array<boolean>(437).fill(false);
     const open = (x: number, y: number): void => { maze[y * width + x] = true; };
-    if (shape === 'corridors' || shape === 'mirror') {
-        const stack: [number, number][] = [[1, 1]]; open(1, 1);
-        while (stack.length) {
-            const [x, y] = stack[stack.length - 1] ?? [1, 1];
-            const candidates: [number, number][] = [[x - 2, y], [x + 2, y], [x, y - 2], [x, y + 2]];
-            const options = candidates.filter(([a, b]) => a > 0 && a < 18 && b > 0 && b < 16 && !maze[b * width + a]);
-            if (!options.length) { stack.pop(); continue; }
-            const [a, b] = options[Math.floor(random.next() * options.length)] ?? [x, y];
-            open(a, b); open((x + a) / 2, (y + b) / 2); stack.push([a, b]);
-        }
-        if (shape === 'mirror') for (let y = 1; y <= 15; y++) for (let x = 1; x <= 9; x++) maze[y * width + 18 - x] = (maze[y * width + x] ?? false);
-        // Connect the reflected halves along the central axis.
-        if (shape === 'mirror') for (let y = 1; y <= 15; y++) open(9, y);
-    } else if (shape === 'rooms') {
-        for (let y = 1; y <= 15; y++) for (let x = 1; x <= 17; x++) if (y % 5 !== 0 && x % 6 !== 0) open(x, y);
-        for (let x = 1; x <= 17; x++) { open(x, 3); open(x, 8); open(x, 13); }
-        for (let y = 1; y <= 15; y++) { open(3, y); open(9, y); open(15, y); }
-        // Seeded alcoves change actual passages, not a signature label.
-        for (let y = 5; y <= 10; y += 5) open([2, 4, 7, 10, 13, 16][Math.floor(random.next() * 6)] ?? 2, y);
-    } else if (shape === 'ring') {
-        for (let y = 1; y <= 15; y++) for (let x = 1; x <= 17; x++) {
-            const r = ((x - 9) / 8) ** 2 + ((y - 8) / 7) ** 2;
-            if (r >= 0.35 && r <= 1.15) open(x, y);
-        }
-        for (let x = 9; x <= 17; x++) open(x, 8);
-        for (let y = 8; y <= 15; y++) { open(17, y); open(9, y); }
-        const spoke = 4 + Math.floor(random.next() * 4);
-        for (let x = 1; x <= 9; x++) open(x, spoke);
-    } else {
-        let x = 1, y = 1; open(x, y);
-        let left = 1, right = 17, top = 1, bottom = 15;
+    const shuffle = <T>(items: T[]): T[] => {
+        for (let i = items.length - 1; i > 0; i--) { const k = Math.floor(random.next() * (i + 1)); [items[i], items[k]] = [required(items[k]), required(items[i])]; }
+        return items;
+    };
+    let principal: number[] = [];
+    if (shape === 'ring') {
+        const left = 1 + Math.floor(random.next() * 5), right = 13 + Math.floor(random.next() * 5);
+        const top = 1 + Math.floor(random.next() * 6), bottom = 16 + Math.floor(random.next() * 6);
+        for (let x = left; x < right; x++) principal.push(top * width + x);
+        for (let y = top; y < bottom; y++) principal.push(y * width + right);
+        for (let x = right; x > left; x--) principal.push(bottom * width + x);
+        for (let y = bottom; y > top; y--) principal.push(y * width + left);
+        if (random.next() < 0.5) principal.reverse();
+        const cut = Math.floor(random.next() * principal.length);
+        principal = [...principal.slice(cut), ...principal.slice(0, cut)];
+        for (const at of principal) maze[at] = true;
+    } else if (shape === 'spiral') {
+        const radius = (level === 28 ? 6 : 3 + Math.floor(level / 5)), cx = 1 + radius + Math.floor(random.next() * (17 - 2 * radius));
+        const cy = 1 + radius + Math.floor(random.next() * (21 - 2 * radius));
+        let x = -radius, y = -radius, left = -radius, right = radius, top = -radius, bottom = radius;
+        const rotation = Math.floor(random.next() * 4), reflect = random.next() < 0.5;
+        const add = (): void => {
+            let a = reflect ? -x : x, b = y;
+            for (let r = 0; r < rotation; r++) [a, b] = [-b, a];
+            principal.push((cy + b) * width + cx + a);
+        };
+        add();
         while (left <= right && top <= bottom) {
-            while (x < right) open(++x, y);
-            while (y < bottom) open(x, ++y);
+            while (x < right) { x++; add(); }
+            while (y < bottom) { y++; add(); }
             left += 2; top += 2;
             if (left > right || top > bottom) break;
-            while (x > left) open(--x, y);
-            while (y > top) open(x, --y);
+            while (x > left) { x--; add(); }
+            while (y > top) { y--; add(); }
             right -= 2; bottom -= 2;
         }
-        // One seeded radial shortcut per spiral.
-        const y0 = 3 + 2 * Math.floor(random.next() * 5);
-        open(16, y0);
+        for (const at of principal) maze[at] = true;
+    } else {
+        const stack: [number, number][] = [[1, 1]]; open(1, 1);
+        while (stack.length) {
+            const [x, y] = required(stack[stack.length - 1]);
+            const options = shuffle<[number, number]>([[x - 2, y], [x + 2, y], [x, y - 2], [x, y + 2]]).filter(([a, b]) => a > 0 && a < 18 && b > 0 && b < 22 && !maze[b * width + a]);
+            if (!options.length) { stack.pop(); continue; }
+            const [a, b] = required(options[0]);
+            open(a, b); open((x + a) / 2, (y + b) / 2); stack.push([a, b]);
+        }
+        if (shape === 'rooms') {
+            for (let n = 0; n < 5; n++) {
+                const x = 1 + 2 * Math.floor(random.next() * 7), y = 1 + 2 * Math.floor(random.next() * 9);
+                for (let dy = 0; dy < 3; dy++) for (let dx = 0; dx < 3; dx++) open(x + dx, y + dy);
+            }
+        }
+        if (shape === 'mirror') {
+            for (let y = 1; y <= 21; y++) for (let x = 1; x <= 9; x++) maze[y * width + 18 - x] = (maze[y * width + x] ?? false);
+            for (let y = 1; y <= 21; y++) open(9, y);
+        }
+        // A seeded DFS path through this very topology, rather than an attached tutorial.
+        const root = required(shuffle(maze.flatMap((v, i) => v ? [i] : []))[0]);
+        const seen = new Set<number>(), path: number[] = [];
+        const visit = (at: number): void => {
+            seen.add(at); path.push(at);
+            if (path.length > principal.length) principal = [...path];
+            for (const d of shuffle([-19, -1, 19, 1])) {
+                const dest = at + d;
+                if (maze[dest] && !seen.has(dest)) visit(dest);
+            }
+            path.pop();
+        };
+        visit(root);
     }
-    for (const p of gallery) maze[p] = true;
-    // All shapes attach to the gallery at its only upper entrance.
-    for (let x = 1; x <= 17; x++) open(x, 15);
+    const corridor = [...principal];
+    const length = shape === 'spiral' ? principal.length : Math.min(principal.length, 26 + level * 4);
+    principal = principal.slice(0, length);
+    const point = (fraction: number): number => required(principal[Math.min(length - 1, Math.max(1, Math.floor(fraction * (length - 1))))]);
+    const arrowAt = principal.findIndex((at, i) => i >= 2 && i < length - 1 && at - required(principal[i - 1]) === required(principal[i + 1]) - at);
+    const direction = (a: number, b: number): Heading => b - a === -19 ? 'up' : b - a === 19 ? 'down' : b < a ? 'left' : 'right';
     const journey: Journey = {
-        shape, keys: level >= 3 ? [{ at: point(2), color: 0 }, ...(level >= 27 ? [{ at: point(14), color: 1 }] : [])] : [],
-        doors: level >= 3 ? [{ at: point(4), color: 0 }, ...(level >= 27 ? [{ at: point(18), color: 1 }] : [])] : [],
-        arrows: level >= 4 ? [{ at: point(6), direction: 'left' }] : [],
-        portals: level >= 8 ? [[point(10), point(12)]] : [],
-        switches: level >= 12 ? [point(15)] : [], gates: level >= 12 ? [point(17)] : [],
-        moving: level >= 15 ? [point(20)] : [], ice: level >= 18 ? gallery.slice(23, 26) : [], dark: level >= 21 ? gallery.slice(29, 34) : [],
+        shape, start: required(principal[0]), principal, corridor,
+        wispStart: shape === 'spiral' ? point(0.1 + random.next() * 0.85) : point(0.6),
+        keys: level >= 3 ? [{ at: point(0.08), color: 0 }, ...(level >= 27 ? [{ at: point(0.55), color: 1 }] : [])] : [],
+        doors: level >= 3 ? [{ at: point(0.16), color: 0 }, ...(level >= 27 ? [{ at: point(0.62), color: 1 }] : [])] : [],
+        arrows: level >= 4 ? [{ at: required(principal[arrowAt]), direction: direction(required(principal[arrowAt]), required(principal[arrowAt + 1])) }] : [],
+        portals: level >= 8 ? [[point(0.30), point(0.32)]] : [],
+        switches: level >= 12 ? [point(0.40)] : [], gates: level >= 12 ? [point(0.46)] : [],
+        moving: level >= 15 ? [point(0.69)] : [], ice: level >= 18 ? [point(0.76)] : [], dark: level >= 21 ? [point(0.86), point(0.87)] : [],
         held: 0, toggled: 0, turn: 0, remaining: (level + 1) % 5 === 0 ? (level === 29 ? 40000 : 25000) : 0,
     };
-    const upper = maze.flatMap((v, i) => v && i < 15 * width ? [i] : []);
-    const far = upper[Math.floor(random.next() * upper.length)] ?? 20;
-    return { maze, journey, suns: [point(1), point(14), point(28), far], seeds: [point(7), point(18), point(26), point(34)] };
+    // Goals on both sides of every interaction make the route playable evidence.
+    const goals = new Set([point(0.05), point(0.25), point(0.52), point(1),
+        ...journey.keys.map(v => v.at), ...journey.doors.map(v => v.at), ...journey.arrows.map(v => v.at),
+        ...journey.switches, ...journey.gates, ...journey.moving, ...journey.ice, ...journey.dark,
+        ...(journey.portals.length ? [point(0.34)] : [])]);
+    const suns = [point(0.05), point(0.25), point(0.52), point(1)];
+    for (const at of [point(0.12), point(0.36), point(0.65), point(0.92)]) goals.add(at);
+    return { maze, journey, suns, seeds: [...goals].filter(at => !suns.includes(at)) };
 }
 export function walk(maze: readonly boolean[], j: Journey, from: Walker, requested: Heading): { next: Walker; visited: number[]; events: string[] } {
     const next = { ...from, phase: (from.phase + 1) % 4 }, visited: number[] = [], events: string[] = [];

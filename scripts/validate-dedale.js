@@ -45,6 +45,10 @@ if (process.argv.includes('--record')) writeFileSync('tests/dedale-solutions.ts'
 writeFileSync('dedale-validation.json', JSON.stringify({ replayMs, records }, null, 2) + '\n');
 console.log(`D-SOLVE: ${records.length} victories; replay ${replayMs.toFixed(1)} ms`);
 console.log(records.filter(r => r.seed === 28).map(r => `${r.level} ${r.shape} ${r.inputs.length} moves ${r.lives} lives: ${Object.keys(r.witnesses).join(', ')}`).join('\n'));
+const { campaignCases } = await import('../tests/dedale-campaign.ts');
+for (const [id, run] of Object.entries(campaignCases)) {
+    const start = performance.now(); run(); assert.ok(performance.now() - start < 2000, id + ' under 2 s');
+}
 const { dedaleDiversity } = await import('./dedale-diversity.js');
 const diversity = dedaleDiversity(Engine, records.filter(r => r.seed === 28));
 function verifyDiversity(result) {

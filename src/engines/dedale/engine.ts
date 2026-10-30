@@ -1,5 +1,5 @@
 import { Random } from '../shared/random';
-import { createLabyrinth, walk, type Journey } from './labyrinth';
+import { createLabyrinth, labyrinthSeed, walk, type Journey } from './labyrinth';
 export { visible } from './labyrinth';
 export const WIDTH = 19, HEIGHT = 23, TICK = 1000 / 60;
 export type Direction = 'up' | 'left' | 'down' | 'right';
@@ -41,9 +41,10 @@ export function generate(level: number, random: Random): boolean[] {
     difficulty(level); return createLabyrinth(level, Math.floor(random.next() * 1000000)).maze;
 }
 const corners: readonly Cell[] = [{ x: 1, y: 1 }, { x: 17, y: 1 }, { x: 17, y: 21 }, { x: 1, y: 21 }];
+const home = (s: State): Cell => cell(s.journey?.wispStart ?? index(HOME));
 const distance = (a: Cell, b: Cell): number => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
 export function target(s: State, w: Wisp): Cell {
-    if (w.returning) return HOME;
+    if (w.returning) return home(s);
     const corner = corners[['tracker', 'seer', 'roamer', 'shy'].indexOf(w.kind)] ?? HOME;
     if (s.journey && w.kind === 'roamer') return (corners[Math.floor(s.ticks / 120) % 4] ?? HOME);
     if (s.journey && w.kind === 'shy') return s.hero;
@@ -53,18 +54,27 @@ export function target(s: State, w: Wisp): Cell {
     if (w.kind === 'roamer') return Math.floor(s.ticks * TICK / 4000) % 2 ? corner : s.hero;
     return distance(w, s.hero) < 36 ? corner : s.hero;
 }
+// Static floor distances are shared by returning wisps; gates affect only the hero.
+const returnFields = new WeakMap<boolean[], { origin: number; distances: Map<number, number> }>();
+function returnDistances(s: State): Map<number, number> {
+    const origin = home(s), originIndex = index(origin), cached = returnFields.get(s.maze);
+    if (cached?.origin === originIndex) return cached.distances;
+    const distances = new Map([[originIndex, 0]]), queue = [origin];
+    for (let i = 0; i < queue.length; i++) {
+        const c = queue[i]; if (!c) continue;
+        for (const d of PRIORITY) {
+            const p = neighbor(s.maze, c, d);
+            if (p && !distances.has(index(p))) { distances.set(index(p), (distances.get(index(c)) ?? 0) + 1); queue.push(p); }
+        }
+    }
+    returnFields.set(s.maze, { origin: originIndex, distances });
+    return distances;
+}
 export function choose(s: State, w: Wisp): Direction | undefined {
     let candidates = PRIORITY.filter(d => d !== opposite[w.direction] && neighbor(s.maze, w, d));
     if (!candidates.length && s.journey) candidates = PRIORITY.filter(d => neighbor(s.maze, w, d));
     const aim = target(s, w), flee = !w.returning && (s.vulnerable > 0 || (!!s.journey && w.kind === 'shy' && distance(w, s.hero) < 36));
-    const distances = new Map<number, number>();
-    if (w.returning) {
-        const queue = [HOME]; distances.set(index(HOME), 0);
-        for (let i = 0; i < queue.length; i++) {
-            const c = queue[i]; if (!c) continue;
-            for (const d of PRIORITY) { const p = neighbor(s.maze, c, d); if (p && !distances.has(index(p))) { distances.set(index(p), (distances.get(index(c)) ?? 0) + 1); queue.push(p); } }
-        }
-    }
+    const distances = w.returning ? returnDistances(s) : new Map<number, number>();
     return candidates.sort((a, b) => {
         const pa = neighbor(s.maze, w, a), pb = neighbor(s.maze, w, b);
         if (w.returning && pa && pb) return (distances.get(index(pa)) ?? Infinity) - (distances.get(index(pb)) ?? Infinity);
@@ -77,9 +87,10 @@ export class Engine {
     private remainder = 0; private random = new Random(459);
     constructor(level = 0, seed = 459) { this.loadLevel(level, seed); }
     loadLevel(level: number, seed = 459): void {
-        const d = difficulty(level); this.level = level; this.seed = seed; this.random = new Random((seed + level * 7919) >>> 0); this.remainder = 0; this.status = 'playing'; this.events = [];
+        const d = difficulty(level); this.level = level; this.seed = seed; this.random = new Random(labyrinthSeed(level, seed)); this.remainder = 0; this.status = 'playing'; this.events = [];
         const { maze, journey, seeds, suns } = createLabyrinth(level, seed);
-        this.state = { journey, maze, suns, seeds, hero: { ...START, direction: 'left' }, requested: 'left', wisps: wisps().filter(w => (level >= 24 && ![5, 10, 16, 21, 26].includes(level)) || w.kind === 'tracker'), score: 0, lives: 3, ticks: 0, heroClock: 0, wispClock: 0, vulnerable: 0, chain: 0, mode: 'scatter', phase: 0, modeTime: 0, schedule: Array.from({ length: 8 }, (_, i) => i % 2 ? d.chaseMs + Math.floor(this.random.next() * 1000) : 8000 + Math.floor(this.random.next() * 1000)), grace: 1800 };
+        this.state = { journey, maze, suns, seeds, hero: { ...cell(journey.start ?? index(START)), direction: 'left' }, requested: 'left', wisps: wisps().filter(w => (level >= 24 && ![5, 10, 16, 21, 26].includes(level)) || w.kind === 'tracker'), score: 0, lives: 3, ticks: 0, heroClock: 0, wispClock: 0, vulnerable: 0, chain: 0, mode: 'scatter', phase: 0, modeTime: 0, schedule: Array.from({ length: 8 }, (_, i) => i % 2 ? d.chaseMs + Math.floor(this.random.next() * 1000) : 8000 + Math.floor(this.random.next() * 1000)), grace: 1800 };
+        for (const w of this.state.wisps) Object.assign(w, cell(journey.wispStart ?? index(HOME)));
     }
     loadState(state: State): void { this.state = structuredClone(state); this.remainder = 0; this.status = 'playing'; this.events = []; }
     input(d: Direction): void { this.state.requested = d; }
@@ -97,7 +108,7 @@ export class Engine {
             else if (s.grace <= 0) {
                 s.lives--; this.events.push('life');
                 if (!s.lives) this.status = 'lost';
-                s.hero = { ...START, direction: 'left' }; s.requested = 'left'; s.wisps = wisps().filter(w => !s.journey || (this.level >= 24 && ![5, 10, 16, 21, 26].includes(this.level)) || w.kind === 'tracker'); s.heroClock = s.wispClock = 0; s.grace = 1800; s.vulnerable = s.chain = 0; s.mode = 'scatter'; s.phase = 0; s.modeTime = 0; return true;
+                s.hero = { ...cell(s.journey?.start ?? index(START)), direction: 'left' }; s.requested = 'left'; s.wisps = wisps().filter(w => !s.journey || (this.level >= 24 && ![5, 10, 16, 21, 26].includes(this.level)) || w.kind === 'tracker'); for (const actor of s.wisps) Object.assign(actor, home(s)); s.heroClock = s.wispClock = 0; s.grace = 1800; s.vulnerable = s.chain = 0; s.mode = 'scatter'; s.phase = 0; s.modeTime = 0; return true;
             }
         } return false;
     }
@@ -118,8 +129,14 @@ export class Engine {
             if (s.journey) {
                 const j = s.journey;
                 const result = walk(s.maze, j, { pos: index(s.hero), direction: s.hero.direction, held: j.held, toggled: j.toggled, phase: j.turn % 4 }, s.requested);
-                j.turn++; j.held = result.next.held; j.toggled = result.next.toggled;
-                for (const at of result.visited) { Object.assign(s.hero, cell(at)); this.collect(); }
+                j.turn++;
+                for (const at of result.visited) {
+                    Object.assign(s.hero, cell(at));
+                    for (const key of j.keys) if (key.at === at) j.held |= 1 << key.color;
+                    if (j.switches.includes(at)) j.toggled = 1 - j.toggled;
+                    this.collect();
+                    if (this.collision()) return;
+                }
                 s.hero.direction = result.next.direction; this.events.push(...result.events);
                 if (result.visited.length) this.events.push('move');
                 if (j.remaining > 0) { j.remaining = Math.max(0, j.remaining - 1000 / 6); if (!j.remaining && this.status === 'playing') { this.status = 'lost'; this.events.push('timeout'); } }
@@ -136,7 +153,7 @@ export class Engine {
             s.wispClock -= 1000 / (6 * d.wispRatio);
             for (const w of s.wisps) {
                 if (w.wait > 0) continue;
-                if (w.returning && index(w) === index(HOME)) { w.returning = false; w.wait = 2000; continue; }
+                if (w.returning && index(w) === index(home(s))) { w.returning = false; w.wait = 2000; continue; }
                 const direction = choose(s, w);
                 if (direction) { const next = neighbor(s.maze, w, direction); if (next) { Object.assign(w, next); w.direction = direction; if (s.journey) this.events.push(w.kind === 'roamer' ? 'patrol' : w.kind === 'shy' && (s.vulnerable > 0 || distance(w, s.hero) < 36) ? 'light-flee' : 'pursuit'); } }
             }
