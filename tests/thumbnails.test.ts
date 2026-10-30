@@ -4,13 +4,19 @@ import { games } from '../src/games/registry';
 import { startThumbnail, type ThumbnailPorts } from '../src/shell/thumbnails';
 import type { Thumbnail } from '../src/games/thumbnail';
 
+// Shared prototype method: two recordings of the same drawing compare equal (no per-call closures).
+class RecordedGradient {
+    declare private readonly calls: unknown[];
+    constructor(calls: unknown[]) { Object.defineProperty(this, 'calls', { value: calls, enumerable: false }); }
+    addColorStop(...stop: unknown[]): void { this.calls.push(['addColorStop', ...stop]); }
+}
 function recording() {
     const calls: unknown[] = [];
     const context = new Proxy({}, {
         get: (_target, key) => (...args: unknown[]) => {
             calls.push([key, ...args]);
             // Gradient factories return a recordable gradient, like a real 2D context.
-            if (typeof key === 'string' && key.startsWith('create') && key.endsWith('Gradient')) return { addColorStop: (...stop: unknown[]) => { calls.push(['addColorStop', ...stop]); } };
+            if (typeof key === 'string' && key.startsWith('create') && key.endsWith('Gradient')) return new RecordedGradient(calls);
             return undefined;
         },
         set: (_target, key, value: unknown) => { calls.push([key, value]); return true; },
