@@ -81,7 +81,7 @@ export const mechanics: { name: string; run: (check: Check) => void }[] = [
         check(fast.jumpMs > 380, 'durée selon vitesse');
     } },
     { name: 'Z35 rail urbain : rebond, confinement et perte', run(check) {
-        for (const level of [0,1,20,21,23]) {
+        for (const level of [4,1,20,21,23]) {
             const t = createTrack(level); t.trees = []; t.boosts = [];
             const p = at(t, 20), n = nearest(t,p), half = required(t.widths[n.index])/2;
             const k = kart(); Object.assign(k, { x: p.x+n.nx*(half+1.7), y: p.y+n.ny*(half+1.7), angle: Math.atan2(n.ny,n.nx), vx: n.nx*24, vy:n.ny*24 });

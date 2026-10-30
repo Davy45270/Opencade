@@ -1,3 +1,4 @@
+import { circuitKey, legacyCircuits } from '../engines/derapage/circuits';
 export interface StoragePort { getItem(key: string): string | null; setItem(key: string, value: string): void }
 export interface Save { unlocked: number; best: number; circuitRecords?: Record<string, number> }
 export const SAVE_KEY = 'arcade-lab:bubble:v1';
@@ -27,7 +28,11 @@ export function readSave(storage?: StoragePort, id = 'bubble', count = 10): Save
                 const circuitRecords: Record<string, number> = {};
                 if (typeof records === 'object' && records !== null)
                     for (const [key, time] of Object.entries(records))
-                        if (/^(?:[0-9]|[12][0-9])$/.test(key) && typeof time === 'number' && Number.isFinite(time) && time > 0) circuitRecords[key] = time;
+                        if ((id === 'derapage' || /^(?:[0-9]|[12][0-9])$/.test(key)) && typeof time === 'number' && Number.isFinite(time) && time > 0) {
+                            const name = id === 'derapage' && /^(?:[0-9]|[12][0-9])$/.test(key) ? legacyCircuits[Number(key)]?.name : key;
+                            if (name && (id !== 'derapage' || legacyCircuits.some(c => c.name === name)))
+                                circuitRecords[name] = Math.min(circuitRecords[name] ?? Infinity, time);
+                        }
                 return records === undefined ? { unlocked, best } : { unlocked, best, circuitRecords };
             }
         }
@@ -41,9 +46,9 @@ export function writeSave(storage: StoragePort | undefined, save: Save, id = 'bu
 /** Returns true only for a strictly improved, valid lap; persists at the crossing. */
 export function recordCircuitLap(storage: StoragePort | undefined, save: Save, circuit: number, ms: number): boolean {
     if (!Number.isInteger(circuit) || circuit < 0 || circuit > 29 || !Number.isFinite(ms) || ms <= 0) return false;
-    const previous = save.circuitRecords?.[String(circuit)];
+    const previous = save.circuitRecords?.[circuitKey(circuit)];
     if (previous !== undefined && ms >= previous) return false;
-    save.circuitRecords = { ...save.circuitRecords, [String(circuit)]: ms };
+    save.circuitRecords = { ...save.circuitRecords, [circuitKey(circuit)]: ms };
     writeSave(storage, save, 'derapage');
     return true;
 }

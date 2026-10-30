@@ -20,7 +20,7 @@ const themes = [
 function circuit(name: string, family: string, cup: number, controls: Circuit['controls'], extra: Partial<Circuit> = {}): Circuit {
     return { name, family, theme: required(themes[cup]), controls, plaza: false, tunnel: [], port: [], elevation: [], gates: [], snow: [], berms: [], jumps: [], ...extra };
 }
-export const circuits: readonly Circuit[] = [
+export const legacyCircuits: readonly Circuit[] = [
     circuit('Le Rocher', 'urbain', 0, [[-70,-50,20],[0,-55,21],[65,-45,20],[78,-5,20],[15,4,21],[50,45,20],[40,65,21],[-25,55,20],[-70,70,21],[-85,25,20],[-40,5,20]], { tunnel: [1,2], port: [0,1], elevation: [0,0,2,4,5,3,1,0] }),
     circuit('Autour des Invalides', 'urbain', 0, [[-80,-40,20],[-15,-40,21],[0,-65,21],[35,-60,20],[45,-25,21],[85,-15,20],[75,45,20],[20,55,21],[0,30,21],[-55,55,20],[-85,20,20]], { plaza: true }),
     circuit('Les Docks clairs', 'urbain', 0, [[-80,-70,20],[70,-70,20],[100,-20,21],[25,-10,20],[20,30,21],[85,50,20],[65,90,21],[-75,70,20],[-50,0,21]]),
@@ -52,3 +52,13 @@ export const circuits: readonly Circuit[] = [
     circuit('La Descente en ruban', 'slalom', 7, [[-70,-90,20],[-20,-50,21],[-65,-10,20],[-15,30,21],[-60,70,20],[-15,110,21],[60,120,20],[100,75,21],[100,-75,20],[-20,-140,21]], { gates: [8,16,24,32,40,48], snow: Array.from({ length: 96 }, (_, i) => i), elevation: [10,9,8,7,6,4,0,0,5,10] }),
     circuit('Le Petit guidon', 'bmx', 7, [[-70,-50,20],[-20,-25,21],[25,-55,20],[70,-25,21],[35,10,20],[65,50,21],[10,60,20],[-20,20,21],[-65,50,20],[-85,5,21]], { berms: [12,13,14,30,31,32,48,49,50,68,69,70], jumps: [5,15,61], elevation: [8,0,0,0,0,0,0,0,0,0] }),
 ];
+
+/** Names are persistent record identities; the historical array never changes order. */
+export const circuits: readonly Circuit[] = legacyCircuits.map((c, i) => {
+    if (i === 0) {
+        const easy = required(legacyCircuits[4]);
+        return { ...easy, controls: easy.controls.map(([x, y]) => [x, y, 28] as const) };
+    }
+    return i === 4 ? required(legacyCircuits[0]) : c;
+});
+export const circuitKey = (level: number): string => required(circuits[level]).name;

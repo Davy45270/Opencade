@@ -14,6 +14,7 @@ test('Z08 Z09 podium, défaite, progression, commandes réelles et HUD séparé'
             await page.keyboard.down('ArrowRight'); await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(1500)); await page.keyboard.up('ArrowRight');
         }
     };
+    await page.addInitScript(() => { localStorage.setItem('arcade-lab:derapage:controls:v1', JSON.stringify({ camera: 'rotating', assist: true })); });
     await page.goto('/?test=1#/derapage');
     await expect.poll(() => page.evaluate(() => Boolean(window.__ARCADE_TEST__?.games.derapage))).toBe(true);
     await activate('#resume'); await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(0));
@@ -43,6 +44,7 @@ test('Z08 Z09 podium, défaite, progression, commandes réelles et HUD séparé'
     await page.screenshot({ path: `test-results/screenshots/derapage-level30-${info.project.name}.png` });
 });
 test('Z02 Z03 maintien tactile ou clavier et absence de crochet en production', async ({ page }, info) => {
+    await page.addInitScript(() => { localStorage.setItem('arcade-lab:derapage:controls:v1', JSON.stringify({ camera: 'rotating', assist: true })); });
     await page.goto('/?test=1#/derapage');
     if (info.project.name === 'mobile-chromium') await page.locator('#resume').tap(); else await page.locator('#resume').click();
     await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(2000));
@@ -66,6 +68,7 @@ test('Z02 Z03 maintien tactile ou clavier et absence de crochet en production', 
 
 test('Z25 commandes analogiques mobiles, tailles et captures', async ({ page }, info) => {
     test.skip(info.project.name !== 'mobile-chromium');
+    await page.addInitScript(() => { localStorage.setItem('arcade-lab:derapage:controls:v1', JSON.stringify({ camera: 'rotating', assist: true })); });
     await page.goto('/?test=1#/derapage'); await page.locator('#resume').tap();
     await page.evaluate(() => { window.__DERAPAGE_TEST__?.loadLevel(14, 28); window.__DERAPAGE_TEST__?.advance(2000); });
     const canvas = await page.locator('canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
@@ -93,12 +96,13 @@ test('Z25 commandes analogiques mobiles, tailles et captures', async ({ page }, 
 });
 
 test('Z26 Z27 vues entières et arrivée visible', async ({ page }, info) => {
+    await page.addInitScript(() => { localStorage.setItem('arcade-lab:derapage:controls:v1', JSON.stringify({ camera: 'rotating', assist: true })); });
     await page.goto('/?test=1#/derapage');
     if (info.project.name === 'mobile-chromium') await page.locator('#resume').tap();
     else await page.locator('#resume').click();
     for (const [level, name] of [
         [0,'circuit-01'],[7,'circuit-08'],[14,'circuit-15'],[21,'circuit-22'],[29,'circuit-30'],
-        [0,'le-rocher'],[1,'invalides'],[16,'ardennes'],[28,'slalom'],[29,'bmx'],
+        [4,'le-rocher'],[1,'invalides'],[16,'ardennes'],[28,'slalom'],[29,'bmx'],
     ] as const) {
         await page.evaluate(i => { const hook=window.__DERAPAGE_TEST__; hook?.loadLevel(i,28); hook?.overview(true); },level);
         const track=await page.evaluate(()=>window.__DERAPAGE_TEST__?.read().track);
@@ -109,6 +113,7 @@ test('Z26 Z27 vues entières et arrivée visible', async ({ page }, info) => {
 
 test('Z28 Z29 chronos mobiles réservés, franchissement piloté et record persistant', async ({ page }, info) => {
     test.skip(info.project.name !== 'mobile-chromium');
+    await page.addInitScript(() => { localStorage.setItem('arcade-lab:derapage:controls:v1', JSON.stringify({ camera: 'rotating', assist: true })); });
     await page.goto('/?test=1#/derapage'); await page.locator('#resume').tap();
     await page.evaluate(() => { window.__DERAPAGE_TEST__?.loadLevel(0, 28); window.__DERAPAGE_TEST__?.advance(1000); });
     const hud = page.locator('[data-derapage-hud]');
@@ -131,18 +136,19 @@ test('Z28 Z29 chronos mobiles réservés, franchissement piloté et record persi
     await expect(hud).toContainText('Nouveau record !');
     const record = await page.evaluate(() => {
         const raw = localStorage.getItem('arcade-lab:derapage:v1');
-        return (JSON.parse(raw ?? '{}') as { circuitRecords?: Record<string, number> }).circuitRecords?.['0'];
+        return (JSON.parse(raw ?? '{}') as { circuitRecords?: Record<string, number> }).circuitRecords?.['La Flèche des prés'];
     });
     expect(record).toBeGreaterThan(0);
     await page.reload(); await page.locator('#resume').tap();
     expect(await page.evaluate(() => {
         const raw = localStorage.getItem('arcade-lab:derapage:v1');
-        return (JSON.parse(raw ?? '{}') as { circuitRecords?: Record<string, number> }).circuitRecords?.['0'];
+        return (JSON.parse(raw ?? '{}') as { circuitRecords?: Record<string, number> }).circuitRecords?.['La Flèche des prés'];
     })).toBe(record);
 });
 
 
 test('Z30 Z34 porte et saut en vue de jeu', async ({ page }, info) => {
+    await page.addInitScript(() => { localStorage.setItem('arcade-lab:derapage:controls:v1', JSON.stringify({ camera: 'rotating', assist: true })); });
     await page.goto('/?test=1#/derapage');
     if (info.project.name === 'mobile-chromium') await page.locator('#resume').tap();
     else await page.locator('#resume').click();
@@ -155,5 +161,53 @@ test('Z30 Z34 porte et saut en vue de jeu', async ({ page }, info) => {
         if (scenario === 'bmx-jump') expect(state?.karts[0]?.jumpHeight).toBeGreaterThan(0);
         else expect(state?.track.slalom.length).toBe(6);
         await page.screenshot({ path: `test-results/screenshots/derapage-${name}-${info.project.name}.png` });
+    }
+});
+
+test('Z37 mobile : joystick nord en haut, indicateurs et préférence caméra', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium');
+    await page.goto('/?test=1#/derapage'); await page.locator('#resume').tap();
+    await page.locator('#game-menu-toggle').tap();
+    await expect(page.locator('#derapage-assist')).toHaveText('Aide : oui');
+    await page.locator('#derapage-assist').tap(); await page.locator('#game-menu-toggle').tap();
+    const canvas = await page.locator('canvas').boundingBox();
+    if (!canvas) throw new Error('Canevas absent');
+    const x = canvas.x + canvas.width * .75, y = canvas.y + canvas.height * .55;
+    const cdp = await page.context().newCDPSession(page);
+    for (const [dx, dy, target] of [[0, -40, -Math.PI / 2], [-40, 0, Math.PI], [40, 0, 0]] as const) {
+        await page.evaluate(() => { window.__DERAPAGE_TEST__?.loadLevel(0, 28); });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + dx, y: y + dy, id: 1 }] });
+        await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(1200));
+        const state = await page.evaluate(() => window.__DERAPAGE_TEST__?.read());
+        expect(state?.controls.mode).toBe('joystick');
+        expect(state?.controls.heading).toBe(target);
+        const angle = state?.karts[0]?.angle;
+        if (angle === undefined) throw new Error('Kart absent');
+        expect(Math.abs(Math.atan2(Math.sin(angle - target), Math.cos(angle - target)))).toBeLessThan(.2);
+        await page.screenshot({ path: `test-results/screenshots/derapage-joystick-${String(dx)}-${String(dy)}.png` });
+        const before = angle;
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(100));
+        expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().karts[0]?.angle)).toBe(before);
+    }
+    await cdp.detach();
+    await page.locator('#game-menu-toggle').tap();
+    await expect(page.locator('#derapage-camera')).toHaveText('Caméra : fixe');
+    await page.locator('#derapage-camera').tap();
+    await expect(page.locator('#derapage-camera')).toHaveText('Caméra : tournante');
+    await page.reload(); await page.locator('#resume').tap(); await page.locator('#game-menu-toggle').tap();
+    await expect(page.locator('#derapage-camera')).toHaveText('Caméra : tournante');
+});
+
+test('Z37 clavier : directions absolues et diagonales en caméra fixe', async ({ page }) => {
+    await page.goto('/?test=1#/derapage'); await page.locator('#resume').click();
+    for (const [keys, target] of [
+        [['ArrowUp'], -Math.PI / 2], [['ArrowLeft'], Math.PI], [['ArrowRight'], 0], [['ArrowDown'], Math.PI / 2], [['ArrowUp', 'ArrowRight'], -Math.PI / 4],
+    ] as const) {
+        for (const key of keys) await page.keyboard.down(key);
+        await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(0));
+        expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().controls.heading)).toBe(target);
+        for (const key of keys) await page.keyboard.up(key);
     }
 });

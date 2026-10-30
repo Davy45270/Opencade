@@ -1,3 +1,4 @@
+import { circuitKey } from '../src/engines/derapage/circuits';
 import { readSave, recordCircuitLap, type StoragePort } from '../src/shell/storage';
 import { required } from '../src/engines/derapage/access';
 import { test, expect } from 'vitest';
@@ -194,9 +195,9 @@ function pilot(level: number, ai = false) {
     }
     return { grass: grass / frame, laps: k.lap, seconds: frame / 60, error: error / frame };
 }
-test('Z11 IA : erreurs et temps mesurés entre niveaux extrêmes, cinq rivaux', () => {
+test('Z11 IA : erreurs et temps entre Le Rocher et le dernier niveau, cinq rivaux', () => {
     expect(new Engine().karts.slice(1)).toHaveLength(5);
-    const easy = pilot(0, true), hard = pilot(29, true);
+    const easy = pilot(4, true), hard = pilot(29, true);
     expect(easy.laps).toBe(3);
     expect(hard.laps).toBe(3);
     expect(hard.error).toBeLessThan(easy.error / 2);
@@ -444,12 +445,12 @@ test('Z29 records stricts par circuit, ancienne sauvegarde et stockage défailla
     expect(writes).toBe(1);
     expect(recordCircuitLap(storage, save, 1, 4000)).toBe(true);
     expect(recordCircuitLap(storage, save, 0, 1500)).toBe(true);
-    expect(readSave(storage, 'derapage', 30)).toEqual({ unlocked: 7, best: 42, circuitRecords: { 0: 1500, 1: 4000 } });
+    expect(readSave(storage, 'derapage', 30)).toEqual({ unlocked: 7, best: 42, circuitRecords: { [circuitKey(0)]: 1500, [circuitKey(1)]: 4000 } });
     const broken: StoragePort = { getItem: () => { throw new Error('read'); }, setItem: () => { throw new Error('write'); } };
     const fallback = readSave(broken, 'derapage', 30);
     expect(fallback).toEqual({ unlocked: 1, best: 0 });
     expect(() => recordCircuitLap(broken, fallback, 2, 1234)).not.toThrow();
-    expect(fallback.circuitRecords).toEqual({ 2: 1234 });
+    expect(fallback.circuitRecords).toEqual({ [circuitKey(2)]: 1234 });
 });
 
 // Shared scenarios also run through the permitted Node validator.
@@ -469,3 +470,12 @@ test('Z15 slalom et BMX : snapshot identique à chaque pas', () => {
 
 import { exactNearest } from './derapage-nearest';
 test('Z15 nearest exact : téléportations, égalités et pistes éditées', exactNearest);
+
+import { recordings } from './derapage-recordings';
+import { replayHuman, joystickCases } from './derapage-joystick';
+for (const tape of recordings) test(`Z36 humain bruité : ${tape.name}`, () => {
+    replayHuman(tape, (ok, message) => { expect(ok, message).toBe(true); });
+}, 2000);
+for (const scenario of joystickCases) test(scenario.name, () => {
+    scenario.run((ok, message) => { expect(ok, message).toBe(true); });
+}, 2000);

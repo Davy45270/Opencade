@@ -48,7 +48,7 @@ partie en pause.
 | **Alunir** | Poser doucement un module lunaire en dosant rotation, poussée et carburant, entre relief et rafales. | Haut/W : poussée ; Gauche/Droite ou A/D : rotation ; toucher : maintenir les boutons de rotation et Poussée. |
 | **Caisses** | Pousser une à six caisses sur leurs cibles, avec annulation illimitée et records prouvés par solveur. | Flèches ou Q/S/D et Maj+Z : déplacer ; Z/Retour arrière : annuler ; R : recommencer ; toucher : glisser ou croix, bouton Annuler. |
 | **Traverse** | Rejoindre les abris entre trafic routier, rondins mobiles et flotteurs plongeants. | Flèches ou ZQSD : un pas ; clic souris ou tap : monter ; glisser ou croix : un pas. |
-| **Dérapage** | Piloter un kart, charger les dérapages et viser le podium en sept coupes originales. | Gauche/Droite : braquer ; Espace/Maj : dérapage ; X/Ctrl : bonus ; toucher : glisser dans la moitié gauche pour braquer (zone morte 6 px, maximum à 60 px), relâcher pour centrer ; maintenir Dérapage (88 px), toucher Bonus (56 px) au-dessus ; inclinaison et souris en option. |
+| **Dérapage** | Piloter un kart, charger les dérapages et viser le podium en sept coupes originales. | Flèches : direction absolue et diagonales ; Espace/Maj : dérapage ; X/Ctrl : bonus ; toucher : poser le joystick 360° partout sur la vue de piste (zone morte 10 px), pointer où aller, relâcher pour garder le cap ; Dérapage 88 px et Bonus 56 px ; caméra tournante et braquage relatif disponibles dans ☰. |
 
 Dérapage propose 30 tracés dessinés à la main, des thèmes par coupe, un damier sur toute la largeur et une preuve de diversité géométrique.
 
@@ -181,3 +181,5 @@ Briqueterie (passe 61) : campagnes enregistrées gagnantes sur les graines 455 e
 Orbite (passe 64) : régénérer/vérifier les 60 victoires par commandes normales avec
 `nice -n 19 ionice -c3 taskset -c 0,1 node scripts/validate-orbite.js`
 (`--record` pour régénérer). Chaque test rejoue un enregistrement court ; les campagnes longues restent dans Node.
+
+Dérapage (passe 67) propose par défaut un joystick au nord fixe avec cap visible, aide légère désactivable, rails sans collage et premier circuit large ; les records migrent par nom de circuit.

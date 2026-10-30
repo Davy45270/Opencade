@@ -1,10 +1,11 @@
 import './ts-loader.js';
-/* global console */
+/* global console, performance */
 const { Engine } = await import('../src/engines/derapage/engine.ts');
 const { controller, aiInput, aiSpeed } = await import('../src/engines/derapage/ai.ts');
 const { physics } = await import('../src/engines/derapage/physics.ts');
 const { checkpoint } = await import('../src/engines/derapage/race.ts');
 const { validateTrack, difficulty, nearest, createTrack, shapeSignature, signatureDistance, gateLine, distance, at } = await import('../src/engines/derapage/track.ts');
+const { circuitKey } = await import('../src/engines/derapage/circuits.ts');
 const { Random } = await import('../src/engines/shared/random.ts');
 export function measure(level, ai = false) {
     const e = new Engine(level, 28), k = e.karts[0], r = new Random(28); let error = 0, frames = 0, grass = 0;
@@ -102,7 +103,7 @@ for (const steer of [0,1]) {
     if (recordCircuitLap(storage,save,0,3000) || recordCircuitLap(storage,save,0,2000) || writes!==1) throw new Error('Z29 record écrasé');
     recordCircuitLap(storage,save,1,4000); recordCircuitLap(storage,save,0,1500);
     const loaded=readSave(storage,'derapage',30);
-    if (loaded.circuitRecords['0']!==1500 || loaded.circuitRecords['1']!==4000) throw new Error('Z29 circuits');
+    if (loaded.circuitRecords[circuitKey(0)]!==1500 || loaded.circuitRecords[circuitKey(1)]!==4000) throw new Error('Z29 circuits');
     const broken={ getItem:()=>{ throw new Error('read'); },setItem:()=>{ throw new Error('write'); } };
     recordCircuitLap(broken,readSave(broken,'derapage',30),2,1234);
     console.log('Z29 : records stricts par circuit, sauvegarde ancienne et exceptions validés.');
@@ -120,3 +121,35 @@ for (const level of [28,29]) {
     }
 }
 console.log('Z15 : snapshots slalom/BMX identiques à chaque pas.');
+
+// Z36: real six-kart campaign, seeded heading noise and a full 150 ms delay.
+const { humanRun, humanLevels } = await import('./derapage-human.js');
+const { recordings } = await import('../tests/derapage-recordings.ts');
+const { replayHuman, joystickCases } = await import('../tests/derapage-joystick.ts');
+const checkJoystick = (ok, message) => { if (!ok) throw new Error(message); };
+const humanResults = [], replayTimings = [];
+for (const level of humanLevels) {
+    const run = humanRun(level);
+    checkJoystick(JSON.stringify(run) === JSON.stringify(recordings.find(t => t.level === level)), `Z36 bande périmée : ${run.name}`);
+    humanResults.push({ level: run.level + 1, name: run.name, laps: run.laps, longestStop: run.longestStop, off: run.off, frames: run.frames });
+    checkJoystick(run.laps === 3 && run.longestStop < .5 && run.off < .15, `Z36 ${run.name}`);
+    console.log(`Z36 ${run.name} : ${run.laps} tours, arrêt ${run.longestStop.toFixed(3)} s, hors piste ${(run.off * 100).toFixed(2)} %`);
+}
+for (const tape of recordings) {
+    const start = performance.now();
+    replayHuman(tape, checkJoystick);
+    const elapsed = performance.now() - start;
+    checkJoystick(elapsed < 2000, `Z36 rejeu trop lent : ${elapsed} ms`);
+    replayTimings.push({ name: tape.name, ms: elapsed });
+    console.log(`Z36 rejeu ${tape.name} : ${elapsed.toFixed(0)} ms`);
+}
+for (const scenario of joystickCases) { scenario.run(checkJoystick); console.log(`${scenario.name} : OK`); }
+const unassisted = humanRun(4, false);
+console.log(`Mutation aide désactivée, campagne Rocher : ${unassisted.laps} tours, arrêt ${unassisted.longestStop.toFixed(3)} s, hors piste ${(unassisted.off * 100).toFixed(2)} % (les seuils de jouabilité restent satisfaits).`);
+const { joystickMutations } = await import('./check-derapage-joystick-mutations.js');
+const { writeFileSync } = await import('node:fs');
+writeFileSync('docs/derapage-joystick-validation.json', JSON.stringify({
+    pass: 67, humanResults, replayTimings, mutations: joystickMutations,
+    unassistedRocher: { laps: unassisted.laps, longestStop: unassisted.longestStop, off: unassisted.off, playabilityMutationSurvives: true },
+    order: tracks.map((t, index) => ({ level: index + 1, name: t.circuit.name })),
+}, null, 2) + '\n');

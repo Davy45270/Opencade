@@ -1,5 +1,5 @@
 import { required } from './access';
-import { nearest, type Track, type Vec } from './track';
+import { at, nearest, wrap, type Track, type Vec } from './track';
 export type Item = 'turbo' | 'ressort' | 'flaque' | 'bulle';
 export interface Kart extends Vec {
     id: number;
@@ -32,6 +32,9 @@ export interface Kart extends Vec {
 }
 export interface Input {
     steer: number;
+    mode?: 'joystick';
+    heading?: number;
+    assist?: boolean;
     drift: boolean;
     bonus: boolean;
 }
@@ -39,6 +42,19 @@ export interface Input {
 export function analogSteer(delta: number): number {
     if (Math.abs(delta) <= 6) return 0;
     return Math.sign(delta) * Math.min(1, Math.max(0, Math.abs(delta) - 6) / 54);
+}
+/** Screen axes equal world axes in the north-up view. */
+export function joystickHeading(dx: number, dy: number): number | undefined {
+    return Math.hypot(dx, dy) <= 10 ? undefined : Math.atan2(dy, dx);
+}
+/** Assistance only acts outside the road or when the projected motion threatens a rail. */
+export function assistedHeading(k: Kart, t: Track, heading: number): number {
+    const n = nearest(t, k), speed = Math.hypot(k.vx, k.vy);
+    const ahead = nearest(t, { x: k.x + Math.cos(heading) * speed * .6, y: k.y + Math.sin(heading) * speed * .6 });
+    if (n.distance <= required(t.widths[n.index]) / 2 && !(t.walls[ahead.index] && ahead.distance > required(t.widths[ahead.index]) / 2 - 1)) return heading;
+    const target = at(t, n.along + 12);
+    const error = wrap(Math.atan2(target.y - k.y, target.x - k.x) - heading);
+    return heading + Math.max(-.3, Math.min(.3, error * .25));
 }
 export const jumpDuration = (speed: number): number => 220 + speed * 6;
 export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: number, targetSpeed = 24): void {
@@ -56,7 +72,12 @@ export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: 
             k.boostMs = k.driftMs >= 1400 ? 1400 : 700;
         k.driftMs = 0;
     }
-    k.angle += (airborne ? 0 : steer) * 2.4 * Math.min(1, speed / 10) * (drifting ? 1.22 : 1) * dt;
+    if (input.mode === 'joystick' && input.heading !== undefined && Number.isFinite(input.heading) && !airborne) {
+        const heading = input.assist ? assistedHeading(k, t, input.heading) : input.heading;
+        const error = wrap(heading - k.angle);
+        k.angle += Math.max(-3.2, Math.min(3.2, error * 5)) * dt;
+    }
+    k.angle += (input.mode === 'joystick' ? 0 : airborne ? 0 : steer) * 2.4 * Math.min(1, speed / 10) * (drifting ? 1.22 : 1) * dt;
     const c = Math.cos(k.angle), s = Math.sin(k.angle), forward = k.vx * c + k.vy * s, lateral = -k.vx * s + k.vy * c;
     const enteringBump = bump && !k.bumpActive;
     if (enteringBump && !airborne) {
@@ -142,22 +163,23 @@ export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: 
 /** Resolve the continuous boundary after motion or kart separation. */
 export function resolveRail(k: Kart, t: Track): void {
     const edge = nearest(t, k);
-    if (edge.distance > required(t.widths[edge.index]) / 2 + (t.circuit.theme.urban ? 1.8 : 3) && t.walls[edge.index]) {
-        const n = edge;
-        const sign = (k.x - n.x) * n.nx + (k.y - n.y) * n.ny > 0 ? 1 : -1;
-        const nx = n.nx * sign, ny = n.ny * sign, v = k.vx * nx + k.vy * ny;
-        k.x = n.x + nx * (required(t.widths[n.index]) / 2 + (t.circuit.theme.urban ? 1.79 : 2));
-        k.y = n.y + ny * (required(t.widths[n.index]) / 2 + (t.circuit.theme.urban ? 1.79 : 2));
-        if (v > 0) {
-            k.railHitMs = 180;
-            k.vx -= 1.7 * v * nx;
-            k.vy -= 1.7 * v * ny;
-            if (k.shield)
-                k.shield = false;
-            else
-                k.hits++;
-        }
-    }
+    if (edge.distance <= required(t.widths[edge.index]) / 2 + (t.circuit.theme.urban ? 1.8 : 3) || !t.walls[edge.index]) return;
+    const sign = (k.x - edge.x) * edge.nx + (k.y - edge.y) * edge.ny > 0 ? 1 : -1;
+    const nx = edge.nx * sign, ny = edge.ny * sign;
+    // Put the kart inside the road, then give it an inward tangent velocity.
+    const half = required(t.widths[edge.index]) / 2 - 1.2;
+    k.x = edge.x + nx * half;
+    k.y = edge.y + ny * half;
+    const tx = edge.ny, ty = -edge.nx;
+    const direction = Math.cos(k.angle) * tx + Math.sin(k.angle) * ty >= 0 ? 1 : -1;
+    const speed = Math.max(8, Math.min(20, Math.hypot(k.vx, k.vy) * .7));
+    const angle = Math.atan2(ty * direction - ny * .3, tx * direction - nx * .3);
+    k.angle = angle;
+    k.vx = Math.cos(angle) * speed;
+    k.vy = Math.sin(angle) * speed;
+    k.railHitMs = 180;
+    if (k.shield) k.shield = false;
+    else k.hits++;
 }
 export function collide(a: Kart, b: Kart): void {
     const dx = b.x - a.x, dy = b.y - a.y, dist = Math.hypot(dx, dy);

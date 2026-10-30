@@ -45,7 +45,7 @@ while pausing play.
 | **Alunir** | Land a lunar module gently while managing rotation, thrust and fuel over rough terrain and gusts. | Up/W: thrust; Left/Right or A/D: rotate; touch: hold the rotation and Thrust buttons. |
 | **Caisses** | Push one to six crates onto targets, with unlimited undo and solver-proven records to beat. | Arrows or Q/S/D and Shift+Z: move; Z/Backspace: undo; R: restart; touch: swipe or direction pad, Undo button. |
 | **Traverse** | Reach shelters across traffic, moving logs and diving floats. | Arrows or ZQSD: step; mouse click or touch tap: up; swipe or direction pad: step. |
-| **Dérapage** | Steer a kart, charge drifts and race for the podium across seven original cups. | Left/Right: steer; Space/Shift: drift; X/Ctrl: bonus; touch: drag anywhere in the left half to steer (6 px dead zone, full lock at 60 px), release to center; hold the 88 px Drift button, tap the 56 px Bonus above it; optional tilt and mouse steering. |
+| **Dérapage** | Steer a kart, charge drifts and race for the podium across seven original cups. | Arrows: absolute direction, including diagonals; Space/Shift: drift; X/Ctrl: bonus; touch: place a 360° joystick anywhere on the road view (10 px dead zone), point where to go, release to hold heading; Drift 88 px and Bonus 56 px; rotating camera and relative steering remain in ☰. |
 
 Dérapage now has 30 hand-drawn layouts with cup themes, a full-width finish checker and geometry-based diversity checks.
 
@@ -174,3 +174,5 @@ Briqueterie (pass 61): recorded winning campaigns on seeds 455 and 28; browser-f
 Orbite (pass 64): regenerate/check the 60 ordinary-input victories with
 `nice -n 19 ionice -c3 taskset -c 0,1 node scripts/validate-orbite.js`
 (`--record` to regenerate). Each unit test replays one short recording; long campaigns run only in Node.
+
+Dérapage (pass 67) defaults to a north-up thumb joystick with visible heading, optional light assistance, non-sticky rails and a wide introductory circuit; records migrate by circuit name.

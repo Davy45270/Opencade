@@ -1,12 +1,13 @@
 import { required } from '../../engines/derapage/access';
 import Phaser from 'phaser';
 import { Engine, LEVELS } from '../../engines/derapage/engine';
-import { analogSteer } from '../../engines/derapage/physics';
+import { analogSteer, joystickHeading } from '../../engines/derapage/physics';
+import { circuitKey } from '../../engines/derapage/circuits';
 import { nearest, at } from '../../engines/derapage/track';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
 import { Progression } from '../../shell/progression';
-import { browserStorage, readSave, writeSave, recordCircuitLap } from '../../shell/storage';
+import { browserStorage, readSave, writeSave, recordCircuitLap, readValue, writeValue } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
@@ -65,7 +66,13 @@ export class DerapageScene extends Phaser.Scene {
     private hud?: HTMLElement;
     private held = new Set<string>();
     private pointer = 0;
-    private thumb: { id: number; x: number } | null = null;
+    private thumb: { id: number; x: number; y: number; dx: number; dy: number } | null = null;
+    private cameraFixed = true;
+    private assistance = true;
+    private heading: number | undefined;
+    private persistControls(): void {
+        writeValue(browserStorage(), 'arcade-lab:derapage:controls:v1', JSON.stringify({ camera: this.cameraFixed ? 'fixed' : 'rotating', assist: this.assistance }));
+    }
     private tilt = 0;
     private tiltEnabled = false;
     private mouseEnabled = false;
@@ -80,7 +87,7 @@ export class DerapageScene extends Phaser.Scene {
         renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.score, this.progress.total, this.selecting);
         if (this.engine.status !== 'playing') {
             const scores = document.querySelector('#result-scores'), s = this.engine.snapshot();
-            if (scores) scores.textContent = `Temps total ${formatTime(s.timing.raceMs)} · Meilleur tour ${formatTime(s.timing.bestLapMs)} · Record du circuit ${formatTime(this.progress.save.circuitRecords?.[String(this.engine.level)] ?? null)} · Classement ${s.order.map((id, i) => `${String(i + 1)}. Kart ${String(id + 1)}`).join(' · ')}`;
+            if (scores) scores.textContent = `Temps total ${formatTime(s.timing.raceMs)} · Meilleur tour ${formatTime(s.timing.bestLapMs)} · Record du circuit ${formatTime(this.progress.save.circuitRecords?.[circuitKey(this.engine.level)] ?? null)} · Classement ${s.order.map((id, i) => `${String(i + 1)}. Kart ${String(id + 1)}`).join(' · ')}`;
         }
     }
     private start(i: number, seed?: number, fresh = false): void {
@@ -90,6 +97,7 @@ export class DerapageScene extends Phaser.Scene {
         this.held.clear();
         this.pointer = 0;
         this.thumb = null;
+        this.heading = undefined;
         this.pendingBonus = false;
         this.traces = [];
         this.progress.start(i, fresh);
@@ -99,6 +107,24 @@ export class DerapageScene extends Phaser.Scene {
     }
     create(): void {
         document.body.classList.add('derapage');
+        try {
+            const saved = JSON.parse(readValue(browserStorage(), 'arcade-lab:derapage:controls:v1') ?? 'null') as { camera?: string; assist?: boolean } | null;
+            this.cameraFixed = saved?.camera !== 'rotating';
+            this.assistance = saved?.assist !== false;
+        } catch { /* Use the accessible default for invalid preferences. */ }
+        for (const kind of ['camera', 'assist'] as const) {
+            const button = document.createElement('button');
+            button.id = `derapage-${kind}`;
+            const refresh = (): void => { button.textContent = kind === 'camera' ? `Caméra : ${this.cameraFixed ? 'fixe' : 'tournante'}` : `Aide : ${this.assistance ? 'oui' : 'non'}`; };
+            refresh(); document.querySelector('#game-menu')?.append(button);
+            this.inputs.on(button, 'click', () => {
+                if (kind === 'camera') this.cameraFixed = !this.cameraFixed;
+                else this.assistance = !this.assistance;
+                this.thumb = null; this.heading = undefined; this.pointer = 0;
+                this.persistControls(); refresh(); this.draw();
+            });
+            this.inputs.cleanup(() => { button.remove(); });
+        }
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
@@ -120,7 +146,7 @@ export class DerapageScene extends Phaser.Scene {
         };
         renderTouchControls(this.inputs, derapageButtons, (id, held) => { action(id.replace('derapage-', ''), held); });
         const indicator = document.createElement('output'); indicator.id = 'derapage-steering'; indicator.setAttribute('aria-label', 'Braquage'); document.querySelector('#touch-controls .left')?.append(indicator); this.inputs.cleanup(() => { indicator.remove(); });
-        const keys: Record<string, string> = { ArrowLeft: 'left', ArrowRight: 'right', Space: 'drift', ShiftLeft: 'drift', ShiftRight: 'drift', KeyX: 'bonus', ControlLeft: 'bonus', ControlRight: 'bonus' };
+        const keys: Record<string, string> = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', Space: 'drift', ShiftLeft: 'drift', ShiftRight: 'drift', KeyX: 'bonus', ControlLeft: 'bonus', ControlRight: 'bonus' };
         for (const type of ['keydown', 'keyup'])
             this.inputs.on(document, type, event => { const e = event as KeyboardEvent; const id = keys[e.code]; if (id) {
                 e.preventDefault();
@@ -129,24 +155,25 @@ export class DerapageScene extends Phaser.Scene {
         this.inputs.on(window, 'blur', () => { this.held.clear(); this.pointer = 0; this.thumb = null; });
         const area = document.querySelector<HTMLElement>('#game');
         if (area) {
-            this.inputs.on(area, 'pointerdown', event => { const e = event as PointerEvent; if (e.pointerType !== 'mouse' && !this.thumb && e.clientX < area.getBoundingClientRect().left + area.clientWidth / 2 && !(e.target as HTMLElement).closest('button')) {
+            this.inputs.on(area, 'pointerdown', event => { const e = event as PointerEvent; if (e.pointerType !== 'mouse' && !this.thumb && e.target === this.game.canvas && (!this.cameraFixed || (e.clientY - this.game.canvas.getBoundingClientRect().top) * 640 / this.game.canvas.getBoundingClientRect().height >= 96)) {
+                e.preventDefault();
                 area.setPointerCapture(e.pointerId);
-                this.thumb = { id: e.pointerId, x: e.clientX };
+                this.thumb = { id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, dy: 0 };
                 this.pointer = 0;
                 action('steering', true);
             } });
-            this.inputs.on(area, 'pointermove', event => { const e = event as PointerEvent; if (e.pointerId === this.thumb?.id) this.pointer = analogSteer(e.clientX - this.thumb.x); if (e.pointerType === 'mouse' && this.mouseEnabled) {
+            this.inputs.on(area, 'pointermove', event => { const e = event as PointerEvent; if (e.pointerId === this.thumb?.id) { this.thumb.dx = e.clientX - this.thumb.x; this.thumb.dy = e.clientY - this.thumb.y; this.pointer = analogSteer(this.thumb.dx); } if (e.pointerType === 'mouse' && this.mouseEnabled) {
                 const r = area.getBoundingClientRect();
                 this.pointer = Math.max(-1, Math.min(1, 2 * (e.clientX - r.left) / r.width - 1));
             } });
-            for (const type of ['pointerup', 'pointercancel', 'lostpointercapture', 'pointerleave'])
-                this.inputs.on(area, type, event => { if ((event as PointerEvent).pointerType === 'mouse') this.pointer = 0; if ((event as PointerEvent).pointerId === this.thumb?.id) { this.thumb = null; this.pointer = 0; this.engine.input({ steer: 0, drift: this.held.has('drift'), bonus: false }); } });
+            for (const type of ['pointerup', 'pointercancel', 'lostpointercapture'])
+                this.inputs.on(area, type, event => { if ((event as PointerEvent).pointerType === 'mouse') this.pointer = 0; if ((event as PointerEvent).pointerId === this.thumb?.id) { this.thumb = null; this.pointer = 0; this.heading = undefined; this.engine.input({ steer: 0, mode: this.cameraFixed ? 'joystick' : undefined, drift: this.held.has('drift'), bonus: false }); } });
         }
         // Optional sensors are enabled by an explicit user gesture; failures are silent.
         const help = document.querySelector('#game-help');
         for (const [label, run] of [
-            ['Inclinaison', () => { void this.enableTilt(); }],
-            ['Souris', () => { this.mouseEnabled = !this.mouseEnabled; }],
+            ['Inclinaison (tournante)', () => { void this.enableTilt(); }],
+            ['Souris (tournante)', () => { this.mouseEnabled = !this.mouseEnabled; }],
         ] as const) {
             const b = document.createElement('button');
             b.textContent = label;
@@ -231,7 +258,10 @@ export class DerapageScene extends Phaser.Scene {
         if (this.selecting || this.session.paused) { this.held.clear(); this.pointer = 0; this.thumb = null; this.pendingBonus = false; }
         if (!this.selecting && !this.session.paused) {
             const k = required(this.engine.karts[0]), hits = k.hits, boost = k.boostMs;
-            this.engine.input({ steer: Number(this.held.has('right')) - Number(this.held.has('left')) + this.pointer + (this.tiltEnabled ? this.tilt : 0), drift: this.held.has('drift'), bonus: this.pendingBonus });
+            const dx = Number(this.held.has('right')) - Number(this.held.has('left'));
+            const dy = Number(this.held.has('down')) - Number(this.held.has('up'));
+            this.heading = dx || dy ? Math.atan2(dy, dx) : this.thumb ? joystickHeading(this.thumb.dx, this.thumb.dy) : undefined;
+            this.engine.input({ mode: this.cameraFixed ? 'joystick' : undefined, heading: this.heading, assist: this.assistance, steer: Number(this.held.has('right')) - Number(this.held.has('left')) + this.pointer + (this.tiltEnabled ? this.tilt : 0), drift: this.held.has('drift'), bonus: this.pendingBonus });
             this.pendingBonus = false;
             this.engine.step(ms);
             if (k.hits > hits) {
@@ -267,12 +297,12 @@ export class DerapageScene extends Phaser.Scene {
         const g = this.graphics;
         if (!g)
             return;
-        const e = this.engine.snapshot(), p = required(e.karts[0]), t = e.track, angle = -p.angle - Math.PI / 2;
+        const e = this.engine.snapshot(), p = required(e.karts[0]), t = e.track, angle = this.cameraFixed ? 0 : -p.angle - Math.PI / 2;
         const xs = t.points.map(q=>q.x), ys = t.points.map(q=>q.y);
         const cx = (Math.min(...xs)+Math.max(...xs))/2, cy = (Math.min(...ys)+Math.max(...ys))/2;
         const fit = Math.min(300/(Math.max(...xs)-Math.min(...xs)+30),450/(Math.max(...ys)-Math.min(...ys)+30));
         const scale = this.overviewMode ? fit : 5;
-        const project = (x: number, y: number) => this.overviewMode ? { x:180+(x-cx)*fit, y:360+(y-cy)*fit } : ({ x: 180 + ((x - p.x) * Math.cos(angle) - (y - p.y) * Math.sin(angle)) * 5, y: 466 + ((x - p.x) * Math.sin(angle) + (y - p.y) * Math.cos(angle)) * 5 });
+        const project = (x: number, y: number) => this.overviewMode ? { x:180+(x-cx)*fit, y:360+(y-cy)*fit } : ({ x: 180 + ((x - p.x) * Math.cos(angle) - (y - p.y) * Math.sin(angle)) * 5, y: (this.cameraFixed ? 368 : 466) + ((x - p.x) * Math.sin(angle) + (y - p.y) * Math.cos(angle)) * 5 });
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         g.clear();
         g.fillStyle(t.circuit.snow.length ? 0xe0eff5 : t.circuit.theme.ground);
@@ -500,8 +530,20 @@ COUPE ${String(s.cup.races)}/4 · ${s.cup.order.map(id => `${String(id + 1)}:${S
                     span.style.fontSize = `${String(12 * scale * 249 * scale / width)}px`;
             }
         }
+        if (this.cameraFixed && this.thumb) {
+            const rect = this.game.canvas.getBoundingClientRect(), ratio = 360 / rect.width;
+            const x = (this.thumb.x - rect.x) * ratio, y = (this.thumb.y - rect.y) * ratio;
+            g.lineStyle(2, 0xffffff, .8); g.strokeCircle(x, y, 28);
+            g.fillStyle(0x80efac, .9); g.fillCircle(x + this.thumb.dx * ratio, y + this.thumb.dy * ratio, 7);
+        }
+        if (this.cameraFixed && this.heading !== undefined) {
+            const q = project(p.x, p.y), a = this.heading;
+            const x = q.x + Math.cos(a) * 42, y = q.y + Math.sin(a) * 42;
+            g.lineStyle(3, 0x80efac); g.lineBetween(q.x + Math.cos(a) * 22, q.y + Math.sin(a) * 22, x, y);
+            for (const side of [-1, 1]) g.lineBetween(x, y, x - Math.cos(a + side * .6) * 10, y - Math.sin(a + side * .6) * 10);
+        }
         const indicator = document.querySelector<HTMLElement>('#derapage-steering');
-        if (indicator) { indicator.textContent = `◀ ━ ${this.pointer.toFixed(2)} ━ ▶`; indicator.setAttribute('aria-valuenow', String(this.pointer)); }
+        if (indicator) { indicator.textContent = this.cameraFixed ? 'Posez le pouce, puis pointez la direction' : `◀ ━ ${this.pointer.toFixed(2)} ━ ▶`; indicator.setAttribute('aria-valuenow', String(this.pointer)); }
         const status = document.querySelector('#status');
         if (status)
             status.textContent = `Score : ${String(e.score)} · ${text}`;

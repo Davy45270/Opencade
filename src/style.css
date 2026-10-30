@@ -231,7 +231,7 @@ body.playing.derapage #touch-controls { height: 152px; min-height: 152px; flex-b
 body.derapage #touch-controls .touch-slot.right { flex-direction: column-reverse; align-items: flex-end; }
 body.playing.derapage #touch-controls #derapage-drift { width: 88px; height: 88px; min-width: 88px !important; min-height: 88px !important; }
 body.playing.derapage #touch-controls #derapage-bonus { width: 56px; height: 56px; min-width: 56px !important; min-height: 56px !important; }
-#derapage-steering { display: block; min-width: 120px; min-height: 48px; color: #c9f8ed; }
+#derapage-steering { display: block; width: 180px; font-size: 14px; min-height: 48px; color: #c9f8ed; }
 
 /* Original cast, home selection and opt-in review sheets. */
 #character-toggle { display: inline-flex; align-items: center; gap: 4px; min-height: 48px; font-size: .85rem; }

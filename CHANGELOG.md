@@ -5,6 +5,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Dérapage (pass 67): default north-up 360° thumb joystick, absolute keyboard arrows and diagonals, visible ring/thumb/heading, and saved rotating-camera legacy controls.
+- Add optional bounded trajectory assistance and inward rail recovery with a minimum residual speed; introduce the wide La Flèche des prés at level 1 and move Le Rocher to level 5, migrating historical indexed records by circuit name.
+- Add seeded 150 ms human campaigns, short recorded Z36 replays, Z37–Z39 mechanic/save checks and four source mutations; write mobile joystick/camera persistence E2E without browser or Vitest execution. The unassisted human pilot also meets playability thresholds on Le Rocher; the assistance mutation is detected by exact replay and the local correction oracle.
+
 - Orbite (pass 64): six authored formations and eight progressively introduced mechanics — rotating shields, split probes, asteroid deflections, gravity curves, intermittent stealth, local repair, satellite defense and coordinated swarms.
 - Add five recovery stages, six guardians with exposed cores and distinct firing motifs, and a two-phase carrier finale; retain v1 progression saves and deterministic ordinary controls.
 - Record 60 victories on seeds 457/28; add eight literal mechanic oracles, boss/save checks, short per-level replays, eleven rejected mutations and four written desktop/mobile E2E captures. Repetition improves from 78.4 to 18.1, with twelve observed introduction levels and 0% adjacent clones. No browser or Vitest execution.

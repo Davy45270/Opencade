@@ -268,7 +268,7 @@ M02 vérifie la non-intersection avec toute la zone logique 360×640. Cela
 préserve aussi les assertions historiques de Ferraille interdisant tout
 chevauchement du canevas.
 
-**Exception Dérapage :** une zone de commandes de **156 px** au plus, sous le canevas : gros bouton Dérapage (≥ 88 px) et bouton Bonus (≥ 56 px) au-dessus, à droite ; braquage analogique au pouce dans la moitié gauche. Les commandes ne recouvrent jamais la piste devant le kart (M02).
+**Exception Dérapage :** une zone de commandes de **156 px** au plus, sous le canevas : gros bouton Dérapage (≥ 88 px) et bouton Bonus (≥ 56 px) au-dessus, à droite ; joystick absolu 360° au pouce sur toute la zone de jeu, anneau et cap visé visibles. Les commandes ne recouvrent jamais la piste devant le kart (M02).
 
 **Hauteur logique :** FIT 360×640 centré conservé. Les scènes positionnent
 terrain, HUD et zones de glisser dans ce repère ; adapter la hauteur demanderait
@@ -2137,11 +2137,11 @@ restent à vérifier par l'orchestrateur.
 ## Dérapage
 
 Douzième jeu, `derapage`, `realtime: true`. Course de karts originale,
-vue de dessus avec caméra suivant le joueur et tournant dans sa direction.
+vue de dessus avec caméra suivant le joueur, fixe avec le nord en haut par défaut ; caméra tournante disponible dans ☰.
 Le moteur ne connaît que des coordonnées du monde, des unités et des secondes.
 La projection, le cadrage, les traces et les étincelles vivent dans la scène ;
-un autre rendu peut consommer le même snapshot sérialisable. Aucun fichier
-`src/shell` modifié, aucune nouvelle dépendance, aucun fichier binaire.
+un autre rendu peut consommer le même snapshot sérialisable. Aucune
+nouvelle dépendance ni fichier binaire ; seule la persistance partagée ajoute la migration des records Dérapage.
 
 ### Règles et commandes
 
@@ -2149,7 +2149,7 @@ Six karts, trois tours. Accélération automatique 12 unités/s², frottement
 longitudinal 0,12/s, vitesse normale plafonnée à 24. Braquage proportionnel
 2,4 rad/s, modulé par la vitesse jusqu’à 10 unités/s ; adhérence latérale
 exponentielle 10/s. Les cercles de rayon 1,2 se séparent et échangent une
-impulsion de coefficient 0,85 ; un mur renvoie la composante normale (1,7).
+impulsion de coefficient 0,85. Au choc de rail, retour à 1,2 unité à l’intérieur de la piste, cap tangent orienté vers l’intérieur (normale ×0,3), vitesse résiduelle ≥8 et ≤20 (70 % de la vitesse précédente).
 L’herbe au-delà de la demi-largeur plafonne la norme de la vitesse à
 45 % au niveau 1 et 42,1 % au niveau 30 de la cible sur piste, même avec
 un boost (toujours ≤ 50 %). Le plafond s’applique dès le premier pas :
@@ -2189,22 +2189,32 @@ freiner, ajoutent un bruit à graine et utilisent leurs bonus.
 Le retard de freinage réduit la distance d’anticipation ; le bruit et ce
 retard diminuent aux niveaux élevés, tandis que leur vitesse augmente.
 
-Clavier ← →, Espace ou Maj pour déraper, X ou Ctrl pour le bonus.
-Au doigt, poser le pouce dans la moitié gauche de l’écran de jeu puis
-glisser horizontalement : zone morte ±6 px, progression linéaire ensuite,
-saturation ±1 à ±60 px. Relâcher ou annuler recentre immédiatement.
-Les anciens boutons ◀ ▶ sont retirés. Un indicateur de braquage de
-120×48 px est sous le canevas, à gauche. À droite, Dérapage maintenu
-mesure 88×88 px, Bonus 56×56 px au-dessus. La bande réservée de 152 px
-reste hors du canevas : ni kart ni piste devant lui ne sont masqués.
-Le moteur accepte `steer` continu dans [-1,1], conservé dans le rejeu ;
-le clavier produit -1, 0 ou 1. Les options Souris et Inclinaison sont dans l’aide du menu ;
+Clavier : les quatre flèches dirigent en absolu, diagonales incluses ; Espace
+ou Maj pour déraper, X ou Ctrl pour le bonus. Au doigt, poser le pouce
+n’importe où sur la zone de jeu : ce contact fixe le centre du joystick.
+Le déplacement du pouce donne le cap absolu (axes écran = axes monde),
+zone morte circulaire de 10 px CSS incluse. Relâcher conserve le cap courant.
+La convergence utilise l’erreur angulaire ×5, bornée à 3,2 rad/s, sans
+rotation instantanée ni dépendance à la vitesse de départ. Anneau au contact,
+point au pouce et flèche du cap demandé autour du kart rendent le geste visible.
+Le kart est centré à y=368 en caméra fixe (y=466 en caméra tournante).
+Dans ☰, « Caméra : fixe / tournante » conserve l’ancien braquage relatif
+(zone morte 6 px, saturation à 60 px) et sa caméra tournante. Les choix caméra
+et aide sont mémorisés sous `arcade-lab:derapage:controls:v1`, sans modifier
+la sauvegarde de progression. La caméra fixe est le défaut, aussi au clavier.
+L’aide activée par défaut n’agit que hors piste ou si la projection du cap
+à vitesse courante sur 0,6 s menace un rail : correction vers le centre 12
+unités devant, au plus 25 % de l’écart et 0,3 rad. Elle est désactivable dans ☰
+et n’agit pas si aucun cap n’est demandé. Les entrées `mode`, `heading`, `assist`
+sont conservées dans les rejeux ; le moteur reste en coordonnées monde.
+Les boutons Dérapage 88×88 et Bonus 56×56 restent hors du canevas, dans une
+bande de 152 px. Souris et Inclinaison restent des options du braquage relatif ;
 le refus ou l’absence du capteur reste silencieux. Pause, Prêt, menus,
 progression, sauvegarde, écran allumé et vibrations life/won/lost passent
 par les services communs. Sons synthétisés engine/drift/boost/impact/grass, traces de terre sur herbe.
 La scène utilise des Graphics pour le circuit et les karts, un HUD HTML
 et une mini-carte dans la bande réservée y=0…96 ; la zone utile est
-(0,96,360,544), le kart vers y=466. Aucun contrôle ni HUD dans l’aire
+(0,96,360,544), le kart vers y=368 par défaut. Aucun contrôle ni HUD dans l’aire
 devant le kart. La vignette Canvas utilise une vraie démo au niveau 3,
 avec politique de suivi et pas de 1/15 s : elle évolue en moins de 600 ms.
 
@@ -2233,7 +2243,7 @@ Les profils d’altitude sont interpolés dans le moteur. En forêt, ils modulen
 uniquement la teinte du sol, sans effet physique ; le décor dense conserve
 sa marge Z21. Les blocs urbains sont décoratifs. Les rails continus bordent
 le trottoir : contact du centre à demi-largeur + 1,8 (rayon 1,2), correction
-à +1,79, réflexion normale 1,7 avec perte de vitesse. Aucune herbe en ville.
+à l’intérieur de la piste et réorientation tangentielle avec une vitesse minimale de 8. Aucune herbe en ville.
 
 Le slalom possède six paires de piquets alternant rouge et bleu, décalées
 alternativement de ±1,5 unité, ouverture 6,2 (diamètre du kart 2,4).
@@ -2307,11 +2317,11 @@ la vitesse et la précision des paramètres IA le sont. Mesures graine 28 :
 
 | Niveau | Nom | Famille | Longueur | Largeur min. | Virages | Signature voisine | Tour pilote (s) | Tour IA (s) | Écart IA | Herbe IA (%) | Bandes | Décor | Chocs pilote |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Le Rocher | urbain | 462.8 | 20.00 | 6 | 0.5625 | 19.87 | 31.66 | 1.133 | 0.00 | 0 | 44 | 0 |
-| 2 | Autour des Invalides | urbain | 440.9 | 19.73 | 6 | 0.5625 | 18.86 | 28.61 | 1.039 | 0.00 | 0 | 32 | 0 |
-| 3 | Les Docks clairs | urbain | 564.4 | 19.46 | 6 | 0.5625 | 23.84 | 35.59 | 0.903 | 0.00 | 1 | 23 | 0 |
-| 4 | La Cour des arches | urbain | 457.8 | 19.19 | 6 | 0.4167 | 19.33 | 28.08 | 0.968 | 0.00 | 1 | 48 | 0 |
-| 5 | La Flèche des prés | rapide | 476.2 | 18.92 | 2 | 0.3958 | 20.01 | 29.04 | 0.639 | 0.00 | 1 | 32 | 0 |
+| 1 | La Flèche des prés | rapide | 474.9 | 28.00 | 2 | 0.3542 | 20.26 | 31.46 | 0.725 | 0.00 | 0 | 48 | 0 |
+| 2 | Autour des Invalides | urbain | 440.9 | 19.73 | 6 | 0.5625 | 18.54 | 27.83 | 2.249 | 0.00 | 0 | 32 | 0 |
+| 3 | Les Docks clairs | urbain | 564.4 | 19.46 | 6 | 0.5417 | 23.33 | 34.31 | 2.020 | 0.00 | 1 | 23 | 0 |
+| 4 | La Cour des arches | urbain | 457.8 | 19.19 | 6 | 0.4167 | 18.94 | 27.24 | 2.155 | 0.00 | 1 | 48 | 0 |
+| 5 | Le Rocher | urbain | 464.8 | 18.92 | 6 | 0.5417 | 19.08 | 27.93 | 2.216 | 0.00 | 1 | 31 | 0 |
 | 6 | Le Grand détour | rapide | 495.6 | 18.65 | 3 | 0.3542 | 20.82 | 29.98 | 0.685 | 0.00 | 1 | 24 | 0 |
 | 7 | Les Deux horizons | rapide | 481.6 | 18.38 | 3 | 0.5208 | 19.93 | 28.14 | 0.684 | 0.00 | 2 | 48 | 0 |
 | 8 | Le Vent des plaines | rapide | 492.3 | 18.11 | 3 | 0.3125 | 20.36 | 28.07 | 0.669 | 0.00 | 2 | 32 | 0 |
@@ -2322,15 +2332,15 @@ la vitesse et la précision des paramètres IA le sont. Mesures graine 28 :
 | 13 | La Grande ellipse | ovale | 473.2 | 16.76 | 2 | 0.3958 | 19.27 | 24.72 | 0.456 | 0.00 | 3 | 48 | 0 |
 | 14 | Le Bol incliné | ovale | 466.4 | 16.49 | 2 | 0.3958 | 18.98 | 24.13 | 0.445 | 0.00 | 3 | 32 | 0 |
 | 15 | L’Anneau des vents | ovale | 475.5 | 16.22 | 2 | 0.4167 | 19.06 | 24.13 | 0.411 | 0.00 | 4 | 24 | 0 |
-| 16 | Le Triangle arrondi | ovale | 451.7 | 15.95 | 3 | 0.3958 | 18.07 | 23.17 | 0.429 | 0.00 | 4 | 48 | 0 |
+| 16 | Le Triangle arrondi | ovale | 451.7 | 15.95 | 3 | 0.3542 | 18.07 | 23.17 | 0.429 | 0.00 | 4 | 48 | 0 |
 | 17 | La Côte des Ardennes | nature | 563.2 | 15.68 | 6 | 0.4583 | 22.84 | 28.71 | 0.457 | 0.00 | 4 | 95 | 0 |
 | 18 | Le Lac des fougères | nature | 477.8 | 15.41 | 5 | 0.3125 | 19.20 | 24.28 | 0.430 | 0.00 | 4 | 95 | 0 |
 | 19 | La Clairière brisée | nature | 502.8 | 15.14 | 4 | 0.5208 | 19.96 | 23.75 | 0.417 | 0.00 | 5 | 96 | 0 |
 | 20 | Les Roches rousses | nature | 503.5 | 14.87 | 7 | 0.4792 | 19.97 | 24.71 | 0.452 | 0.00 | 5 | 96 | 0 |
-| 21 | Les Pavés du levant | urbain | 490.2 | 14.60 | 8 | 0.4375 | 19.53 | 25.81 | 0.515 | 0.00 | 5 | 24 | 0 |
-| 22 | La Terrasse des quais | urbain | 503.6 | 14.33 | 5 | 0.4167 | 20.00 | 25.26 | 0.416 | 0.00 | 5 | 47 | 0 |
-| 23 | Le Passage des halles | technique | 505.4 | 14.06 | 6 | 0.4167 | 19.97 | 23.62 | 0.361 | 0.00 | 6 | 31 | 0 |
-| 24 | Les Balcons de pierre | urbain | 504.5 | 13.79 | 5 | 0.3542 | 19.71 | 24.84 | 0.351 | 0.00 | 6 | 24 | 0 |
+| 21 | Les Pavés du levant | urbain | 490.2 | 14.60 | 8 | 0.4375 | 18.89 | 24.98 | 1.598 | 0.00 | 5 | 24 | 0 |
+| 22 | La Terrasse des quais | urbain | 503.6 | 14.33 | 5 | 0.4167 | 19.54 | 24.45 | 1.432 | 0.00 | 5 | 47 | 0 |
+| 23 | Le Passage des halles | technique | 505.4 | 14.06 | 6 | 0.4167 | 19.46 | 22.82 | 1.227 | 0.00 | 6 | 31 | 0 |
+| 24 | Les Balcons de pierre | urbain | 504.5 | 13.79 | 5 | 0.3542 | 19.31 | 24.18 | 1.239 | 0.00 | 6 | 24 | 0 |
 | 25 | La Combe des échos | technique | 519.0 | 13.52 | 8 | 0.4375 | 20.47 | 25.82 | 0.412 | 0.00 | 6 | 48 | 0 |
 | 26 | Le Serpent des joncs | nature | 504.6 | 13.25 | 7 | 0.4167 | 19.70 | 23.63 | 0.284 | 0.00 | 6 | 96 | 0 |
 | 27 | La Boucle des falaises | rapide | 519.6 | 12.98 | 5 | 0.5208 | 20.04 | 24.86 | 0.313 | 0.00 | 7 | 24 | 0 |
@@ -2443,9 +2453,9 @@ L’annonce persiste jusqu’au passage suivant. Le résultat affiche temps tota
 meilleur tour, record historique du circuit et classement des six karts.
 
 Le champ optionnel `circuitRecords` de la sauvegarde existante
-`arcade-lab:derapage:v1` associe l’indice stable du circuit (0–29) à son meilleur
+`arcade-lab:derapage:v1` associe le nom stable du circuit à son meilleur
 tour en millisecondes. Seule une amélioration stricte écrit le record, dès le
-franchissement, avec « Nouveau record ! ». Les anciennes sauvegardes sont
+franchissement, avec « Nouveau record ! ». Les clés numériques historiques sont lues selon l’ordre publié en 0.3.1 (0 = Le Rocher, 4 = La Flèche des prés), puis réécrites en noms ; en cas de doublon, le meilleur temps est conservé. Les anciennes sauvegardes sont
 compatibles ; lectures, sérialisation et écritures sont protégées par try/catch.
 
 Z28 rejoue les mêmes entrées horodatées avec des pas regroupés différemment,
@@ -2506,3 +2516,36 @@ L’orchestrateur doit exécuter Vitest, les mutations et les E2E desktop/mobile
 puis inspecter les six captures demandées : portes lisibles, ombre et hauteur
 du saut, berm extérieur clair, rails continus, tunnel sombre, neige et décor
 hors piste, relief forestier et HUD hors de la zone de conduite.
+
+
+### Passe 67 — jouabilité au doigt, Z36–Z39
+
+Le nouvel ordre échange seulement les niveaux 1 et 5 : La Flèche des prés
+ouvre la campagne, avec une largeur de 28 unités, sans bosse ni boost ;
+Le Rocher reste en campagne au niveau 5. Les 28 autres positions restent identiques.
+`legacyCircuits` garde l’ordre publié pour les migrations, `circuits` l’ordre courant.
+
+La campagne Node `scripts/derapage-human.js` vise le centre six échantillons
+devant la section courante, bruit uniforme ±0,35 rad (graine 67), observe toutes
+les neuf images (150 ms) et applique la visée de l’observation précédente.
+Les courses sont ordinaires, à six karts, graine de course 28, sans bonus
+utilisé par le joueur. `--record` régénère les bandes d’entrées Z36 ; chaque
+rejeu vérifie trois tours, arrêt (<2 unités/s) strictement <0,5 s, hors piste
+strictement <15 %, puis position et cap finaux exacts. Z37 couvre la zone morte,
+les axes/diagonales et la convergence bornée ; Z38 le rail même au repos ;
+Z39 la migration et sa relecture. Le script final contrôle les quatre rejeux
+avec une limite littérale de 2000 ms chacun. Les E2E mobile et clavier sont
+écrits seulement : gestes haut/gauche/droite à l’écran, capture
+`derapage-joystick`, relâchement et option caméra mémorisée après rechargement.
+
+La mutation « aide désactivée » est rejetée par le rejeu exact du Rocher et
+par l’oracle de correction locale. **Les seuls seuils de jouabilité du pilote
+humain restent satisfaits sans aide** : ils ne prouvent donc pas sa nécessité.
+Les mutations rail collant, direction relative et records par index sont
+rejetées respectivement par Z38, Z37 et Z39 ; les emplacements courants sont
+imprimés par `scripts/check-derapage-joystick-mutations.js`.
+
+Résultats Z36 (aide activée, six karts) : niveaux 1, 3, 15 et Le Rocher :
+3 tours chacun, plus long arrêt 0,167 s (départ compris), 0 % hors piste.
+Le détail, l’ordre complet et les mutations sont dans
+`docs/derapage-joystick-validation.json` après validation Node.
