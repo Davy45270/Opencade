@@ -39,7 +39,7 @@ test('A02 A04 ouverture directe son global persistant', async ({ page }) => {
 test('A05 A06 sélecteur et panneaux communs', async ({ page }) => {
     await ready(page);
     await openGameMenu(page, '#levels'); await page.locator('#levels').click();
-    await expect(page.locator('#level-list button')).toHaveCount(10);
+    await expect(page.locator('#level-list button')).toHaveCount(30);
     await expect(page.locator('#level-list button').nth(1)).toBeDisabled();
     await page.locator('#close-levels').click();
     await load(page, [{ row: 0, col: 4, color: 0 }, { row: 1, col: 4, color: 0 }]);

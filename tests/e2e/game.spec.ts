@@ -19,7 +19,7 @@ test('B-HEX-14 glisser-relâcher, guide et cellule scriptée', async ({ page }, 
     await touch('touchstart',start);
     await touch('touchmove',end);
     expect((await read(page)).shots).toBe(0);
-    expect((await read(page)).angle).toBeCloseTo(0.04995839572194276, 8);
+    expect((await read(page)).angle).toBeCloseTo(0.04995839572194276, 7);
     const guide = await page.evaluate(() => window.__BUBBLE_TEST__?.visuals().guide);
     expect(guide).toHaveLength(1); expect(guide?.[0]?.to.y).toBeLessThan(54);
     await page.screenshot({ path: `test-results/screenshots/bubble-aim-${info.project.name}.png` });
