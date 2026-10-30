@@ -2,7 +2,7 @@ import { setupCharacters } from '../src/characters/panel';
 import { Inputs } from '../src/shell/input';
 
 /** Small event/DOM port: exercises the real panel without a browser or raster assets. */
-export function panelLifecycle(setup = setupCharacters): void {
+export function panelLifecycle(setup = setupCharacters, legacyMedia = false): void {
     const check = (value: boolean, message: string): void => { if (!value) throw new Error(message); };
     class Element extends EventTarget {
         id = ''; textContent = ''; className = ''; hidden = false; open = false;
@@ -27,7 +27,18 @@ export function panelLifecycle(setup = setupCharacters): void {
     const toggle = new Element('button'), body = new Element('body');
     toggle.id = 'character-toggle';
     const doc = Object.assign(new Element('document'), { body, createElement: (tag: string) => new Element(tag), querySelector: () => toggle });
-    const media = Object.assign(new EventTarget(), { matches: false });
+    const mediaEvents = new EventTarget();
+    const media = {
+        matches: false,
+        addEventListener: legacyMedia ? undefined : (type: string, listener: EventListener, options?: AddEventListenerOptions): void => {
+            check(!options?.signal, 'C07 media listener works without AbortSignal support');
+            mediaEvents.addEventListener(type, listener);
+        },
+        removeEventListener: (type: string, listener: EventListener): void => { mediaEvents.removeEventListener(type, listener); },
+        addListener: (listener: EventListener): void => { mediaEvents.addEventListener('change', listener); },
+        removeListener: (listener: EventListener): void => { mediaEvents.removeEventListener('change', listener); },
+        dispatchEvent: (event: Event): boolean => mediaEvents.dispatchEvent(event),
+    };
     let next = 0;
     const frames = new Map<number, FrameRequestCallback>();
     const globals: Record<string, unknown> = {
@@ -50,12 +61,16 @@ export function panelLifecycle(setup = setupCharacters): void {
             const preview = card.children[0];
             check(!!preview, 'C07 preview exists');
             if (!preview) continue;
-            for (const event of ['pointerenter', 'pointerdown', 'focusin']) {
+            for (const event of ['pointerenter', 'pointerdown', 'touchstart', 'click', 'focusin']) {
                 card.dispatchEvent(new Event('pointerleave'));
                 check(preview.dataset.animation === 'repos', 'C07 pointer leave restores rest');
                 card.dispatchEvent(new Event(event));
                 check(preview.dataset.animation === 'special', `C07 ${event} starts special`);
             }
+            card.dispatchEvent(new Event('pointerdown'));
+            card.dispatchEvent(new Event('pointerup'));
+            card.dispatchEvent(Object.assign(new Event('pointerleave'), { pointerType: 'touch' }));
+            check(preview.dataset.animation === 'special', 'C07 touch release keeps special');
             card.dispatchEvent(new Event('pointercancel'));
             check(preview.dataset.animation === 'repos', 'C07 cancellation restores rest');
         }
@@ -69,6 +84,9 @@ export function panelLifecycle(setup = setupCharacters): void {
         tick(600); check(preview.dataset.paintCount === reducedCount, 'C07 reduced preview stays fixed');
         media.matches = false; media.dispatchEvent(new Event('change'));
         check(preview.dataset.motion === 'full' && frames.size === 1, 'C07 live full motion restarts');
+        media.matches = true; tick(700);
+        check(preview.dataset.motion === 'reduce' && frames.size === 0, 'C07 missed media event still paints reduce before stopping');
+        media.matches = false; media.dispatchEvent(new Event('change'));
         dialog.close(); check(frames.size === 0, 'C07 close cancels frame');
         toggle.dispatchEvent(new Event('click')); check(frames.size === 1, 'C07 reopen restarts');
         doc.hidden = true; doc.dispatchEvent(new Event('visibilitychange'));

@@ -17,6 +17,7 @@ export function setupCharacters(inputs: Inputs, testing = false): void {
     const grid = document.createElement('div'); grid.className = 'character-grid';
     dialog.append(title, intro, close, grid); document.body.append(dialog);
     const media = matchMedia('(prefers-reduced-motion: reduce)');
+    let reducedMotion = media.matches;
     const previews: { element: HTMLCanvasElement; id: CharacterId; special: boolean; pose: Pose; expression: Expression }[] = [];
     const buttons = new Map<CharacterId, HTMLButtonElement>();
     const makePreview = (id: CharacterId, size: number, pose: Pose = 'face', expression: Expression = 'joie'): HTMLCanvasElement => {
@@ -35,8 +36,12 @@ export function setupCharacters(inputs: Inputs, testing = false): void {
         const button = document.createElement('button'); button.textContent = 'Choisir'; button.setAttribute('aria-label', `Choisir ${characters[id].fr}`);
         buttons.set(id, button); card.append(preview, name, button); grid.append(card);
         const active = (value: boolean): void => { const item = previews.find(p => p.element === preview); if (item) item.special = value; paint(performance.now()); };
-        for (const event of ['pointerenter', 'pointerdown', 'focusin']) inputs.on(card, event, () => { active(true); });
-        for (const event of ['pointerleave', 'pointercancel', 'focusout']) inputs.on(card, event, () => { active(false); });
+        for (const event of ['pointerenter', 'pointerdown', 'touchstart', 'click', 'focusin']) inputs.on(card, event, () => { active(true); });
+        for (const event of ['pointerleave', 'pointercancel', 'focusout']) inputs.on(card, event, e => {
+            // Touch pointers leave on release: keep the tapped special visible.
+            if (event === 'pointerleave' && (e as PointerEvent).pointerType === 'touch') return;
+            active(false);
+        });
         inputs.on(button, 'click', () => { selectCharacter(id); sync(); dialog.close(); });
     }
     // Read-only review sheets are available only with the existing test URL flag.
@@ -63,22 +68,25 @@ export function setupCharacters(inputs: Inputs, testing = false): void {
             context.clearRect(0, 0, p.element.width, p.element.height);
             if (testing) {
                 p.element.dataset.animation = p.special ? 'special' : 'repos';
-                p.element.dataset.motion = media.matches ? 'reduce' : 'full';
+                p.element.dataset.motion = reducedMotion ? 'reduce' : 'full';
                 p.element.dataset.paintCount = String(Number(p.element.dataset.paintCount ?? 0) + 1);
             }
-            renderCharacter(context, drawList(p.id, p.pose, p.expression, p.special ? 'special' : 'repos', time, media.matches ? 'reduce' : 'full'), 0, 0, p.element.height);
+            renderCharacter(context, drawList(p.id, p.pose, p.expression, p.special ? 'special' : 'repos', time, reducedMotion ? 'reduce' : 'full'), 0, 0, p.element.height);
         }
     };
     const frame = (time: number): void => {
         pending = undefined;
-        if (!dialog.open || document.hidden || media.matches) return;
+        // Reconcile before stopping: a missed media event must not leave full-motion pixels.
+        if (media.matches !== reducedMotion) { restart(); return; }
+        if (!dialog.open || document.hidden || reducedMotion) return;
         if (time - last >= 1000 / 15) { paint(time); last = time; }
         pending = requestAnimationFrame(frame);
     };
     const restart = (): void => {
+        reducedMotion = media.matches;
         if (pending !== undefined) cancelAnimationFrame(pending); pending = undefined;
         paint(performance.now());
-        if (dialog.open && !document.hidden && !media.matches) pending = requestAnimationFrame(frame);
+        if (dialog.open && !document.hidden && !reducedMotion) pending = requestAnimationFrame(frame);
     };
     const sync = (): void => {
         const id = selectedCharacter();
@@ -95,7 +103,17 @@ export function setupCharacters(inputs: Inputs, testing = false): void {
     inputs.on(dialog, 'close', () => { toggle.setAttribute('aria-expanded', 'false'); restart(); toggle.focus(); });
     inputs.on(dialog, 'click', event => { if (event.target === dialog) { const r = dialog.getBoundingClientRect(); const e = event as MouseEvent; if (e.clientX < r.left || e.clientX > r.right || e.clientY < r.top || e.clientY > r.bottom) dialog.close(); } });
     inputs.on(dialog, 'toggle', restart, { capture: true });
-    inputs.on(media, 'change', restart); inputs.on(document, 'visibilitychange', restart);
+    // MediaQueryList implementations do not all support signal-bound listeners.
+    if (typeof media.addEventListener === 'function') {
+        media.addEventListener('change', restart);
+        inputs.cleanup(() => { media.removeEventListener('change', restart); });
+    } else {
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Required for legacy MediaQueryList implementations.
+        media.addListener(restart);
+        // eslint-disable-next-line @typescript-eslint/no-deprecated -- Pair the legacy subscription on shutdown.
+        inputs.cleanup(() => { media.removeListener(restart); });
+    }
+    inputs.on(document, 'visibilitychange', restart);
     inputs.cleanup(() => { if (pending !== undefined) cancelAnimationFrame(pending); dialog.remove(); toggle.hidden = true; });
     sync();
 }

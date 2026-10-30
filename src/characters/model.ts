@@ -94,7 +94,7 @@ export function drawList(id: CharacterId, pose: Pose = 'face', expression: Expre
         for (const x of [65, 153]) path([x, 136], [[[x - 27, 92], [x - 16, 85], [x + 7, 109]], [[x + 31, 84], [x + 40, 113], [x + 20, 147]]], '#88cdbb');
         for (let i = 0; i < 4; i++) polygon([[113 + i * 11, 68 + i * 12], [135 + i * 11, 66 + i * 12], [123 + i * 11, 46 + i * 12]], '#88cdbb');
     }
-    if (id === 'licorne') for (let i = 5; i >= 0; i--) path([152 + i * 2, 155], [[[220 + i * 2, 145], [190 + i * 2, 215], [214, 210 - i * 4]]], rainbow[i] ?? cream, 9, false);
+    if (id === 'licorne') for (let i = 5; i >= 0; i--) path([152 + i * 2, 155], [[[220 + i * 2, 145], [190 + i * 2, 215], [214, 210 - i * 4]]], rainbow[i] ?? cream, 9, false, rainbow[i]);
     // Plump body with curved paws and dancing feet.
     ellipse(120, 161, side ? 36 : id === 'panda' ? 54 : 43, id === 'panda' ? 49 : 44, coat);
     ellipse(99, 157, 14, 24, sheen, 0.2, 0);
@@ -134,24 +134,31 @@ export function drawList(id: CharacterId, pose: Pose = 'face', expression: Expre
     }
     if (id === 'dragon') for (const x of [86, 153]) path([x - 9, 65], [[[x - 34, 24], [x + 15, 23], [x + 2, 38]], [[x - 5, 43], [x + 12, 48], [x + 10, 64]]], gold);
     if (id === 'licorne') {
-        for (let i = 5; i >= 0; i--) path([86 + i * 10, 65], [[[102 + i * 10, 42], [180 + i * 3, 73], [170 + i * 2, 143]]], rainbow[i] ?? cream, 12, false);
+        for (let i = 5; i >= 0; i--) path([86 + i * 10, 65], [[[102 + i * 10, 42], [185 + i * 3, 66], [170 + i * 2, 106]], [[154 + i * 2, 128], [197 + i * 2, 144], [171 + i * 2, 157]]], rainbow[i] ?? cream, 12, false, rainbow[i]);
     }
     // Large pear-shaped head, cheek lobes and a soft forehead highlight.
     if (side) path([85, 83], [[[80, 43], [157, 41], [167, 83]], [[170, 100], [199, 100], [194, 116]], [[192, 141], [154, 145], [122, 138]], [[87, 136], [75, 111], [85, 83]]], coat);
     else path([66, 83], [[[65, 42], [171, 43], [177, 83]], [[194, 124], [159, 144], [121, 141]], [[79, 144], [48, 124], [66, 83]]], coat);
-    path([81, 78], [[[87, 53], [119, 54], [129, 61]], [[111, 57], [94, 65], [81, 78]]], sheen, 0);
+    if (side) path([99, 73], [[[108, 55], [139, 54], [150, 69]], [[132, 59], [113, 63], [99, 73]]], sheen, 0);
+    else path([81, 78], [[[87, 53], [119, 54], [129, 61]], [[111, 57], [94, 65], [81, 78]]], sheen, 0);
     if (back) {
         if (id === 'panda') ellipse(120, 143, 40, 13, dark, 0, 0);
         if (id === 'dragon') for (let i = 0; i < 5; i++) polygon([[113, 69 + i * 17], [128, 64 + i * 17], [126, 81 + i * 17]], '#88cdbb', 1);
-        if (id === 'licorne') for (let i = 0; i < 6; i++) path([96 + i * 8, 58], [[[111 + i * 8, 85], [87 + i * 8, 101], [105 + i * 8, 140]]], rainbow[i] ?? cream, 8, false);
+        if (id === 'licorne') for (let i = 0; i < 6; i++) path([96 + i * 8, 58], [[[111 + i * 8, 85], [87 + i * 8, 101], [105 + i * 8, 140]]], rainbow[i] ?? cream, 8, false, rainbow[i]);
     } else {
         if (id === 'pandaroux') {
-            path([67, 87], [[[84, 77], [94, 93], [107, 106]], [[120, 94], [131, 80], [176, 85]], [[181, 126], [149, 137], [121, 135]], [[91, 139], [60, 120], [67, 87]]], cream, 0);
-            for (const x of [65, 166]) polygon([[x, 101], [x - 8, 113], [x + 9, 112], [x - 1, 121], [x + 17, 117]], coat, 0);
+            if (side) path([104, 94], [[[118, 83], [131, 91], [141, 105]], [[158, 104], [177, 101], [190, 108]], [[194, 124], [166, 139], [140, 135]], [[119, 136], [101, 117], [104, 94]]], cream, 0);
+            else path([67, 87], [[[84, 77], [94, 93], [107, 106]], [[120, 94], [131, 80], [176, 85]], [[181, 126], [149, 137], [121, 135]], [[91, 139], [60, 120], [67, 87]]], cream, 0);
+            for (const x of side ? [104] : [65, 166]) polygon([[x, 101], [x - 8, 113], [x + 9, 112], [x - 1, 121], [x + 17, 117]], coat, 0);
         }
         if (id === 'singe') {
-            ellipse(102, 95, 27, 31, '#eac0a9', -0.2, 0); ellipse(139, 95, 27, 31, '#eac0a9', 0.2, 0);
-            ellipse(121, 119, 39, 21, '#eac0a9', 0, 0);
+            if (side) {
+                ellipse(138, 96, 25, 30, '#eac0a9', 0.2, 0);
+                ellipse(163, 119, 28, 19, '#eac0a9', 0, 0);
+            } else {
+                ellipse(102, 95, 27, 31, '#eac0a9', -0.2, 0); ellipse(139, 95, 27, 31, '#eac0a9', 0.2, 0);
+                ellipse(121, 119, 39, 21, '#eac0a9', 0, 0);
+            }
         }
         if (id === 'dragon' || id === 'licorne') ellipse(side ? 153 : 128, 118, 32, 19, id === 'dragon' ? cream : '#ffe3df', 0, 2);
         const eyes = side ? [140] : [97, 145];
@@ -164,18 +171,24 @@ export function drawList(id: CharacterId, pose: Pose = 'face', expression: Expre
             if (expression === 'concentre') line([[x - 12, 78], [x + 9, 84]], ink, 4);
             if (expression === 'triste') line([[x - 10, 79 + (x < 120 ? 6 : 0)], [x + 10, 79 + (x < 120 ? 0 : 6)]], ink, 3);
         }
-        ellipse(side ? 151 : 121, 113, 8, 5, dark, 0, 0);
+        ellipse(side ? 175 : 121, 113, 8, 5, dark, 0, 0);
         for (const x of side ? [164] : [79, 163]) ellipse(x, 117, 10, 5, '#f0a2a5', 0, 0);
+        const mouthStart = list.length;
         if (expression === 'surprise') ellipse(123, 128, 7, 9, dark, 0, 1);
         else if (expression === 'joie') {
             path([110, 122], [[[119, 126], [129, 126], [138, 121]], [[136, 141], [113, 141], [110, 122]]], dark, 2);
             ellipse(124, 133, 7, 3, '#ee8f9f', 0, 0);
         } else path([112, expression === 'triste' ? 131 : 126], [[[121, expression === 'triste' ? 121 : 130], [130, expression === 'triste' ? 121 : 130], [137, expression === 'triste' ? 131 : 126]]], '', 2.5, false);
+        if (side) for (const p of list.slice(mouthStart)) {
+            const shift = (v: Point): Point => [v[0] + 34 * Math.cos(lean), v[1] + 34 * Math.sin(lean)];
+            if (p.kind === 'path') for (const c of p.commands) { c.p = shift(c.p); if (c.op === 'C') { c.a = shift(c.a); c.b = shift(c.b); } }
+            else if (p.kind === 'ellipse') { const v = shift([p.x, p.y]); p.x = v[0]; p.y = v[1]; }
+        }
     }
     if (id === 'licorne') {
         path([105, 61], [[[107, 47], [115, 17], [119, 19]], [[122, 31], [129, 49], [129, 61]]], gold);
         for (let i = 0; i < 3; i++) line([[110 + i * 2, 48 - i * 8], [126 - i * 2, 53 - i * 8]], '#a87a29', 2);
-        if (!back) for (let i = 0; i < 6; i++) path([89 + i * 10, 67], [[[92 + i * 10, 48], [111 + i * 10, 53], [111 + i * 9, 74]]], rainbow[i] ?? cream, 7, false);
+        if (!back) for (let i = 0; i < 6; i++) path([89 + i * 10, 67], [[[92 + i * 10, 48], [111 + i * 10, 53], [111 + i * 9, 74]]], rainbow[i] ?? cream, 7, false, rainbow[i]);
     }
     if (id === 'singe') {
         for (let i = 0; i < 5; i++) { const a = i * Math.PI * 2 / 5; ellipse(164 + Math.cos(a) * 9, 66 + Math.sin(a) * 9, 8, 6, '#f28aba', a, 1); }

@@ -42,9 +42,17 @@ export function distinct(palette = characters, draw = drawList): void {
         const a = rgb(palette[ids[i] ?? 'panda'].accent), b = rgb(palette[ids[j] ?? 'panda'].accent);
         check(Math.hypot(...a.map((v, k) => v - (b[k] ?? 0))) > 75, 'C02 RGB distance above 75');
     }
-    const unicorn = draw('licorne');
-    for (const color of ['#f18cbd', '#f4a153', '#f5d65d', '#72c88b', '#75bce4', '#ac87db'])
-        check(unicorn.filter(p => p.kind === 'path' && p.fill === color && p.width === 12).length === 1, `C02 mane ${color}`);
+    const rainbow = ['#f18cbd', '#f4a153', '#f5d65d', '#72c88b', '#75bce4', '#ac87db'];
+    for (const pose of poses) {
+        const unicorn = draw('licorne', pose);
+        for (const width of [12, 9, pose === 'dos' ? 8 : 7]) {
+            const strands = unicorn.filter(p => p.kind === 'path' && p.width === width);
+            check(strands.length === 6, `C02 six strands ${pose}/${String(width)}`);
+            for (const color of rainbow)
+                check(strands.filter(p => p.fill === color).length === 1, `C02 mane/tail ${pose}/${String(width)}/${color}`);
+            check(strands.every(p => rainbow.includes(p.fill) && p.stroke === p.fill), `C02 no dark mane/tail strands ${pose}/${String(width)}`);
+        }
+    }
     check(draw('dragon').filter(p => p.kind === 'path' && p.fill === '#efbd43').length === 2, 'C02 two golden horns');
     check(draw('singe').some(p => p.kind === 'path' && p.fill === '#f59bc7'), 'C02 pink tutu');
     check(draw('singe').filter(p => p.kind === 'ellipse' && p.fill === '#f28aba').length === 5, 'C02 five pink flower petals');

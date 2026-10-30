@@ -8,7 +8,7 @@ const model = await import('../src/characters/model.ts');
 const checks = await import('../tests/character-checks.ts');
 const { panelLifecycle } = await import('../tests/character-panel-checks.ts');
 const timings = [];
-{ const start = performance.now(); panelLifecycle(); const ms = performance.now() - start; assert.ok(ms < 2000); timings.push({ test: 'panelLifecycle', ms: Math.round(ms) }); }
+{ const start = performance.now(); panelLifecycle(); panelLifecycle(undefined, true); const ms = performance.now() - start; assert.ok(ms < 2000); timings.push({ test: 'panelLifecycle', ms: Math.round(ms) }); }
 for (const id of model.ids) for (const name of ['deterministic', 'moving']) {
     const start = performance.now(); checks[name](id); const ms = performance.now() - start;
     assert.ok(ms < 2000); timings.push({ test: name + '/' + id, ms: Math.round(ms) });
@@ -39,6 +39,7 @@ for (const [name, file, before, after, verify] of [
     ['Phaser half size', 'src/characters/phaser.ts', 'const scale = height / 240;', 'const scale = height / 480;', m => { checks.renderers(undefined, m.renderCharacter); }],
     ['Phaser ignores cubic controls', 'src/characters/phaser.ts', 'const t = i / segments, s = 1 - t;', 'const t = i / segments, s = 0;', m => { checks.renderers(undefined, m.renderCharacter); }],
     ['monochrome mane', 'src/characters/model.ts', "const rainbow = ['#f18cbd', '#f4a153', '#f5d65d', '#72c88b', '#75bce4', '#ac87db'];", "const rainbow = Array(6).fill('#f18cbd');", m => { checks.distinct(undefined, m.drawList); }],
+    ['dark mane strokes', 'src/characters/model.ts', 'rainbow[i] ?? cream, 12, false, rainbow[i]', 'rainbow[i] ?? cream, 12, false', m => { checks.distinct(undefined, m.drawList); }],
     ['hover and touch without special', 'src/characters/panel.ts', 'if (item) item.special = value;', 'if (item) item.special = value && false;', m => { panelLifecycle(m.setupCharacters); }],
     ['monkey oscillates', 'src/characters/model.ts', "time / specialCycleMs[id] * Math.PI * 2", "Math.sin(time / 300) * 0.15", m => { checks.moving('singe', m.drawList); }],
     ['red panda remains standing', 'src/characters/model.ts', 'if (rolling) {', 'if (false) {', m => { checks.moving('pandaroux', m.drawList); }],
