@@ -176,3 +176,5 @@ Orbite (pass 64): regenerate/check the 60 ordinary-input victories with
 (`--record` to regenerate). Each unit test replays one short recording; long campaigns run only in Node.
 
 Dérapage (pass 67) defaults to a north-up thumb joystick with visible heading, optional light assistance, non-sticky rails and a wide introductory circuit; records migrate by circuit name.
+
+The home footer and ☰ menu show the running build; use “Forcer la mise à jour” to refresh the PWA without deleting game saves.

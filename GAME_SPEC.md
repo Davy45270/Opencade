@@ -178,8 +178,21 @@ CSS dans src/style.css, aucun asset importé, Phaser importé depuis phaser.
 Le build précache HTML, JS (Phaser inclus), CSS, manifeste et icônes via
 Workbox generateSW. Aucun cache de données externes ni requête tierce.
 Manifeste portrait standalone, couleurs #101827, scope et start_url relatifs.
-Le service worker en mode prompt attend la fermeture de toutes les fenêtres
-pour activer une mise à jour ; un statut discret et accessible l’annonce.
+La version package et l’instant UTC du build sont injectés par `define`, affichés
+localement au pied d’accueil et en tête du menu ☰. Le SW est recherché au
+lancement, toutes les 30 minutes et au retour au premier plan. `version.json`
+est exclu du précache et lu avec `cache: no-store` ; l’hébergement doit aussi
+servir ce fichier et `sw.js` avec `Cache-Control: no-store` (ou revalidation).
+Un bandeau `status` fermable propose « Mettre à jour » : SKIP_WAITING,
+clients.claim, puis rechargement. Le menu propose « Forcer la mise à jour » :
+update, activation du worker en attente, sinon désenregistrement puis suppression
+exclusive des caches préfixés `opencade-`. Aucun localStorage n’est modifié.
+Une confirmation affiche la version réellement chargée après rechargement.
+Sans SW enregistré, aucun bandeau ni bouton de mise à jour n’apparaît.
+Les tests Vitest couvrent formatage et secours avec API factices ; les E2E
+`pwa-update.spec.ts` remplacent à origine constante les fichiers v1 par v2,
+vérifient bandeau, forçage, secours et sauvegarde conservée. Préparation :
+`node scripts/build-pwa-fixture.js` (deux builds dans .pwa-fixtures).
 Les PNG originaux représentent une borne lumineuse avec motif dans la zone
 sûre maskable. Les clés `arcade-lab:*` et `bubble-lab:*` restent inchangées
 afin de conserver la progression. Le stockage local fonctionne hors ligne.

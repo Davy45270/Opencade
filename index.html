@@ -8,10 +8,10 @@
     <title>Opencade</title>
   </head>
   <body>
-    <p id="pwa-update" role="status" aria-live="polite" hidden></p>
+    <div id="pwa-update" role="status" aria-live="polite" hidden><span id="pwa-message"></span> <button id="pwa-apply" hidden>Mettre à jour</button> <button id="pwa-dismiss" aria-label="Fermer la notification">Fermer</button></div>
     <main>
       <header id="topbar"><button data-home aria-label="Accueil" title="Accueil">⌂</button><h1>Opencade</h1><button id="pause" aria-label="Pause" aria-pressed="false" hidden><span class="desktop-pause">Pause</span><span class="mobile-pause" aria-hidden="true">⏸</span></button><button id="character-toggle" aria-haspopup="dialog" aria-controls="characters-panel" aria-expanded="false" hidden>Personnage</button><button id="sound" aria-pressed="true" aria-label="Son activé">♫</button><button id="game-menu-toggle" aria-label="Menu du jeu" aria-expanded="false" aria-controls="game-menu" hidden>☰</button></header>
-      <section id="home" aria-label="Accueil"><h2>Choisissez un jeu</h2><div id="game-cards"></div></section>
+      <section id="home" aria-label="Accueil"><h2>Choisissez un jeu</h2><div id="game-cards"></div><footer><small data-build></small><details id="home-menu"><summary aria-label="Menu Opencade">☰</summary><p data-build></p><button data-force-update hidden>Forcer la mise à jour</button></details></footer></section>
       <section id="play" hidden>
       <div id="play-area">
         <div id="game"></div>
@@ -30,6 +30,7 @@
       </div>
       <div id="touch-controls"></div>
       <div id="game-menu">
+      <small data-build></small><button data-force-update hidden>Forcer la mise à jour</button>
       <p id="status" aria-live="polite">Prêt</p>
       <button id="levels">Niveaux</button>
       <button id="fullscreen" hidden>Plein écran</button>

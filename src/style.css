@@ -207,7 +207,7 @@ body { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16
   background: #101827;
   color: #fff;
   font-size: 0.8rem;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 body.alunir #touch-controls .touch-slot.left { gap: 4px; }
@@ -262,3 +262,8 @@ body:not(.playing) #topbar > button { min-width: 48px; min-height: 48px; }
 .character-grid canvas { height: auto !important; aspect-ratio: 1; }
 .character-sheet canvas { max-width: none; }
 #characters-panel p { font-size: 14px; line-height: 1.5; }
+
+[data-build] { opacity: .65; font-size: .75rem; }
+#home footer { margin-top: 24px; text-align: center; }
+#home-menu summary { cursor: pointer; }
+body.playing #game-menu [data-build] { grid-column: 1 / -1; order: -2; }

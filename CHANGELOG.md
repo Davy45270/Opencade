@@ -5,6 +5,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Pass 68 (0.3.2): visible build version/date, active PWA update checks, dismissible update banner and forced update with app-only cache recovery; preserve game saves. Add unit coverage and written v1 → v2 deployment E2E fixtures.
+
 - Dérapage (pass 67): default north-up 360° thumb joystick, absolute keyboard arrows and diagonals, visible ring/thumb/heading, and saved rotating-camera legacy controls.
 - Add optional bounded trajectory assistance and inward rail recovery with a minimum residual speed; introduce the wide La Flèche des prés at level 1 and move Le Rocher to level 5, migrating historical indexed records by circuit name.
 - Add seeded 150 ms human campaigns, short recorded Z36 replays, Z37–Z39 mechanic/save checks and four source mutations; write mobile joystick/camera persistence E2E without browser or Vitest execution. The unassisted human pilot also meets playability thresholds on Le Rocher; the assistance mutation is detected by exact replay and the local correction oracle.

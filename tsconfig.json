@@ -8,6 +8,7 @@
       "DOM"
     ],
     "strict": true,
+    "resolveJsonModule": true,
     "noUncheckedIndexedAccess": true,
     "skipLibCheck": true,
     "noEmit": true,
