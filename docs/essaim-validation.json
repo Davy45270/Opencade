@@ -1,6 +1,70 @@
 {
   "checks": [
     {
+      "name": "E-GEN-01 all six bosses actually spawn on the last wave",
+      "passed": true
+    },
+    {
+      "name": "E-GEN-02 pilot encounters generated rescue ship",
+      "passed": true
+    },
+    {
+      "name": "E-GEN-03 diversity witnesses come from simulated behavior",
+      "passed": true
+    },
+    {
+      "name": "E-GEN-04 fast ellipse and three-shot burst fan",
+      "passed": true
+    },
+    {
+      "name": "E-GEN-05 guidance follows moved player then freezes at y300",
+      "passed": true
+    },
+    {
+      "name": "E-GEN-06 normal fire survives charging and short tap",
+      "passed": true
+    },
+    {
+      "name": "E-GEN-07 generated command phase two cadence and aim",
+      "passed": true
+    },
+    {
+      "name": "E-GEN-08 generated rescue damage loss and per-hp reward",
+      "passed": true
+    },
+    {
+      "name": "E-P2 rescue penalty ignores invulnerability including final life",
+      "passed": true
+    },
+    {
+      "name": "E-SHIELD geometry independent of projectile flags and orientation",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 beam generated formation ratio >= 1.3",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 bounce generated formation ratio >= 1.3",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 drones generated formation ratio >= 1.3",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 slow generated formation ratio >= 1.3",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 magnet generated formation ratio >= 1.3",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 charge generated formation ratio >= 1.3",
+      "passed": true
+    },
+    {
       "name": "E-WPN-01 overheat blocks until cooled",
       "passed": true
     },
@@ -63,6 +127,176 @@
     {
       "name": "E-WPN-07 measured speed",
       "passed": true
+    },
+    {
+      "name": "E-WPN-07 report beam",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 report bounce",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 report drones",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 report slow",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 report magnet",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 report charge",
+      "passed": true
+    }
+  ],
+  "weapons": [
+    {
+      "weapon": "beam",
+      "level": 10,
+      "seed": 458,
+      "formation": "split",
+      "metric": "ticks",
+      "threshold": 1.3,
+      "base": {
+        "ticks": 822,
+        "milliseconds": 13700.000000000002,
+        "interceptions": 0,
+        "lives": 3,
+        "wave": 2
+      },
+      "equipped": {
+        "ticks": 600,
+        "milliseconds": 10000,
+        "interceptions": 0,
+        "lives": 3,
+        "wave": 2
+      },
+      "ratio": 1.37,
+      "ratioLowerBound": 1.37
+    },
+    {
+      "weapon": "bounce",
+      "level": 4,
+      "seed": 458,
+      "formation": "shield",
+      "metric": "ticks",
+      "threshold": 1.3,
+      "base": {
+        "ticks": 1415,
+        "milliseconds": 23583.333333333336,
+        "interceptions": 0,
+        "lives": 2,
+        "wave": 2
+      },
+      "equipped": {
+        "ticks": 740,
+        "milliseconds": 12333.333333333334,
+        "interceptions": 0,
+        "lives": 3,
+        "wave": 2
+      },
+      "ratio": 1.912162162162162,
+      "ratioLowerBound": 1.912162162162162
+    },
+    {
+      "weapon": "drones",
+      "level": 2,
+      "seed": 458,
+      "formation": "burst",
+      "metric": "interceptions",
+      "threshold": 1.3,
+      "base": {
+        "ticks": 840,
+        "milliseconds": 14000.000000000002,
+        "interceptions": 0,
+        "lives": 3,
+        "wave": 2
+      },
+      "equipped": {
+        "ticks": 840,
+        "milliseconds": 14000.000000000002,
+        "interceptions": 9,
+        "lives": 3,
+        "wave": 2
+      },
+      "ratio": "Infinity",
+      "ratioLowerBound": 9
+    },
+    {
+      "weapon": "slow",
+      "level": 13,
+      "seed": 458,
+      "formation": "spiral",
+      "metric": "ticks",
+      "threshold": 1.3,
+      "base": {
+        "ticks": 648,
+        "milliseconds": 10800,
+        "interceptions": 0,
+        "lives": 3,
+        "wave": 2
+      },
+      "equipped": {
+        "ticks": 315,
+        "milliseconds": 5250,
+        "interceptions": 0,
+        "lives": 3,
+        "wave": 2
+      },
+      "ratio": 2.057142857142857,
+      "ratioLowerBound": 2.057142857142857
+    },
+    {
+      "weapon": "magnet",
+      "level": 7,
+      "seed": 458,
+      "formation": "miner",
+      "metric": "interceptions",
+      "threshold": 1.3,
+      "base": {
+        "ticks": 840,
+        "milliseconds": 14000.000000000002,
+        "interceptions": 0,
+        "lives": 3,
+        "wave": 2
+      },
+      "equipped": {
+        "ticks": 527,
+        "milliseconds": 8783.333333333334,
+        "interceptions": 10,
+        "lives": 3,
+        "wave": 2
+      },
+      "ratio": "Infinity",
+      "ratioLowerBound": 10
+    },
+    {
+      "weapon": "charge",
+      "level": 25,
+      "seed": 458,
+      "formation": "armor",
+      "metric": "ticks",
+      "threshold": 1.3,
+      "base": {
+        "ticks": 753,
+        "milliseconds": 12550,
+        "interceptions": 0,
+        "lives": 3,
+        "wave": 2
+      },
+      "equipped": {
+        "ticks": 273,
+        "milliseconds": 4550,
+        "interceptions": 0,
+        "lives": 3,
+        "wave": 2
+      },
+      "ratio": 2.758241758241758,
+      "ratioLowerBound": 2.758241758241758
     }
   ],
   "escort": {
@@ -111,39 +345,28 @@
       {
         "level": 1,
         "elements": [
-          "behavior:patrol",
-          "enemy:scout",
-          "enemy:sensor",
-          "shoot",
-          "weapon:beam",
-          "weapon:slow"
+          "shoot"
         ],
         "baseline": true
       },
       {
         "level": 2,
         "elements": [
-          "behavior:burst",
-          "enemy:burst",
-          "weapon:drones",
-          "weapon:magnet"
+          "burst-fan"
         ],
         "baseline": false
       },
       {
         "level": 3,
         "elements": [
-          "behavior:fast",
-          "enemy:fast"
+          "fast-ellipse"
         ],
         "baseline": false
       },
       {
         "level": 4,
         "elements": [
-          "behavior:shield",
-          "enemy:shield",
-          "weapon:bounce"
+          "frontal-block"
         ],
         "baseline": false
       },
@@ -155,34 +378,25 @@
         "baseline": false
       },
       {
-        "level": 6,
-        "elements": [
-          "respite"
-        ],
-        "baseline": false
-      },
-      {
         "level": 7,
         "elements": [
-          "behavior:miner",
-          "enemy:miner"
+          "mine-explosion",
+          "mine-laid"
         ],
         "baseline": false
       },
       {
         "level": 10,
         "elements": [
-          "behavior:split",
-          "enemy:split",
-          "guardian:2"
+          "guardian:2",
+          "split-fragments"
         ],
         "baseline": false
       },
       {
         "level": 13,
         "elements": [
-          "behavior:spiral",
-          "enemy:spiral"
+          "spiral-approach"
         ],
         "baseline": false
       },
@@ -196,16 +410,15 @@
       {
         "level": 16,
         "elements": [
-          "behavior:turret",
-          "enemy:turret",
-          "weapon:charge"
+          "guided-turn"
         ],
         "baseline": false
       },
       {
         "level": 19,
         "elements": [
-          "behavior:rescue"
+          "rescue-present",
+          "rescue-saved"
         ],
         "baseline": false
       },
@@ -219,16 +432,13 @@
       {
         "level": 22,
         "elements": [
-          "behavior:mirror",
-          "enemy:mirror"
+          "mirror-tracking"
         ],
         "baseline": false
       },
       {
         "level": 25,
         "elements": [
-          "behavior:column",
-          "enemy:armor",
           "guardian:5"
         ],
         "baseline": false
@@ -236,20 +446,18 @@
       {
         "level": 30,
         "elements": [
-          "behavior:command",
-          "command-two-phases",
+          "command-phase-two-fire",
           "guardian:6"
         ],
         "baseline": false
       }
     ],
-    "noveltyCount": 15,
+    "noveltyCount": 14,
     "noveltyLevels": [
       2,
       3,
       4,
       5,
-      6,
       7,
       10,
       13,
@@ -512,7 +720,7 @@
     ],
     "longestPlateau": 3,
     "plateauBasis": "normalized configuration proxy; not a measured human difficulty plateau",
-    "score": 15.5,
+    "score": 16.4,
     "levels": [
       {
         "level": 1,
@@ -527,12 +735,7 @@
           "layoutCells": 6
         },
         "elements": [
-          "behavior:patrol",
-          "enemy:scout",
-          "enemy:sensor",
-          "shoot",
-          "weapon:beam",
-          "weapon:slow"
+          "shoot"
         ],
         "layout": [
           "55,110:sensor",
@@ -542,6 +745,40 @@
           "255,110:scout",
           "305,110:scout"
         ],
+        "observation": {
+          "elements": [
+            "shoot",
+            "weapon:beam",
+            "weapon:slow"
+          ],
+          "layout": [
+            "55,110:sensor",
+            "105,110:scout",
+            "155,110:scout",
+            "205,110:scout",
+            "255,110:scout",
+            "305,110:scout"
+          ],
+          "params": {
+            "layoutCells": 6
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:beam": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:slow": {
+              "frame": 60,
+              "remaining": 14000
+            }
+          },
+          "frames": 1038,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0,
           "count": 0,
@@ -553,12 +790,7 @@
           "layoutCells": 0.25
         },
         "newElements": [
-          "behavior:patrol",
-          "enemy:scout",
-          "enemy:sensor",
-          "shoot",
-          "weapon:beam",
-          "weapon:slow"
+          "shoot"
         ]
       },
       {
@@ -574,12 +806,8 @@
           "layoutCells": 6
         },
         "elements": [
-          "behavior:burst",
-          "enemy:burst",
-          "enemy:sensor",
-          "shoot",
-          "weapon:drones",
-          "weapon:magnet"
+          "burst-fan",
+          "shoot"
         ],
         "layout": [
           "205,90:sensor",
@@ -589,6 +817,82 @@
           "251,146:burst",
           "109,146:burst"
         ],
+        "observation": {
+          "elements": [
+            "burst-fan",
+            "shoot",
+            "weapon:drones",
+            "weapon:magnet"
+          ],
+          "layout": [
+            "205,90:sensor",
+            "155,90:burst",
+            "228,118:burst",
+            "132,118:burst",
+            "251,146:burst",
+            "109,146:burst"
+          ],
+          "params": {
+            "layoutCells": 6
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:drones": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:magnet": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "burst-fan": {
+              "frame": 125,
+              "velocities": [
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ],
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ],
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ]
+              ]
+            }
+          },
+          "frames": 380,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0,
           "count": 0,
@@ -600,10 +904,7 @@
           "layoutCells": 0.25
         },
         "newElements": [
-          "behavior:burst",
-          "enemy:burst",
-          "weapon:drones",
-          "weapon:magnet"
+          "burst-fan"
         ]
       },
       {
@@ -619,12 +920,8 @@
           "layoutCells": 6
         },
         "elements": [
-          "behavior:fast",
-          "enemy:fast",
-          "enemy:sensor",
-          "shoot",
-          "weapon:beam",
-          "weapon:slow"
+          "fast-ellipse",
+          "shoot"
         ],
         "layout": [
           "70,90:sensor",
@@ -634,6 +931,46 @@
           "70,162:fast",
           "290,162:fast"
         ],
+        "observation": {
+          "elements": [
+            "fast-ellipse",
+            "shoot",
+            "weapon:beam",
+            "weapon:slow"
+          ],
+          "layout": [
+            "70,90:sensor",
+            "290,90:fast",
+            "70,126:fast",
+            "290,126:fast",
+            "70,162:fast",
+            "290,162:fast"
+          ],
+          "params": {
+            "layoutCells": 6
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:slow": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:beam": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "fast-ellipse": {
+              "frame": 97,
+              "dx": 3.850064890632609,
+              "dy": -0.11096828303645623
+            }
+          },
+          "frames": 918,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0,
           "count": 0,
@@ -645,8 +982,7 @@
           "layoutCells": 0.25
         },
         "newElements": [
-          "behavior:fast",
-          "enemy:fast"
+          "fast-ellipse"
         ]
       },
       {
@@ -662,12 +998,8 @@
           "layoutCells": 6
         },
         "elements": [
-          "behavior:shield",
-          "enemy:sensor",
-          "enemy:shield",
-          "shoot",
-          "weapon:bounce",
-          "weapon:drones"
+          "frontal-block",
+          "shoot"
         ],
         "layout": [
           "295,180:sensor",
@@ -677,6 +1009,46 @@
           "122.49999999999994,110.71796769724492:shield",
           "237.5,110.71796769724492:shield"
         ],
+        "observation": {
+          "elements": [
+            "frontal-block",
+            "shoot",
+            "weapon:bounce",
+            "weapon:drones"
+          ],
+          "layout": [
+            "295,180:sensor",
+            "237.5,249.28203230275508:shield",
+            "122.50000000000003,249.2820323027551:shield",
+            "65,180:shield",
+            "122.49999999999994,110.71796769724492:shield",
+            "237.5,110.71796769724492:shield"
+          ],
+          "params": {
+            "layoutCells": 6
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:bounce": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "frontal-block": {
+              "frame": 1443,
+              "id": 5,
+              "hp": 1
+            }
+          },
+          "frames": 2389,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0,
           "count": 0,
@@ -688,9 +1060,7 @@
           "layoutCells": 0.25
         },
         "newElements": [
-          "behavior:shield",
-          "enemy:shield",
-          "weapon:bounce"
+          "frontal-block"
         ]
       },
       {
@@ -706,15 +1076,9 @@
           "layoutCells": 6
         },
         "elements": [
-          "behavior:burst",
-          "behavior:shield",
-          "enemy:burst",
-          "enemy:sensor",
-          "enemy:shield",
+          "burst-fan",
           "guardian:1",
-          "shoot",
-          "weapon:bounce",
-          "weapon:drones"
+          "shoot"
         ],
         "layout": [
           "105,85:sensor",
@@ -724,6 +1088,97 @@
           "105,169:shield",
           "255,169:burst"
         ],
+        "observation": {
+          "elements": [
+            "burst-fan",
+            "guardian:1",
+            "shoot",
+            "weapon:bounce",
+            "weapon:drones"
+          ],
+          "layout": [
+            "105,85:sensor",
+            "255,85:burst",
+            "105,127:shield",
+            "255,127:burst",
+            "105,169:shield",
+            "255,169:burst"
+          ],
+          "params": {
+            "layoutCells": 6
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:bounce": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "burst-fan": {
+              "frame": 125,
+              "velocities": [
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ],
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ],
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ]
+              ]
+            },
+            "guardian:1": {
+              "frame": 674,
+              "phase": 1,
+              "velocities": [
+                [
+                  -90,
+                  160
+                ],
+                [
+                  90,
+                  160
+                ]
+              ]
+            }
+          },
+          "frames": 1199,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0,
           "count": 0,
@@ -751,13 +1206,7 @@
           "layoutCells": 4
         },
         "elements": [
-          "behavior:patrol",
-          "enemy:scout",
-          "enemy:sensor",
-          "respite",
-          "shoot",
-          "weapon:beam",
-          "weapon:slow"
+          "shoot"
         ],
         "layout": [
           "205,90:sensor",
@@ -765,6 +1214,38 @@
           "228,118:scout",
           "132,118:scout"
         ],
+        "observation": {
+          "elements": [
+            "shoot",
+            "weapon:beam",
+            "weapon:slow"
+          ],
+          "layout": [
+            "205,90:sensor",
+            "155,90:scout",
+            "228,118:scout",
+            "132,118:scout"
+          ],
+          "params": {
+            "layoutCells": 4
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:beam": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:slow": {
+              "frame": 60,
+              "remaining": 14000
+            }
+          },
+          "frames": 258,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0,
           "count": 0.16666666666666666,
@@ -775,9 +1256,7 @@
           "amplitude": 0.1724137931034483,
           "layoutCells": 0
         },
-        "newElements": [
-          "respite"
-        ]
+        "newElements": []
       },
       {
         "level": 7,
@@ -792,12 +1271,9 @@
           "layoutCells": 7
         },
         "elements": [
-          "behavior:miner",
-          "enemy:miner",
-          "enemy:sensor",
-          "shoot",
-          "weapon:drones",
-          "weapon:magnet"
+          "mine-explosion",
+          "mine-laid",
+          "shoot"
         ],
         "layout": [
           "70,90:sensor",
@@ -808,6 +1284,51 @@
           "290,162:miner",
           "70,198:miner"
         ],
+        "observation": {
+          "elements": [
+            "mine-explosion",
+            "mine-laid",
+            "shoot",
+            "weapon:drones",
+            "weapon:magnet"
+          ],
+          "layout": [
+            "70,90:sensor",
+            "290,90:miner",
+            "70,126:miner",
+            "290,126:miner",
+            "70,162:miner",
+            "290,162:miner",
+            "70,198:miner"
+          ],
+          "params": {
+            "layoutCells": 7
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:magnet": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "mine-laid": {
+              "frame": 131,
+              "y": 110.58333333333333
+            },
+            "mine-explosion": {
+              "frame": 214,
+              "count": 18
+            }
+          },
+          "frames": 673,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0,
           "count": 0.16666666666666666,
@@ -819,8 +1340,8 @@
           "layoutCells": 0.375
         },
         "newElements": [
-          "behavior:miner",
-          "enemy:miner"
+          "mine-explosion",
+          "mine-laid"
         ]
       },
       {
@@ -836,14 +1357,9 @@
           "layoutCells": 7
         },
         "elements": [
-          "behavior:miner",
-          "behavior:shield",
-          "enemy:miner",
-          "enemy:sensor",
-          "enemy:shield",
-          "shoot",
-          "weapon:bounce",
-          "weapon:drones"
+          "mine-explosion",
+          "mine-laid",
+          "shoot"
         ],
         "layout": [
           "55,110:sensor",
@@ -854,6 +1370,51 @@
           "305,110:miner",
           "55,154:shield"
         ],
+        "observation": {
+          "elements": [
+            "mine-explosion",
+            "mine-laid",
+            "shoot",
+            "weapon:bounce",
+            "weapon:drones"
+          ],
+          "layout": [
+            "55,110:sensor",
+            "105,110:miner",
+            "155,110:shield",
+            "205,110:miner",
+            "255,110:shield",
+            "305,110:miner",
+            "55,154:shield"
+          ],
+          "params": {
+            "layoutCells": 7
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:bounce": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "mine-laid": {
+              "frame": 131,
+              "y": 130.58333333333334
+            },
+            "mine-explosion": {
+              "frame": 214,
+              "count": 9
+            }
+          },
+          "frames": 1171,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0,
           "count": 0.16666666666666666,
@@ -879,14 +1440,9 @@
           "layoutCells": 7
         },
         "elements": [
-          "behavior:burst",
-          "behavior:fast",
-          "enemy:burst",
-          "enemy:fast",
-          "enemy:sensor",
-          "shoot",
-          "weapon:drones",
-          "weapon:magnet"
+          "burst-fan",
+          "fast-ellipse",
+          "shoot"
         ],
         "layout": [
           "295,180:sensor",
@@ -897,6 +1453,77 @@
           "154.41009259502383,102.0057670254541:fast",
           "251.70132721375433,117.4534814025576:burst"
         ],
+        "observation": {
+          "elements": [
+            "burst-fan",
+            "fast-ellipse",
+            "shoot",
+            "weapon:drones",
+            "weapon:magnet"
+          ],
+          "layout": [
+            "295,180:sensor",
+            "251.70132721375438,242.5465185974424:fast",
+            "154.41009259502385,257.99423297454587:burst",
+            "76.3885801912218,214.71069912940465:fast",
+            "76.38858019122179,145.28930087059535:burst",
+            "154.41009259502383,102.0057670254541:fast",
+            "251.70132721375433,117.4534814025576:burst"
+          ],
+          "params": {
+            "layoutCells": 7
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:drones": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:magnet": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "fast-ellipse": {
+              "frame": 97,
+              "dx": 3.8500648906326376,
+              "dy": -0.11096828303647044
+            },
+            "burst-fan": {
+              "frame": 125,
+              "velocities": [
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ],
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ]
+              ]
+            }
+          },
+          "frames": 791,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.25,
           "count": 0.16666666666666666,
@@ -922,13 +1549,11 @@
           "layoutCells": 7
         },
         "elements": [
-          "behavior:split",
-          "enemy:sensor",
-          "enemy:split",
           "guardian:2",
+          "mine-explosion",
+          "mine-laid",
           "shoot",
-          "weapon:beam",
-          "weapon:slow"
+          "split-fragments"
         ],
         "layout": [
           "105,85:sensor",
@@ -939,6 +1564,69 @@
           "255,169:split",
           "105,211:split"
         ],
+        "observation": {
+          "elements": [
+            "guardian:2",
+            "mine-explosion",
+            "mine-laid",
+            "shoot",
+            "split-fragments",
+            "weapon:beam",
+            "weapon:slow"
+          ],
+          "layout": [
+            "105,85:sensor",
+            "255,85:split",
+            "105,127:split",
+            "255,127:split",
+            "105,169:split",
+            "255,169:split",
+            "105,211:split"
+          ],
+          "params": {
+            "layoutCells": 7
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:beam": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "split-fragments": {
+              "frame": 41,
+              "id": 7,
+              "x": 152.69080684842865,
+              "y": 24.03888888888891
+            },
+            "weapon:slow": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "mine-laid": {
+              "frame": 1874,
+              "y": 85.75
+            },
+            "guardian:2": {
+              "frame": 1874,
+              "phase": 1,
+              "velocities": [
+                [
+                  0,
+                  45
+                ]
+              ]
+            },
+            "mine-explosion": {
+              "frame": 1946,
+              "count": 3
+            }
+          },
+          "frames": 4639,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.25,
           "count": 0.16666666666666666,
@@ -950,9 +1638,8 @@
           "layoutCells": 0.375
         },
         "newElements": [
-          "behavior:split",
-          "enemy:split",
-          "guardian:2"
+          "guardian:2",
+          "split-fragments"
         ]
       },
       {
@@ -968,15 +1655,8 @@
           "layoutCells": 4
         },
         "elements": [
-          "behavior:patrol",
-          "behavior:split",
-          "enemy:scout",
-          "enemy:sensor",
-          "enemy:split",
-          "respite",
           "shoot",
-          "weapon:beam",
-          "weapon:slow"
+          "split-fragments"
         ],
         "layout": [
           "205,90:sensor",
@@ -984,6 +1664,45 @@
           "228,118:scout",
           "132,118:split"
         ],
+        "observation": {
+          "elements": [
+            "shoot",
+            "split-fragments",
+            "weapon:beam",
+            "weapon:slow"
+          ],
+          "layout": [
+            "205,90:sensor",
+            "155,90:split",
+            "228,118:scout",
+            "132,118:split"
+          ],
+          "params": {
+            "layoutCells": 4
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:beam": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "split-fragments": {
+              "frame": 29,
+              "id": 4,
+              "x": 172.51096077858114,
+              "y": 4.166666666666672
+            },
+            "weapon:slow": {
+              "frame": 60,
+              "remaining": 14000
+            }
+          },
+          "frames": 474,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.25,
           "count": 0.3333333333333333,
@@ -1009,14 +1728,9 @@
           "layoutCells": 8
         },
         "elements": [
-          "behavior:fast",
-          "behavior:split",
-          "enemy:fast",
-          "enemy:sensor",
-          "enemy:split",
+          "fast-ellipse",
           "shoot",
-          "weapon:beam",
-          "weapon:slow"
+          "split-fragments"
         ],
         "layout": [
           "70,90:sensor",
@@ -1028,6 +1742,55 @@
           "70,198:split",
           "290,198:fast"
         ],
+        "observation": {
+          "elements": [
+            "fast-ellipse",
+            "shoot",
+            "split-fragments",
+            "weapon:beam",
+            "weapon:slow"
+          ],
+          "layout": [
+            "70,90:sensor",
+            "290,90:fast",
+            "70,126:split",
+            "290,126:fast",
+            "70,162:split",
+            "290,162:fast",
+            "70,198:split",
+            "290,198:fast"
+          ],
+          "params": {
+            "layoutCells": 8
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:slow": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:beam": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "split-fragments": {
+              "frame": 65,
+              "id": 8,
+              "x": 126.57001926825248,
+              "y": 65.4166666666666
+            },
+            "fast-ellipse": {
+              "frame": 97,
+              "dx": 3.850064890632609,
+              "dy": -0.11096828303645623
+            }
+          },
+          "frames": 3212,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.25,
           "count": 0.3333333333333333,
@@ -1053,12 +1816,8 @@
           "layoutCells": 8
         },
         "elements": [
-          "behavior:spiral",
-          "enemy:sensor",
-          "enemy:spiral",
           "shoot",
-          "weapon:beam",
-          "weapon:slow"
+          "spiral-approach"
         ],
         "layout": [
           "295,180:sensor",
@@ -1070,6 +1829,48 @@
           "179.99999999999997,100:spiral",
           "261.31727983645294,123.43145750507618:spiral"
         ],
+        "observation": {
+          "elements": [
+            "shoot",
+            "spiral-approach",
+            "weapon:beam",
+            "weapon:slow"
+          ],
+          "layout": [
+            "295,180:sensor",
+            "261.31727983645294,236.5685424949238:spiral",
+            "180,260:spiral",
+            "98.68272016354705,236.5685424949238:spiral",
+            "65,180:spiral",
+            "98.68272016354702,123.4314575050762:spiral",
+            "179.99999999999997,100:spiral",
+            "261.31727983645294,123.43145750507618:spiral"
+          ],
+          "params": {
+            "layoutCells": 8
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:slow": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:beam": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "spiral-approach": {
+              "frame": 99,
+              "dx": 0.12796752524803878,
+              "dy": 1.2037037037036953
+            }
+          },
+          "frames": 2376,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.25,
           "count": 0.3333333333333333,
@@ -1081,8 +1882,7 @@
           "layoutCells": 0.5
         },
         "newElements": [
-          "behavior:spiral",
-          "enemy:spiral"
+          "spiral-approach"
         ]
       },
       {
@@ -1098,14 +1898,10 @@
           "layoutCells": 8
         },
         "elements": [
-          "behavior:miner",
-          "behavior:spiral",
-          "enemy:miner",
-          "enemy:sensor",
-          "enemy:spiral",
+          "mine-explosion",
+          "mine-laid",
           "shoot",
-          "weapon:drones",
-          "weapon:magnet"
+          "spiral-approach"
         ],
         "layout": [
           "55,110:sensor",
@@ -1117,6 +1913,58 @@
           "55,154:spiral",
           "105,154:miner"
         ],
+        "observation": {
+          "elements": [
+            "mine-explosion",
+            "mine-laid",
+            "shoot",
+            "spiral-approach",
+            "weapon:drones",
+            "weapon:magnet"
+          ],
+          "layout": [
+            "55,110:sensor",
+            "105,110:miner",
+            "155,110:spiral",
+            "205,110:miner",
+            "255,110:spiral",
+            "305,110:miner",
+            "55,154:spiral",
+            "105,154:miner"
+          ],
+          "params": {
+            "layoutCells": 8
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:magnet": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "spiral-approach": {
+              "frame": 129,
+              "dx": 0.12796752524808142,
+              "dy": 1.2037037037036953
+            },
+            "mine-laid": {
+              "frame": 131,
+              "y": 130.58333333333334
+            },
+            "mine-explosion": {
+              "frame": 214,
+              "count": 12
+            }
+          },
+          "frames": 845,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.25,
           "count": 0.3333333333333333,
@@ -1142,15 +1990,10 @@
           "layoutCells": 8
         },
         "elements": [
-          "behavior:burst",
-          "behavior:spiral",
-          "enemy:burst",
-          "enemy:sensor",
-          "enemy:spiral",
+          "burst-fan",
           "guardian:3",
           "shoot",
-          "weapon:drones",
-          "weapon:magnet"
+          "spiral-approach"
         ],
         "layout": [
           "205,90:sensor",
@@ -1162,6 +2005,89 @@
           "274,174:burst",
           "86,174:spiral"
         ],
+        "observation": {
+          "elements": [
+            "burst-fan",
+            "guardian:3",
+            "shoot",
+            "spiral-approach",
+            "weapon:drones",
+            "weapon:magnet"
+          ],
+          "layout": [
+            "205,90:sensor",
+            "155,90:spiral",
+            "228,118:burst",
+            "132,118:spiral",
+            "251,146:burst",
+            "109,146:spiral",
+            "274,174:burst",
+            "86,174:spiral"
+          ],
+          "params": {
+            "layoutCells": 8
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:magnet": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "spiral-approach": {
+              "frame": 99,
+              "dx": 0.12796752524809563,
+              "dy": 1.2037037037036953
+            },
+            "burst-fan": {
+              "frame": 125,
+              "velocities": [
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ],
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ]
+              ]
+            },
+            "guardian:3": {
+              "frame": 524,
+              "phase": 1,
+              "velocities": [
+                [
+                  -2.490384123101691,
+                  160
+                ]
+              ]
+            }
+          },
+          "frames": 3369,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.25,
           "count": 0.3333333333333333,
@@ -1189,12 +2115,8 @@
           "layoutCells": 9
         },
         "elements": [
-          "behavior:turret",
-          "enemy:sensor",
-          "enemy:turret",
-          "shoot",
-          "weapon:charge",
-          "weapon:drones"
+          "guided-turn",
+          "shoot"
         ],
         "layout": [
           "105,85:sensor",
@@ -1207,6 +2129,48 @@
           "255,211:turret",
           "105,253:turret"
         ],
+        "observation": {
+          "elements": [
+            "guided-turn",
+            "shoot",
+            "weapon:charge",
+            "weapon:drones"
+          ],
+          "layout": [
+            "105,85:sensor",
+            "255,85:turret",
+            "105,127:turret",
+            "255,127:turret",
+            "105,169:turret",
+            "255,169:turret",
+            "105,211:turret",
+            "255,211:turret",
+            "105,253:turret"
+          ],
+          "params": {
+            "layoutCells": 9
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:charge": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "guided-turn": {
+              "frame": 126,
+              "cannon": 255
+            }
+          },
+          "frames": 2278,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.5,
           "count": 0.5,
@@ -1218,9 +2182,7 @@
           "layoutCells": 0.625
         },
         "newElements": [
-          "behavior:turret",
-          "enemy:turret",
-          "weapon:charge"
+          "guided-turn"
         ]
       },
       {
@@ -1236,15 +2198,8 @@
           "layoutCells": 4
         },
         "elements": [
-          "behavior:patrol",
-          "behavior:turret",
-          "enemy:scout",
-          "enemy:sensor",
-          "enemy:turret",
-          "respite",
-          "shoot",
-          "weapon:drones",
-          "weapon:magnet"
+          "guided-turn",
+          "shoot"
         ],
         "layout": [
           "70,90:sensor",
@@ -1252,6 +2207,43 @@
           "70,126:scout",
           "290,126:turret"
         ],
+        "observation": {
+          "elements": [
+            "guided-turn",
+            "shoot",
+            "weapon:drones",
+            "weapon:magnet"
+          ],
+          "layout": [
+            "70,90:sensor",
+            "290,90:turret",
+            "70,126:scout",
+            "290,126:turret"
+          ],
+          "params": {
+            "layoutCells": 4
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:drones": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:magnet": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "guided-turn": {
+              "frame": 163,
+              "cannon": 105
+            }
+          },
+          "frames": 1334,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.5,
           "count": 0.5,
@@ -1277,14 +2269,9 @@
           "layoutCells": 9
         },
         "elements": [
-          "behavior:shield",
-          "behavior:turret",
-          "enemy:sensor",
-          "enemy:shield",
-          "enemy:turret",
-          "shoot",
-          "weapon:bounce",
-          "weapon:drones"
+          "frontal-block",
+          "guided-turn",
+          "shoot"
         ],
         "layout": [
           "295,180:sensor",
@@ -1297,6 +2284,54 @@
           "199.96954043169694,101.21537975902335:shield",
           "268.0951109586824,128.57699122507682:turret"
         ],
+        "observation": {
+          "elements": [
+            "frontal-block",
+            "guided-turn",
+            "shoot",
+            "weapon:bounce",
+            "weapon:drones"
+          ],
+          "layout": [
+            "295,180:sensor",
+            "268.0951109586825,231.42300877492315:shield",
+            "199.969540431697,258.78462024097666:turret",
+            "122.50000000000003,249.2820323027551:shield",
+            "71.93534860962055,207.36161146605352:turret",
+            "71.93534860962053,152.6383885339465:shield",
+            "122.49999999999994,110.71796769724492:turret",
+            "199.96954043169694,101.21537975902335:shield",
+            "268.0951109586824,128.57699122507682:turret"
+          ],
+          "params": {
+            "layoutCells": 9
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:bounce": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "frontal-block": {
+              "frame": 99,
+              "id": 1,
+              "hp": 1
+            },
+            "guided-turn": {
+              "frame": 126,
+              "cannon": 230
+            }
+          },
+          "frames": 6835,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.5,
           "count": 0.5,
@@ -1322,14 +2357,10 @@
           "layoutCells": 9
         },
         "elements": [
-          "behavior:burst",
-          "behavior:rescue",
-          "enemy:burst",
-          "enemy:scout",
-          "enemy:sensor",
-          "shoot",
-          "weapon:drones",
-          "weapon:magnet"
+          "burst-fan",
+          "rescue-present",
+          "rescue-saved",
+          "shoot"
         ],
         "layout": [
           "205,90:sensor",
@@ -1342,6 +2373,72 @@
           "86,174:burst",
           "297,202:scout"
         ],
+        "observation": {
+          "elements": [
+            "burst-fan",
+            "rescue-present",
+            "rescue-saved",
+            "shoot",
+            "weapon:drones",
+            "weapon:magnet"
+          ],
+          "layout": [
+            "205,90:sensor",
+            "155,90:burst",
+            "228,118:scout",
+            "132,118:burst",
+            "251,146:scout",
+            "109,146:burst",
+            "274,174:scout",
+            "86,174:burst",
+            "297,202:scout"
+          ],
+          "params": {
+            "layoutCells": 9
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "rescue-present": {
+              "frame": 0,
+              "wave": 1,
+              "hp": 4
+            },
+            "weapon:drones": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:magnet": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "burst-fan": {
+              "frame": 125,
+              "velocities": [
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ]
+              ]
+            },
+            "rescue-saved": {
+              "frame": 305,
+              "score": 330
+            }
+          },
+          "frames": 1203,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.5,
           "count": 0.5,
@@ -1353,7 +2450,8 @@
           "layoutCells": 0.625
         },
         "newElements": [
-          "behavior:rescue"
+          "rescue-present",
+          "rescue-saved"
         ]
       },
       {
@@ -1369,15 +2467,11 @@
           "layoutCells": 9
         },
         "elements": [
-          "behavior:rescue",
-          "behavior:turret",
-          "enemy:scout",
-          "enemy:sensor",
-          "enemy:turret",
           "guardian:4",
-          "shoot",
-          "weapon:charge",
-          "weapon:magnet"
+          "guided-turn",
+          "rescue-present",
+          "rescue-saved",
+          "shoot"
         ],
         "layout": [
           "55,110:sensor",
@@ -1390,6 +2484,82 @@
           "105,154:turret",
           "155,154:scout"
         ],
+        "observation": {
+          "elements": [
+            "guardian:4",
+            "guided-turn",
+            "rescue-present",
+            "rescue-saved",
+            "shoot",
+            "weapon:charge",
+            "weapon:magnet"
+          ],
+          "layout": [
+            "55,110:sensor",
+            "105,110:turret",
+            "155,110:scout",
+            "205,110:turret",
+            "255,110:scout",
+            "305,110:turret",
+            "55,154:scout",
+            "105,154:turret",
+            "155,154:scout"
+          ],
+          "params": {
+            "layoutCells": 9
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "rescue-present": {
+              "frame": 0,
+              "wave": 1,
+              "hp": 4
+            },
+            "weapon:charge": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:magnet": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "guided-turn": {
+              "frame": 126,
+              "cannon": 110
+            },
+            "rescue-saved": {
+              "frame": 304,
+              "score": 330
+            },
+            "guardian:4": {
+              "frame": 1124,
+              "phase": 1,
+              "velocities": [
+                [
+                  -100,
+                  160
+                ],
+                [
+                  -35,
+                  160
+                ],
+                [
+                  35,
+                  160
+                ],
+                [
+                  100,
+                  160
+                ]
+              ]
+            }
+          },
+          "frames": 1691,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.5,
           "count": 0.5,
@@ -1417,14 +2587,11 @@
           "layoutCells": 10
         },
         "elements": [
-          "behavior:miner",
-          "behavior:rescue",
-          "enemy:miner",
-          "enemy:scout",
-          "enemy:sensor",
-          "shoot",
-          "weapon:drones",
-          "weapon:magnet"
+          "mine-explosion",
+          "mine-laid",
+          "rescue-present",
+          "rescue-saved",
+          "shoot"
         ],
         "layout": [
           "70,90:sensor",
@@ -1438,6 +2605,65 @@
           "70,234:scout",
           "290,234:miner"
         ],
+        "observation": {
+          "elements": [
+            "mine-explosion",
+            "mine-laid",
+            "rescue-present",
+            "rescue-saved",
+            "shoot",
+            "weapon:drones",
+            "weapon:magnet"
+          ],
+          "layout": [
+            "70,90:sensor",
+            "290,90:miner",
+            "70,126:scout",
+            "290,126:miner",
+            "70,162:scout",
+            "290,162:miner",
+            "70,198:scout",
+            "290,198:miner",
+            "70,234:scout",
+            "290,234:miner"
+          ],
+          "params": {
+            "layoutCells": 10
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "rescue-present": {
+              "frame": 0,
+              "wave": 1,
+              "hp": 4
+            },
+            "weapon:magnet": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "mine-laid": {
+              "frame": 131,
+              "y": 110.58333333333333
+            },
+            "mine-explosion": {
+              "frame": 214,
+              "count": 12
+            },
+            "rescue-saved": {
+              "frame": 337,
+              "score": 320
+            }
+          },
+          "frames": 1295,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.5,
           "count": 0.6666666666666666,
@@ -1463,12 +2689,8 @@
           "layoutCells": 10
         },
         "elements": [
-          "behavior:mirror",
-          "enemy:mirror",
-          "enemy:sensor",
-          "shoot",
-          "weapon:beam",
-          "weapon:slow"
+          "mirror-tracking",
+          "shoot"
         ],
         "layout": [
           "295,180:sensor",
@@ -1482,6 +2704,50 @@
           "215.53695435311892,103.91547869638771:mirror",
           "273.036954353119,132.97717981660213:mirror"
         ],
+        "observation": {
+          "elements": [
+            "mirror-tracking",
+            "shoot",
+            "weapon:beam",
+            "weapon:slow"
+          ],
+          "layout": [
+            "295,180:sensor",
+            "273.036954353119,227.02282018339787:mirror",
+            "215.53695435311897,256.0845213036123:mirror",
+            "144.46304564688106,256.0845213036123:mirror",
+            "86.96304564688106,227.02282018339787:mirror",
+            "65,180:mirror",
+            "86.96304564688104,132.97717981660216:mirror",
+            "144.46304564688103,103.91547869638772:mirror",
+            "215.53695435311892,103.91547869638771:mirror",
+            "273.036954353119,132.97717981660213:mirror"
+          ],
+          "params": {
+            "layoutCells": 10
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:beam": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:slow": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "mirror-tracking": {
+              "frame": 117,
+              "x": 122.71304564688106,
+              "cannon": 235
+            }
+          },
+          "frames": 3036,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.5,
           "count": 0.6666666666666666,
@@ -1493,8 +2759,7 @@
           "layoutCells": 0.75
         },
         "newElements": [
-          "behavior:mirror",
-          "enemy:mirror"
+          "mirror-tracking"
         ]
       },
       {
@@ -1510,14 +2775,9 @@
           "layoutCells": 10
         },
         "elements": [
-          "behavior:mirror",
-          "behavior:split",
-          "enemy:mirror",
-          "enemy:sensor",
-          "enemy:split",
+          "mirror-tracking",
           "shoot",
-          "weapon:beam",
-          "weapon:slow"
+          "split-fragments"
         ],
         "layout": [
           "105,85:sensor",
@@ -1531,6 +2791,57 @@
           "105,253:mirror",
           "255,253:split"
         ],
+        "observation": {
+          "elements": [
+            "mirror-tracking",
+            "shoot",
+            "split-fragments",
+            "weapon:beam",
+            "weapon:slow"
+          ],
+          "layout": [
+            "105,85:sensor",
+            "255,85:split",
+            "105,127:mirror",
+            "255,127:split",
+            "105,169:mirror",
+            "255,169:split",
+            "105,211:mirror",
+            "255,211:split",
+            "105,253:mirror",
+            "255,253:split"
+          ],
+          "params": {
+            "layoutCells": 10
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:beam": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:slow": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "split-fragments": {
+              "frame": 71,
+              "id": 10,
+              "x": 207.57964143472054,
+              "y": 51.75555555555557
+            },
+            "mirror-tracking": {
+              "frame": 120,
+              "x": 157,
+              "cannon": 260
+            }
+          },
+          "frames": 5052,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.75,
           "count": 0.6666666666666666,
@@ -1556,14 +2867,9 @@
           "layoutCells": 4
         },
         "elements": [
-          "behavior:patrol",
-          "behavior:rescue",
-          "enemy:scout",
-          "enemy:sensor",
-          "respite",
-          "shoot",
-          "weapon:drones",
-          "weapon:magnet"
+          "rescue-present",
+          "rescue-saved",
+          "shoot"
         ],
         "layout": [
           "205,90:sensor",
@@ -1571,6 +2877,49 @@
           "228,118:scout",
           "132,118:scout"
         ],
+        "observation": {
+          "elements": [
+            "rescue-present",
+            "rescue-saved",
+            "shoot",
+            "weapon:drones",
+            "weapon:magnet"
+          ],
+          "layout": [
+            "205,90:sensor",
+            "155,90:scout",
+            "228,118:scout",
+            "132,118:scout"
+          ],
+          "params": {
+            "layoutCells": 4
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "rescue-present": {
+              "frame": 0,
+              "wave": 1,
+              "hp": 4
+            },
+            "weapon:drones": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:magnet": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "rescue-saved": {
+              "frame": 198,
+              "score": 260
+            }
+          },
+          "frames": 970,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.75,
           "count": 0.6666666666666666,
@@ -1596,13 +2945,9 @@
           "layoutCells": 10
         },
         "elements": [
-          "behavior:column",
-          "enemy:armor",
-          "enemy:sensor",
           "guardian:5",
-          "shoot",
-          "weapon:charge",
-          "weapon:drones"
+          "guided-turn",
+          "shoot"
         ],
         "layout": [
           "105,85:sensor",
@@ -1616,6 +2961,68 @@
           "105,253:armor",
           "255,253:armor"
         ],
+        "observation": {
+          "elements": [
+            "guardian:5",
+            "guided-turn",
+            "shoot",
+            "weapon:charge",
+            "weapon:drones"
+          ],
+          "layout": [
+            "105,85:sensor",
+            "255,85:armor",
+            "105,127:armor",
+            "255,127:armor",
+            "105,169:armor",
+            "255,169:armor",
+            "105,211:armor",
+            "255,211:armor",
+            "105,253:armor",
+            "255,253:armor"
+          ],
+          "params": {
+            "layoutCells": 10
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:charge": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "guardian:5": {
+              "frame": 2849,
+              "phase": 1,
+              "velocities": [
+                [
+                  28.35238511833909,
+                  180
+                ],
+                [
+                  28.35238511833909,
+                  180
+                ],
+                [
+                  28.35238511833909,
+                  180
+                ]
+              ]
+            },
+            "guided-turn": {
+              "frame": 2850,
+              "cannon": 315
+            }
+          },
+          "frames": 3633,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.75,
           "count": 0.6666666666666666,
@@ -1627,8 +3034,6 @@
           "layoutCells": 0.75
         },
         "newElements": [
-          "behavior:column",
-          "enemy:armor",
           "guardian:5"
         ]
       },
@@ -1645,14 +3050,8 @@
           "layoutCells": 11
         },
         "elements": [
-          "behavior:column",
-          "behavior:mirror",
-          "enemy:armor",
-          "enemy:mirror",
-          "enemy:sensor",
-          "shoot",
-          "weapon:charge",
-          "weapon:drones"
+          "mirror-tracking",
+          "shoot"
         ],
         "layout": [
           "55,110:sensor",
@@ -1667,6 +3066,51 @@
           "205,154:mirror",
           "255,154:armor"
         ],
+        "observation": {
+          "elements": [
+            "mirror-tracking",
+            "shoot",
+            "weapon:charge",
+            "weapon:drones"
+          ],
+          "layout": [
+            "55,110:sensor",
+            "105,110:mirror",
+            "155,110:armor",
+            "205,110:mirror",
+            "255,110:armor",
+            "305,110:mirror",
+            "55,154:armor",
+            "105,154:mirror",
+            "155,154:armor",
+            "205,154:mirror",
+            "255,154:armor"
+          ],
+          "params": {
+            "layoutCells": 11
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:charge": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "mirror-tracking": {
+              "frame": 96,
+              "x": 53,
+              "cannon": 100
+            }
+          },
+          "frames": 2771,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.75,
           "count": 0.8333333333333334,
@@ -1692,16 +3136,11 @@
           "layoutCells": 11
         },
         "elements": [
-          "behavior:miner",
-          "behavior:shield",
-          "behavior:turret",
-          "enemy:miner",
-          "enemy:sensor",
-          "enemy:shield",
-          "enemy:turret",
-          "shoot",
-          "weapon:bounce",
-          "weapon:drones"
+          "frontal-block",
+          "guided-turn",
+          "mine-explosion",
+          "mine-laid",
+          "shoot"
         ],
         "layout": [
           "70,90:sensor",
@@ -1716,6 +3155,66 @@
           "290,234:miner",
           "70,270:shield"
         ],
+        "observation": {
+          "elements": [
+            "frontal-block",
+            "guided-turn",
+            "mine-explosion",
+            "mine-laid",
+            "shoot",
+            "weapon:bounce",
+            "weapon:drones"
+          ],
+          "layout": [
+            "70,90:sensor",
+            "290,90:shield",
+            "70,126:turret",
+            "290,126:miner",
+            "70,162:shield",
+            "290,162:turret",
+            "70,198:miner",
+            "290,198:shield",
+            "70,234:turret",
+            "290,234:miner",
+            "70,270:shield"
+          ],
+          "params": {
+            "layoutCells": 11
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:bounce": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "frontal-block": {
+              "frame": 114,
+              "id": 1,
+              "hp": 1
+            },
+            "guided-turn": {
+              "frame": 126,
+              "cannon": 190
+            },
+            "mine-laid": {
+              "frame": 131,
+              "y": 146.58333333333334
+            },
+            "mine-explosion": {
+              "frame": 214,
+              "count": 3
+            }
+          },
+          "frames": 5795,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.75,
           "count": 0.8333333333333334,
@@ -1741,16 +3240,11 @@
           "layoutCells": 11
         },
         "elements": [
-          "behavior:fast",
-          "behavior:rescue",
-          "behavior:spiral",
-          "enemy:fast",
-          "enemy:scout",
-          "enemy:sensor",
-          "enemy:spiral",
+          "fast-ellipse",
+          "rescue-present",
+          "rescue-saved",
           "shoot",
-          "weapon:magnet",
-          "weapon:slow"
+          "spiral-approach"
         ],
         "layout": [
           "295,180:sensor",
@@ -1765,6 +3259,68 @@
           "227.7727264952169,107.22944037163852:scout",
           "276.74415627558585,136.7487346035522:spiral"
         ],
+        "observation": {
+          "elements": [
+            "fast-ellipse",
+            "rescue-present",
+            "rescue-saved",
+            "shoot",
+            "spiral-approach",
+            "weapon:magnet",
+            "weapon:slow"
+          ],
+          "layout": [
+            "295,180:sensor",
+            "276.74415627558585,223.25126539644782:spiral",
+            "227.77272649521694,252.77055962836147:fast",
+            "163.63379359857223,259.18571535047465:scout",
+            "104.69101559629223,240.45996594834065:spiral",
+            "69.6583080343328,202.53860454731438:fast",
+            "69.65830803433279,157.46139545268565:scout",
+            "104.6910155962922,119.54003405165935:spiral",
+            "163.6337935985722,100.81428464952539:fast",
+            "227.7727264952169,107.22944037163852:scout",
+            "276.74415627558585,136.7487346035522:spiral"
+          ],
+          "params": {
+            "layoutCells": 11
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "rescue-present": {
+              "frame": 0,
+              "wave": 1,
+              "hp": 4
+            },
+            "weapon:slow": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:magnet": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "spiral-approach": {
+              "frame": 99,
+              "dx": 0.12796752524803878,
+              "dy": 1.2037037037036953
+            },
+            "fast-ellipse": {
+              "frame": 121,
+              "dx": 3.8500648906326234,
+              "dy": -0.11096828303647044
+            },
+            "rescue-saved": {
+              "frame": 298,
+              "score": 350
+            }
+          },
+          "frames": 1843,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.75,
           "count": 0.8333333333333334,
@@ -1790,16 +3346,10 @@
           "layoutCells": 11
         },
         "elements": [
-          "behavior:burst",
-          "behavior:mirror",
-          "behavior:split",
-          "enemy:burst",
-          "enemy:mirror",
-          "enemy:sensor",
-          "enemy:split",
+          "burst-fan",
+          "mirror-tracking",
           "shoot",
-          "weapon:drones",
-          "weapon:magnet"
+          "split-fragments"
         ],
         "layout": [
           "205,90:sensor",
@@ -1814,6 +3364,76 @@
           "63,202:mirror",
           "320,230:burst"
         ],
+        "observation": {
+          "elements": [
+            "burst-fan",
+            "mirror-tracking",
+            "shoot",
+            "split-fragments",
+            "weapon:drones",
+            "weapon:magnet"
+          ],
+          "layout": [
+            "205,90:sensor",
+            "155,90:burst",
+            "228,118:split",
+            "132,118:mirror",
+            "251,146:burst",
+            "109,146:split",
+            "274,174:mirror",
+            "86,174:burst",
+            "297,202:split",
+            "63,202:mirror",
+            "320,230:burst"
+          ],
+          "params": {
+            "layoutCells": 11
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:magnet": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "burst-fan": {
+              "frame": 131,
+              "velocities": [
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ]
+              ]
+            },
+            "mirror-tracking": {
+              "frame": 134,
+              "x": 231.75,
+              "cannon": 115
+            },
+            "split-fragments": {
+              "frame": 158,
+              "id": 11,
+              "x": 119.91735753429894,
+              "y": 146
+            }
+          },
+          "frames": 2208,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 0.75,
           "count": 0.8333333333333334,
@@ -1839,18 +3459,11 @@
           "layoutCells": 12
         },
         "elements": [
-          "behavior:burst",
-          "behavior:command",
-          "behavior:shield",
-          "command-two-phases",
-          "enemy:burst",
-          "enemy:scout",
-          "enemy:sensor",
-          "enemy:shield",
+          "burst-fan",
+          "command-phase-two-fire",
+          "frontal-block",
           "guardian:6",
-          "shoot",
-          "weapon:charge",
-          "weapon:drones"
+          "shoot"
         ],
         "layout": [
           "105,85:sensor",
@@ -1866,6 +3479,91 @@
           "105,295:shield",
           "255,295:burst"
         ],
+        "observation": {
+          "elements": [
+            "burst-fan",
+            "command-phase-two-fire",
+            "frontal-block",
+            "guardian:6",
+            "shoot",
+            "weapon:charge",
+            "weapon:drones"
+          ],
+          "layout": [
+            "105,85:sensor",
+            "255,85:shield",
+            "105,127:burst",
+            "255,127:scout",
+            "105,169:shield",
+            "255,169:burst",
+            "105,211:scout",
+            "255,211:shield",
+            "105,253:burst",
+            "255,253:scout",
+            "105,295:shield",
+            "255,295:burst"
+          ],
+          "params": {
+            "layoutCells": 12
+          },
+          "witnesses": {
+            "shoot": {
+              "frame": 0,
+              "fired": 1
+            },
+            "weapon:charge": {
+              "frame": 20,
+              "remaining": 14000
+            },
+            "weapon:drones": {
+              "frame": 60,
+              "remaining": 14000
+            },
+            "frontal-block": {
+              "frame": 109,
+              "id": 1,
+              "hp": 1
+            },
+            "burst-fan": {
+              "frame": 125,
+              "velocities": [
+                [
+                  -45,
+                  150
+                ],
+                [
+                  0,
+                  150
+                ],
+                [
+                  45,
+                  150
+                ]
+              ]
+            },
+            "guardian:6": {
+              "frame": 11849,
+              "phase": 1,
+              "velocities": [
+                [
+                  -80,
+                  160
+                ],
+                [
+                  80,
+                  160
+                ]
+              ]
+            },
+            "command-phase-two-fire": {
+              "frame": 13409,
+              "vx": -67.33422456611672,
+              "cannon": 75
+            }
+          },
+          "frames": 16264,
+          "status": "won"
+        },
         "normalizedParameters": {
           "waves": 1,
           "count": 1,
@@ -1877,8 +3575,7 @@
           "layoutCells": 1
         },
         "newElements": [
-          "behavior:command",
-          "command-two-phases",
+          "command-phase-two-fire",
           "guardian:6"
         ]
       }
@@ -2046,7 +3743,7 @@
         },
         {
           "level": 27,
-          "frames": 8364,
+          "frames": 7948,
           "lives": 3,
           "score": 950
         },
@@ -2064,9 +3761,9 @@
         },
         {
           "level": 30,
-          "frames": 9287,
-          "lives": 3,
-          "score": 1234
+          "frames": 16368,
+          "lives": 1,
+          "score": 1298
         }
       ]
     },
@@ -2177,7 +3874,7 @@
         },
         {
           "level": 18,
-          "frames": 6828,
+          "frames": 6835,
           "lives": 3,
           "score": 560
         },
@@ -2231,9 +3928,9 @@
         },
         {
           "level": 27,
-          "frames": 10127,
-          "lives": 1,
-          "score": 990
+          "frames": 5795,
+          "lives": 2,
+          "score": 1050
         },
         {
           "level": 28,
@@ -2249,9 +3946,9 @@
         },
         {
           "level": 30,
-          "frames": 7543,
-          "lives": 3,
-          "score": 1279
+          "frames": 16264,
+          "lives": 1,
+          "score": 1458
         }
       ]
     }
@@ -2260,7 +3957,7 @@
     {
       "name": "overheat disabled",
       "file": "src/engines/essaim/engine.ts",
-      "line": 106,
+      "line": 109,
       "killed": true,
       "error": "Error: overheat at full heat"
     },
@@ -2274,7 +3971,7 @@
     {
       "name": "no drone interception",
       "file": "src/engines/essaim/engine.ts",
-      "line": 178,
+      "line": 181,
       "killed": true,
       "error": "Error: intercepted"
     },
@@ -2288,7 +3985,7 @@
     {
       "name": "no magnetic return",
       "file": "src/engines/essaim/engine.ts",
-      "line": 170,
+      "line": 173,
       "killed": true,
       "error": "Error: returned toward enemy"
     },
@@ -2298,6 +3995,104 @@
       "line": 67,
       "killed": true,
       "error": "Error: full charge dimensions"
+    },
+    {
+      "name": "generated bosses removed",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 59,
+      "killed": true,
+      "error": "Error: generated level 5: missing observation after 1439 frames (won)"
+    },
+    {
+      "name": "generated rescue removed",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 58,
+      "killed": true,
+      "error": "Error: rescue remains present with arrived generated enemies"
+    },
+    {
+      "name": "fast trajectory removed",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 141,
+      "killed": true,
+      "error": "Error: fast vertical trajectory"
+    },
+    {
+      "name": "burst emission removed",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 145,
+      "killed": true,
+      "error": "Error: generated burst fires"
+    },
+    {
+      "name": "guidance removed",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 175,
+      "killed": true,
+      "error": "Error: steering recomputed toward moved player"
+    },
+    {
+      "name": "guidance never stops",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 175,
+      "killed": true,
+      "error": "Error: velocity frozen beyond y300 despite player move"
+    },
+    {
+      "name": "normal fire suppressed during charge",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 77,
+      "killed": true,
+      "error": "Error: normal fire during sub300ms charge"
+    },
+    {
+      "name": "phase two cadence unchanged",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 161,
+      "killed": true,
+      "error": "Error: phase two cadence exactly45 frames"
+    },
+    {
+      "name": "phase two aim removed",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 162,
+      "killed": true,
+      "error": "Error: phase two aims at current player"
+    },
+    {
+      "name": "rescue penalty removed",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 200,
+      "killed": true,
+      "error": "Error: fatal ally impact costs one life"
+    },
+    {
+      "name": "rescue penalty ignores invulnerability regression",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 200,
+      "killed": true,
+      "error": "Error: penalty through invulnerability"
+    },
+    {
+      "name": "rescue reward removed",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 207,
+      "killed": true,
+      "error": "Error: reward exactly50 per surviving hp"
+    },
+    {
+      "name": "rescue reward fixed regardless of health",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 207,
+      "killed": true,
+      "error": "Error: reward exactly50 per surviving hp"
+    },
+    {
+      "name": "directional shield removed",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 88,
+      "killed": true,
+      "error": "Error: side impact facing 1.5707963267948966 flags {}"
     },
     {
       "name": "all levels equal level one",

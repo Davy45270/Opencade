@@ -1,7 +1,7 @@
 /* global console, Buffer, URL */
 // Read-only analysis; uses the repository's existing TypeScript loader.
 import './ts-loader.js';
-import { essaimFeatures } from './essaim-diversity.js';
+import { essaimFeatures, essaimDiversity } from './essaim-diversity.js';
 import { ferrailleFeatures } from './ferraille-diversity.js';
 import { measureDiversity } from './diversity-metrics.js';
 import ts from 'typescript';
@@ -102,6 +102,7 @@ const variations = [
 const games = [];
 for (const [index, id] of ids.entries()) {
     const mod = await import(`../src/engines/${id}/engine.ts`);
+    if (id === 'essaim') { games.push({ id, game:names[index], ...essaimDiversity(mod.Engine, mod.difficulty), varies:variations[index] }); continue; }
     const levelsMod = id === 'bubble' ? await import('../src/engines/bubble/levels.ts') : mod;
     const track = id === 'derapage' ? await import('../src/engines/derapage/track.ts') : null;
     const rows = [];

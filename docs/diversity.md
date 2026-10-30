@@ -1,6 +1,6 @@
-# Level diversity audit — pass 53
+# Level diversity audit — pass 54 (Essaim)
 
-Essaim is updated for pass 53; Ferraille retains passes 51–52 and Bubble Lab its pass 49 correction. Other game implementations are unchanged. Run from the repository root:
+Essaim is updated for pass 54; Ferraille retains passes 51–52 and Bubble Lab its pass 49 correction. Other game implementations are unchanged. Run from the repository root:
 
 ```sh
 nice -n 19 ionice -c3 node scripts/diversity-report.js
@@ -9,6 +9,8 @@ nice -n 19 ionice -c3 node scripts/diversity-report.js
 The script prints one complete JSON object followed by a Markdown table. Level numbers in this report are one-based. Seed is fixed at 28. The existing TypeScript loader and installed TypeScript compiler are reused; nothing is installed. The JSON includes each requested level, raw and normalized parameters, parameter ranges, initial and midpoint snapshots, element inventories and first appearances, layout signatures, all 29 adjacent comparisons where available, clone pairs, configuration plateaus and pilot outcomes.
 
 ## Method and limits
+
+**Essaim pass 54 override:** the adapter follows the ordinary pilot at every fixed tick until a terminal outcome, up to 18,000 ticks, on each of the 30 generated levels. Elements require observed motion, shot emissions, collisions, an actually present rescue ship, or measured guardian shot motifs and second-phase aimed fire. Each first witness records its frame and evidence. No declared formation or configured boss is counted; collected weapons are recorded separately and excluded from novelty counting. Initial typed home layouts and all metric thresholds are preserved. These Essaim rows contain full-attempt observations instead of initial/midpoint-only inventories. See [Essaim pass 54](essaim-pass54.md).
 
 For each game, use `difficulty(level)` and summaries of generated data: occupied layout size, room dimensions, terrain pad multiplier, platform/enemy/bonus counts, or track length, elevation range, boost, slalom and tree counts. Bulles has no `difficulty` function: use its actual colors, rows and ceiling interval. Generator geometry is retained separately as a layout signature. Names, identifiers, seeds, decoration colors and numeric object identities are excluded from the parameter vector. Pattern indices exposed by difficulty are retained as ordinal configuration parameters; changing an index is not itself a new mechanic. This is a transparent choice of descriptor, not a complete characterization of strategic variety.
 
@@ -42,7 +44,7 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Traverse | 41.4 | 1; 10 | 0.0% | 3 | Lane placement, direction and phase, diving logs, shelters and flow speed. |
 | Dérapage | 38.8 | 4; 3, 24, 29, 30 | 0.0% | 0 | Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning. |
 | Bulles | 25.9 | 7; 2, 11, 14, 17, 20, 23, 26 | 0.0% | 0 | Thirty seeded layouts with increasing density and pressure; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers. |
-| Essaim | 15.5 | 15; 2, 3, 4, 5, 6, 7, 10, 13, 15, 16, 19, 20, 22, 25, 30 | 0.0% | 3 | Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship. |
+| Essaim | 16.4 | 14; 2, 3, 4, 5, 7, 10, 13, 15, 16, 19, 20, 22, 25, 30 | 0.0% | 3 | Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship. |
 | Ferraille | 11.2 | 19; 2, 4, 5, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 20, 21, 24, 25, 26, 30 | 0.0% | 0 | Ascending/descending routes, wagon rides, hostage rescues, six enemy behaviors, three special weapons, five guardian patterns and a three-phase reactor. |
 
 “Flat” in the table refers to the configuration proxy above. A zero means no qualifying window, not proof of continuous experiential difficulty growth. The JSON carries the exact ranges and pairs.
@@ -98,41 +100,36 @@ Introduce shield-repair pickups at 4, shield-piercing scouts at 8, lateral laser
 
 ### Essaim
 
-Implemented in pass 53, part 1. Before: **81.9**, six novelty-bearing levels
-(2/3/4/5/6/8), **86.2%** adjacent clones. After: **15.5**,
-**15** novelty-bearing levels (2/3/4/5/6/7/10/13/15/16/19/20/22/25/30) and
-**0.0%** adjacent clones, using the same metric and clone threshold.
-There is no gap longer than five levels through 25; the last first appearance
-is the two-phase command ship at 30. Ten formation/behavior discoveries include
-burst shooters, elliptical fast swarms, frontal shields, mines, splitting,
-spiral kamikazes, carried guided turrets, rescue ships, movement mirrors and
-armored columns. Four recovery stages are 6/11/17/24.
+Implemented in pass 53, part 1, corrected in pass 54. Before pass 53:
+**81.9**, six novelty-bearing levels (2/3/4/5/6/8), **86.2%** adjacent clones.
+Pass 54 observes
+**14** novelty-bearing levels (2/3/4/5/7/10/13/15/16/19/20/22/25/30),
+score **16.4** and **0.0%** adjacent clones in pass 54. There is no discovery
+gap longer than five levels through 25. Recovery stages remain 6/11/17/24;
+recovery declarations alone no longer count as observed novelty.
 
-The shared adapter in `scripts/essaim-diversity.js` reads typed home positions,
-generated enemies and actual pickup/active-weapon kinds. It also reads the
-same stage rules the generator consumes for mixed behaviors, rescue objectives,
-recovery fire suppression and the final-wave guardian motif. This includes
-scheduled bosses that initial and midpoint snapshots might miss. Guardian
-indices describe implemented behaviors (convergence, delayed mines, initial
-position aim, horizontal reversal and guidance); names, level numbers, visual
-colors and arbitrary identifiers do not count. The typed layout descriptor
-replaces the previous untyped grid; this is a disclosed descriptor change,
-not proof of equivalent human difficulty. Clone threshold 0.08 and score
-formula are unchanged.
+The shared adapter in `scripts/essaim-diversity.js` retains typed initial home
+layouts, but derives novelty from full generated attempts under the ordinary
+pilot. It observes fast/spiral/mirror displacement, shield blocking, emitted
+burst fans, mines and explosions, fragments, actual guiding corrections,
+rescue presence and rescue outcomes. Guardians count only when their actual
+shot motifs appear; the command's second phase requires observed aimed fire.
+Every first witness has a frame and measurements. Configuration formations,
+scheduled boss indices and collected weapon labels do not count as novelties.
+Clone threshold 0.08 and the score formula are unchanged.
 
-Six finite collectible weapons change positioning, aiming, timing or defense;
-up to two compose, including the beam/slow-field factor 0.2 versus 0.35 alone.
-The normal-input pilot wins all thirty levels on both default seed 458 and
-seed 28, within 18000 fixed ticks per level. The report uses this policy too
-(30 wins, 0 losses, 0 censored at seed 28); snapshots and midpoint are
-still observed attempts. Save keys and touch target sizes are unchanged.
+The pilot wins all thirty levels on seeds 458 and 28 within 18000 fixed ticks
+per level. The report now follows the complete seed-28 attempt for Essaim;
+its rows contain witnesses and outcomes instead of midpoint-only snapshots.
+Save keys and touch target sizes are unchanged.
 
-Run `nice -n 19 ionice -c3 node scripts/validate-essaim.js` for E-WPN-01…08,
-E-BOSS, E-WAVE, E-PICKUP, E-DET, E-DIV-01, both campaigns and seven source
-mutations. `essaim-validation.json` records the concrete mutation lines and
-all 60 outcomes. E-WPN-07 uses a fixed three-escort scenario and requires a
-normal-shot/ricochet completion-time ratio of at least 1.5. The thirty-stage
-wave/novelty/proposed-weapon table is in `GAME_SPEC.md`.
+Run `node scripts/validate-essaim.js` for E-WPN-01…08, E-GEN-01…08,
+E-P2, E-SHIELD, E-BOSS, E-WAVE, E-PICKUP, E-DET, E-DIV-01, both campaigns
+and 21 in-memory source mutations. `essaim-validation.json` records concrete
+mutation lines, all 60 outcomes and six E-WPN-07 comparisons against generated
+formations with literal threshold 1.3. The original three-escort test and
+threshold 1.5 are preserved. See [the pass-54 report](essaim-pass54.md) for
+all six raw measurements and the zero-baseline defense ratios.
 
 Weapon captures `essaim-weapon-1` through `essaim-weapon-6` (one active weapon)
 and `essaim-level30` (command phase 2), including mobile charge hold/release,

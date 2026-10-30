@@ -1,3 +1,6 @@
+import { weaponBenchmark, weaponScenarios } from './essaim-weapons';
+import type { Weapon } from '../src/engines/essaim/levels';
+import { generatedBehaviors } from './essaim-generated';
 import { Engine, difficulty, TICK, type Enemy } from '../src/engines/essaim/engine';
 import { pilot } from '../src/engines/essaim/pilot';
 import { essaimDiversity } from '../scripts/essaim-diversity.js';
@@ -31,6 +34,8 @@ export function escortBenchmark(E: EngineClass = Engine) {
     return { baseTicks, bounceTicks, ratio: baseTicks/bounceTicks };
 }
 export const behaviors: Record<string, (E: EngineClass) => void> = {
+    ...generatedBehaviors,
+    ...Object.fromEntries((Object.keys(weaponScenarios) as Weapon[]).map(kind => [`E-WPN-07 ${kind} generated formation ratio >= 1.3`, (E: EngineClass) => { weaponBenchmark(kind,E); }])),
     'E-WPN-01 overheat blocks until cooled': E => {
         const e = flat(E); e.equip('beam'); e.holdFire(true); frames(e, 72);
         check(e.state.overheated, 'overheat at full heat'); frames(e, 1);
@@ -64,14 +69,14 @@ export const behaviors: Record<string, (E: EngineClass) => void> = {
         frames(e, 20); check(e.state.score === 10 && e.state.lives === 3, 'returned shot hits');
     },
     'E-WPN-06 hold and release changes size and piercing': E => {
-        const release = (n: number) => { const e = flat(E); e.equip('charge'); e.holdFire(true); frames(e,n); e.state.shots = []; e.holdFire(false); return e; };
+        const release = (n: number, isolateChargedShot = true) => { const e = flat(E); e.equip('charge'); e.holdFire(true); frames(e,n); if (isolateChargedShot) e.state.shots = []; e.holdFire(false); return e; };
         const short = release(20), full = release(90), p = item(full.state.shots[0]);
         check(p.radius === 18 && p.pierce === 5, 'full charge dimensions');
         check((short.state.shots[0]?.radius ?? 0) < 8 && (short.state.shots[0]?.pierce ?? 0) === 1, 'short charge dimensions');
         check(full.state.charge === 0, 'release clears gauge');
         full.state.enemies = [400, 375, 350].map((y,id) => ({ ...item(full.state.enemies[0]), id, x: 180, homeX: 180, y, homeY: y, hp: 1 }));
         frames(full, 22); check(full.state.enemies.length === 0, 'pierces three aligned targets');
-        const tap = release(5); check(tap.state.shots.length === 0, 'short tap keeps ordinary fire only');
+        const tap = release(5,false); check(tap.state.shots.length > 0 && tap.state.shots.every(p => p.owner === 'player' && p.radius === undefined), 'short tap keeps actual ordinary fire only');
     },
     'E-WPN-07 ricochet defeats frontal escorts faster': E => {
         const result = escortBenchmark(E); check(result.ratio >= 1.5, `escort ratio ${String(result.baseTicks)}/${String(result.bounceTicks)}`);

@@ -7,7 +7,7 @@ export interface ActiveWeapon { kind: Weapon; remaining: number }
 export interface Pickup { kind: Weapon; x: number; y: number }
 export interface Boss { hp: number; maxHp: number; phase: number; clock: number; exposed: boolean; pattern: number; x: number; y: number }
 export const TICK = 1000 / 60, CANNON_Y = 552;
-export interface Enemy { id: number; x: number; y: number; homeX: number; homeY: number; phase: 'entry' | 'formation' | 'dive'; age: number; curve: number; type: 'scout' | 'armor' | 'split' | 'sensor' | 'fragment' | 'shield' | 'miner' | 'fast' | 'spiral' | 'turret' | 'mirror' | 'burst'; hp: number; originX: number; originY: number; targetX: number; captured: boolean; clock?: number; slow?: number }
+export interface Enemy { id: number; x: number; y: number; homeX: number; homeY: number; phase: 'entry' | 'formation' | 'dive'; age: number; curve: number; type: 'scout' | 'armor' | 'split' | 'sensor' | 'fragment' | 'shield' | 'miner' | 'fast' | 'spiral' | 'turret' | 'mirror' | 'burst'; hp: number; originX: number; originY: number; targetX: number; captured: boolean; facing?: number; clock?: number; slow?: number }
 export interface Shot { x: number; y: number; owner: 'player' | 'enemy'; vx?: number; vy?: number; bounces?: number; radius?: number; pierce?: number; hitIds?: number[]; reflected?: boolean; mine?: number; turnY?: number; seeking?: boolean }
 export interface State { enemies: Enemy[]; shots: Shot[]; cannon: number; target: number | null; move: -1 | 0 | 1; firing: boolean; ticks: number; lives: number; score: number; wave: number; cooldown: number; enemyTimer: number; diveTimer: number; invulnerable: number; double: number; fired: number; hits: number; nextId: number; weapons: ActiveWeapon[]; pickups: Pickup[]; heat: number; overheated: boolean; charge: number; beam: boolean; rescue: { x: number; y: number; hp: number } | null; boss: Boss | null }
 export function difficulty(level: number) {
@@ -79,10 +79,13 @@ export class Engine {
         for (let i = 0; i < n; i++) s.shots.push({ x: s.cannon + (n === 2 ? i * 12 - 6 : 0), y: CANNON_Y - 16, owner: 'player', ...(this.has('bounce') ? { vx: 420, vy: -350, bounces: 2 } : {}) });
         s.fired += n; s.cooldown = 150; this.events.push('fire'); return true;
     }
-    private damage(): void { const s = this.state; if (s.invulnerable > 1e-8) return; s.lives--; s.invulnerable = 1000; this.events.push('life'); if (!s.lives) this.status = 'lost'; }
-    private strike(e: Enemy, damage = 1, bypass = false): boolean {
+    private damage(forced = false): void { const s = this.state; if (!forced && s.invulnerable > 1e-8) return; s.lives--; s.invulnerable = 1000; this.events.push('life'); if (!s.lives) this.status = 'lost'; }
+    private strike(e: Enemy, damage = 1, vx = 0, vy = -600): boolean {
         const s = this.state;
-        if (e.type === 'shield' && (e.clock ?? 0) % 6000 < 5500 && !bypass) { this.events.push('armor'); return false; }
+        // The shield faces down by default. Only arrivals within its 90-degree front cone are blocked.
+        const facing = e.facing ?? Math.PI / 2;
+        const frontal = -(vx * Math.cos(facing) + vy * Math.sin(facing)) >= Math.hypot(vx, vy) * Math.SQRT1_2;
+        if (e.type === 'shield' && (e.clock ?? 0) % 6000 < 5500 && frontal) { this.events.push('armor'); return false; }
         e.hp -= damage; s.hits++; this.events.push(e.hp > 0 ? 'armor' : 'enemy');
         if (e.hp <= 0) {
             s.enemies = s.enemies.filter(other => other !== e); s.score += e.phase === 'dive' ? 30 : 10;
@@ -186,7 +189,7 @@ export class Engine {
                 const targets = s.enemies.filter(e => !p.hitIds?.includes(e.id) && Math.abs(e.x - p.x) < 14 + radius && Math.min(oldY, p.y) <= e.y + 14 + radius && Math.max(oldY, p.y) >= e.y - 14 - radius).sort((a,b) => b.y-a.y);
                 let consumed = false;
                 for (const e of targets) {
-                    this.strike(e, 1, (p.bounces !== undefined && p.bounces < 2) || (p.pierce ?? 0) > 1 || !!p.reflected);
+                    this.strike(e, 1, p.vx ?? 0, p.vy ?? -600);
                     (p.hitIds ??= []).push(e.id);
                     if ((p.pierce ?? 1) <= 1) { consumed = true; break; } p.pierce = (p.pierce ?? 1) - 1;
                 }
@@ -194,7 +197,7 @@ export class Engine {
                 if (s.boss && Math.abs(p.x-s.boss.x) < 32+radius && Math.min(oldY,p.y) <= s.boss.y+22 && Math.max(oldY,p.y) >= s.boss.y-22) { this.bossHit((p.pierce ?? 0) > 1 || !!p.reflected || (p.bounces !== undefined && p.bounces < 2)); continue; }
             } else {
                 if (s.rescue && Math.abs(p.x-s.rescue.x) < 26 && oldY <= s.rescue.y+12 && p.y >= s.rescue.y-12) {
-                    s.rescue.hp--; if (s.rescue.hp <= 0) { s.rescue = null; this.damage(); this.events.push('rescue-lost'); } continue;
+                    s.rescue.hp--; if (s.rescue.hp <= 0) { s.rescue = null; this.damage(true); this.events.push('rescue-lost'); } continue;
                 }
                 if (Math.abs(p.x - s.cannon) < 16 && oldY <= CANNON_Y + 12 && p.y >= CANNON_Y - 12) { this.damage(); continue; }
             }

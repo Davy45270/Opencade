@@ -193,7 +193,7 @@ export class EssaimScene extends Phaser.Scene {
         if (s.charge > 0) { g.lineStyle(3, 0xffffff); g.strokeCircle(s.cannon, CANNON_Y-18, 4+s.charge/1500*14); }
         if (s.rescue) { g.lineStyle(2, 0x78ead5); g.strokeRect(s.rescue.x-22, s.rescue.y-10, 44, 20); }
         if (s.boss) { const b = s.boss; g.lineStyle(3, b.exposed ? 0xffdb89 : 0xbaadff); g.strokeEllipse(b.x, b.y, 60, 38); g.fillStyle(0xff9ebb); g.fillRect(b.x-30,b.y-30,60*b.hp/b.maxHp,4); }
-        for (const p of s.enemies) if (p.type === 'shield' && (p.clock ?? 0) % 6000 < 5500) { g.lineStyle(3, 0xbaadff); g.lineBetween(p.x-16,p.y+16,p.x+16,p.y+16); }
+        for (const p of s.enemies) if (p.type === 'shield' && (p.clock ?? 0) % 6000 < 5500) { g.lineStyle(3, 0xbaadff); const a = p.facing ?? Math.PI / 2, x = p.x + Math.cos(a)*16, y = p.y + Math.sin(a)*16; g.lineBetween(x-Math.sin(a)*16,y+Math.cos(a)*16,x+Math.sin(a)*16,y-Math.cos(a)*16); }
         for (const p of s.shots) if (p.radius) { g.lineStyle(2, 0xffffff); g.strokeCircle(p.x,p.y,p.radius); }
         for (const shot of s.shots) { g.fillStyle(shot.owner === 'player' ? 0xc2fff2 : 0xff91ac); g.fillRoundedRect(shot.x - 1.5, shot.y - 5, 3, 10, 1.5); }
         if (s.invulnerable === 0 || s.ticks % 8 < 4) {
