@@ -98,12 +98,47 @@ test('G01 G03 G12 guidage clavier souris doigt, tir auto sauvé et pause', async
         await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [a] });
         await expect.poll(async () => (await read(page))?.firing).toBe(true);
         await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(100); });
-        await expect.poll(async () => (await read(page))?.shots.some(s => s.owner === 'player')).toBe(true);
+        await expect.poll(async () => (await read(page))?.fired ?? 0).toBeGreaterThan(0);
+        const touchShot = await read(page);
+        expect(touchShot?.beam || touchShot?.shots.some(s => s.owner === 'player')).toBe(true);
         await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await client.detach();
         await expect.poll(async () => (await read(page))?.firing).toBe(false);
     }
-    await tap(page, '#essaim-fire', mobile); await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(100); });
-    await expect.poll(async () => (await read(page))?.shots.some(s => s.owner === 'player')).toBe(true);
+    // Level 1 supplies a beam. A tap released before advance() cannot sustain it.
+    // Hold the real keyboard / touch button through simulation and require emission.
+    const beforeFire = (await read(page))?.fired ?? 0;
+    const fireClient = mobile ? await page.context().newCDPSession(page) : undefined;
+    if (fireClient) {
+        const box = await page.locator('#essaim-fire').boundingBox();
+        if (!box) throw new Error('Bouton Tir absent');
+        await fireClient.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: box.x + box.width / 2, y: box.y + box.height / 2 }] });
+    } else await page.keyboard.down('Space');
+    try {
+        expect((await read(page))?.firing).toBe(true);
+        await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(100); });
+        const shot = await read(page);
+        expect(shot?.fired ?? 0).toBeGreaterThan(beforeFire);
+        if (shot?.weapons.some(w => w.kind === 'beam')) {
+            expect(shot.beam).toBe(true); expect(shot.heat).toBeGreaterThan(0);
+        } else expect(shot?.shots.some(s => s.owner === 'player')).toBe(true);
+    } finally {
+        if (fireClient) { await fireClient.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await fireClient.detach(); }
+        else await page.keyboard.up('Space');
+    }
+    expect((await read(page))?.firing).toBe(false);
+    if (!mobile) {
+        // Preserve desktop button coverage as well as the keyboard hold above.
+        const beforeButton = (await read(page))?.fired ?? 0;
+        await page.locator('#essaim-fire').hover(); await page.mouse.down();
+        try {
+            expect((await read(page))?.firing).toBe(true);
+            await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(200); });
+            const shot = await read(page);
+            expect(shot?.fired ?? 0).toBeGreaterThan(beforeButton);
+            expect(shot?.beam || shot?.shots.some(s => s.owner === 'player')).toBe(true);
+        } finally { await page.mouse.up(); }
+        expect((await read(page))?.firing).toBe(false);
+    }
     if (mobile) await tap(page, '#pause', true); else await page.keyboard.press('KeyP');
     const paused = await read(page); await page.waitForTimeout(200); expect(await read(page)).toEqual(paused);
     if (mobile) await tap(page, '#resume', true); else await page.keyboard.press('Escape');
@@ -112,7 +147,9 @@ test('G01 G03 G12 guidage clavier souris doigt, tir auto sauvé et pause', async
     await tap(page, '.essaim-options', mobile); expect((await read(page))?.autoFire).toBe(true);
     await page.reload(); await expect(page.locator('#essaim-auto')).toBeChecked(); await tap(page, '#resume', mobile);
     await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(100); });
-    await expect.poll(async () => (await read(page))?.shots.some(s => s.owner === 'player')).toBe(true); await layout(page);
+    expect((await read(page))?.fired ?? 0).toBeGreaterThan(0);
+    const autoShot = await read(page);
+    expect(autoShot?.beam || autoShot?.shots.some(s => s.owner === 'player')).toBe(true); await layout(page);
 });
 test('G12 crochet inerte sans test et nettoyage à la sortie', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium'; await open(page);
@@ -192,42 +229,52 @@ test('E-ART mouvement réduit, effets bornés et textures réutilisées', async 
     expect((await page.evaluate(() => window.__ESSAIM_TEST__?.art()))?.activeGraphics).toBe(5);
 });
 
-test('E-ART mobile CPU ×4 : au moins 30 images/s sur 5 s de jeu', async ({ page }, info) => {
-    test.skip(info.project.name !== 'mobile-chromium', 'Profil mobile uniquement');
-    await open(page); await tap(page, '#resume', true);
-    // No advance(): rAF counts only frames with a new game drawing, with two real weapons.
-    await page.evaluate(() => { window.__ESSAIM_TEST__?.artScenario('weapons'); });
-    const client = await page.context().newCDPSession(page);
-    await client.send('Emulation.setCPUThrottlingRate', { rate: 4 });
-    try {
-        const result = await page.evaluate(async () => {
-            const before = window.__ESSAIM_TEST__?.read().ticks ?? 0;
-            const sample = await new Promise<{ frames: number; elapsed: number }>(resolve => {
-                let start = 0, frames = 0;
-                let lastRendered = window.__ESSAIM_TEST__?.art().renderedFrames ?? 0;
-                const frame = (time: number): void => {
-                    if (!start) start = time;
-                    else {
-                        const rendered = window.__ESSAIM_TEST__?.art().renderedFrames ?? 0;
-                        if (rendered > lastRendered) frames++;
-                        lastRendered = rendered;
-                    }
-                    if (time - start >= 5000) resolve({ frames, elapsed: time - start });
-                    else requestAnimationFrame(frame);
-                };
-                requestAnimationFrame(frame);
-            });
-            return { ...sample, fps: sample.frames * 1000 / sample.elapsed,
-                ticks: (window.__ESSAIM_TEST__?.read().ticks ?? 0) - before,
-                status: window.__ESSAIM_TEST__?.read().status, art: window.__ESSAIM_TEST__?.art() };
+// Literal host-independent contract: Essaim / Serpentin >= 0.5 in this session.
+async function sampleFrames(page: Page, game: 'essaim' | 'serpentin') {
+    return page.evaluate(async game => {
+        const rendered = (): number => game === 'essaim' ? window.__ESSAIM_TEST__?.art().renderedFrames ?? 0 : window.__SERPENTIN_TEST__?.renderedFrames() ?? 0;
+        const before = game === 'essaim' ? window.__ESSAIM_TEST__?.read().ticks ?? 0 : window.__SERPENTIN_TEST__?.read().ticks ?? 0;
+        const start = performance.now(), first = rendered();
+        await new Promise<void>(resolve => {
+            const frame = (): void => { if (performance.now() - start >= 5000) resolve(); else requestAnimationFrame(frame); };
+            requestAnimationFrame(frame);
         });
-        await info.attach('essaim-art-mobile-fps', { body: JSON.stringify(result, null, 2), contentType: 'application/json' });
-        expect(result.elapsed).toBeGreaterThanOrEqual(5000);
-        expect(result.fps).toBeGreaterThanOrEqual(30);
-        expect(result.ticks).toBeGreaterThanOrEqual(240);
-        expect(result.status).toBe('playing');
-        expect(result.art?.particles).toBeLessThanOrEqual(96);
-        expect(result.art?.activeGraphics).toBe(5);
+        const elapsed = performance.now() - start, frames = rendered() - first;
+        const state = game === 'essaim' ? window.__ESSAIM_TEST__?.read() : window.__SERPENTIN_TEST__?.read();
+        return { frames, elapsed, fps: frames * 1000 / elapsed, ticks: (state?.ticks ?? 0) - before, status: state?.status };
+    }, game);
+}
+test('E-ART mobile CPU ×4 : cadence relative ≥0,5 et JavaScript ≤8 ms sans bridage', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'Profil mobile uniquement');
+    const client = await page.context().newCDPSession(page);
+    try {
+        await client.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+        await page.goto('/?test=1#/serpentin');
+        await expect.poll(() => page.evaluate(() => Boolean(window.__SERPENTIN_TEST__))).toBe(true);
+        await tap(page, '#resume', true);
+        await page.evaluate(() => { window.__SERPENTIN_TEST__?.scenario('benchmark'); });
+        const serpentin = await sampleFrames(page, 'serpentin');
+        expect(serpentin.frames).toBeGreaterThan(0); expect(serpentin.status).toBe('playing');
+        expect(serpentin.ticks).toBeGreaterThanOrEqual(240);
+        await open(page); await tap(page, '#resume', true);
+        await page.evaluate(() => { window.__ESSAIM_TEST__?.artScenario('weapons'); });
+        const essaim = await sampleFrames(page, 'essaim');
+        const ratio = essaim.fps / serpentin.fps;
+        await info.attach('essaim-art-mobile-relative-fps', { body: JSON.stringify({ serpentin, essaim, ratio, minimumRatio: 0.5 }, null, 2), contentType: 'application/json' });
+        expect(essaim.elapsed).toBeGreaterThanOrEqual(5000);
+        expect(ratio).toBeGreaterThanOrEqual(0.5);
+        expect(essaim.ticks).toBeGreaterThanOrEqual(240); expect(essaim.status).toBe('playing');
+        expect((await page.evaluate(() => window.__ESSAIM_TEST__?.art()))?.particles).toBeLessThanOrEqual(96);
+        expect((await page.evaluate(() => window.__ESSAIM_TEST__?.art()))?.activeGraphics).toBe(5);
+        await client.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+        await page.evaluate(() => { window.__ESSAIM_TEST__?.artScenario('weapons'); window.__ESSAIM_TEST__?.timing(true); });
+        const unthrottled = await sampleFrames(page, 'essaim');
+        const timing = await page.evaluate(() => window.__ESSAIM_TEST__?.timing());
+        await info.attach('essaim-art-javascript-ms', { body: JSON.stringify({ unthrottled, timing, maximumMeanMs: 8 }, null, 2), contentType: 'application/json' });
+        expect(unthrottled.status).toBe('playing'); expect(unthrottled.ticks).toBeGreaterThanOrEqual(240);
+        expect(timing?.frames ?? 0).toBeGreaterThan(0);
+        expect(timing?.updateMs ?? 0).toBeGreaterThan(0); expect(timing?.drawMs ?? 0).toBeGreaterThan(0);
+        expect(timing?.meanMs).toBeLessThanOrEqual(8);
     } finally {
         await client.send('Emulation.setCPUThrottlingRate', { rate: 1 }); await client.detach();
     }

@@ -6,6 +6,7 @@ import { Progression } from '../../shell/progression';
 import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
+import { displayedWalls } from './board';
 import { sound } from '../../shell/services';
 export const dedaleButtons: readonly TouchButton[] = [
     { id: 'dedale-left', label: '←', ariaLabel: 'Aller à gauche', size: 56, placement: 'left', mode: 'tap' },
@@ -31,6 +32,7 @@ export class DedaleScene extends Phaser.Scene {
     private testAdvancing = false;
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: Phaser.GameObjects.Text;
+    private title?: Phaser.GameObjects.Text;
     private glow = 0;
     private panelSignature = '';
     private drawSignature = '';
@@ -57,8 +59,8 @@ export class DedaleScene extends Phaser.Scene {
         this.board = board;
         this.add.image(0, 0, 'dedale-board').setOrigin(0);
         this.graphics = this.add.graphics();
-        this.add.text(20, 22, 'LES JARDINS DE LUMIÈRE', { fontFamily: 'system-ui', fontSize: '19px', color: '#b9fff0' });
-        this.hud = this.add.text(18, 510, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 6 });
+        this.title = this.add.text(20, 22, '', { fontFamily: 'system-ui', fontSize: '19px', color: '#b9fff0' });
+        this.hud = this.add.text(18, 510, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 5, wordWrap: { width: 324 } });
         const direction = (value: Direction): void => {
             if (this.session.state === 'ready') this.session.send('start');
             if (this.session.paused || this.selecting || this.engine.status !== 'playing') return;
@@ -148,8 +150,13 @@ export class DedaleScene extends Phaser.Scene {
         ctx.clearRect(0, 0, 360, 640); ctx.fillStyle = '#101f2c';
         ctx.beginPath(); ctx.roundRect(0, 0, 360, 640, 18); ctx.fill();
         ctx.fillStyle = '#284f55';
-        for (let y = 0; y < HEIGHT; y++) for (let x = 0; x < WIDTH; x++) if (!s.maze[y * WIDTH + x]) {
+        for (const at of displayedWalls(s.maze)) {
+            const x = at % WIDTH, y = Math.floor(at / WIDTH);
             ctx.beginPath(); ctx.roundRect(left + x * size + 1, top + y * size + 1, size - 2, size - 2, 4); ctx.fill();
+        }
+        if (s.journey?.shape === 'mirror') {
+            ctx.strokeStyle = '#b9fff055'; ctx.lineWidth = 1; ctx.setLineDash([4, 5]);
+            ctx.beginPath(); ctx.moveTo(180, top); ctx.lineTo(180, top + HEIGHT * size); ctx.stroke(); ctx.setLineDash([]);
         }
         ctx.fillStyle = '#ffe8ab';
         for (const i of s.seeds) { ctx.beginPath(); ctx.arc(left + (i % WIDTH + 0.5) * size, top + (Math.floor(i / WIDTH) + 0.5) * size, 2, 0, Math.PI * 2); ctx.fill(); }
@@ -165,18 +172,32 @@ export class DedaleScene extends Phaser.Scene {
         if (j) {
             const mark = (at: number, label: string, color: string, solid = false): void => {
                 const x = left + (at % WIDTH) * size, y = top + Math.floor(at / WIDTH) * size;
-                ctx.fillStyle = color; ctx.globalAlpha = solid ? 0.85 : 0.28;
+                ctx.fillStyle = color; ctx.globalAlpha = solid ? 1 : 0.65;
                 ctx.fillRect(x + 1, y + 1, size - 2, size - 2); ctx.globalAlpha = 1;
-                ctx.font = 'bold 13px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-                ctx.fillStyle = '#ffffff'; ctx.fillText(label, x + size / 2, y + size / 2);
+                ctx.font = 'bold 17px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff';
+                const cx = x + size / 2, cy = y + size / 2;
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 2;
+                if (label === 'key') {
+                    ctx.beginPath(); ctx.arc(cx - 3, cy - 3, 3.5, 0, Math.PI * 2); ctx.moveTo(cx, cy); ctx.lineTo(cx + 6, cy + 6); ctx.lineTo(cx + 6, cy + 2); ctx.moveTo(cx + 3, cy + 3); ctx.lineTo(cx + 6, cy); ctx.stroke();
+                } else if (label === 'door') {
+                    ctx.strokeRect(cx - 5, cy - 7, 10, 14); ctx.fillRect(cx + 1, cy, 2, 2);
+                } else if (label === 'portal') {
+                    ctx.beginPath(); ctx.ellipse(cx, cy, 6, 7, 0, 0, Math.PI * 2); ctx.stroke();
+                    ctx.beginPath(); ctx.ellipse(cx, cy, 2.5, 4, 0, 0, Math.PI * 2); ctx.stroke();
+                } else if (label === 'ice') {
+                    ctx.beginPath(); for (let n = 0; n < 3; n++) { const a = n * Math.PI / 3; ctx.moveTo(cx - Math.cos(a) * 7, cy - Math.sin(a) * 7); ctx.lineTo(cx + Math.cos(a) * 7, cy + Math.sin(a) * 7); } ctx.stroke();
+                } else if (label === 'switch') {
+                    ctx.beginPath(); ctx.arc(cx, cy, 6, Math.PI * 0.2, Math.PI * 1.8); ctx.moveTo(cx, cy - 7); ctx.lineTo(cx, cy); ctx.stroke();
+                } else ctx.fillText(label, cx, cy);
             };
             for (const at of j.dark) mark(at, '·', '#5b4194');
-            for (const at of j.ice) mark(at, '≈', '#6eeaff');
-            for (const key of j.keys) if (!(j.held & (1 << key.color))) mark(key.at, '⚿', key.color ? '#ef92d4' : '#ffcf71');
-            for (const door of j.doors) mark(door.at, j.held & (1 << door.color) ? '□' : '▣', door.color ? '#ef92d4' : '#ffcf71', !(j.held & (1 << door.color)));
+            for (const at of j.ice) mark(at, 'ice', '#1484a6');
+            for (const key of j.keys) if (!(j.held & (1 << key.color))) mark(key.at, 'key', key.color ? '#ef92d4' : '#ffcf71');
+            for (const door of j.doors) mark(door.at, j.held & (1 << door.color) ? '□' : 'door', door.color ? '#ef92d4' : '#ffcf71', !(j.held & (1 << door.color)));
             for (const a of j.arrows) mark(a.at, { up: '↑', down: '↓', left: '←', right: '→' }[a.direction], '#94ce93');
-            j.portals.forEach(pair => { pair.forEach(at => { mark(at, '◎', '#be95ff'); }); });
-            for (const at of j.switches) mark(at, j.toggled ? '●' : '○', '#ffb669');
+            j.portals.forEach(pair => { pair.forEach(at => { mark(at, 'portal', '#8754df'); }); });
+            for (const at of j.switches) mark(at, 'switch', j.toggled ? '#39b879' : '#d66b25');
             for (const at of j.gates) mark(at, j.toggled ? '┄' : '╳', '#ffb669', !j.toggled);
             for (const at of j.moving) mark(at, j.turn % 4 < 2 ? '▥' : '┄', '#f17788', j.turn % 4 < 2);
         }
@@ -222,7 +243,8 @@ export class DedaleScene extends Phaser.Scene {
             }
         }
         const j = s.journey, shapes = { corridors: 'Couloirs', rooms: 'Salles reliées', ring: 'Anneau', spiral: 'Spirale', mirror: 'Miroir' };
-        const lesson = this.engine.level >= 24 ? 'Follets : poursuite / patrouille / fuite' : this.engine.level >= 21 ? 'Ombres : vision à 3 cases autour de vous' : this.engine.level >= 18 ? 'Glace ≈ : glisse jusqu’au prochain obstacle' : this.engine.level >= 15 ? 'Grille ▥ : deux temps fermée, deux ouverte' : this.engine.level >= 12 ? 'Interrupteur ○ : ouvre / ferme les murs ╳' : this.engine.level >= 8 ? 'Portails ◎ : voyage dans les deux sens' : this.engine.level >= 4 ? 'Flèches : passage dans un seul sens' : this.engine.level >= 3 ? 'Clé ⚿ et porte ▣ de même couleur' : 'Quatre soleils et quatre graines à retrouver';
+        const lesson = this.engine.level >= 24 ? 'Follets : poursuite / patrouille / fuite' : this.engine.level >= 21 ? 'Ombres : vision à 3 cases autour de vous' : this.engine.level >= 18 ? 'Flocon bleu : glisse jusqu’à un obstacle' : this.engine.level >= 15 ? 'Grille ▥ : deux temps fermée, deux ouverte' : this.engine.level >= 12 ? 'Bouton orange : ouvre / ferme les grilles' : this.engine.level >= 8 ? 'Anneaux violets : portails aller-retour' : this.engine.level >= 4 ? 'Flèches : passage dans un seul sens' : this.engine.level >= 3 ? 'Clé + porte dorées : ramasser puis ouvrir' : 'Quatre soleils et quatre graines à retrouver';
+        this.title?.setText(`${j ? shapes[j.shape].toLocaleUpperCase('fr') : 'DÉDALE'} · ${['ÉVEIL', 'SENTIERS', 'PASSAGES', 'REFLETS', 'OMBRES', 'AURORE'][Math.floor(this.engine.level / 5)] ?? ''}`);
         this.hud?.setText(`DÉDALE ${String(this.engine.level + 1)} · ${j ? shapes[j.shape] : ''} · VIES ${'◆'.repeat(s.lives)}\nSCORE ${String(s.score)} · LUMIÈRES ${String(s.seeds.length + s.suns.length)}\n${j?.remaining ? `DÉFI · ${String(Math.ceil(j.remaining / 1000))} s` : [5, 10, 16, 21, 26].includes(this.engine.level) ? 'RESPIRATION · soleils de 12 secondes' : s.vulnerable > 0 ? `SOLEIL ${(s.vulnerable / 1000).toFixed(1)} s` : 'Les follets vous cherchent'}\n${lesson}\n${this.engine.level === 29 ? 'FINAL · toutes les mécaniques réunies' : 'Flèches / ZQSD · glisser pour tourner'}`);
         const status = document.querySelector('#status');
         if (status) status.textContent = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'playing' ? 'En jeu' : this.engine.status === 'won' ? 'Victoire' : 'Défaite'}`;

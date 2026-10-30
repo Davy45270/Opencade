@@ -15,11 +15,12 @@ export const serpentinButtons: readonly TouchButton[] = [
 ];
 export interface SerpentinHook {
     advance(ms: number): void;
+    renderedFrames(): number;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
     read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string };
     loadLevel(index: number, seed?: number): void;
-    scenario(name: 'finish' | 'wall'): void;
+    scenario(name: 'finish' | 'wall' | 'benchmark'): void;
 }
 declare global { interface Window { __SERPENTIN_TEST__?: SerpentinHook } }
 export class SerpentinScene extends Phaser.Scene {
@@ -27,6 +28,7 @@ export class SerpentinScene extends Phaser.Scene {
     private progress = new Progression(readSave(browserStorage(), 'serpentin', 30), 30);
     private inputs = new Inputs();
     private selecting = false;
+    private frames = 0;
     private testManual = false;
     private testAdvancing = false;
     private graphics?: Phaser.GameObjects.Graphics;
@@ -70,12 +72,19 @@ export class SerpentinScene extends Phaser.Scene {
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         this.game.canvas.setAttribute('aria-label', 'Serpentin : glisser pour guider la tête lumineuse');
         if (new URLSearchParams(location.search).get('test') === '1') window.__SERPENTIN_TEST__ = {
+            renderedFrames: () => this.frames,
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             read: () => ({ ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
+                if (name === 'benchmark') {
+                    // Real toroidal movement, no growth or obstacle collision during sampling.
+                    this.start(4, 454, true);
+                    this.engine.state.obstacles = []; this.engine.state.apple = { x: 7, y: 0 };
+                    return;
+                }
                 this.start(0, 454, true);
                 this.engine.loadState({ segments: name === 'finish' ? [...Array.from({ length: 8 }, (_, i) => ({ x: 7 - i, y: 10 })), { x: 0, y: 11 }, { x: 1, y: 11 }] : [{ x: 7, y: 10 }, { x: 6, y: 10 }, { x: 5, y: 10 }], direction: 'right', apple: name === 'wall' ? { x: 2, y: 2 } : { x: 7, y: 9 }, obstacles: name === 'wall' ? [{ x: 7, y: 9 }] : [], eaten: name === 'finish' ? 7 : 0, score: name === 'finish' ? 70 : 0, crystal: null, crystalUntil: 0 });
             },
@@ -118,6 +127,7 @@ export class SerpentinScene extends Phaser.Scene {
     private draw(): void {
         const g = this.graphics;
         if (!g) return;
+        this.frames++;
         g.clear(); g.fillStyle(0x132438); g.fillRoundedRect(0, 0, 360, 640, 18);
         g.lineStyle(1, 0x24415a);
         for (let x = 0; x <= 15; x++) g.lineBetween(15 + x * 22, 32, 15 + x * 22, 494);

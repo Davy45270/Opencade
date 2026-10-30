@@ -16,7 +16,7 @@ function required<T>(value: T | undefined): T {
 }
 const width = 19;
 // Seed salts selected by full engine replays, route separation and campaign pacing.
-const placementSalts = [0, 0, 0, 733103, 0, 0, 0, 209458, 104729, 104729, 0, 0, 0, 209458, 209458, 523645, 104729, 104729, 733103, 104729, 733103, 1256748, 117087022, 1570935, 418916, 22097819, 1361477, 223491686, 77813647, 45242928];
+const placementSalts = [0, 837832, 0, 733103, 0, 0, 0, 209458, 104729, 104729, 0, 0, 0, 209458, 209458, 523645, 104729, 104729, 733103, 104729, 733103, 1256748, 117087022, 1570935, 418916, 22097819, 1361477, 223491686, 77813647, 45242928];
 const offsets: Record<Heading, number> = { up: -19, left: -1, down: 19, right: 1 };
 /** The principal corridor is also the placement frame: there is no common gallery. */
 export const labyrinthSeed = (level: number, seed: number): number => (seed + level * 7919 + (placementSalts[level] ?? 0)) >>> 0;
@@ -41,7 +41,7 @@ export function createLabyrinth(level: number, seed: number): { maze: boolean[];
         principal = [...principal.slice(cut), ...principal.slice(0, cut)];
         for (const at of principal) maze[at] = true;
     } else if (shape === 'spiral') {
-        const radius = (level === 28 ? 6 : 3 + Math.floor(level / 5)), cx = 1 + radius + Math.floor(random.next() * (17 - 2 * radius));
+        const radius = (level === 3 ? 8 : level === 28 ? 6 : 3 + Math.floor(level / 5)), cx = 1 + radius + Math.floor(random.next() * (17 - 2 * radius));
         const cy = 1 + radius + Math.floor(random.next() * (21 - 2 * radius));
         let x = -radius, y = -radius, left = -radius, right = radius, top = -radius, bottom = radius;
         const rotation = Math.floor(random.next() * 4), reflect = random.next() < 0.5;
@@ -118,6 +118,24 @@ export function createLabyrinth(level: number, seed: number): { maze: boolean[];
         ...(journey.portals.length ? [point(0.34)] : [])]);
     const suns = [point(0.05), point(0.25), point(0.52), point(1)];
     for (const at of [point(0.12), point(0.36), point(0.65), point(0.92)]) goals.add(at);
+    if (shape === 'mirror' && (level === 19 || level === 29)) {
+        // Keep the required route intact. Reflect optional mechanics only onto
+        // free side branches: no extra lock or toggle may obstruct that route.
+        const reflect = (at: number): number => Math.floor(at / width) * width + 18 - at % width;
+        const occupied = new Set([...principal, ...journey.keys.map(v => v.at), ...journey.doors.map(v => v.at),
+            ...journey.arrows.map(v => v.at), ...journey.portals.flat(), ...journey.switches, ...journey.gates,
+            ...journey.moving, ...journey.ice, ...journey.dark]);
+        const free = (at: number): boolean => reflect(at) !== at && !occupied.has(reflect(at));
+        for (const list of [journey.keys, journey.doors]) for (const item of [...list]) {
+            if (free(item.at)) list.push({ ...item, at: reflect(item.at) });
+        }
+        for (const item of [...journey.arrows]) if (free(item.at)) journey.arrows.push({ at: reflect(item.at),
+            direction: item.direction === 'left' ? 'right' : item.direction === 'right' ? 'left' : item.direction });
+        for (const pair of [...journey.portals]) if (pair.every(free)) journey.portals.push([reflect(pair[0]), reflect(pair[1])]);
+        for (const list of [journey.switches, journey.gates, journey.moving, journey.ice, journey.dark]) {
+            for (const at of [...list]) if (free(at)) list.push(reflect(at));
+        }
+    }
     return { maze, journey, suns, seeds: [...goals].filter(at => !suns.includes(at)) };
 }
 export function walk(maze: readonly boolean[], j: Journey, from: Walker, requested: Heading): { next: Walker; visited: number[]; events: string[] } {

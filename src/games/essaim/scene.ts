@@ -23,6 +23,7 @@ export interface EssaimHook {
     weapon(kind: Weapon): void;
     command(): void;
     art(): ReturnType<EssaimArt['stats']>;
+    timing(reset?: boolean): { frames: number; updateMs: number; drawMs: number; meanMs: number };
     artScenario(name: 'play' | 'boss' | 'weapons'): void;
 }
 declare global { interface Window { __ESSAIM_TEST__?: EssaimHook } }
@@ -33,6 +34,8 @@ export class EssaimScene extends Phaser.Scene {
     private inputs = new Inputs();
     private selecting = false;
     private panelKey = '';
+    private testTiming = { frames: 0, updateMs: 0, drawMs: 0 };
+    private timingFrame = false;
     private testManual = false;
     private testAdvancing = false;
     private art?: EssaimArt;
@@ -111,6 +114,11 @@ export class EssaimScene extends Phaser.Scene {
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         area.setAttribute('aria-label', 'Essaim : guider le vaisseau en bas et tirer');
         if (new URLSearchParams(location.search).get('test') === '1') window.__ESSAIM_TEST__ = {
+            timing: (reset = false) => {
+                if (reset) this.testTiming = { frames: 0, updateMs: 0, drawMs: 0 };
+                const t = this.testTiming;
+                return { ...t, meanMs: t.frames ? (t.updateMs + t.drawMs) / t.frames : 0 };
+            },
             art: () => { if (!this.art) throw new Error('Rendu absent'); return this.art.stats(); },
             artScenario: name => {
                 this.start(name === 'boss' ? 29 : 26, 458, true);
@@ -170,7 +178,14 @@ export class EssaimScene extends Phaser.Scene {
         }
     }
     update(_time: number, delta: number): void {
+        this.timingFrame = Boolean(window.__ESSAIM_TEST__) && !this.testManual && !this.session.paused && !this.selecting && this.engine.status === 'playing';
+        const start = this.timingFrame ? performance.now() : 0, beforeDraw = this.testTiming.drawMs;
         this.tick(this.testManual ? 0 : delta);
+        if (this.timingFrame) {
+            this.testTiming.updateMs += performance.now() - start - (this.testTiming.drawMs - beforeDraw);
+            this.testTiming.frames++;
+        }
+        this.timingFrame = false;
     }
     private tick(delta: number): void {
         if (!this.selecting) {
@@ -191,6 +206,7 @@ export class EssaimScene extends Phaser.Scene {
         this.panels(); this.draw();
     }
     private draw(): void {
+        const start = this.timingFrame ? performance.now() : 0;
         const s = this.engine.state;
         this.art?.draw(s, this.engine.level, this.engine.dronePositions());
         const labels: Record<Weapon, string> = { beam: 'Rayon', bounce: 'Rebond', drones: 'Drones', slow: 'Onde', magnet: 'Aimant', charge: 'Charge' };
@@ -199,5 +215,6 @@ export class EssaimScene extends Phaser.Scene {
         const status = document.querySelector('#status');
         const statusText = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'won' ? 'Victoire' : this.engine.status === 'lost' ? 'Défaite' : 'En jeu'}`;
         if (status && status.textContent !== statusText) status.textContent = statusText;
+        if (this.timingFrame) this.testTiming.drawMs += performance.now() - start;
     }
 }

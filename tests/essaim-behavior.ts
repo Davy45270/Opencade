@@ -26,6 +26,19 @@ export function escortBenchmark(E: EngineClass = Engine) {
 export const behaviors: Record<string, (E: EngineClass) => void> = {
     ...generatedBehaviors,
     ...Object.fromEntries((Object.keys(weaponScenarios) as Weapon[]).map(kind => [`E-WPN-07 ${kind} generated formation ratio >= 1.3`, (E: EngineClass) => { weaponBenchmark(kind,E); }])),
+    'E-INPUT-01 desktop guidance collects the initial beam and held fire emits without shots': E => {
+        const e = new E(0, 458);
+        e.move(1); frames(e, 12); e.move(-1); frames(e, 24);
+        e.moveTo(280); frames(e, 36);
+        check(e.has('beam'), 'desktop trajectory collects the level 1 supply');
+        check(e.state.fired === 0, 'guidance alone does not fire');
+        e.holdFire(true); frames(e, 6);
+        check(e.state.firing && e.state.beam && e.state.heat > 0 && e.state.fired > 0, 'held fire emits a hot beam');
+        check(!e.state.shots.some(s => s.owner === 'player'), 'continuous beam is not a projectile');
+        const fired = e.state.fired;
+        e.holdFire(false); frames(e, 6);
+        check(!e.state.firing && !e.state.beam && e.state.fired === fired, 'release stops emission');
+    },
     'E-WPN-01 overheat blocks until cooled': E => {
         const e = flat(E); e.equip('beam'); e.holdFire(true); frames(e, 72);
         check(e.state.overheated, 'overheat at full heat'); frames(e, 1);

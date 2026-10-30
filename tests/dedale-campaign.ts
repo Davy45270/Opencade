@@ -1,3 +1,4 @@
+import { displayedWalls } from '../src/games/dedale/board';
 import { Engine, index, neighbor, cell, PRIORITY } from '../src/engines/dedale/engine';
 import { route } from '../src/engines/dedale/solver';
 import { dedaleDiversity, routeOverlap, mechanicForEvent } from '../scripts/dedale-diversity.js';
@@ -40,13 +41,20 @@ export const campaignCases: Record<string, () => void> = {
             const e = new Engine(level, seed), { maze, journey: j } = e.state;
             if (!j) throw new Error('journey absent');
             const floor = maze.flatMap((v, at) => v ? [at] : []);
-            if (j.shape === 'mirror') for (const at of floor) check(!!maze[Math.floor(at / 19) * 19 + 18 - at % 19], 'reflection across vertical axis');
+            if (j.shape === 'mirror') {
+                const walls = new Set(displayedWalls(maze));
+                for (let at = 0; at < 437; at++) check(walls.has(at) === walls.has(Math.floor(at / 19) * 19 + 18 - at % 19), 'displayed walls reflect across vertical axis');
+            }
             if (j.shape === 'ring') {
                 for (const at of floor) check(PRIORITY.filter(d => neighbor(maze, cell(at), d)).length === 2, 'one unbranched cycle');
                 const minX = Math.min(...floor.map(at => at % 19)), maxX = Math.max(...floor.map(at => at % 19));
                 const minY = Math.min(...floor.map(at => Math.floor(at / 19))), maxY = Math.max(...floor.map(at => Math.floor(at / 19)));
                 check(!maze[Math.floor((minY + maxY) / 2) * 19 + Math.floor((minX + maxX) / 2)], 'closed center enclosed by cycle');
                 check(floor.length === 2 * (maxX - minX + maxY - minY), 'entire enclosing rectangle');
+            }
+            if (level === 3) {
+                check(Math.max(...floor.map(at => at % 19)) - Math.min(...floor.map(at => at % 19)) >= 16, 'level 4 spiral spans the displayed width');
+                check(Math.max(...floor.map(at => Math.floor(at / 19))) - Math.min(...floor.map(at => Math.floor(at / 19))) >= 16, 'level 4 spiral spans the displayed height');
             }
             if (j.shape === 'spiral') {
                 const cx = (Math.min(...floor.map(at => at % 19)) + Math.max(...floor.map(at => at % 19))) / 2;

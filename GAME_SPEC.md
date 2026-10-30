@@ -1217,7 +1217,9 @@ Trois plans de 24 étoiles défilent à 4, 10 et 22 px/s ; deux nébuleuses à d
 
 Le pool préalloue **96 particules** (budget littéral) et réutilise leurs identités ; à saturation les nouveaux effets sont abandonnés. `prefers-reduced-motion` est suivi aussi pendant la partie : aucun tremblement, inclinaison ni battement décoratif, parallaxe à 12 % de vitesse et **4 anneaux au maximum**, sans éclats ni fumée. Les mouvements tactiques et les contrôles restent inchangés. Pause et sélection figent le temps visuel ; recommencer vide le pool. Le crochet `art()` expose objets graphiques actifs (5, hors HUD), particules actives, capacité, nombre de générations de textures, images dessinées et préférence de mouvement.
 
-`tests/essaim-art.test.ts` vérifie le pool sur **2000 pas de démo** avec saturation forcée, les identités réutilisées, le budget réduit et la génération unique des deux textures. Les mêmes contrôles purs sont exécutables sans Vitest avec `nice -n 19 ionice -c3 node scripts/check-essaim-art.js`. E2E écrits pour l'orchestrateur : `essaim-art-play` montre les sept silhouettes, les tirs et une explosion ; `essaim-art-boss` le commandement exposé en phase 2 ; `essaim-art-weapons` deux armes simultanées (drones et rebond) ; `essaim-art-reduced` la même scène de silhouettes avec un anneau et mouvement réduit, assertion ≤4 particules. Les captures existantes des six armes restent présentes. Le test mobile bride le CPU par CDP `Emulation.setCPUThrottlingRate` à **4**, compte par `requestAnimationFrame` les images ayant un nouveau dessin de jeu sur **5000 ms**, exige **≥30 i/s**, vérifie l'avancée du moteur et joint le résultat JSON. Cette mesure et les captures sont prévues, non exécutées pendant cette passe (aucun navigateur ni Vitest).
+`tests/essaim-art.test.ts` vérifie le pool sur **2000 pas de démo** avec saturation forcée, les identités réutilisées, le budget réduit et la génération unique des deux textures. Les mêmes contrôles purs sont exécutables sans Vitest avec `nice -n 19 ionice -c3 node scripts/check-essaim-art.js`. E2E écrits pour l'orchestrateur : `essaim-art-play` montre les sept silhouettes, les tirs et une explosion ; `essaim-art-boss` le commandement exposé en phase 2 ; `essaim-art-weapons` deux armes simultanées (drones et rebond) ; `essaim-art-reduced` la même scène de silhouettes avec un anneau et mouvement réduit, assertion ≤4 particules. Les captures existantes des six armes restent présentes. Le test mobile bride le CPU par CDP `Emulation.setCPUThrottlingRate` à **4** et mesure successivement Serpentin puis Essaim dans le **même navigateur, la même page et la même session CDP**, sur **5000 ms par scène**, sans `advance()`. Il compte les nouveaux dessins du jeu, pas les seuls rappels rAF. Serpentin utilise un parcours horizontal torique sans obstacle ni croissance ; Essaim utilise la scène `weapons` avec drones et rebond. Le seuil relatif littéral est **cadence Essaim / cadence Serpentin ≥ 0,5**. Chaque moteur doit avancer d’au moins 240 ticks et rester en jeu ; les budgets de particules et de Graphics sont conservés. Les valeurs brutes, le rapport et le seuil sont joints en JSON. Ce rapport compare les charges dans le conteneur sans GPU ; il ne certifie pas une cadence matérielle.
+
+Un second échantillon Essaim `weapons` de **5000 ms**, CPU remis à **1**, exige un **temps JavaScript moyen par image ≤ 8 ms**. Le crochet `__ESSAIM_TEST__.timing(true)` remet les compteurs à zéro ; `timing()` expose les images mesurées, `updateMs`, `drawMs` et `meanMs`. `performance.now()` encadre la mise à jour complète de la scène et son dessin ; le dessin est soustrait du compteur de mise à jour pour éviter de le compter deux fois. La moyenne vaut `(updateMs + drawMs) / frames`, uniquement sur les images réelles en jeu, hors `advance()`. Elle inclut moteur, effets, HUD et construction du dessin, mais pas la rastérisation GPU ni l’attente du navigateur. Les compteurs doivent être non nuls et les résultats sont joints en JSON. Le **30 i/s réel se mesure sur un vrai téléphone**, avec le scénario armes ; aucun seuil absolu de cadence ne représente ce matériel dans le conteneur logiciel. Cette mesure et les captures sont prévues, non exécutées pendant cette passe (aucun navigateur ni Vitest).
 
 ### Six armes ramassables
 
@@ -1289,6 +1291,8 @@ Vagues de respiration : 6, 11, 17 et 24 (quatre ennemis, pas de tir ordinaire ; 
 `tests/essaim-behavior.ts` expose les scénarios en littéraux réutilisés par `tests/essaim.test.ts` et par `nice -n 19 ionice -c3 node scripts/validate-essaim.js`. E-WPN-01…06 couvrent les six mécaniques ; E-WPN-07 conserve le test des trois escortes (seuil 1,5) et compare chacune des six armes au tir de base contre une vague de sa formation associée réellement générée, avec un seuil littéral de 1,3 (temps de neutralisation, ou interceptions pour drones/aimant) ; E-WPN-08 couvre la limite de deux et le facteur combiné 0,2. E-BOSS vérifie fermeture, faiblesse, cinq motifs et transition du commandement. E-WAVE couvre mines, scission, missiles portés, miroir, kamikazes et sauvetage. E-PICKUP vérifie les six ramassages, renouvellements et expirations. E-DET vérifie cadence, graines et anciens états. E-GEN-01…08 simulent les apparitions et comportements générés (boss, sauvetage, diversité observée, ellipse/rafales, guidage, charge, phase 2 et conséquences du sauvetage). E-P2 verrouille la pénalité sous invulnérabilité ; E-SHIELD croise géométrie et types de projectiles. E-DIV-01 applique la fonction partagée du rapport à des parties pilotées complètes, avec témoins observés et sans compter les déclarations de configuration : huit nouveautés au minimum, écarts de cinq niveaux maximum jusqu'au 25, clones sous 25 %.
 
 Le pilote utilise uniquement déplacement et maintien/relâchement du tir, en observant chaque pas fixe. Le validateur exige une victoire pour chacun des trente niveaux sur les graines 458 et 28, sous 18000 images par niveau. Il écrit les résultats, les temps simulés, vies et scores ainsi que les vingt et une mutations rejetées avec leurs lignes dans `docs/essaim-validation.json`. La démo et le rapport utilisent le même pilote ; la démo observe six pas par avance de 100 ms, le rapport suit chaque pas jusqu’à la fin de la tentative (plafond 18000).
+
+Le contrôle G01 maintient Espace (bureau) ou le bouton tactile pendant la simulation, vérifie l’état de tir, une augmentation de `fired`, puis le rayon actif et sa chaleur ou un projectile selon l’arme, et vérifie le relâchement. La trajectoire clavier du niveau 1 ramasse le rayon initial, contrairement à la trajectoire tactile : `shots` reste alors vide même pendant un tir valide. Le test pur E-INPUT-01 reproduit cette trajectoire et vérifie l’émission sans projectile, puis son arrêt. Les règles de tir sont inchangées.
 
 `tests/e2e/essaim.spec.ts` conserve les contrôles de progression, pause, disposition et nettoyage ; il écrit les captures `essaim-weapon-1` à `essaim-weapon-6` avec exactement une arme active, vérifie le maintien tactile de la charge et sa libération, et capture `essaim-level30` avec le commandement en phase 2. Ces scénarios sont écrits pour l'orchestrateur sur l'hôte de test ; aucun navigateur ni Vitest lancé pendant cette passe. La passe 55 ajoute les scénarios visuels et la mesure de fluidité décrits ci-dessus.
 
@@ -1396,6 +1400,10 @@ node scripts/validate-dedale.js --record
 nice -n 19 ionice -c3 node scripts/diversity-report.js
 ```
 
+La spirale du niveau 4 occupe désormais 17 × 17 cases, avec un couloir continu du bord vers le centre, sans raccourci. Son rejeu est plus long ; le placement des salles du niveau 2 est réensemencé pour conserver D-ROUTE ≤30 %, sans modifier ce seuil ni les règles. Les preuves BFS sont régénérées. D-GEOMETRY vérifie l’étendue de la spirale et la symétrie verticale sur les **cellules de murs effectivement peintes** (`displayedWalls`, partagé avec la scène), pour toutes les cases de chaque miroir et trois graines. Un axe vertical discret rend la réflexion lisible. Aux niveaux 20 et 30, clés, portes, flèches (direction réfléchie), paires de portails et autres mécaniques sont aussi réfléchies sur les branches latérales disponibles. Une copie est omise si elle recouvrirait le parcours obligatoire ou une autre mécanique : elle ne doit pas ajouter de verrou ou d’inversion sur ce parcours. Les copies sont fonctionnelles, sans collectes supplémentaires imposées.
+
+Le titre combine la forme et une tranche nommée (Éveil, Sentiers, Passages, Reflets, Ombres, Aurore). Clés, portes, portails, interrupteurs et glace utilisent des tracés Canvas occupant presque toute la case ; les flèches passent à 17 px, avec fonds colorés renforcés. Le HUD explique les couleurs et signes au niveau d’introduction ; sa largeur est bornée pour le mobile 390 × 844.
+
 Clavier flèches/ZQSD/WASD, glisser et croix tactile de 56 px ; pause et
 progression communes inchangées. Les captures E2E écrites `dedale-level04`,
 `dedale-level12`, `dedale-level20` et `dedale-level30` attendent le serveur de test.
@@ -1408,9 +1416,9 @@ Mécaniques effectivement observées au rejeu, graine 28 : C = clé/porte, U = s
 | Niveau | Forme | Mécaniques jouées | Coups |
 | ---: | --- | --- | ---: |
 | 1 | Couloirs | Base | 25 |
-| 2 | Salles | Base | 29 |
+| 2 | Salles | Base | 25 |
 | 3 | Anneau | Base | 33 |
-| 4 | Spirale | C | 24 |
+| 4 | Spirale | C | 144 |
 | 5 | Miroir | C, U | 41 |
 | 6 | Couloirs | C, U | 45 |
 | 7 | Salles | C, U | 49 |
@@ -1438,8 +1446,9 @@ Mécaniques effectivement observées au rejeu, graine 28 : C = clé/porte, U = s
 | 29 | Spirale | C, U, P, I, M, G, O, R, F | 80 |
 | 30 | Miroir | C, U, P, I, M, G, O, R, F | 104 |
 
-D-ROUTE : maximum 29,333… % (17/27). D-CURVE : moyennes par cinq niveaux
-30,4 / 45 / 58,4 / 70,8 / 79,6 / 92 coups ; rapport final/initial 3,026.
+D-ROUTE : maximum 30 % (niveaux 4/29). D-CURVE : moyennes par cinq niveaux
+53,6 / 45 / 58,4 / 70,8 / 79,6 / 92 coups ; rapport final/initial 1,716.
+La croissance strictement exigée porte toujours sur les tranches 6–30.
 Les tests Node partagés vérifient aussi les durées exactes des défis et leur
 absence ailleurs, la conservation des deux couleurs et de l'interrupteur après
 un décès réel, l'obscurité horizontale et verticale, les témoins du final recalculés,

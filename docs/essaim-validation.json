@@ -61,6 +61,10 @@
       "passed": true
     },
     {
+      "name": "E-INPUT-01 desktop guidance collects the initial beam and held fire emits without shots",
+      "passed": true
+    },
+    {
       "name": "E-WPN-01 overheat blocks until cooled",
       "passed": true
     },
