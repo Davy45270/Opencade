@@ -130,7 +130,7 @@ for (const level of [4, 12, 20, 30]) test(`D-MEC capture dedale-level${String(le
     const state = await read(page);
     expect(state?.level).toBe(level - 1);
     expect(state?.journey?.doors.length).toBeGreaterThan(0);
-    if (level >= 12) expect(state?.journey?.portals).toHaveLength(1);
+    if (level >= 12) expect(state?.journey?.portals.length).toBeGreaterThanOrEqual(1); // mirror levels reflect their portal pair
     if (level >= 20) expect(state?.journey?.ice.length).toBeGreaterThan(0);
     if (level === 30) expect(state?.journey?.dark.length).toBeGreaterThan(0);
     await tap(page, '#resume', info.project.name === 'mobile-chromium');
