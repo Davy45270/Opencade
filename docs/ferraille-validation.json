@@ -1,0 +1,648 @@
+{
+  "checks": [
+    {
+      "name": "F-ENEMY-01 shooter walks, stops, locks aim, fires",
+      "passed": true
+    },
+    {
+      "name": "F-ENEMY-02 kamikaze closes distance each step then commits to charge",
+      "passed": true
+    },
+    {
+      "name": "F-ENEMY-03 flyer follows sine and drops gravity bombs",
+      "passed": true
+    },
+    {
+      "name": "F-ENEMY-04 armor rejects front, accepts rear and overturned",
+      "passed": true
+    },
+    {
+      "name": "F-ENEMY-05 turret fixed, slowly rotates, fires burst",
+      "passed": true
+    },
+    {
+      "name": "F-ENEMY-06 crawler turns before an edge",
+      "passed": true
+    },
+    {
+      "name": "F-WEAPON-01 flame is continuous, short range, finite",
+      "passed": true
+    },
+    {
+      "name": "F-WEAPON-02 bounce reflects independently on floor and wall",
+      "passed": true
+    },
+    {
+      "name": "F-WEAPON-03 grenade parabola and bounded area",
+      "passed": true
+    },
+    {
+      "name": "F-BOSS-01 invulnerable telegraph and exposed core",
+      "passed": true
+    },
+    {
+      "name": "F-BOSS-02 final phase changes attack geometry",
+      "passed": true
+    },
+    {
+      "name": "F-BOSS-03 sweep is sequential; crossfire comes from both flanks",
+      "passed": true
+    },
+    {
+      "name": "F-STRUCT wagon moves without throttle and can jump; cages give real bonus",
+      "passed": true
+    },
+    {
+      "name": "F-BOSS-04 departure freezes cadence after attack and resumes once",
+      "passed": true
+    },
+    {
+      "name": "F-BOSS-05 grenades respect closed and exposed core",
+      "passed": true
+    },
+    {
+      "name": "F-BOSS-06 guardian 15 rains three bombs above player",
+      "passed": true
+    },
+    {
+      "name": "F-WEAPON-04 grenade boundary includes 64 excludes beyond",
+      "passed": true
+    },
+    {
+      "name": "F-STRUCT-02 grenade opens cage within radius only",
+      "passed": true
+    },
+    {
+      "name": "F-RENDER-01 six distinct silhouettes palettes names and reactor phases",
+      "passed": true
+    },
+    {
+      "name": "F-SAVE deterministic batches and old state defaults",
+      "passed": true
+    },
+    {
+      "name": "F-DIV-01",
+      "passed": true
+    },
+    {
+      "name": "F-TERRAIN",
+      "passed": true
+    },
+    {
+      "name": "F-PILOT",
+      "passed": true
+    }
+  ],
+  "diversity": {
+    "score": 11.2,
+    "noveltyCount": 19,
+    "noveltyLevels": [
+      2,
+      4,
+      5,
+      6,
+      7,
+      8,
+      10,
+      11,
+      12,
+      14,
+      15,
+      16,
+      18,
+      20,
+      21,
+      24,
+      25,
+      26,
+      30
+    ],
+    "cloneShare": 0,
+    "maxGapWithoutNovelty": 3
+  },
+  "pilot": [
+    {
+      "seed": 460,
+      "levels": [
+        {
+          "seed": 460,
+          "level": 1,
+          "frames": 970,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 2,
+          "frames": 1098,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 3,
+          "frames": 1226,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 4,
+          "frames": 1370,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 5,
+          "frames": 3031,
+          "lives": 2,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 6,
+          "frames": 1602,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 7,
+          "frames": 1741,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 8,
+          "frames": 1866,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 9,
+          "frames": 2010,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 10,
+          "frames": 3527,
+          "lives": 2,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 11,
+          "frames": 2242,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 12,
+          "frames": 1185,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 13,
+          "frames": 2507,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 14,
+          "frames": 2675,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 15,
+          "frames": 4744,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 16,
+          "frames": 2882,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 17,
+          "frames": 1505,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 18,
+          "frames": 3181,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 19,
+          "frames": 3324,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 20,
+          "frames": 5524,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 21,
+          "frames": 3522,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 22,
+          "frames": 3668,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 23,
+          "frames": 1889,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 24,
+          "frames": 4748,
+          "lives": 1,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 25,
+          "frames": 5640,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 26,
+          "frames": 4195,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 27,
+          "frames": 4319,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 28,
+          "frames": 2209,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 29,
+          "frames": 5342,
+          "lives": 1,
+          "status": "won"
+        },
+        {
+          "seed": 460,
+          "level": 30,
+          "frames": 7726,
+          "lives": 3,
+          "status": "won"
+        }
+      ]
+    },
+    {
+      "seed": 28,
+      "levels": [
+        {
+          "seed": 28,
+          "level": 1,
+          "frames": 963,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 2,
+          "frames": 1098,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 3,
+          "frames": 1219,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 4,
+          "frames": 1673,
+          "lives": 2,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 5,
+          "frames": 3049,
+          "lives": 2,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 6,
+          "frames": 1602,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 7,
+          "frames": 1740,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 8,
+          "frames": 1859,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 9,
+          "frames": 1994,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 10,
+          "frames": 3563,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 11,
+          "frames": 2242,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 12,
+          "frames": 1185,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 13,
+          "frames": 2506,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 14,
+          "frames": 2642,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 15,
+          "frames": 5509,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 16,
+          "frames": 2882,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 17,
+          "frames": 1505,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 18,
+          "frames": 3209,
+          "lives": 2,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 19,
+          "frames": 3290,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 20,
+          "frames": 5269,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 21,
+          "frames": 3522,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 22,
+          "frames": 3826,
+          "lives": 1,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 23,
+          "frames": 1889,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 24,
+          "frames": 4685,
+          "lives": 1,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 25,
+          "frames": 5745,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 26,
+          "frames": 4195,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 27,
+          "frames": 4342,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 28,
+          "frames": 2209,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 29,
+          "frames": 5036,
+          "lives": 3,
+          "status": "won"
+        },
+        {
+          "seed": 28,
+          "level": 30,
+          "frames": 7966,
+          "lives": 3,
+          "status": "won"
+        }
+      ]
+    }
+  ],
+  "mutations": [
+    {
+      "name": "all levels equal level 1",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 122,
+      "killed": true,
+      "error": "Error: F-DIV-01: eight generated novelties"
+    },
+    {
+      "name": "stationary kamikaze",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 208,
+      "killed": true,
+      "error": "Error: kamikaze must move toward hero"
+    },
+    {
+      "name": "frontal armor removed",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 150,
+      "killed": true,
+      "error": "Error: front armor must block"
+    },
+    {
+      "name": "ricochet disabled",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 271,
+      "killed": true,
+      "error": "Error: floor ricochet"
+    },
+    {
+      "name": "grenade area zero",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 155,
+      "killed": true,
+      "error": "Error: 64-pixel area with armor turnover"
+    },
+    {
+      "name": "distant boss repeats frozen threshold",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 240,
+      "killed": true,
+      "error": "Error: no repeated distant attack"
+    },
+    {
+      "name": "grenades bypass closed core",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 159,
+      "killed": true,
+      "error": "Error: grenade damage only through exposed core"
+    },
+    {
+      "name": "guardian 15 bombs removed",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 254,
+      "killed": true,
+      "error": "Error: mini boss bomb count"
+    },
+    {
+      "name": "floor relief removed",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 81,
+      "killed": true,
+      "error": "Error: F-TERRAIN: at least four actual floor elevations"
+    },
+    {
+      "name": "cage blast radius removed",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 158,
+      "killed": true,
+      "error": "Error: explosion radius opens cage without contact"
+    },
+    {
+      "name": "grenade radius shrunk to 48",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 155,
+      "killed": true,
+      "error": "Error: exact 64 px damaged"
+    },
+    {
+      "name": "grenade radius exceeds boundary",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 155,
+      "killed": true,
+      "error": "Error: 64.01 px untouched"
+    },
+    {
+      "name": "boss weakness ignored",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 284,
+      "killed": true,
+      "error": "Error: closed core rejects shot"
+    }
+  ]
+}

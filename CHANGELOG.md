@@ -5,6 +5,12 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Ferraille: author 30 stages with six distinct enemy behaviors, finite flame/ricochet/grenade pickups, ascending/descending routes, wagon rides and hostage rescues; retain progression saves and mobile controls.
+- Add four procedural parallax themes, recovery discoveries, five guardian patterns with exposed cores and a three-phase final reactor.
+- Fix frozen boss attack thresholds; verify 30 normal-input victories on both default seed 460 and seed 28, with thirteen rejected engine mutations.
+- Give all six Ferraille bosses distinct silhouettes, names, palettes and exposed cores, plus three reactor appearances and reduced-motion support.
+- Cover grenade boundaries, cages, floor relief and scene presentation; remove local browser capture scripts. Screenshots run through E2E on the test host.
+
 ## [0.3.1] - 2026-10-30
 
 ### Dérapage

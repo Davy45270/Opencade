@@ -4,6 +4,8 @@ The detailed game specification, [GAME_SPEC.md](GAME_SPEC.md), is in French.
 
 # Opencade
 
+Ferraille now spans 30 authored stages with six enemy behaviors, flame/ricochet/grenade pickups, wagon rides, hostage rescues and vulnerable multi-phase guardians.
+
 [![CI](https://github.com/Davy45270/Opencade/actions/workflows/ci.yml/badge.svg)](https://github.com/Davy45270/Opencade/actions/workflows/ci.yml)
 [![Pages](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml/badge.svg)](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)

@@ -102,3 +102,91 @@ test('F09 F12 sauvegarde et déblocage après victoire réelle', async ({ page }
     await page.reload(); await expect(page.locator('#resume')).toBeVisible(); await tap(page, '#resume', mobile); await tap(page, '#levels', mobile);
     await expect(page.locator('#level-list button')).toHaveCount(30); await expect(page.locator('#level-list button').nth(1)).toBeEnabled(); await tap(page, '#close-levels', mobile);
 });
+
+for (const level of [5, 12, 18, 30]) test(`F-DIV capture ferraille-level${String(level).padStart(2, '0')}`, async ({ page }, info) => {
+    await page.goto('/?test=1#/ferraille');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__FERRAILLE_TEST__))).toBe(true);
+    await page.evaluate(index => { const h = window.__FERRAILLE_TEST__; h?.loadLevel(index, 28); h?.scenario('showcase'); h?.advance(0); }, level - 1);
+    await tap(page, '#resume', info.project.name === 'mobile-chromium');
+    const s = await read(page); expect(s?.level).toBe(level - 1);
+    if (level === 5 || level === 30) expect(s?.boss?.hp).toBeGreaterThan(0);
+    if (level === 12) expect(s?.vehicle).toBe(true);
+    if (level === 18) expect(s?.cages).toHaveLength(3);
+    await page.screenshot({ path: `test-results/screenshots/ferraille-level${String(level).padStart(2, '0')}-${info.project.name}.png` });
+});
+
+test('F-SCENE-01 quatre palettes, parallaxe relative et texte réel des munitions', async ({ page }, info) => {
+    await page.goto('/?test=1#/ferraille');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__FERRAILLE_TEST__))).toBe(true);
+    await tap(page, '#resume', info.project.name === 'mobile-chromium');
+    const palettes = [
+        { level: 0, colors: [0x101e30, 0x182e43, 0x5e8d91] },
+        { level: 5, colors: [0x392a25, 0x76513b, 0xd4a568] },
+        { level: 10, colors: [0x102d28, 0x1d4b38, 0x83ae68] },
+        { level: 15, colors: [0x121329, 0x292949, 0x8b8fc1] },
+    ];
+    for (const { level, colors } of palettes) {
+        const rendering = await page.evaluate(index => {
+            const h = window.__FERRAILLE_TEST__; h?.loadLevel(index, 460); h?.advance(0);
+            h?.inspect({ heroX: 300, weapon: 'grenade', ammo: 7, score: 913 });
+            return { before: h?.rendering(), text: h?.hudText() };
+        }, level);
+        expect(rendering.before?.palette).toEqual(colors);
+        expect(rendering.text).toContain('GRENADES · 7'); expect(rendering.text).toContain('913 pts');
+        expect(rendering.text).not.toContain('GRENADES · 913');
+        const after = await page.evaluate(() => { const h = window.__FERRAILLE_TEST__; h?.inspect({ heroX: 400 }); return h?.rendering(); });
+        const before = rendering.before;
+        if (!after || !before) throw new Error('Rendu absent');
+        expect(after.camera - before.camera).toBe(100);
+        expect(after.layers.map((layer, i) => layer.x - (before.layers[i]?.x ?? NaN))).toEqual([-15, -30]);
+        expect(after.layers[1]?.factor).toBeGreaterThan(after.layers[0]?.factor ?? NaN);
+        await page.screenshot({ path: `test-results/screenshots/ferraille-palette-${String(level + 1)}-${info.project.name}.png` });
+    }
+});
+
+for (const level of [5, 10, 15, 20, 25, 30]) test(`F-SCENE-02 gardien ${String(level)} silhouette cœur nom et vie`, async ({ page }, info) => {
+    await page.goto('/?test=1#/ferraille');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__FERRAILLE_TEST__))).toBe(true);
+    await page.evaluate(index => { const h = window.__FERRAILLE_TEST__; h?.loadLevel(index, 460); h?.scenario('showcase'); h?.advance(0); }, level - 1);
+    await tap(page, '#resume', info.project.name === 'mobile-chromium');
+    const expected = ['ÉVENTREUR', 'PILON', 'SCARABOMBE', 'FAUCHEUSE', 'TENAILLE', 'RÉACTEUR'][level / 5 - 1];
+    if (!expected) throw new Error('Nom absent');
+    const closed = await page.evaluate(() => { const h = window.__FERRAILLE_TEST__; h?.inspect({ bossClock: 0 }); return { drawing: h?.rendering(), text: h?.hudText() }; });
+    expect(closed.drawing?.boss?.name).toBe(expected); expect(closed.text).toContain(expected);
+    expect(closed.text).toContain('BLINDÉ'); expect(closed.drawing?.boss?.core.exposed).toBe(false);
+    expect(closed.drawing?.boss?.parts.length).toBeGreaterThanOrEqual(3);
+    expect(closed.drawing?.boss?.health.hp).toBeGreaterThan(0);
+    const shapes: string[] = [];
+    for (const phase of level === 30 ? [1, 2, 3] : [1]) {
+        const appearance = await page.evaluate(phase => {
+            const h = window.__FERRAILLE_TEST__, max = h?.read().boss?.maxHp ?? 1;
+            h?.inspect({ bossHp: phase === 1 ? max : phase === 2 ? max / 2 : 1, bossClock: 1300 });
+            return { drawing: h?.rendering(), text: h?.hudText() };
+        }, phase);
+        expect(appearance.drawing?.boss?.core.exposed).toBe(true); expect(appearance.text).toContain(`P${String(phase)} OUVERT`);
+        expect(appearance.drawing?.boss?.core.color).not.toBe(closed.drawing?.boss?.core.color);
+        expect(appearance.drawing?.boss?.phase).toBe(phase);
+        if (!appearance.drawing?.boss) throw new Error('Gardien absent');
+        shapes.push(appearance.drawing.boss.shape);
+        await page.screenshot({ path: `test-results/screenshots/ferraille-boss-${String(level)}-phase${String(phase)}-${info.project.name}.png` });
+    }
+    expect(new Set(shapes).size).toBe(level === 30 ? 3 : 1);
+    const blinking = await page.evaluate(() => window.__FERRAILLE_TEST__?.rendering().boss?.core.alpha);
+    await page.evaluate(() => { window.__FERRAILLE_TEST__?.advance(200); });
+    expect(await page.evaluate(() => window.__FERRAILLE_TEST__?.rendering().boss?.core.alpha)).not.toBe(blinking);
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    const steady = await page.evaluate(() => { const h = window.__FERRAILLE_TEST__; h?.advance(0); return h?.rendering(); });
+    await page.evaluate(() => { window.__FERRAILLE_TEST__?.advance(200); });
+    const later = await page.evaluate(() => window.__FERRAILLE_TEST__?.rendering());
+    expect(steady?.reducedMotion).toBe(true); expect(later?.boss?.core.alpha).toBe(steady?.boss?.core.alpha);
+    expect(later?.boss?.core.exposed).toBe(true);
+});
+
+test('F-SCENE-03 les six descriptions de rendu sont distinctes deux à deux', async ({ page }) => {
+    await page.goto('/?test=1#/ferraille');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__FERRAILLE_TEST__))).toBe(true);
+    const descriptions = await page.evaluate(() => [4, 9, 14, 19, 24, 29].map(index => {
+        const h = window.__FERRAILLE_TEST__; h?.loadLevel(index, 460); h?.advance(0); return h?.rendering().boss;
+    }));
+    for (const key of ['name', 'shape', 'colors', 'parts'] as const) expect(new Set(descriptions.map(d => JSON.stringify(d?.[key]))).size).toBe(6);
+});

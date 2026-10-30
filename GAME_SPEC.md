@@ -1046,7 +1046,7 @@ par le son global unique.
 
 Avec `?test=1` uniquement, `__ARCADE_TEST__.games.orbite` (alias
 `__ORBITE_TEST__`) expose `read()`, `loadLevel(index, seed?)` et
-`scenario('finish'|'danger')`. Les scénarios chargent une sonde restante ou un
+`scenario('finish'|'danger'|'showcase')`. Les scénarios chargent une sonde restante ou un
 projectile ennemi avec une vie restante, puis attendent un tir ou un déplacement
 réel. Ils ne changent aucune règle ni aucun statut final. `loadState` charge
 une position, sans restaurer le PRNG ; `snapshot()` copie l'état, les entrées
@@ -1222,7 +1222,7 @@ restantes, effets nommés `turn`, `move`, `seed`, `sun`, `wisp`, `mode`, `life`,
 
 Entrée `GameDefinition` dans le registre ; aucun changement d'API du socle.
 Le crochet `__ARCADE_TEST__.games.dedale` expose `read`, `loadLevel` et, à travers
-l'objet typé Dédale, `scenario('finish'|'danger')`. Il n'est installé qu'en mode
+l'objet typé Dédale, `scenario('finish'|'danger'|'showcase')`. Il n'est installé qu'en mode
 `?test=1`. Les scénarios chargent des états construits ; les issues passent
 ensuite par les vraies entrées, déplacements, collectes et collisions du moteur.
 
@@ -1289,60 +1289,129 @@ Les AABB sont résolues X puis Y, par sous-déplacements d'au plus 4 px pour
 éviter la traversée des tuiles. Les plateformes mobiles portent le robot.
 Le pas fixe est 1000/60 ms ; le reliquat est sérialisé dans le snapshot.
 
-Huit directions de tir au sol ; en vol une diagonale devient horizontale,
-ce qui donne les quatre directions cardinales. Sans direction : tir selon
-l'orientation mémorisée. Plafond global de 48 projectiles, durée 2400 ms,
-vitesse amie 280 px/s. Impulsion simple toutes les 240 ms ; éventail de trois
-tirs à −0,22/0/+0,22 rad ; rafale toutes les 90 ms. Les caisses se ramassent
-au contact. Le bouclier absorbe un coup et donne 1 s d'invulnérabilité.
-Un contact ou projectile ennemi coûte une vie, puis réapparition au dernier
-point activé avec 1800 ms de grâce et arme simple. Les chutes consomment une
-vie même avec bouclier ou grâce. Trois vies ; zéro = défaite.
+Huit directions au sol, quatre en vol ; contrôles clavier et tactiles inchangés.
+L'impulsion simple est illimitée (280 px/s, cadence 240 ms). Les anciens
+éventail et rafale restent lisibles dans les états sauvegardés. Les caisses
+accordent une réserve affichée dans le HUD : lance-flammes 180 charges,
+cadence 50 ms et portée maximale 73 px ; ricochet 36 coups, six réflexions
+sur sol/murs ; grenades 12 coups, impulsion (±170, −260), gravité 900,
+explosion de rayon 64 px et deux dégâts. Les grenades retournent les blindés
+pendant 2200 ms. Le bouclier, découvert au 26, absorbe un impact.
+Trois vies ; grâce de 1800 ms après réapparition au dernier point sûr.
+Chuter consomme une vie même pendant la grâce. Les clés de progression et
+le format du service de sauvegarde restent inchangés ; les anciens états
+reçoivent des valeurs par défaut pour les nouveaux champs.
 
-Rampants : patrouille et demi-tour avant un vide ou mur. Tourelles : tir visant
-la position du héros au moment de l'échéance, à portée 360 px. Drones : dérive
-horizontale et sinusoïde d'amplitude 22 px. Ennemis à un coup, 100 points ;
-caisses 25, points de contrôle 50, boss 20 par coup, victoire 500 points.
-La porte termine un atelier ordinaire ; un gardien doit être vaincu tous les
-cinq ateliers. Sa phase passe de 1 à 2 puis 3 aux deux tiers et au tiers de
-sa vie. Cadence et nombre de tirs en éventail augmentent avec la phase et
-le rang du gardien. Sa barre de vie reste visible.
+Six comportements : rampant qui patrouille et évite les bords ; tireur qui
+marche 600 ms, s'immobilise, verrouille sa visée puis tire à 1200 ms ;
+kamikaze qui engage une charge droite de 950 ms puis récupère avant de
+réorienter à 1300 ms ; volant en sinusoïde (amplitude 22 px), bombes soumises
+à la gravité ; blindé protégé de face, vulnérable de dos ou retourné ;
+tourelle fixe, rotation limitée à 0,012 rad/pas et salve de trois tirs à 2000 ms.
+Les ennemis s'activent à 360 px ; aucune IA n'utilise de hasard en cours de jeu.
 
-### Générateur des trente niveaux
+### Générateur des trente niveaux — passe 51
 
-Index moteur `n = 0…29`, affichage `n+1`. Le PRNG partagé choisit le type des
-blocs, la présence des ennemis et la phase des plateformes/drones. Chaque
-bloc mesure 16 tuiles ; deux blocs supplémentaires encadrent le parcours.
-Les obstacles occupent le milieu du bloc et laissent une zone d'élan et de
-réception. Les cinq types sont plat, marches (2 tuiles), trou, plateforme
-mobile au-dessus d'un trou, mur à escalader (3 tuiles).
+`levels.ts` décrit explicitement thèmes, structures, rencontres, armes et
+motifs des gardiens. Le générateur garantit chaque type annoncé, y compris
+sur les niveaux peu peuplés. Les blocs gardent leur enveloppe physique et
+leurs emplacements sûrs ; des sols en marches et plateformes hautes rendent
+les montées/descentes jouables. Le wagonnet avance à 210 px/s (±30 avec le
+joystick), avec le même saut ; la caméra suit son déplacement. Trois cages
+s'ouvrent après trois tirs ou une explosion et accordent chacune 300 points.
+Les sauvetages sont optionnels pour la sortie, et leur compte figure au HUD.
 
-| Paramètre `difficulty(n)` | Formule | Sens |
-| --- | --- | --- |
-| `blocks` | 6+n | croissant |
-| `enemyDensity` | 0,25+0,015n, probabilité par bloc | croissant |
-| `gapWidth` | 2+⌊n/10⌋ tuiles | croissant |
-| `turretRate` | 0,5+0,025n tirs/s | croissant |
-| `enemySpeed` | 19+n px/s | croissant |
-| `bossHp` | 8+n | croissant |
-| `bossPatterns` | 1+⌊n/5⌋ | croissant |
+Gardiens aux niveaux 5/10/15/20/25 : éventail, onde au sol, pluie de bombes,
+balayage séquentiel, tirs convergents des deux côtés. Chaque cycle attaque à 600 ms, avant toute ouverture. Le cœur reste protégé pendant 1200 ms, s'ouvre pendant
+1200 ms après l'attaque puis recommence. À 330 px ou plus, l'horloge et
+le déclenchement des attaques restent figés ; revenir ne rejoue pas une attaque.
+Le HUD et le cœur exposé signalent cette faiblesse. Le réacteur final au 30 alterne éventail, ondes au sol puis bombes
+aux seuils des deux tiers et du tiers de vie. Les trois phases changent donc
+la géométrie de l'attaque. Les respirations 6/11/16/21/26 offrent respectivement
+montée, ricochet, volant, grenade et bouclier, avec un seul ennemi garanti.
 
-La longueur vaut `(blocks+2)×16×16` px. Les caisses ont des emplacements
-fixes : bloc `i % 3 = 0`, tuile `start+3`, alternance éventail/rafale/bouclier.
-Il n'existe aucune apparition aléatoire de caisse ou de pièce en cours de
-partie : ce choix assure un approvisionnement lisible et évite les positions
-interdites et les boucles de rejet. F10 vérifie quantité, unicité et terrain
-libre/sol sous chaque emplacement sur douze graines au niveau 30.
-Les points de contrôle se trouvent au début d'un bloc sur trois.
+Quatre décors dessinés par code : cheminées d'usine, dunes, arbres et tours
+éclairées de base nocturne ; deux couches en parallaxe, sans asset externe.
+Couleurs et noms sont exclus du calcul des nouveautés.
 
-`jumpEnvelope(gap,rise)` utilise la racine descendante de la parabole :
-`120 × (330 + sqrt(330² − 2×900×rise))/900 − 12`. Une hauteur dépassant
-l'apogée ou une largeur dépassant cette portée est refusée. `generate`
-contrôle chaque saut requis avant de retourner le terrain. F12 vérifie les
-trente niveaux sur douze graines et fait jouer une politique simple (courir,
-sauter devant un obstacle/vide, tirer, s'arrêter à portée du boss) sur les
-niveaux 1, 15 et 30, avec au moins une victoire sur trois graines pour chacun.
-Cette politique utilise les règles normales, sans modifier les états ni les vies.
+| N° | Thème | Structure | Découverte / rythme | Ennemis |
+| ---: | --- | --- | --- | --- |
+| 1 | Usine | Corridor | Patrouilles | rampant |
+| 2 | Usine | Corridor | Tireur : visée verrouillée | tireur, rampant |
+| 3 | Usine | Corridor | Combinaison | tireur, rampant |
+| 4 | Usine | Corridor | Lance-flammes | tireur, rampant |
+| 5 | Usine | Arène | Gardien : éventail | tireur, rampant |
+| 6 | Désert | Montée | Respiration · Montée à étages | rampant |
+| 7 | Désert | Descente | Descente à étages | tireur, rampant |
+| 8 | Désert | Corridor | Kamikaze | kamikaze, tireur |
+| 9 | Désert | Montée | Combinaison | kamikaze, tireur |
+| 10 | Désert | Arène | Gardien : onde au sol | kamikaze, tireur |
+| 11 | Jungle | Corridor | Respiration · Tir rebondissant | rampant |
+| 12 | Jungle | Wagonnet | Wagonnet | kamikaze, tireur |
+| 13 | Jungle | Montée | Combinaison | kamikaze, tireur |
+| 14 | Jungle | Corridor | Tourelle à rotation lente | tourelle, kamikaze |
+| 15 | Jungle | Arène | Gardien : pluie de bombes | tourelle, kamikaze |
+| 16 | Base de nuit | Corridor | Respiration · Volant bombardier | volant |
+| 17 | Base de nuit | Wagonnet | Combinaison | volant, tireur |
+| 18 | Base de nuit | Otages | Otages | volant, tireur |
+| 19 | Base de nuit | Montée | Combinaison | volant, tireur |
+| 20 | Base de nuit | Arène | Gardien : balayage | tourelle, kamikaze |
+| 21 | Usine | Corridor | Respiration · Grenades | rampant |
+| 22 | Usine | Otages | Combinaison | volant, tireur |
+| 23 | Usine | Wagonnet | Combinaison | tourelle, kamikaze |
+| 24 | Usine | Corridor | Blindé : dos ou retournement | blindé, volant, kamikaze |
+| 25 | Usine | Arène | Gardien : tirs croisés | blindé, volant, kamikaze |
+| 26 | Désert | Otages | Respiration · Bouclier de sauvetage | blindé |
+| 27 | Jungle | Montée | Combinaison | blindé, volant, kamikaze |
+| 28 | Base de nuit | Wagonnet | Combinaison | blindé, volant, kamikaze |
+| 29 | Usine | Otages | Combinaison | blindé, volant, kamikaze |
+| 30 | Base de nuit | Arène | Réacteur : trois phases | blindé, volant, kamikaze |
+
+`nice -n 19 ionice -c3 node scripts/validate-ferraille.js` exécute les scénarios
+F-ENEMY-01…06, F-WEAPON-01…04, F-BOSS-01…06, F-STRUCT/02, F-SAVE,
+F-TERRAIN, F-RENDER-01, F-DIV-01 et le pilote normal des trente niveaux
+sur les graines 460 (défaut) et 28. Le plafond du pilote est
+18000 pas par niveau, sans injection d'état, de vies ou de victoire. Les
+résultats par graine et treize mutations réellement rejetées, avec lignes, sont dans
+`docs/ferraille-validation.json`. Les signatures proviennent du générateur
+et des snapshots via le même adaptateur que le rapport de diversité.
+
+### Correction de relecture — passe 52
+
+Le pilote attend que les blindés retournés entrent dans sa ligne de tir au
+lieu de sauter puis d'atterrir dessus. Il continue sa course devant une cage
+si un kamikaze le poursuit et rétablit sa visée après une esquive de bombe.
+Les niveaux 24 et 29 passent sur la graine 460 sans retoucher leur génération.
+Les trente victoires restent exigées séparément sur 460 et 28.
+
+| Niveau | Nom dans le HUD | Silhouette | Palette |
+| ---: | --- | --- | --- |
+| 5 | ÉVENTREUR | Éventail à cinq lames | Ambre / cuivre |
+| 10 | PILON | Marteau à deux pieds | Sable / bronze |
+| 15 | SCARABOMBE | Scarabée ailé | Vert / forêt |
+| 20 | FAUCHEUSE | Faux sur trépied | Lavande / prune |
+| 25 | TENAILLE | Canons opposés | Rose / bordeaux |
+| 30 | RÉACTEUR | Tour, coque scindée, coque rompue | Cyan, rose, jaune selon phase |
+
+`appearance.ts` décrit les primitives effectivement dessinées, les couleurs,
+le cœur et la santé. Chaque boss a une barre de vie. Le cœur vert exposé
+clignote ; `prefers-reduced-motion: reduce` garde sa couleur et son ouverture,
+sans clignotement ni éclair de bordure. Les six noms, formes, palettes et
+ensembles de primitives sont distincts deux à deux (F-RENDER-01).
+
+Les lacunes de relecture sont verrouillées par F-BOSS-04 (éloignement après
+franchissement des seuils puis retour), F-BOSS-05 (grenades et faiblesse),
+F-BOSS-06 (bombes du 15), F-TERRAIN (hauteurs du sol et direction),
+F-STRUCT-02 (explosion et cages) et F-WEAPON-04 (64 px inclus, 64,01 exclus).
+Les E2E F-SCENE-01 vérifient les quatre palettes, le déplacement des deux
+couches réellement dessinées pour 100 px de caméra et le texte « GRENADES · 7 »
+avec un score différent. F-SCENE-02/03 vérifient noms, cœur, vie, phases,
+mouvement réduit et descriptions uniques, avec captures des six boss et des
+phases du réacteur.
+
+Aucun navigateur, CDP ou Playwright n'est exécuté sur cette machine.
+Les scripts `capture-ferraille.js` et `capture-bubble.js` sont supprimés ;
+l'orchestrateur exécute `tests/e2e/` et produit les captures sur l'hôte de test.
 
 ### Présentation et services
 
@@ -1358,8 +1427,8 @@ Entrée `GameDefinition`, Progression, sauvegarde, panneaux, niveaux, session,
 son global et utilitaires tactiles existants réutilisés sans changement de
 leur API. Le CSS est limité à `body.ferraille`. Le crochet
 `__ARCADE_TEST__.games.ferraille` expose `read`, `loadLevel` et l'objet typé
-`scenario('finish'|'danger')`, uniquement avec `?test=1`. Il charge un état
-presque terminé ou un trou devant le robot ; aucune victoire/défaite forcée.
+`scenario('finish'|'danger'|'showcase')`, uniquement avec `?test=1`. Il charge un état
+presque terminé, un trou devant le robot, ou un cadrage sur la découverte du niveau ; aucune victoire/défaite forcée.
 
 ### Traçabilité de l'oracle
 
@@ -1471,7 +1540,7 @@ et son global utilisent les services existants **sans modification de src/shell*
 Effets synthétisés `thrust`, `life`, `won`, `lost` ; pas de vie intermédiaire.
 
 Avec `?test=1`, `__ARCADE_TEST__.games.alunir` expose `read`, `loadLevel`,
-`advance`, `hudText`, `usefulArea` et `scenario('finish'|'danger')`.
+`advance`, `hudText`, `usefulArea` et `scenario('finish'|'danger'|'showcase')`.
 `advance` fige l'horloge automatique jusqu'au prochain chargement, respecte
 pause et sélection, valide le temps puis synchronise les panneaux.
 Les scénarios placent un module trois pixels au-dessus du contact : la vitesse

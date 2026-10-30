@@ -1,3 +1,5 @@
+import { behaviors, diversity, campaign, terrain } from './ferraille-behavior';
+import { pilot } from '../src/engines/ferraille/pilot';
 import { describe, it, expect } from 'vitest';
 import { Engine, DT, TILE, SPEED, JUMP, GRAVITY, MAX_SHOTS, generate, difficulty, traversable, jumpEnvelope, move, solid, type Enemy } from '../src/engines/ferraille/engine';
 function flat(): Engine {
@@ -38,8 +40,8 @@ describe('Ferraille', () => {
         c.x = 96; c.vx = 20; e.state.tiles[15 * e.state.columns + 7] = true; e.step(DT); expect(c.vx).toBe(-20);
     });
     it('F05 tourelle vise réellement le héros et respecte sa cadence', () => {
-        const e = flat(), t = enemy('turret', 160); e.state.enemies = [t]; frames(e, 119); expect(e.state.shots).toHaveLength(0); e.step(DT); expect(e.state.shots).toHaveLength(1);
-        const p = e.state.shots[0]; expect(p?.friendly).toBe(false); expect(p?.vx).toBeLessThan(0); expect(p?.vy).toBeLessThan(0); frames(e, 20); expect(t.clock).toBeCloseTo(20 * DT);
+        const e = flat(), t = enemy('turret', 160); e.state.enemies = [t]; frames(e, 119); expect(e.state.shots).toHaveLength(0); e.step(DT); expect(e.state.shots).toHaveLength(3);
+        const p = e.state.shots[1]; expect(p?.friendly).toBe(false); expect(p?.vx).toBeLessThan(0); expect(p?.vy).toBeLessThan(0); frames(e, 20); expect(t.clock).toBeCloseTo(20 * DT);
     });
     it('F06 drone suit une sinusoïde déterministe', () => {
         const e = flat(), d = enemy('drone', 200); e.state.enemies = [d]; frames(e, 30); expect(d.x).toBeCloseTo(210); expect(d.y).toBeCloseTo(190 + Math.sin(500 / 400) * 22);
@@ -63,8 +65,8 @@ describe('Ferraille', () => {
         for (let level = 0; level < 30; level++) expect(Boolean(generate(level, 1).boss)).toBe((level + 1) % 5 === 0);
         const e = flat(); e.loadLevel(4, 1); const b = e.state.boss; if (!b) throw new Error('Boss absent'); e.state.hero.x = b.x - 100; e.state.enemies = []; e.state.hero.y = 234;
         for (const [hp, phase] of [[b.maxHp, 1], [Math.floor(b.maxHp / 2), 2], [1, 3]]) { b.hp = hp ?? 1; e.step(DT); expect(b.phase).toBe(phase); }
-        b.clock = 2000; e.step(DT); expect(e.state.shots.some(p => !p.friendly)).toBe(true);
-        e.state.shots = [{ x: b.x - 1, y: b.y + 10, w: 4, h: 4, vx: 280, vy: 0, friendly: true, life: 100 }]; e.step(DT); expect(e.status).toBe('won'); expect(b.hp).toBe(0);
+        b.clock = 590; e.step(DT); expect(e.state.shots.some(p => !p.friendly)).toBe(true);
+        b.clock = 1300; e.state.shots = [{ x: b.x - 1, y: b.y + 10, w: 4, h: 4, vx: 280, vy: 0, friendly: true, life: 100 }]; e.step(DT); expect(e.status).toBe('won'); expect(b.hp).toBe(0);
     });
     it('F12 enveloppe de chaque bloc sur trente niveaux et plusieurs graines', () => {
         expect(jumpEnvelope(500)).toBe(false); expect(jumpEnvelope(10, 100)).toBe(false);
@@ -75,11 +77,7 @@ describe('Ferraille', () => {
         for (const seed of [1, 2, 3]) {
             const e = new Engine(); e.loadLevel(level, seed);
             for (let frame = 0; frame < 30000 && e.status === 'playing'; frame++) {
-                const s = e.state, h = s.hero, foot = Math.floor((h.y + h.h + 2) / TILE), ahead = Math.floor((h.x + h.w + 9) / TILE);
-                const obstacle = solid(s, ahead, Math.floor((h.y + h.h - 3) / TILE));
-                const gap = !solid(s, ahead, 16);
-                const nearBoss = s.boss !== null && s.boss.x - h.x < 170;
-                e.input({ x: nearBoss ? 0 : 1, y: 0, fire: true, jump: s.grounded ? (gap || obstacle || (solid(s, ahead, foot - 1))) : h.vy < 0 });
+                pilot(e);
                 e.step(DT);
             }
             if (e.status === 'won') wins++;
@@ -96,4 +94,11 @@ describe('Ferraille', () => {
         for (let i = 0; i < 40; i++) { const input = { x: 1, jump: i % 4 === 0, fire: true }; a.input(input); b.input(input); a.step(DT * 3); frames(b, 3); }
         expect(a.snapshot()).toEqual(b.snapshot()); expect(JSON.parse(JSON.stringify(a.snapshot()))).toEqual(a.snapshot()); expect(generate(5, 1)).not.toEqual(generate(5, 2));
     });
+});
+
+describe('Ferraille diversité passe 51', () => {
+    for (const [name, run] of Object.entries(behaviors)) it(name, () => { run(Engine); });
+    it('F-DIV-01 générateur réel et snapshots', () => { diversity(); });
+    it('F-TERRAIN emplacements et respirations', () => { terrain(); });
+    for (const seed of [460, 28]) it(`F-PILOT trente victoires bornées graine ${String(seed)}`, () => { campaign(Engine, seed); });
 });

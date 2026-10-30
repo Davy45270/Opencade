@@ -1,6 +1,6 @@
-# Level diversity audit — pass 49
+# Level diversity audit — pass 51
 
-Analysis updated for the Bubble Lab correction from revision `b562461`. Other game entries retain the pass 46 measurements. Run from the repository root:
+Ferraille is updated for pass 51; Bubble Lab retains its pass 49 correction. Other game implementations are unchanged. Run from the repository root:
 
 ```sh
 nice -n 19 ionice -c3 node scripts/diversity-report.js
@@ -14,9 +14,9 @@ For each game, use `difficulty(level)` and summaries of generated data: occupied
 
 For parameter k, normalize over existing levels: z(k,l) = (x(k,l) − min(k)) / (max(k) − min(k)); constant parameters become zero and are excluded from parameter distance. P is the mean absolute difference over varying parameters. Every game uses the same clone rule: D = (P + L) / 2, clone iff D < **0.08**. No threshold is tuned per game. These are near-clones under the chosen descriptors, not claims of identical play.
 
-L is Jaccard distance, 1 − |A ∩ B| / |A ∪ B| (zero for two empty signatures), except Dérapage. Signatures are colored bubble cells; typed brick positions; occupied Empilo cells with tile value; Serpentin obstacle cells; Orbite row/column formation cells; Essaim home formation cells; Dédale walkable maze indices; typed walls/targets/boxes in Caisses; Ferraille solid terrain cells in world tile coordinates; and Traverse lane row/type/direction/phase/diver tuples. Alunir samples interpolated terrain every 12 screen pixels and quantizes height into fixed 12-pixel bins. Dérapage uses the existing `shapeSignature` and `signatureDistance` curvature histogram, divided by two to put its L1 distance in 0..1; the existing turn list is retained in JSON but is not part of that engine distance. Layouts are initial layouts, never pilot-damaged boards. Empty layouts are legitimate, not missing data. Jaccard can emphasize cell changes and ignore strategic equivalence; the curvature histogram can miss order differences.
+L is Jaccard distance, 1 − |A ∩ B| / |A ∪ B| (zero for two empty signatures), except Dérapage. Signatures are colored bubble cells; typed brick positions; occupied Empilo cells with tile value; Serpentin obstacle cells; Orbite row/column formation cells; Essaim home formation cells; Dédale walkable maze indices; typed walls/targets/boxes in Caisses; Ferraille solid terrain cells, platform and cage positions in world coordinates; and Traverse lane row/type/direction/phase/diver tuples. Alunir samples interpolated terrain every 12 screen pixels and quantizes height into fixed 12-pixel bins. Dérapage uses the existing `shapeSignature` and `signatureDistance` curvature histogram, divided by two to put its L1 distance in 0..1; the existing turn list is retained in JSON but is not part of that engine distance. Layouts are initial layouts, never pilot-damaged boards. Empty layouts are legitimate, not missing data. Jaccard can emphasize cell changes and ignore strategic equivalence; the curvature histogram can miss order differences.
 
-The script reuses demo policy source in memory, transpiled with the existing compiler, replacing only the shared wrapper so it can load each requested level and run without attract-mode resets. Dérapage uses the same ordinary controller directly. Caisses uses its existing exact solver and replays the inputs through the engine. No state is injected and no rule is bypassed. Stop at the first terminal outcome or 1,800 policy iterations. Most iterations advance 1/15 second; Alunir advances four 1/60 steps, Traverse one flow quantum, and Caisses one input per 1/15 second. Thus the cap is a policy-step budget, not a common time limit. The midpoint is halfway through the **observed attempt**, replayed deterministically; it is not a claim to represent half of a victorious game.
+Ferraille observes controls at every fixed simulation tick, including inside its six-tick demo advance. The script reuses demo policy source in memory, transpiled with the existing compiler, replacing only the shared wrapper so it can load each requested level and run without attract-mode resets. Dérapage uses the same ordinary controller directly. Caisses uses its existing exact solver and replays the inputs through the engine. No state is injected and no rule is bypassed. Stop at the first terminal outcome or 1,800 policy iterations. Most iterations advance 1/15 second; Ferraille advances six fixed ticks (1/10 second), Alunir advances four 1/60 steps, Traverse one flow quantum, and Caisses one input per 1/15 second. Thus the cap is a policy-step budget, not a common time limit. The midpoint is halfway through the **observed attempt**, replayed deterministically; it is not a claim to represent half of a victorious game.
 
 Completion time is simulated requested time, at policy-step resolution, only for a win; otherwise it is null. Actions count ordinary API calls (including repeated hold/move calls and unsuccessful inputs), not physical button transitions, and should only be compared within a game. Failures count a terminal loss (0 or 1 per attempt); lives lost are separate where exposed. A still-playing outcome is censored, not a failure or a victory. These curves describe this seed and this policy, not human difficulty or optimal play. Full snapshots let another analysis use different descriptors.
 
@@ -33,7 +33,6 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Game | Score | Novelties (count; levels) | Clone share | Longest flat plateau | What actually varies |
 | --- | ---: | --- | ---: | ---: | --- |
 | Dédale | 100 | 0; none | 100.0% | 3 | Seeded maze loops and corridors, pursuit timing and vulnerability duration. |
-| Ferraille | 84.5 | 4; 2, 4, 5, 7 | 86.2% | 3 | Course length, block composition, enemy mixture, bonuses and every-fifth-level boss. |
 | Essaim | 81.9 | 6; 2, 3, 4, 5, 6, 8 | 86.2% | 3 | Enemy mixture, formation size, wave count, dive cadence and every-fifth-level challenge. |
 | Briqueterie | 79.3 | 3; 8, 11, 14 | 86.2% | 3 | Brick masks, density, solid bricks, hit points, ball speed and paddle width. |
 | Orbite | 78.4 | 3; 6, 10, 15 | 86.2% | 3 | Formation dimensions, armor, movement tier, fire cadence and shot allowance. |
@@ -44,6 +43,7 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Traverse | 41.4 | 1; 10 | 0.0% | 3 | Lane placement, direction and phase, diving logs, shelters and flow speed. |
 | Dérapage | 38.8 | 4; 3, 24, 29, 30 | 0.0% | 0 | Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning. |
 | Bulles | 25.9 | 7; 2, 11, 14, 17, 20, 23, 26 | 0.0% | 0 | Thirty seeded layouts with increasing density and pressure; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers. |
+| Ferraille | 11.2 | 19; 2, 4, 5, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 20, 21, 24, 25, 26, 30 | 0.0% | 0 | Ascending/descending routes, wagon rides, hostage rescues, six enemy behaviors, three special weapons, five guardian patterns and a three-phase reactor. |
 
 “Flat” in the table refers to the configuration proxy above. A zero means no qualifying window, not proof of continuous experiential difficulty growth. The JSON carries the exact ranges and pairs.
 
@@ -52,7 +52,7 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Game | Wins | Terminal losses | Censored attempts |
 | --- | ---: | ---: | ---: |
 | Dédale | 10 | 20 | 0 |
-| Ferraille | 19 | 7 | 4 |
+| Ferraille | 30 | 0 | 0 |
 | Essaim | 10 | 20 | 0 |
 | Briqueterie | 2 | 1 | 27 |
 | Orbite | 0 | 30 | 0 |
@@ -114,7 +114,36 @@ Introduce optional fuel depots at 4, moving pads at 8, crosswind corridors at 12
 
 ### Ferraille
 
-Introduce shielded turrets at 4, retracting bridges at 8, wall switches at 12, rail drones at 16, coolant jets at 20, magnetic lifts at 24 and linked power cores at 28. Use short stocked corridors at 6/11/17/22/27. Keep bosses at 5/10/15/20/25 but assign each a distinct attack to counter. Level 30 is a factory shutdown with a chase and a multi-phase reactor boss.
+Implemented in pass 51. Before: 84.5, four novelty-bearing levels (2/4/5/7),
+86.2% adjacent clones. After: 11.2, nineteen novelty-bearing levels,
+0.0% clones and at most three consecutive levels without a discovery.
+The shared clone threshold and score formula are unchanged. Decoration,
+level names and discovery labels do not enter the inventory. The adapter
+reads generated enemy and pickup kinds, actual high platforms/descending
+floor cells, moving vehicle state, cages and implemented guardian patterns.
+Each enemy behavior and special weapon has a literal simulation oracle.
+Sweep attacks fire sequentially across angles; crossfire converges from
+both flanks, rather than changing only a spread count or angle.
+
+The normal-input fixed-step pilot completes all thirty generated levels at
+both seed 460 (the game default) and seed 28 with an 18,000-tick cap per level. The report uses the same policy,
+observing each fixed tick within its six-tick advances. Recovery stages
+6/11/16/21/26 have one enemy and introduce ascent, ricochets, flyers, grenades
+and shields respectively. Five mini-bosses expose their cores after attacking;
+the final reactor changes from fan to ground waves to overhead bombs.
+See the thirty-level table in `GAME_SPEC.md` and measured checks, pilot
+frames/lives by seed and thirteen rejected source mutations in `ferraille-validation.json`.
+
+Run `nice -n 19 ionice -c3 node scripts/validate-ferraille.js` for behavioral,
+structural, replay, save-default, diversity and campaign checks. No browser is
+launched on the development machine. The orchestrator runs `tests/e2e/` on the
+test host for screenshots of the four palettes, six bosses, reactor phases,
+wagon and hostage scenes. The former local capture scripts are removed.
+Pass 52 also locks boss departure cadence, grenade/core protection, guardian
+15 bombs, actual floor relief, cage explosions and the exact 64 px blast
+boundary. Scene assertions cover relative parallax motion and ammunition text.
+Each guardian has a unique silhouette/name/palette; the reactor changes shape
+and colors in each phase. Reduced motion keeps the exposed core steady.
 
 ### Traverse
 

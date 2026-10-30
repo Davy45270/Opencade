@@ -1,6 +1,7 @@
 /* global console, Buffer, URL */
 // Read-only analysis; uses the repository's existing TypeScript loader.
 import './ts-loader.js';
+import { ferrailleFeatures } from './ferraille-diversity.js';
 import { measureDiversity } from './diversity-metrics.js';
 import ts from 'typescript';
 import { readFileSync } from 'node:fs';
@@ -52,9 +53,7 @@ function extract(id, e, d) {
             layout.push(`${x}:${Math.floor(y / 12)}`);
         } Object.assign(params, { padMultiplier: s.terrain.pads[0].multiplier }); break;
     case 'ferraille':
-        add('shoot', 'jump', 'checkpoint'); typed(s.blocks, 'block'); typed(s.enemies, 'enemy'); typed(s.bonuses, 'bonus'); if (s.boss) add('boss');
-        s.tiles.forEach((v, i) => { if (v) layout.push(`${i % s.columns},${Math.floor(i / s.columns)}`); });
-        Object.assign(params, { columns: s.columns, platforms: s.platforms.length, enemies: s.enemies.length, bonuses: s.bonuses.length }); break;
+        return ferrailleFeatures(s);
     case 'traverse':
         add('shelter', 'road', 'river', 'log', 'traffic'); if (d.diveDuration && s.board.lanes.some(l => l.diver)) add('diving-log');
         layout.push(...s.board.lanes.map(l => `${l.y}:${l.kind}:${l.direction}:${l.offset}:${l.diver}`)); break;
@@ -96,7 +95,7 @@ const variations = [
     'Seeded maze loops and corridors, pursuit timing and vulnerability duration.',
     'Authored room topology, box/target positions and solution length; the rules stay fixed.',
     'Terrain relief, landing width, wind, gusts, fuel and initial offset.',
-    'Course length, block composition, enemy mixture, bonuses and every-fifth-level boss.',
+    'Authored ascent/descent, wagon rides, hostage rescues, six enemy behaviors, three special weapons and five guardian patterns plus a three-phase reactor.',
     'Lane placement, direction and phase, diving logs, shelters and flow speed.',
     'Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning.'
 ];
@@ -134,5 +133,5 @@ for (const [index, id] of ids.entries()) {
 }
 games.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
 const table = ['| Game | Score | Novelties (count; levels) | Clone share | Longest flat plateau | What actually varies |', '| --- | ---: | --- | ---: | ---: | --- |', ...games.map(g => `| ${g.game}${g.partial ? ' *' : ''} | ${g.score} | ${g.noveltyCount}; ${g.noveltyLevels.join(', ') || 'none'} | ${(g.cloneShare * 100).toFixed(1)}% | ${g.longestPlateau} | ${g.varies} |`)].join('\n');
-console.log(JSON.stringify({ revision: 'pass-49', seed: SEED, thresholds: { clone: CLONE, flatParameterRange: FLAT, minPlateauLevels: 3, maxPolicySteps: CAP }, games }, null, 2));
+console.log(JSON.stringify({ revision: 'pass-52', seed: SEED, thresholds: { clone: CLONE, flatParameterRange: FLAT, minPlateauLevels: 3, maxPolicySteps: CAP }, games }, null, 2));
 console.log('\n' + table);
