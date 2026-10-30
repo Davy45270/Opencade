@@ -4,6 +4,8 @@ La spécification détaillée des jeux, [GAME_SPEC.md](GAME_SPEC.md), est en fra
 
 # Opencade
 
+Cinq compagnons récurrents originaux disposent désormais d’un choix mémorisé sur l’accueil et de dessins vectoriels procéduraux partagés ; leur intégration aux jeux viendra ensuite.
+
 Ferraille propose 30 étapes avec six comportements ennemis, flammes/ricochets/grenades, wagonnet, otages et gardiens à faiblesse, dont un réacteur en trois phases.
 
 [![CI](https://github.com/Davy45270/Opencade/actions/workflows/ci.yml/badge.svg)](https://github.com/Davy45270/Opencade/actions/workflows/ci.yml)

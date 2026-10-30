@@ -1,3 +1,4 @@
+import { setupCharacters } from './characters/panel';
 import { startThumbnail, browserThumbnailPorts } from './shell/thumbnails';
 import './shell/pwa';
 import Phaser from 'phaser';
@@ -49,6 +50,7 @@ function route(): void {
     if (play) play.hidden = !definition;
     document.body.classList.toggle('playing', Boolean(definition));
     if (!definition) {
+        setupCharacters(sessionInputs, testing);
         const cards = document.querySelector('#game-cards');
         cards?.replaceChildren();
         for (const entry of games) {

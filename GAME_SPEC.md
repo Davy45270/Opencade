@@ -2,6 +2,72 @@
 
 ## Socle
 
+### Characters
+
+Measured minified JavaScript in dist/assets: 1,459,946 bytes before, 1,473,143 bytes after (+13,197 bytes; below the 40 kB target). The Phaser adapter is provided for later game integration and is not imported by the home shell.
+
+Pass 59 establishes five original recurring companions and a home selector; game
+rules and scenes do not consume the selection yet. No image assets or new dependencies.
+The rounded cast has large expressive eyes, soft dark outlines and individual silhouettes:
+
+| ID | French / English name | Visual signature and special |
+| --- | --- | --- |
+| `panda` | Panda glouton / Hungry panda | Round black-and-white body, eye patches, bamboo, woven bun/fruit basket; spiral green leaves |
+| `pandaroux` | Panda roux joueur et câlin / Playful red panda | Orange fur, white mask/ear borders, dark paws, striped fluffy tail; rolling spin, trail and hearts |
+| `dragon` | Dragon assidu / Studious dragon | Red body, cream belly, curled gold horns, mint wings/crest, gold eyes, open book; fire and blue geometric rune circle |
+| `singe` | Singe en tutu / Tutu monkey | Brown fur, rosy beige face/ears, pink ruffled tutu, slippers and flower, curled tail; pirouette, pink ring and gold stars |
+| `licorne` | Licorne joueuse / Playful unicorn | White coat, six-color mane/tail, twisted gold horn, gold hooves, blue eyes; rainbow and shooting star |
+
+`src/characters/model.ts` is a pure deterministic primitive-list generator on a
+240 × 240 stage. `drawList(id, pose, expression, anim, t, motion)` accepts milliseconds;
+poses are `face`, `profil`, `dos`; expressions are `joie`, `surprise`, `concentre`,
+`triste`, `dodo`; animations are `repos`, `marche`, `saut`, `celebration`, `special`.
+The optional final argument is `full` (default) or `reduce`. Reduce fixes the pose,
+ignores time and omits all special particles. Non-finite times resolve to zero.
+Array order is drawing order. Primitives carry fill, stroke and width and support
+ellipses, circles, cubic Bézier paths, polygons and lines.
+
+`canvas.ts` and `phaser.ts` export `renderCharacter(target, list, x, y, height)`;
+coordinates describe the top left of the square stage. Both read the same list
+without mutating it. Strokes retain a minimum 0.75 destination pixel at small sizes.
+The first uses native vector paths; the second tessellates
+curves at destination resolution into Graphics geometry and never creates a texture.
+The Graphics adapter does not clear its target; callers own clearing and lifecycle.
+Pass a 32 px stage for a small icon or larger stages for review; never upscale a bitmap.
+
+The home header's **Personnage** button shows the selected head. Its native modal
+dialog provides five idle previews, special animation on pointer/focus interaction,
+48 px selection/close targets, visible focus, Escape dismissal, modal keyboard
+navigation and focus restoration. Touch scrolling remains available over previews.
+The loop runs at most 15 fps, suspends when hidden, stops when closed or leaving
+home, and reacts live to `prefers-reduced-motion`.
+`selectedCharacter()` and `others(id)` are available from `src/characters/index.ts`.
+`others` returns the four other IDs in registry order. Selection writes only
+`arcade-lab:character:v1`; missing/unknown values default to `panda` and existing
+progress/sound keys are untouched. Names expose `fr` and `en`; the current shell
+has no language selector and displays French.
+
+| ID | Evidence |
+| --- | --- |
+| C01 | Deterministic, finite, nonempty drawings for all 375 combinations, split into five short tests |
+| C02 | Five distinct primitive counts, pairwise RGB accent distance > 75, distinct orientations/expressions and stable others |
+| C03 | All five animations change between 0 and 300 ms; every reduced pose/expression remains fixed and particle-free |
+| C04 | Exact literal storage key, defaults, corrupt values, all five choices, isolated existing saves and storage exceptions |
+| C05 | Source contains none of the four forbidden presentation terms; ESLint also applies pure-engine restrictions |
+| C06 | Both adapters consume every paint operation at 32, 160 and 480 px without changing the source list |
+
+Run `nice -n 19 ionice -c3 node scripts/validate-characters.js` for the same checks
+without Vitest and three in-memory source mutations (ignored time, duplicate accent,
+changed storage key). It reports their file/line and rejects each. Each individual
+unit check has a literal 2000 ms budget in that validator.
+`tests/e2e/characters.spec.ts` is enabled for both desktop and mobile. It checks
+real choices/reloads, pixel changes within 600 ms, console errors through the shared
+fixture, keyboard dismissal/focus, 48 px targets and reduced motion. With `?test=1`,
+the panel also contains read-only review sheets. The E2E exports `characters-panel`
+and `character-<id>-poses` / `character-<id>-expressions` at 240 px stage height.
+The review must still judge recognizability at 32 px, originality, expressive quality,
+profile/back anatomy and consistency between the two rendering backends.
+
 ### Vignettes
 
 Chaque entrée du registre fournit `demo(seed)` et `thumbnail(seed)`. Les huit

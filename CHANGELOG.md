@@ -5,6 +5,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Pass 59: add five original recurring companions, deterministic vector pose/expression/animation lists, shared direct Canvas and Phaser Graphics adapters, and reduced-motion support.
+- Add the accessible home character picker with idle/special previews, persistent isolated selection and a stable companion API; game integration follows in a later pass.
+- Add C01–C06 checks, three rejected Node source mutations and desktop/mobile E2E review sheets; browser and Vitest execution is deferred to the test host.
+
 - Dédale (pass 57): five seeded maze topologies; progressively introduce colored keys/doors, one-way passages, paired portals, toggle walls, cyclic walls, sliding ice, reduced sight and distinct pursuit/patrol/light-flee behaviors.
 - Add recovery stages, timed challenges every five levels and an all-mechanic finale; preserve progression saves and legacy engine states.
 - Record thirty BFS solutions, validate both default/report campaigns and six source mutations; diversity improves from 100 to 22.4 with 0% adjacent clones. Write four E2E captures without running a browser or Vitest.

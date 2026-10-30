@@ -14,7 +14,7 @@ export default ts.config({
     files: ['**/*.js'],
     ...ts.configs.disableTypeChecked
 }, {
-    files: ['src/engines/**'],
+    files: ['src/engines/**', 'src/characters/model.ts'],
     rules: {
         'no-restricted-imports': [
             'error',
