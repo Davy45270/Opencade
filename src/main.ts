@@ -1,3 +1,4 @@
+import { bindSessionUpdate } from './shell/scene-update';
 import { setupCharacters } from './characters/panel';
 import { startThumbnail, browserThumbnailPorts } from './shell/thumbnails';
 import './shell/pwa';
@@ -86,8 +87,7 @@ function route(): void {
     sessionInputs.on(fullscreen, 'click', () => { void device.fullscreen(); });
     setupGameMenu(sessionInputs, session);
     const scene = definition.createScene(session);
-    const update = scene.update.bind(scene);
-    scene.update = (time: number, delta: number): void => { if (!session.paused) update(time, delta); };
+    bindSessionUpdate(scene, session);
     game = new Phaser.Game({
         type: Phaser.AUTO, parent: 'game', width: 360, height: 640,
         backgroundColor: '#101827', scene: [scene],

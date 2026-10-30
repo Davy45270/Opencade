@@ -11,11 +11,21 @@ export const ROWS = 13;
 export const ROW_STEP = Math.sqrt(3) * RADIUS;
 export const ORIGIN = { x: 180, y: 570 };
 export type Color = 0 | 1 | 2 | 3 | 4 | 5;
+export const KINDS = ['stone', 'bomb', 'ice', 'star', 'leaf', 'crystal', 'prism'] as const;
+export type Kind = typeof KINDS[number];
+/** Ordinary, bomb and leaf bubbles match and give their colour; the others never do. */
+export function matchable(cell: Pick<Cell, 'kind'>): boolean {
+    return cell.kind === undefined || cell.kind === 'bomb' || cell.kind === 'leaf';
+}
+/** Bomb blasts and leaf sweeps destroy anything but stone, ice, stars and fixed crystals. */
+function breakable(cell: Pick<Cell, 'kind'>): boolean {
+    return cell.kind !== 'stone' && cell.kind !== 'ice' && cell.kind !== 'star' && cell.kind !== 'crystal';
+}
 export interface Cell {
     row: number;
     col: number;
     color: Color;
-    kind?: 'stone' | 'bomb' | 'ice' | 'star';
+    kind?: Kind;
     ice?: number;
 }
 export interface Point {
@@ -71,10 +81,40 @@ export function neighbors(cell: Cell): readonly {
 function distance(a: Point, b: Point): number {
     return Math.hypot(a.x - b.x, a.y - b.y);
 }
+/** Largest distance from a hex cell centre to any point of its cell (circumradius). */
+export const CELL_REACH = 2 * RADIUS / Math.sqrt(3);
+/**
+ * Classic hex snapping: the projectile stops where it touches, then settles in the free
+ * grid cell whose centre is nearest to its own centre; ties go to the upper, then leftmost
+ * cell. At first contact that cell always touches the struck bubble (or the ceiling), so it
+ * hangs by construction; B-SNAP-01 checks it rather than filtering for it.
+ */
+export function snap(at: Point, occupied: ReadonlySet<string>, drops = 0): { row: number; col: number } | null {
+    const approx = Math.round((at.y - RADIUS) / ROW_STEP - drops);
+    let best: { row: number; col: number } | null = null, bestDistance = Infinity;
+    for (let row = Math.max(0, approx - 2); row <= Math.min(ROWS - 1, approx + 2); row++) {
+        for (let col = 0; col < (row % 2 ? 8 : 9); col++) {
+            const cell = { row, col };
+            if (occupied.has(key(cell))) continue;
+            const d = distance(center(cell, drops), at);
+            if (d < bestDistance - 1e-9) { best = cell; bestDistance = d; }
+        }
+    }
+    return best;
+}
 // A trace samples the same rest grid at many angles. Keep its geometry once.
 const geometryCache = new WeakMap<Cell[], { length: number; drops: number; cells: {cell:Cell;p:Point}[]; occupied:Set<string>; shape:string }>();
 const trajectoryCache = new Map<string,Map<number,Trajectory>>();
 export class Engine {
+    specialUses = 1;
+    specialArmed = false;
+    specialMs = 0;
+    /** Arm the next shot; its first eligible struck group supplies the colour. */
+    special(): boolean {
+        if (this.status !== 'playing' || this.flight || this.specialUses === 0) return false;
+        this.specialUses--; this.specialArmed = true; this.specialMs = 800;
+        return true;
+    }
     level = 0;
     get rainbow(): boolean { return !!levelAt(this.level).mechanics?.includes('rainbow') && this.shots % 3 === 0; }
     get bumpers(): { x: number; top: number; bottom: number }[] {
@@ -117,6 +157,7 @@ export class Engine {
     }
     restart(): void {
         this.random = new Random(this.seed);
+        this.specialUses = 1; this.specialArmed = false; this.specialMs = 0;
         this.drops = 0;
         this.resolved = 0;
         this.grid = [];
@@ -135,8 +176,9 @@ export class Engine {
         return colors[Math.floor(this.random.next() * colors.length)] ?? 0;
     }
     private availableColors(): Color[] {
-        return this.grid.length ? [...new Set(this.grid.map(c => c.color))].sort((a, b) => a - b)
-            : Array.from({ length: levelAt(this.level).colors }, (_, i) => i as Color);
+        // Crystals and prisms carry no colour of their own: never deal a colour only they hold.
+        const present = [...new Set(this.grid.filter(c => c.kind !== 'crystal' && c.kind !== 'prism').map(c => c.color))].sort((a, b) => a - b);
+        return present.length ? present : Array.from({ length: levelAt(this.level).colors }, (_, i) => i as Color);
     }
     setNext(color: Color): void {
         if (!this.availableColors().includes(color)) throw new Error('Invalid color');
@@ -146,12 +188,15 @@ export class Engine {
     load(grid: Cell[], next: Color = 0, seed = this.seed): void {
         const seen = new Set<string>();
         for (const cell of grid) {
-            if ((cell.kind !== undefined && !['stone', 'bomb', 'ice', 'star'].includes(cell.kind)) || (cell.ice !== undefined && (cell.kind !== 'ice' || ![1, 2].includes(cell.ice))) || !valid(cell.row, cell.col) || !Number.isInteger(cell.row) || !Number.isInteger(cell.col) || ![0, 1, 2, 3, 4, 5].includes(cell.color) || seen.has(key(cell)))
+            if ((cell.kind !== undefined && !(KINDS as readonly string[]).includes(cell.kind)) || (cell.ice !== undefined && (cell.kind !== 'ice' || ![1, 2].includes(cell.ice))) || !valid(cell.row, cell.col) || !Number.isInteger(cell.row) || !Number.isInteger(cell.col) || ![0, 1, 2, 3, 4, 5].includes(cell.color) || seen.has(key(cell)))
                 throw new Error('Invalid grid');
             seen.add(key(cell));
         }
-        if (!Number.isInteger(next) || !(grid.length ? grid.some(c => c.color === next) : next >= 0 && next < levelAt(this.level).colors))
+        // Same dealing rule as the PRNG: crystal and prism colours are never offered to the launcher.
+        const dealable = grid.filter(c => c.kind !== 'crystal' && c.kind !== 'prism');
+        if (!Number.isInteger(next) || !(dealable.length ? dealable.some(c => c.color === next) : next >= 0 && next < levelAt(this.level).colors))
             throw new Error('Invalid color');
+        this.specialUses = 1; this.specialArmed = false; this.specialMs = 0;
         this.drops = 0;
         this.resolved = 0;
         this.seed = seed;
@@ -161,7 +206,7 @@ export class Engine {
         this.queued = this.color();
         this.score = 0;
         this.shots = 0;
-        this.status = grid.some(c => c.row === ROWS - 1) ? 'lost' : 'playing';
+        this.status = grid.some(c => c.row === ROWS - 1 && c.kind !== 'crystal') ? 'lost' : 'playing';
         this.angle = 0;
         this.flight = null;
         this.last = { popped: [], fallen: [], attached: null };
@@ -225,32 +270,15 @@ export class Engine {
                 const y = from.y + candidate * direction.y;
                 if (candidate > 0.000001 && candidate < reflectionTime && y >= bumper.top && y <= bumper.bottom) reflectionTime = candidate;
             }
-            const reflects = reflectionTime < t;
+            // A wall reached at the same instant as a contact or the ceiling does not bounce (no zero-length segment).
+            const reflects = reflectionTime < t - 1e-7;
             if (reflects)
                 t = reflectionTime;
             const to = { x: from.x + direction.x * t, y: from.y + direction.y * t };
             segments.push({ from: { ...from }, to, direction: { ...direction }, bounce: reflects });
             length += t;
             if (!reflects) {
-                const occupied = geometry.occupied;
-                const candidates = hit ? neighbors(hit) : Array.from({ length: 9 }, (_, col) => ({ row: 0, col }));
-                // Contact is on the struck bubble surface, not at the projectile center.
-                const struck = hit ? center(hit, this.drops) : null;
-                const contact = struck ? { x: struck.x + (to.x - struck.x) / (2 * CONTACT_SCALE), y: struck.y + (to.y - struck.y) / (2 * CONTACT_SCALE) } : to;
-                const free = candidates.filter(c => {
-                    if (occupied.has(key(c))) return false;
-                    const p = center(c, this.drops);
-                    // Only sockets facing the incoming ray; never snap behind the hit.
-                    if (struck && ((p.x - struck.x) * direction.x + (p.y - struck.y) * direction.y > 1e-9 || p.y < struck.y - 1e-9)) return false;
-                    // The short settling segment must not cross another bubble.
-                    return geometry.cells.every(({cell:other,p:q}) => {
-                        if (other === hit) return true;
-                        const dx = p.x - to.x, dy = p.y - to.y;
-                        const fraction = Math.max(0, Math.min(1, ((q.x - to.x) * dx + (q.y - to.y) * dy) / (dx * dx + dy * dy || 1)));
-                        return Math.hypot(to.x + fraction * dx - q.x, to.y + fraction * dy - q.y) >= 2 * RADIUS * CONTACT_SCALE - 1e-9;
-                    });
-                }).sort((a, b) => distance(center(a, this.drops), contact) - distance(center(b, this.drops), contact) || a.row - b.row || a.col - b.col);
-                const target = free[0];
+                const target = snap(to, geometry.occupied, this.drops);
                 return finish({ segments, length, struck: hit, target: target ? { ...target, color: this.next } : null });
             }
             from = to;
@@ -263,11 +291,21 @@ export class Engine {
         if (this.status !== 'playing' || this.flight)
             return false;
         this.rainbowShot = this.rainbow;
-        this.flight = { trajectory: this.trace(), elapsed: 0, color: this.next };
+        const trajectory = this.trace();
+        const struck = trajectory.struck;
+        if (this.specialArmed && struck && matchable(struck)) {
+            if (trajectory.target) trajectory.target.color = struck.color;
+            this.specialMs = 800;
+        }
+        this.specialArmed = false;
+        this.flight = { trajectory, elapsed: 0, color: trajectory.target?.color ?? this.next };
         this.shots++;
         return true;
     }
-    advance(milliseconds: number): Resolution | null {
+    advance(milliseconds: number): Resolution | null { return this.step(milliseconds); }
+    step(milliseconds: number): Resolution | null {
+        if (!Number.isFinite(milliseconds) || milliseconds < 0) throw new RangeError('Temps invalide');
+        this.specialMs = Math.max(0, this.specialMs - milliseconds);
         if (!this.flight)
             return null;
         this.flight.elapsed += Math.max(0, milliseconds);
@@ -281,20 +319,22 @@ export class Engine {
             return this.last = { popped: [], fallen: [], attached: null };
         }
         if (this.rainbowShot) {
-            const adjacent = (struck && struck.kind !== 'stone' && struck.kind !== 'ice' && struck.kind !== 'star' ? struck : undefined) ?? neighbors(target).map(n => this.grid.find(c => key(c) === key(n))).find(c => c && c.kind !== 'stone' && c.kind !== 'ice' && c.kind !== 'star');
+            const adjacent = (struck && matchable(struck) ? struck : undefined) ?? neighbors(target).map(n => this.grid.find(c => key(c) === key(n))).find(c => c && matchable(c));
             if (adjacent) target.color = adjacent.color;
         }
         this.grid.push(target);
-        const connected = this.flood([target], c => c.color === target.color && c.kind !== 'stone' && c.kind !== 'ice' && c.kind !== 'star');
+        // Prisms are wild: they join any colour group and pass it on.
+        const connected = this.flood([target], c => (c.color === target.color && matchable(c)) || c.kind === 'prism');
         const popped = connected.length >= 3 ? connected : [];
-        // Bomb chains expand only one hex cell per bomb; stone and targets survive blasts.
+        // Chain reactions: a bomb blasts its six neighbours, a leaf sweeps its whole row;
+        // stone, ice, stars and crystals survive both, and new bombs/leaves chain on.
         for (let i = 0; i < popped.length; i++) {
-            const bomb = popped[i];
-            if (bomb?.kind !== 'bomb') continue;
-            for (const n of neighbors(bomb)) {
-                const victim = this.grid.find(c => key(c) === key(n));
-                if (victim && victim.kind !== 'stone' && victim.kind !== 'ice' && victim.kind !== 'star' && !popped.includes(victim)) popped.push(victim);
-            }
+            const source = popped[i];
+            if (source?.kind !== 'bomb' && source?.kind !== 'leaf') continue;
+            const victims = source.kind === 'bomb'
+                ? neighbors(source).map(n => this.grid.find(c => key(c) === key(n)))
+                : this.grid.filter(c => c.row === source.row);
+            for (const victim of victims) if (victim && breakable(victim) && !popped.includes(victim)) popped.push(victim);
         }
         for (const frozen of this.grid.filter(c => c.kind === 'ice')) {
             if (popped.some(c => neighbors(frozen).some(n => key(n) === key(c)))) {
@@ -304,16 +344,17 @@ export class Engine {
         }
         const removed = new Set(popped.map(key));
         this.grid = this.grid.filter(c => !removed.has(key(c)));
-        const anchored = new Set(this.flood(this.grid.filter(c => c.row === 0), () => true).map(key));
+        // Row 0 and fixed crystals hold everything attached to them; crystals never fall.
+        const anchored = new Set(this.flood(this.grid.filter(c => c.row === 0 || c.kind === 'crystal'), () => true).map(key));
         const fallen = popped.length ? this.grid.filter(c => !anchored.has(key(c))) : [];
         const falling = new Set(fallen.map(key));
         this.grid = this.grid.filter(c => !falling.has(key(c)));
         this.score += popped.length * 10 + fallen.length * 20;
         this.resolved++;
-        const won = this.grid.length === 0 || (levelAt(this.level).mechanics?.includes('star') && !this.grid.some(c => c.kind === 'star'));
+        const won = this.grid.every(c => c.kind === 'crystal') || (levelAt(this.level).mechanics?.includes('star') && !this.grid.some(c => c.kind === 'star'));
         if (!won && this.grid.length && this.shotsBeforeDrop === levelAt(this.level).interval && levelAt(this.level).interval > 0) this.drops++;
-        this.status = won ? 'won' : this.grid.some(c => c.row === ROWS - 1 || center(c, this.drops).y + RADIUS >= LOSS_LINE) ? 'lost' : 'playing';
-        if (this.grid.length) {
+        this.status = won ? 'won' : this.grid.some(c => c.kind !== 'crystal' && (c.row === ROWS - 1 || center(c, this.drops).y + RADIUS >= LOSS_LINE)) ? 'lost' : 'playing';
+        if (this.grid.some(c => c.kind !== 'crystal')) {
             this.next = this.queued;
             if (!this.availableColors().includes(this.next)) this.next = this.color();
             this.queued = this.color();
@@ -351,6 +392,6 @@ export class Engine {
         return this.flight.trajectory.segments.at(-1)?.to ?? null;
     }
     snapshot() {
-        return { mechanics: levelAt(this.level).mechanics ?? [], level: this.level, drops: this.drops, resolved: this.resolved, shotsBeforeDrop: this.shotsBeforeDrop, grid: this.grid.map(c => ({ ...c })), score: this.score, status: this.status, next: this.next, queued: this.queued, angle: this.angle, shots: this.shots, seed: this.seed, random: this.random.state, inFlight: this.flight !== null };
+        return { specialUses: this.specialUses, specialArmed: this.specialArmed, specialMs: this.specialMs, mechanics: levelAt(this.level).mechanics ?? [], level: this.level, drops: this.drops, resolved: this.resolved, shotsBeforeDrop: this.shotsBeforeDrop, grid: this.grid.map(c => ({ ...c })), score: this.score, status: this.status, next: this.next, queued: this.queued, angle: this.angle, shots: this.shots, seed: this.seed, random: this.random.state, inFlight: this.flight !== null };
     }
 }

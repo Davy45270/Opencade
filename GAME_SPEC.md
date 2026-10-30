@@ -4,19 +4,401 @@
 
 ### Characters
 
-Measured minified JavaScript in dist/assets: 1,459,946 bytes before, 1,473,143 bytes after (+13,197 bytes; below the 40 kB target). The Phaser adapter is provided for later game integration and is not imported by the home shell.
+Passe 101 : Essaim ajoute les cinq armes de signature déterministes et leurs vaisseaux enrichis ; chiffres, compatibilité et budget dans la section Essaim.
+
+#### Ferraille, Briqueterie et Essaim — passe 84
+
+Boubou, CaliRoux, Pestouille, Tutu et Lumi conservent les héros équipés de la
+passe 77. Le `GameCharacter` commun des passes 70–71 dessine les effets au lieu
+physique de la décharge, de la balle ou du vaisseau : feuilles, cœurs, flammes,
+étoiles et arc-en-ciel. Identité et habillage ne changent aucune règle.
+
+| Jeu | Rôle | Spécial dans le moteur | Limite |
+| --- | --- | --- | --- |
+| Ferraille | Aventurier armé / pilote de véhicule | **Super-tir** : décharge frontale, rayon inclusif 80, écart vertical ≤32, trois dégâts par cible ; murs opaques, cœur fermé protégé, cages endommagées normalement ; boss exposé : 20 points par PV effectivement retiré (maximum 60) | 600 ticks (10 s), effet visible 18 ticks |
+| Briqueterie | Raquette et balle du compagnon | **Balle forte** : la balle courante (ou le prochain lancement si prête) traverse trois briques destructibles sans rebond ; un dégât normal par contact, effets de brique conservés (portail : même sortie, direction sortante et temporisation ; régénérante : un seul dégât et repousse différée ; explosive, clé, multi-balle et attache : déclenchement normal ; angle traversé sans déviation ; mouvement et gravité maintenus) ; solides/verrous toujours bloquants, quatrième brique normale | Une fois par vie ; la perte de la dernière balle recharge |
+| Essaim | Pilote du vaisseau | **Bouclier** : aucune perte de vie pendant 120 ticks (2 s), y compris le dégât forcé lors de la perte d'une escorte (l'escorte est perdue, la vie est protégée) ; ne détruit ni ennemi ni projectile | Une fois par vague ; nouvelle vague recharge |
+
+HUD : disponibilité et recharge ; bouton spécial ≥56 px sur l'unique rangée,
+et raccourci **C**. Aucune prime de score : seuls les barèmes ordinaires des
+collisions restent appliqués. Sauvegardes et anciens états restent acceptés ;
+les métadonnées optionnelles n'altèrent pas les empreintes sans spécial.
+
+Essaim réserve les contrôles hors du champ : zone gauche glissable avec
+corrections relatives de 60 unités de part et d'autre du centre (flèches au
+clavier conservées), tir chargé et spécial à droite. En portrait, rangée de
+80 px sous le champ ; en paysage tactile, marges latérales réservées de 124 px.
+Le canevas FIT se réduit à l'espace restant, sans masquer vaisseau ni ennemis.
+Le tir automatique est actif par défaut, désactivable dans **☰** et mémorisé dans
+`arcade-lab:essaim:autofire:v1` ; l'ancienne préférence reste lisible. Le bouton
+Tir devient Charge quand le tir automatique est actif. La charge automatique
+est relâchée périodiquement ; le bouton permet aussi de la maintenir.
+
+`npm run test:node` inclut `validate-character-games-4.js` : P-02/03/05 sur
+états littéraux, bornes, murs, cœur, solides, sérialisation et partition du
+pas ; P-04 rejoue 180 campagnes gagnantes enregistrées (30 niveaux × deux modes
+× trois jeux). Calibration hors tests dans `record-character-games-4.js` ;
+les enregistrements décimaux sont dans `characters-campaigns-4.json`.
+P-01 réutilise `validate-action-scenes.js`, qui vérifie les textures des cinq
+héros et les vrais appels Graphics des effets à leurs positions physiques.
+Les six mutations de moteur et celle du héros toujours Boubou sont rejetées.
+Chaque cas de rejeu et le raster ont un seuil littéral de 2 s.
+[Résultats, scores avec/sans spécial et lignes des mutations](docs/characters-games-4-validation.json).
+Les trois validateurs historiques restent requis : aucun solveur ni témoin
+ordinaire n'est remplacé.
+
+Les E2E de `character-finger-4.spec.ts` sont écrits pour l'hôte, **non exécutés
+localement** : 390×844, niveaux 1 et 10 pour chaque jeu, état lu avant chaque
+intention, prédiction des 150 ms de latence par les pilotes existants, bruit
+±12 px, uniquement `Input.dispatchTouchEvent`, sans avancer la scène par crochet.
+Essaim utilise deux touchPoints (glisser gauche + spécial droit), et le niveau
+10 passe en 844×390. Assertions de non-chevauchement contrôles/champ/vaisseau ;
+captures `essaim-controles-portrait`, `essaim-controles-paysage`,
+`perso-<jeu>-jeu` et `perso-<jeu>-special` avant ou après la conduite uniquement.
+JSON joint : durée, entrées, erreurs de toucher, score et victoire. Un même
+scénario Essaim perd sans bouclier et gagne avec lui en temps réel. La répétition
+Node couvre les six niveaux avec latence, depuis les commandes de
+`characters-finger-4.json` calibrées hors tests par
+`record-character-finger-4.js`, sans remplacer ces E2E.
+
+Alunir : l'aide d'alignement ne s'applique qu'après le calcul des collisions,
+si le pas est entièrement libre ; aucune correction sur le pas d'atterrissage
+ou de mur. U06/U07 sont exécutés par Node depuis leurs corps inchangés.
+Traverse : trafic continu renforcé (3,5 px par pas de vignette), raster pur de
+2000 dessins, aucune série de neuf pas identiques (600 ms à 15 Hz), ce qui
+couvre aussi l'exigence de 36 pas.
+
+#### Dédale, Orbite et Empilo — passe 82
+
+Le choix de l'accueil (Boubou, CaliRoux, Pestouille, Tutu ou Lumi) est consommé
+par les trois scènes avec le `GameCharacter` des passes 70–71 et les primitives
+communes de la passe 73. Le héros remplace la luciole dans Dédale ; les follets
+restent des follets. Il est visible dans la tourelle d'Orbite. Dans Empilo,
+le puits occupe x=18…270 et la mascotte x=274…358, sans recouvrir les cellules ;
+elle accompagne les déplacements/chutes, célèbre les lignes et commente dans
+le HUD. Mouvements réels, impacts, victoire, défaite et dodo en pause/menu pilotent
+les poses et expressions. Les cinq identités partagent exactement les règles,
+le score et les limites ; feuilles, cœurs, flammes, étoiles et arc-en-ciel sont
+uniquement l'habillage procédural du spécial. Aucun asset image.
+
+| Jeu | Spécial déterministe | Limite et recharge |
+| --- | --- | --- |
+| Dédale | **Lueur**, chemin vers le soleil atteignable le plus proche en nombre de tours, révélé pendant 180 ticks (3 s), y compris dans l'ombre | Une charge par niveau ; aucune recharge au temps ou à la perte d'une vie. Sans soleil atteignable, la charge reste disponible. |
+| Orbite | **Rafale**, cadence soutenue doublée : période ordinaire de 11 ticks, période Rafale de 5,5 ticks (intervalles alternés de 5 et 6 ticks, sans perte de fraction) et plafond de projectiles joueurs ×2 pendant 90 ticks (1,5 s) | Une charge par vague ; les projectiles déjà émis finissent leur trajet normalement. |
+| Empilo | **Mise de côté**, réserve classique d'une forme, affichée à droite du puits | Une utilisation par pièce posée ; le temps ne recharge pas. Réserve vide : consomme la première suivante et complète l'aperçu depuis le même sac. Réserve pleine : échange sans consommer le sac. |
+
+Lueur recherche avec les mêmes transitions que le solveur : clés, portes,
+interrupteurs, grilles cycliques, flèches, glace et portails. Elle ne déplace
+personne, ne change ni lumière récoltée, ni vulnérabilité, ni score ; le chemin
+est figé lors de l'activation. La réserve restitue la forme dans son orientation
+initiale en (3,0), remet à zéro la chute fractionnaire et l'ancrage, puis vérifie
+l'apparition : une réserve bloquée perd comme toute apparition bloquée. Elle
+ne choisit pas arbitrairement une pièce et ne supprime pas de cristal.
+
+Boutons spéciaux ≥56 px sur la rangée tactile unique ; Empilo conserve six
+boutons principaux, la rotation inverse restant au clavier (trois rotations
+directes donnent son équivalent au doigt). Raccourcis : Espace pour Lueur,
+E pour Rafale, V/Maj gauche pour Mise de côté (Espace reste la chute).
+Le HUD affiche les charges et, pour les effets temporisés, les secondes actives.
+Les clés de sauvegarde, records, barèmes et déblocages restent inchangés : un
+spécial n'ajoute aucun bonus de score. Les snapshots ordinaires d'Orbite et leurs
+empreintes historiques sont conservés ; les métadonnées du spécial s'ajoutent
+après activation. Les anciens états construits restent acceptés par `loadState`.
+
+`npm run test:node` inclut les validateurs `character-games-3`, `character-scenes-3`,
+`character-finger-3` et `empilo`. P-<jeu>-01 à 05 vérifient le vrai dessin des cinq
+identités, les états littéraux, les durées/limites et 180 victoires : 30 niveaux
+avec et sans spécial pour chaque jeu. Dédale et Orbite réutilisent leurs solutions
+historiques ; les nouveaux témoins Empilo et Orbite avec Rafale sont enregistrés
+dans `tests/fixtures/characters-campaigns-3.json`, sans recherche longue en test.
+`record-character-games-3.js` est réservé à la calibration hors ligne. Chaque
+cas est borné par un seuil littéral de 2 s ; les mutations sont chargées en mémoire.
+Les résultats, scores et lignes des mutations sont dans
+[le rapport passe 82](docs/characters-games-3-validation.json).
+
+`character-finger-3.spec.ts` est écrit pour l'hôte de test, sans exécution locale :
+390×844, niveaux 1 et 10, décisions et latence 150 ms, bruit ±12 px, entrées CDP
+`Input.dispatchTouchEvent` exclusivement, sans `advance()` côté page. Les pilotes
+réutilisent le solveur Dédale et le pilote Orbite ; Empilo utilise la pièce courante et deux aperçus
+connus, sans futur tirage. Un cas littéral compare la même chute avec/sans réserve
+(défaite/victoire). Les pièces jointes JSON rapportent temps, intentions, touches
+manquées et victoire, même en échec. Captures `perso-<jeu>-jeu` après la conduite,
+puis `perso-<jeu>-special` dans une présentation séparée hors pilotage ; aucun
+screenshot pendant le pilotage. Le validateur Node répète aussi la latence des
+pilotes sur les six niveaux ; cela ne remplace pas l'E2E sur l'hôte.
+
+Traverse : véhicules **et rondins** de la vignette défilent continuellement,
+indépendamment des attentes, morts et redémarrages. Le contrôle raster pur déjà
+présent dans `validate-character-games-2.js` enregistre 2 000 dessins et interdit
+toute série de 36 pas sans changement de pixels (pas seulement de l'état moteur).
+
+
+#### Ferraille, Briqueterie et Essaim — passe 77
+
+Les cinq compagnons utilisent les dessins de `src/characters/arcade-art.ts`,
+le cache de la passe 75 (`arcade-phaser.ts`) et l'adaptateur commun
+`action-phaser.ts`. Les références restent hors du dépôt : aucun fichier image,
+extrait ou conversion n'est utilisé. Les textures sont produites par les dessins
+vectoriels au démarrage, puis réutilisées par le gestionnaire de textures du jeu.
+
+- Ferraille : huit poses équipées (face, dos, deux profils, saut, tir, accroupi,
+  marche), sac à dos, lunettes et arme ; bambou/baos pour Boubou, feuilles pour
+  CaliRoux, feu pour Pestouille, bananes/étoiles pour Tutu, étoiles/arc-en-ciel
+  pour Lumi. Le véhicule existant devient char panda, buggy roux, hélico dragon,
+  moto Tutu ou jet licorne. Les six tirs et leurs collisions restent ceux du moteur.
+- Briqueterie : cinq raquettes avec face/dos/profils, balles à visage ou emblème,
+  traînées et trois profondeurs de décor défilant. Chaque tranche de six niveaux
+  varie le placement du décor et des particules du compagnon. Les bonus existants
+  restent élargissement, multiballe et vie ; leur dessin reprend les emblèmes des
+  compagnons. Les portails restent des briques portails, les miroirs des briques
+  inclinées ; aucun nouveau pouvoir ni règle de bonus n'est ajouté.
+- Essaim : cinq vaisseaux avec face, dos et profils ; les profils suivent
+  l'inclinaison, le dos accompagne le retour après un impact. Les six armes
+  gardent leurs durées, trajectoires et hitboxes : motifs dans le rayon, ricochets,
+  satellites, onde, aimant et charge. Les ennemis conservent leurs silhouettes
+  arrondies, contours sombres et explosions à anneaux, éclats et fumée.
+
+Réserves fixes : 224 images pour Ferraille, 160 pour Briqueterie, 256 pour Essaim.
+Chaque atlas expose 30 clés ; les neuf emblèmes sont partagés entre compagnons.
+Aucune génération de texture pendant le dessin ou le changement de niveau.
+Essaim garde ses trois Graphics, deux nébuleuses mises en cache et 96 particules
+(quatre anneaux au maximum en mouvement réduit). Les traînées se calculent avec
+au plus trois images fantômes, sans historique. Les décors restent moins opaques
+que les surfaces de collision, les briques et les menaces ; la raquette conserve
+un rail lumineux exactement sur sa surface physique.
+
+Les neuf entrées catalogue remplacent/enrichissent des niveaux réels de la campagne
+(positions ci-dessous à partir de 1 ; aucune campagne parallèle) :
+
+| Code | Jeu · position | Nom | Éléments jouables et décor |
+| --- | --- | --- | --- |
+| R01 | Ferraille · 14 | Jungle mécanique | Tourelles, plateformes mobiles ; cabanes, arbres et lianes sur quatre profondeurs |
+| R02 | Ferraille · 6 | Forteresse oubliée | Montée existante, ascenseur vertical, voie supérieure à bonus existant ; arches, pierres et chaînes |
+| R03 | Ferraille · 24 | Usine infernale | Robots blindés, fosses, deux convoyeurs qui entraînent le personnage au sol ; tuyaux, pistons et lave |
+| A01 | Briqueterie · 1 | Festin de Boubou | Grille dessinant deux bambous et un bao, décor gourmand |
+| A02 | Briqueterie · 18 | Tourbillon d'automne | Rangée mobile, miroirs inclinés et portails ; feuilles |
+| A03 | Briqueterie · 15 | Constellations | Étoiles, obstacles indestructibles et portails ; cristaux et liens célestes |
+| G01 | Essaim · 7 | Ceinture de bambou | Formation en pince, mines ; astéroïdes verts et étoiles défilantes |
+| G02 | Essaim · 9 | Nébuleuse écarlate | Chasseurs rapides, rafales en éventail ; météores et nuages rouges |
+| G03 | Essaim · 15 | Royaume des étoiles | Vagues en anneau, gardien à deux phases ; cristaux et nébuleuse violette |
+
+Les surfaces répétables, plateformes, ennemis et tirs restent des données séparées
+du décor. La passe 103 remplace les parcours de Ferraille par des séquences écrites ; les éléments du catalogue restent présents :
+plateforme à sens unique avec transport vertical, convoyeurs à 24 unités/s lorsque
+le personnage touche leur surface ; le saut permet de s'en extraire. Les autres
+règles sont conservées. Les sauts, contrôles et collisions sont ceux de Ferraille.
+
+Validation sans navigateur ni Vitest : `validate-action-art.js` vérifie les vues,
+l'identité de chaque dessin, le cache au redémarrage et la saturation des réserves ;
+`validate-action-scenes.js` instancie les quinze couples jeu/compagnon avec les
+vrais moteurs et dessins, puis vérifie chargements, tirs, budgets et nettoyage
+(ports de plateforme simulés, aucune mesure de pixels/GPU). `validate-level-catalogue.js`
+vérifie chaque structure et deux rejeux gagnants par niveau ; Ferraille a des
+empreintes numériques intermédiaires de l'état complet et des entrées ordinaires
+enregistrées. Les campagnes Briqueterie et Essaim sont réenregistrées et rejouées
+sur deux graines pour les trente niveaux. Chaque nouveau cas est borné à 2 s.
+Les scores de diversité restent 11,2 / 18,1 / 16,4, avec 0 % de clones adjacents.
+Les formules et seuils du rapport ne changent pas.
+
+E2E **écrits seulement**, dans `tests/e2e/habillage-action.spec.ts`, limite 2 s/cas :
+`habillage-ferraille-<id>` montre l'aventurier, son arme et un projectile spécial ;
+`habillage-ferraille-<id>-vehicule` montre son véhicule en mouvement et son ricochet ;
+`habillage-briqueterie-<id>` montre la raquette, la balle et l'élargissement actif ;
+`habillage-essaim-<id>` montre le vaisseau et ses tirs/satellites. Les cinq identités
+sont panda, pandaroux, dragon, singe, licorne. `level-catalogue-R01` à `R03` montrent le camp,
+l'ascenseur/voie haute et les convoyeurs ; `level-catalogue-A01` à `A03` montrent les trois
+grilles en jeu ; `level-catalogue-G01` à `G03` montrent les formations, les météores et la
+vague finale avec gardien. Aucun de ces fichiers de capture n'est généré localement.
+
+Résultats de vérification de cette passe : lint, typecheck et build passent.
+Les contrôles ciblés passent séparément (18 rejeux catalogue, dessins et quinze
+scènes). La suite `test:node` complète exécutée en parallèle des vérifications
+statiques échoue sur des plafonds de temps : Dérapage, Orbite, les contrôles
+personnages/scènes, Briqueterie, catalogue et Dédale ; total 229,34 s pour une limite
+de 180 s. Les seuils restent inchangés. Briqueterie repasse séparément ses 60
+rejeux en 821,5 ms ; les neuf cas catalogue repassent séparément en moins de 288 ms
+chacun. Ces résultats ne constituent pas une mesure de performance GPU.
+
+Bundle principal (mesure Vite, kB décimaux) : 1 522,46 → 1 538,63 kB ;
+gzip 421,44 → 427,12 kB. Rapport : `docs/pass77-validation.json`.
+
+#### Habillages vectoriels — passe 75
+
+Les références de David restent hors du dépôt. Aucun fichier image, extrait ou
+conversion des références n'est utilisé. Les dessins sont des descriptions pures
+de primitives dans `src/characters/arcade-art.ts`, rendues par les adaptateurs
+vectoriels existants. Les noms des jeux restent Dérapage et Bubble Lab.
+
+| Compagnon | Véhicule | Signes distinctifs | Lanceur / Joker |
+| --- | --- | --- | --- |
+| Boubou | Bolide Bambou | Tubes verts cerclés, roues rondes, panier de fruits | Canon Bambou / Pluie de bao |
+| CaliRoux | Chariot Feuille | Bois, grandes feuilles rouges et orange | Lance-feuilles / Feuilles tourbillonnantes |
+| Pestouille | Drakart | Rouge, ailerons, cornes dorées, échappements enflammés | Canon Dragon / Explosion draconique |
+| Tutu | Carrosse Tutu | Rose, volants de tutu, cœur, nœud | Lanceur Tutu / Danse des bananes |
+| Lumi | L'Étoilade | Carrosserie blanche, ailes, bandes arc-en-ciel, étoiles | Canon Étoilé / Arc-en-ciel magique |
+
+Chaque véhicule possède les vues avant, arrière, gauche, droite et dessus ; le
+dessus avec pilote visible constitue le kart joué, tourné selon son cap physique.
+Le résultat affiche aussi le véhicule et son pilote « en action ». Les cinq vues
+du lanceur sont face, dos, gauche, droite et tir ; la vue jouée suit la visée ou
+le tir, et son canon articulé suit exactement l'angle physique. Les expressions
+concentré, surpris, endormi, heureux et triste restent visibles sur les pilotes.
+Sur l'accueil, ouvrir « véhicule et lanceur » sur une carte de personnage permet
+d'examiner ses dix vues ; ces dessins sont créés à la première ouverture.
+
+Les bonus conservent intégralement leurs règles. `turbo` et Élan prennent le signe
+de propulsion du personnage, `ressort` son emblème, `flaque` son piège (bombe bambou,
+feuille, feu, banane ou étoile), et `bulle` son bouclier, cœur ou arc-en-ciel.
+Le bonus tenu, le saut, la propulsion, le bouclier et les pièges déposés montrent
+ces signes ; un piège garde l'identité de son propriétaire. Le sixième pilote
+reste neutre. Les caisses de bonus gardent une silhouette commune contrastée.
+
+Dans Bubble Lab, les six teintes restent identiques pour tous les compagnons.
+Chaque bulle porte un emblème thématique et un motif géométrique stable par couleur :
+vert/losange feuillu, orange/soleil, rose/cœur, violet/spirale, jaune/étoile,
+bleu/éclair. Le contour et le motif sombre contrastent d'au moins 3:1 avec
+chaque teinte ; aucune information de visée ne dépend du seul thème. Les pierres,
+glaces, bombes et étoiles à libérer passent devant les bulles. Le Joker garde son
+unique changement de couleur sur le prochain tir : bao en pluie, feuilles en
+spirale, flammes radiales, bananes dansantes ou grand arc-en-ciel sont des effets
+visuels uniquement, arrêtés en pause et fixes en mouvement réduit.
+
+Les niveaux 1–6 sont en jungle, 7–12 en forêt d'automne, 13–18 en volcan,
+19–24 en cirque et 25–30 dans le ciel avec châteaux et nuages. Le décor atténué
+reste sous le plateau sombre, les obstacles, le guide de tir et les projectiles.
+
+Les textures sont générées depuis les primitives à la première utilisation et
+appartiennent au gestionnaire du jeu : aucune régénération par image ni par
+redémarrage. Les réserves sont fixes : 96 sprites pour Dérapage, 256 pour Bubble
+Lab, dont au plus 128 bulles d'effet transitoires ; les sprites sont réutilisés,
+masqués à chaque nouveau dessin et détruits à la sortie. Les moteurs sont inchangés.
+
+Validation pure : `nice -n 19 ionice -c3 node scripts/validate-arcade-art.js`
+vérifie les cinq véhicules distincts dans chacune des cinq vues, les cinq
+lanceurs et leurs vues, les six motifs indépendants des couleurs, le contraste,
+les tranches de décors, les réactions et le cache/réemploi borné. Chaque contrôle
+est borné à 2 s. Les contrôles de scènes Node existants suivent désormais les
+textures réellement soumises, plutôt que les anciennes positions du dessin générique.
+
+Captures E2E écrites dans `tests/e2e/habillage.spec.ts`, sans exécution locale :
+`habillage-derapage-<perso>` montre le kart en jeu de dessus avec pilote, roues et
+accessoires sur la première piste ; `habillage-bubble-<perso>` montre son lanceur,
+les six teintes et motifs, et un décor différent. `<perso>` vaut `panda`,
+`pandaroux`, `dragon`, `singe`, `licorne` ; les décors associés sont respectivement
+jungle, automne, volcan, cirque et ciel. Chaque nouveau scénario a un plafond de
+2 s. Aucun navigateur ni Vitest n'a été lancé pour cette passe.
+
+Mesure du build de production avant/après : JavaScript principal
+1 506 147 / 1 522 011 octets, gzip 415 559 / 421 301 octets ; CSS
+12 386 octets (gzip 2 993) dans les deux cas. Lint, typecheck et build passent.
+
+#### Intégration jouable — passe 72
+
+Le même `GameCharacter` utilisé en passes 70–71 entre dans Dérapage, Bubble Lab
+et Serpentin. Le kart joueur contient le compagnon choisi ; quatre rivaux portent
+les quatre autres identités, dans l'ordre du registre, et le dernier pilote est
+neutre. Le compagnon tient le lanceur de Bubble Lab et suit sa visée ; sa tête
+et sa silhouette reconnaissable mènent Serpentin sur la grille. Joie au podium ou
+à la victoire, tristesse après défaite, surprise au choc et dodo en pause/menu
+passent par le véritable rendu Graphics partagé, y compris `updatePaused()`.
+Les effets existants (feuilles, cœurs, flammes, étoiles, arc-en-ciel) habillent
+les mêmes règles pour les cinq identités. Aucun asset image ni nouvelle clé de
+sauvegarde. Les scores et records historiques restent comparables et conservés.
+
+| Jeu | Spécial moteur | Limite et réarmement | Commande |
+| --- | --- | --- | --- |
+| Dérapage | Élan : 800 ms, accélération +8 unités/s² et plafond sur piste +4 ; cumul avec turbo/dérapage/bande, sans remplacer l'objet ; plafond d'herbe inchangé | Une fois par tour, tour initial inclus ; prochain tour ou nouvelle course | Élan ≥56 px, C |
+| Bubble Lab | Joker armé : le prochain tir prend la couleur de la première bulle ordinaire/bombe touchée ; pierres, glace et étoiles ne fournissent pas de couleur ; tir au plafond garde sa couleur | Une fois par niveau ; le tir consomme l'armement même sans groupe éligible ; recommencer recharge | Joker ≥56 px, C |
+| Serpentin | Esquive armée : ignore exactement le prochain contact avec son corps, sans couper le serpent ni donner de points ; murs/obstacles toujours mortels | Une fois par niveau ; reste armée jusqu'au contact, sans recharge temporelle ; recommencer recharge | Esquive ≥56 px, Espace |
+
+Les trois moteurs exposent `special()` et `advance(ms)`. Leurs snapshots rendent
+les charges/armements et durées observables ; dans Dérapage, `specialLap` et
+`specialMs` sont propres à chaque kart. Les IA disposent du même élan : elles
+l'activent si elles ont deux portes de retard, braquent de moins de 0,12 et
+roulent à plus de 16 unités/s, sans nouveau tirage aléatoire. Z36 conserve ses
+seuils littéraux : trois tours, arrêt <0,5 s, hors piste <15 %. Les bandes Z36
+sont recalibrées car la politique IA change les collisions, puis rejouées.
+
+`scripts/validate-character-games-2.js` couvre P-<jeu>-01 à 05 : géométrie des
+cinq identités, effets exacts sur positions littérales, épuisement/réarmement,
+équivalence des cinq simulations, 30 niveaux par jeu sans spécial et témoins
+avec spécial. Bubble Lab rejoue les solutions historiques inchangées ; les
+trajectoires ordinaires de Serpentin et les commandes de Dérapage sont dans
+`tests/fixtures/characters-campaigns-2.json` (calibration Node séparée :
+`scripts/record-character-games-2.js`). Les mesures avec/sans sont des témoins
+reproductibles, pas des optima annoncés. `docs/characters-games-2-validation.json`
+contient les scores, tirs, pas, chronos, durées et mutations tuées, fichier/ligne.
+Chaque vérification chronométrée garde le seuil littéral de 2000 ms ; les courses
+avec et sans élan sont deux vérifications distinctes.
+
+`scripts/validate-character-scenes-2.js` monte les scènes de production avec
+seuls les ports de plateforme doublés : entrées tactiles, positions/taille des
+acteurs, cinq identités, quatre rivaux, pause via le binding de `main.ts`, joie,
+tristesse, surprise et animation du spécial sont vérifiés sans navigateur.
+Les trois E2E de `tests/e2e/character-finger-2.spec.ts` sont écrits pour l'hôte,
+390×844, CDP tactile exclusivement, bruit ±12 px et latence 150 ms, niveaux 1
+et 10, captures `perso-<jeu>-jeu` et `perso-<jeu>-special`, bilan JSON comprenant
+entrées, décisions, erreurs de toucher, temps et victoire. Dérapage et Bubble
+utilisent le temps réel, ainsi que Serpentin : le pilote observe toutes les 150 ms,
+anticipe les virages d'une case et met leur sortie en file lorsque nécessaire.
+Aucun appel à `advance`, aucune modification de vitesse ; victoire exigée en moins
+de 90 s par niveau. Le délai de 150 ms est celui entre observations, sans second
+délai ajouté entre décision et toucher. Aucun résultat navigateur n'est présumé.
+
+La vignette Traverse dessine un trafic routier continu, indépendant des attentes
+et redémarrages du traverseur. Une preuve pure rastérise et compare les pixels
+sur 2000 pas : aucune fenêtre de 36 pas identique. Le mode mouvement réduit garde
+volontairement une image fixe selon le contrat commun des vignettes.
+
+#### Intégration jouable — passe 70
+
+Le choix enregistré sur l'accueil est le héros physique de Caisses, Traverse et
+Alunir, dessiné par `src/characters/game.ts` et l'adaptateur Graphics. Aucun asset
+image. Profil orienté pour les déplacements latéraux, face pour les autres ;
+marche dans Caisses, saut dans Traverse et à la poussée dans Alunir. Joie et
+célébration à la victoire, surprise pendant 350–500 ms après choc, tristesse à
+la défaite, dodo en pause/menu. Le mouvement réduit conserve les poses et retire
+les particules. Feuilles, cœurs, flammes, étoiles et arc-en-ciel habillent le même
+spécial : l'identité n'entre jamais dans les règles, le score ou les solveurs.
+Les sauvegardes et la clé du choix du personnage restent inchangées.
+
+Les moteurs exposent `special()`, `advance(ms)` (alias du pas déterministe),
+les charges restantes et la durée active dans `snapshot()`. Les contrôles ont un
+bouton spécial de 56 px minimum dans la rangée tactile et le raccourci Espace.
+Les formules historiques de score et les témoins sans spécial sont conservés.
+`scripts/validate-character-games.js` exécute P-<jeu>-01 à 05 sans navigateur
+ni Vitest : géométrie réellement envoyée à Graphics pour chaque identité, états
+littéraux, limites, 30 niveaux rejoués par jeu et égalité des cinq identités.
+Chaque contrôle est borné à 2 s ; les recherches longues sont calibrées hors
+ligne par `scripts/record-character-games.js`, puis rejouées depuis
+`tests/fixtures/characters-campaigns.json`. Les mutants sont importés en mémoire,
+sans modifier les sources de travail. Rapport détaillé : [passe 70](docs/pass70.md).
+
+`tests/e2e/character-finger.spec.ts` contient trois scénarios mobiles 390×844,
+niveaux 1 et 10 complets, bruit entier déterministe ±12 px, décisions et latence
+150 ms. Seuls les paquets CDP `Input.dispatchTouchEvent` produisent les entrées,
+y compris Jouer. Les crochets lisent/chargent les niveaux et avancent l'horloge,
+sans injecter de commande ni de victoire. Le pilote utilise A*/BFS ou le pilote
+physique Alunir ; il emploie le spécial dans chacun des deux niveaux. Les pièces
+jointes JSON contiennent temps, points, intentions, touches manquées et victoire,
+même en cas d'échec. Captures `perso-<jeu>-jeu`, `perso-<jeu>-special` et alias
+incluant l'identité. Ces E2E sont écrits seulement : leur exécution et la revue
+visuelle sur mobile appartiennent à l'hôte de test.
+
+
+Measured minified JavaScript in dist/assets: 1,459,946 bytes before, 1,473,143 bytes after (+13,197 bytes; below the 40 kB target). The Phaser adapter now renders the playable heroes in Caisses, Traverse and Alunir; the home shell keeps its Canvas adapter.
 
 Pass 59 establishes five original recurring companions and a home selector; game
-rules and scenes do not consume the selection yet. No image assets or new dependencies.
+selection is consumed by Caisses, Traverse and Alunir since pass 70. No image assets or new dependencies.
 The rounded cast has large expressive eyes, soft dark outlines and individual silhouettes:
 
 | ID | French / English name | Visual signature and special |
 | --- | --- | --- |
-| `panda` | Panda glouton / Hungry panda | Round black-and-white body, eye patches, bamboo, woven bun/fruit basket; spiral green leaves |
-| `pandaroux` | Panda roux joueur et câlin / Playful red panda | Orange fur, white mask/ear borders, dark paws, striped fluffy tail; rolling spin, trail and hearts |
-| `dragon` | Dragon assidu / Studious dragon | Red body, cream belly, curled gold horns, mint wings/crest, gold eyes, open book; fire and blue geometric rune circle |
-| `singe` | Singe en tutu / Tutu monkey | Brown fur, rosy beige face/ears, pink ruffled tutu, slippers and flower, curled tail; pirouette, pink ring and gold stars |
-| `licorne` | Licorne joueuse / Playful unicorn | White coat, six-color mane/tail, twisted gold horn, gold hooves, blue eyes; rainbow and shooting star |
+| `panda` | **Boubou** — Panda glouton — « Manger, foncer, recommencer ! » | Round black-and-white body, eye patches, bamboo, woven bun/fruit basket; spiral green leaves |
+| `pandaroux` | **CaliRoux** — Panda roux joueur et câlin — « Des câlins et des dérapages ! » | Orange fur, white mask/ear borders, dark paws, striped fluffy tail; rolling spin, trail and hearts |
+| `dragon` | **Pestouille** — Dragon assidu — « Toujours plus loin, toujours plus fort ! » | Red body, cream belly, curled gold horns, mint wings/crest, gold eyes, open book; fire and blue geometric rune circle |
+| `singe` | **Tutu** — Singe en tutu — « Des pirouettes plein la piste ! » | Brown fur, rosy beige face/ears, pink ruffled tutu, slippers and flower, curled tail; pirouette, pink ring and gold stars |
+| `licorne` | **Lumi** — Licorne joueuse — « La magie au service de la victoire ! » | White coat, six-color mane/tail, twisted gold horn, gold hooves, blue eyes; rainbow and shooting star |
 
 `src/characters/model.ts` is a pure deterministic primitive-list generator on a
 240 × 240 stage. `drawList(id, pose, expression, anim, t, motion)` accepts milliseconds;
@@ -189,7 +571,15 @@ update, activation du worker en attente, sinon désenregistrement puis suppressi
 exclusive des caches préfixés `opencade-`. Aucun localStorage n’est modifié.
 Une confirmation affiche la version réellement chargée après rechargement.
 Sans SW enregistré, aucun bandeau ni bouton de mise à jour n’apparaît.
-Les tests Vitest couvrent formatage et secours avec API factices ; les E2E
+Les tests Vitest couvrent formatage et secours avec API factices.
+`tests/pwa-runtime.test.js` exécute le vrai module PWA dans un harnais partagé
+avec `scripts/test-pwa.js` : lancement, cadence exacte de 30 minutes, retour au
+premier plan, requête de version sans cache HTTP, fermeture et retour du focus
+sur l’accueil ou en jeu. `node scripts/check-pwa-mutations.js` exécute les mêmes
+corps de tests sans charger Vitest et exige un échec d’assertion pour chacune
+des huit mutations rejouées en mémoire ; les versions sans mutation doivent
+passer avant et après. Une exception du harnais ne compte pas comme preuve.
+Les E2E
 `pwa-update.spec.ts` remplacent à origine constante les fichiers v1 par v2,
 vérifient bandeau, forçage, secours et sauvegarde conservée. Préparation :
 `node scripts/build-pwa-fixture.js` (deux builds dans .pwa-fixtures).
@@ -320,6 +710,8 @@ Chromium tactile, safe-area nulles) :
 
 ## Bubble Lab — règles
 
+Passe 72 : le compagnon choisi tient le lanceur ; Joker et ses preuves suivent le contrat Characters ci-dessus.
+
 
 ## Géométrie et tir
 
@@ -333,10 +725,15 @@ La visée est bornée entre 10° et 170° depuis l’horizontale (±80° depuis 
 la modifient de 0,08 radian par événement clavier. La souris vise au survol et tire au clic au-dessus de y=555. Au doigt, glisser vise et relâcher tire ; le bouton Tap active « tirer au toucher ». Les boutons fléchés ajustent finement. ⇄ ou X échange la bulle courante et la suivante, sans tirage aléatoire, hors vol. La trajectoire est calculée par intersection rayon /
 cercle (distance effective des centres strictement inférieure à 40 × 0,85 = 34 ; une tangence seule ne bloque pas), plafond mobile y=`20 + drops * ROW_STEP` et murs x=20 / x=340. À chaque mur,
 la composante horizontale de direction est inversée ; la verticale est conservée.
-Les segments analytiques donnent exactement le premier contact, sans sous-pas. Le guide utilise ces mêmes segments jusqu’au premier rebond et son segment sortant inclus, avec arrêt au premier obstacle ou au deuxième mur.
+Les segments analytiques donnent exactement le premier contact, sans sous-pas. Le guide trace ces mêmes segments jusqu’au point d’impact, rebonds compris, et une bulle fantôme cerclée de blanc occupe la cellule que le tir remplira : le doigt qui couvre le lanceur voit toujours où la bulle se fixera. À l’accrochage, la bulle glisse en 90 ms du point d’impact à sa cellule (effet visuel seul).
 
-Au contact d'une bulle, on choisit parmi ses voisines libres la cellule dont le
-centre est le plus proche du point de contact sur la surface de la bulle touchée. Les cellules au-dessus du contact, derrière la face incidente ou dont le segment de placement traverse une autre bulle sont exclues. Au plafond, on choisit la cellule
+Accrochage classique (passe 500) : le projectile s'arrête au premier contact, puis se
+fixe dans la cellule libre dont le centre est le plus proche du **centre du projectile
+arrêté**. Au premier contact, cette cellule touche toujours la bulle heurtée (ou le
+plafond) : elle tient par construction, sans filtre. La cellule choisie contient donc le point d'impact : la distance entre ce point et son centre ne
+dépasse jamais le rayon de cellule 40/√3 ≈ 23,1 px (20 px mesurés au plus sur 16 740 tirs,
+contre 216 tirs hors de leur cellule avec l'ancien classement radial). Un tir rasant sur le
+flanc d'une bulle se range à côté d'elle, pas dessous. Au plafond, on choisit la cellule
 libre la plus proche de la rangée 0. Les égalités sont départagées par rangée puis
 colonne croissantes. Aucune cellule occupée n'est remplacée. Sans place libre,
 la partie est perdue. La vitesse logique du projectile est 0,75 pixel/ms.
@@ -410,13 +807,15 @@ exercent le vrai pipeline tactile, contrôlent le guide et la cellule (1,4),
 puis l’effet de chute et les 50 points ; captures `bubble-aim` et `bubble-drop`.
 Ces E2E doivent être exécutés par l’orchestrateur.
 
-Mutations : remplacer le classement au contact par le centre de la bulle touchée
-échoue sur B-HEX-03 ; neutraliser les chutes échoue sur B-HEX-11 ; porter
-CONTACT_SCALE à 1 échoue sur B-HEX-06 ; multiplier l’angle réfléchi par 1,05
-échoue sur B-HEX-10. Attention : classer depuis le centre du projectile arrêté
-peut être mathématiquement équivalent au contact radial pour six voisines à
-égale distance ; cette substitution seule ne constitue pas toujours une mutation
-observable. Le mutant « centre » prévu utilise le centre de la bulle touchée.
+Mutations : neutraliser les chutes échoue sur B-HEX-11 ; porter CONTACT_SCALE à 1
+échoue sur B-HEX-06 ; multiplier l’angle réfléchi par 1,05 échoue sur B-HEX-10.
+B-SNAP (passe 500, `tests/bubble-snap.ts`, partagé Vitest et Node) verrouille
+l'accrochage : cellule contenant l'impact sur un balayage de 140 angles (pas de 0,02 rad) × 30 niveaux
+troués, soit 4 200 tirs, voisine de la bulle touchée, jamais occupée, toujours suspendue ; cas
+littéraux du tir rasant, de la parité après rebond et du coin mur-plafond (angle atan(160/550) : un seul
+segment, cellule (0,8) ou (0,0)). B-SNAP-04 (E2E mobile) tire 12 fois au doigt bruité : le guide affiché est
+la trajectoire complète du moteur, la cellule fantôme est celle remplie. B-SNAP-05 verrouille le glissement de
+90 ms, gelé en pause, y compris pour une bulle éclatée à l'arrivée.
 
 ## Niveaux de Bubble Lab
 
@@ -437,6 +836,31 @@ La graine permute toute la palette et déplace une encoche dans la dernière ran
 elle ne se réduit plus à un choix parmi six phases. B-LVL-01 contrôle le déterminisme
 et la différence des grilles 10/11 pour chacun des trente niveaux. Les graines par
 défaut, 452 à 481, et les clés de sauvegarde sont conservées.
+
+### Catalogue des plateaux de bulles : puzzle de bulles (passe 502)
+
+Trois plateaux du catalogue occupent des niveaux réels de la campagne (pas de campagne parallèle),
+choisis sur des niveaux qui ouvrent déjà un chapitre, pour garder la cadence d'introduction
+(nouveautés aux niveaux 11, 14, 17, 20, 23 et 26) :
+
+| Code | Niveau | Nom | Jouable | Décor |
+| --- | --- | --- | --- | --- |
+| P01 | 12 | Jardin gourmand | Quatre couleurs, deux tiges de bambou à nœuds, feuillage, un bao : grands groupes simples (moyenne ≥ 2 × niveau 11, aucun groupe < 4), aucun obstacle | Bambous, bao sur la terrasse |
+| P02 | 20 | Automne enchanté | Quatre **verrous** (règle de la glace à une couche : un éclatement voisin les ouvre) et trois **feuilles** | Toit de temple, lanternes |
+| P03 | 26 | Cristaux célestes | Trois **cristaux** fixes, trois **prismes**, deux bombes, barres dorées : réactions en chaîne | Constellation, fond étoilé |
+
+Règles nouvelles (moteur pur, `tests/bubble-catalogue.ts`, partagé Vitest et Node) :
+- **Feuille** : bulle de couleur ordinaire ; éclatée (groupe, bombe ou balayage), elle éclate toute sa
+  rangée sauf pierres, glace, étoiles et cristaux ; une feuille balayée balaie à son tour (B-CAT-01).
+- **Cristal** : fixe, jamais éclaté ni tombé, il ancre ce qui y est suspendu comme la rangée 0 ; il ne
+  compte ni pour la victoire (plateau vide hors cristaux) ni pour la défaite (B-CAT-02).
+- **Prisme** : joker dans la grille ; il rejoint le groupe de toute couleur et le prolonge ; sa couleur
+  n'est jamais distribuée au lanceur (B-CAT-03).
+- Chaîne : bombe → feuille → rangée, ou prisme qui complète un groupe contenant une bombe.
+
+B-CAT-04 verrouille les positions et le caractère de chaque plateau ; B-CAT-05 (E2E bureau et mobile)
+ouvre chaque plateau, vérifie dans le journal de l'image le décor dessiné et un symbole à l'écran par bulle spéciale, puis capture `level-catalogue-P0x` ; B-CAT-06 gagne P01, P02 et P03 au doigt bruité
+(12 px, 150 ms), grille égale au modèle après chaque tir. Graine 28 : 12, 11 et 52 tirs.
 
 | Niveau | Nom | Tirs graine 28 | Tirs moyens, 20 graines | Victoires | Interruptions |
 | --- | --- | ---: | ---: | ---: | ---: |
@@ -669,6 +1093,8 @@ Tout est en TypeScript, compatible avec Phaser externe et un bundle unique.
 
 ## Serpentin
 
+Passe 72 : le compagnon choisi mène le serpent ; Esquive et ses preuves suivent le contrat Characters ci-dessus.
+
 Grille originale 15×21, départ de trois segments au centre vers la droite.
 Une pomme-étincelle ajoute un segment et 10×(index+1) points. Victoire à
 l'objectif ; mur, obstacle ou corps : défaite. La queue libérée au même
@@ -677,31 +1103,49 @@ la dernière direction en file. Deux virages maximum sont conservés et
 consommés à raison d'un par déplacement (deux déplacements successifs, jamais
 un saut diagonal). En tore, les quatre bords sont raccordés.
 
-### Générateur des 30 niveaux
+### Les 30 salles (passe 401)
 
-Pour l'index `i` de 0 à 29, `difficulty(i)` expose :
+Les salles sont écrites à la main dans `src/engines/serpentin/levels.ts` ;
+`difficulty(i)` en dérive vitesse, objectif, obstacles (barrières écrites +
+obstacles tirés), motif, bords et compteurs de mécanismes. Une règle neuve
+arrive tous les quatre à cinq niveaux, chaque salle d'introduction est au plus
+aussi rapide que la précédente, la salle qui suit chaque défi est plus lente que lui, et les niveaux 5, 10, 15, 20 et 25 sont des
+**défis chronométrés** (35, 45, 90, 45 et 70 s ; défaite « Temps écoulé » à zéro).
 
-| Paramètre | Formule |
-| --- | --- |
-| Vitesse | `6 + 10*i/29` pas/s |
-| Objectif | `8 + floor(22*i/29)` pommes |
-| Obstacles | `floor(40*i/29)` cases |
-| Motif | `floor(i/8)` : lisière, rayons, archipel, passages |
-| Bords | Tore si `i % 5 === 4`, murs sinon |
+| Niveau | Nouveauté | Règle exacte |
+| --- | --- | --- |
+| 1-3 | Murs, rochers, tore | Règles de base ; le tore arrive au 3. |
+| 4 | **Portails** | Entrer dans une case de portail place la tête sur l'autre case de la paire, même direction ; la case d'arrivée suit les règles ordinaires (rocher, corps). |
+| 8 | **Écluses** | Une écluse est ouverte quand `(ticks + phase) % période < ouverture` ; y entrer fermée est fatal ; elle peut se fermer sous le corps sans effet. Clignote la dernière demi-seconde. |
+| 12 | **Luciole** | Tous les N déplacements sans manger, la pomme fait un pas vers une case libre strictement plus éloignée de la tête (distance torique sur tore, tirage PRNG à égalité) ; coincée, elle reste. |
+| 16 | **Flèches** | Une tête posée sur une flèche fait son pas suivant dans le sens de la flèche ; la file de virages est gardée pour après ; un virage devenu demi-tour est abandonné. |
+| 21 | **Ciseaux** | Dès 10 segments, des ciseaux apparaissent ; les manger ramène le corps à `max(3, ceil(n/2))` et rapporte 5×(niveau) points, sans changer le compte de pommes. |
+| 26 | **Sentinelles** | Va-et-vient sur un chemin visible, un pas toutes les `every` avancées du serpent ; entrer sur la sentinelle ou être rejoint par elle est fatal. |
+| 30 | Grand final | Écluses, flèches, deux paires de portails, luciole, ciseaux, deux sentinelles. |
 
-Vitesse, objectif, nombre d'obstacles et indice de motif sont non décroissants.
-Le tore alterne pour varier les parcours ; ce booléen n'est pas une mesure
-ordonnée de difficulté. Les candidats des motifs sont tirés sans remise par
-le PRNG partagé. Une zone de départ de 9×5 reste libre. Chaque ajout est
-accepté uniquement si un BFS depuis le départ visite les `315-obstacles`
-cases libres : aucun compartiment fermé. N08 vérifie aussi le nombre exact
-sur 30 niveaux × 12 graines. Le BFS utilise des indices de cases, un tableau
-de visite et les voisinages précalculés (murs/tore), dans le même ordre haut,
-bas, gauche, droite. Une empreinte FNV-1a `7b2da581`, calculée avant optimisation
-sur les 30 snapshots initiaux à graine 454, fige grilles, pommes et PRNG. Les pommes sont tirées parmi les cases libres
-accessibles à la tête en tenant compte du corps actuel. Si aucune case n'est
-accessible après une pomme avant l'objectif, la partie est perdue (aucune
-victoire anticipée ni pomme enfermée).
+Les cases de mécanisme (portails, écluses, flèches, chemins de sentinelle)
+ne reçoivent jamais de pomme, de bonus ni d'obstacle tiré ; les cases voisines
+d'un portail et la sortie d'une flèche restent libres. Les obstacles tirés
+suivent toujours le motif de la salle, sans remise, et chaque ajout exige que
+le BFS ordinaire (sans portail) visite toutes les cases libres : aucune zone
+n'est accessible seulement par un portail. Empreinte FNV-1a des 30 snapshots
+initiaux à graine 454 : `262e7702`.
+
+Preuve de faisabilité : `scripts/record-serpentin.js` enregistre une partie
+gagnante du pilote ordinaire (BFS sur les vrais déplacements : portails,
+flèches, écluses prévues fermées à l'arrivée, sentinelles évitées, sans
+esquive) pour chaque salle, rejouée par `validate-serpentin.js` et
+`validate-character-games-2.js` (fixture `tests/fixtures/serpentin-campaign.json`).
+Diversité mesurée (`scripts/serpentin-diversity.js`, même méthode que
+`docs/diversity.md`) : 62,1 → **20,7**, 0 % de clones, nouveautés aux niveaux
+2, 3, 4, 5, 8, 12, 16, 21 et 26, plus long écart sans nouveauté 4. Le test N10
+refuse un score au-dessus de 25 et vérifie que 30 salles identiques donnent
+100 % de clones.
+
+Les parties temps réel au doigt (`character-finger-2`, `validate-finger`,
+`validate-character-snake-policy`) jouent les salles 1 et 14 (luciole,
+portails, tore) ; la salle 10 porte désormais des écluses. La capture de 1 s
+reste vérifiée sur les salles 1 et 10.
 
 Le cristal apparaît après 10 secondes simulées, puis toutes les 10 à 15
 secondes (PRNG). Il expire après 300 ticks, soit 5 secondes, et rapporte
@@ -745,7 +1189,8 @@ produire l'issue. `loadState` ne change aucune règle ni aucun statut final.
 | N07 | Quatre bords du tore | — |
 | N08 | BFS, graines, génération et renouvellement | — |
 | N09 | Avant objectif puis objectif | Victoire, suivant, reprise après reload |
-| N10 | Monotonie et extrêmes | Capture niveau 30 |
+| N10 | Calendrier des règles, défis, respiration, diversité | Capture niveau 30, salles d'introduction |
+| N13-N20 | Portails, écluses, flèches, luciole, ciseaux, chrono, sentinelles, cases de mécanisme | — |
 | N11 | Graine témoin, snapshots, deux cadences | — |
 | N12 | Apparition, expiration, score, longueur | — |
 
@@ -755,6 +1200,8 @@ Les deux projets Chromium produisent les captures `serpentin-play-<projet>`,
 console.error. Mobile : uniquement touchscreen et contacts tactiles réels via Chromium.
 
 ## Briqueterie
+
+Passe 84 : Balle forte, trois contacts traversants une fois par vie ; contrat Characters ci-dessus.
 
 ### Règles et choix
 
@@ -833,7 +1280,7 @@ le 30 combine coffre, portails, attaches, gravité et déviateurs.
 
 | Niveau | Forme | Mécaniques | Rythme |
 | ---: | --- | --- | --- |
-| 1 | Ailes | visée libre | exploration |
+| 1 | Festin de Boubou | visée libre | exploration |
 | 2 | Arche | visée libre | exploration |
 | 3 | Damier | visée libre | exploration |
 | 4 | Chevrons mobiles | coulisse | exploration |
@@ -847,10 +1294,10 @@ le 30 combine coffre, portails, attaches, gravité et déviateurs.
 | 12 | Spirale ouverte | explosion, repousse | exploration |
 | 13 | Portes jumelles | coulisse, portails | exploration |
 | 14 | Satellites | explosion, portails | exploration |
-| 15 | Enceinte ouverte | explosion, repousse, portails, chicane | défi |
+| 15 | Constellations | explosion, repousse, portails, chicane | défi |
 | 16 | Éventail incliné | explosion, angles | exploration |
 | 17 | Constellation | angles | respiration |
-| 18 | Zigzag évidé | portails, angles | exploration |
+| 18 | Tourbillon d'automne | briques mobiles, portails, angles | exploration |
 | 19 | Coffre | angles, clé, verrous | exploration |
 | 20 | Citadelle | explosion, portails, clé, verrous, chicane | défi |
 | 21 | Serrure en sablier | coulisse, angles, clé, verrous | exploration |
@@ -940,6 +1387,8 @@ restent acceptés.
 
 ## Empilo
 
+Passe 82 : mascotte à droite du puits et réserve classique ; contrat détaillé dans Characters.
+
 ### Règles et choix originaux
 
 Empilo (`empilo`, route `#/empilo`) est une composition de cristaux dans un puits
@@ -999,26 +1448,42 @@ nouveau cette rangée pour l'effacer. Les autres lignes complètes sont traitée
 normalement dans le même verrouillage. Un anneau blanc indique un sceau.
 Ce choix évite qu'une rangée pleine immuable bloque immédiatement le puits.
 
-### Générateur des 30 strates
+### Les 30 strates (passe 402)
 
-Index `i=0…29`, numéro visible `i+1`. Tous les paramètres ci-dessous sont
-non décroissants, avec croissance stricte entre les deux extrêmes.
+Les strates sont écrites à la main dans `src/engines/empilo/levels.ts`
+(`STRATA`) ; `difficulty(i)` en recopie les paramètres. Une règle neuve arrive
+tous les quatre à cinq niveaux, chaque strate d'introduction tombe au plus aussi
+vite que la précédente, la strate qui suit chaque défi tombe plus lentement que lui, la gravité plafonne à 5 cellules/s, et les strates 5,
+10, 15, 20 et 25 sont des **défis chronométrés** (60, 110, 100, 110 et 140 s ;
+défaite « Temps écoulé » à zéro).
 
-| `difficulty(i)` | Formule | Extrêmes |
+| Strate | Nouveauté | Règle exacte |
 | --- | --- | --- |
-| gravity | `1 + 17*i/29` | 1 → 18 cellules/s |
-| goal | `5 + floor(35*i/29)` | 5 → 40 lignes |
-| rubble | `floor(8*i/29)` | 0 → 8 rangées |
-| sealed | `floor(4*i/29)` | 0 → 4 colonnes candidates au sceau |
-| shapes | `4 + min(4,floor(i/5))` | 4 → 8 formes |
+| 1-3 | Lignes, gravats, sceaux | Règles historiques ; objectif 5 lignes à la strate 1. |
+| 4 | **Bombe** | Toutes les `bomb` pièces distribuées, la pièce est une bombe d'une case (identifiant 8). À l'arrivée, elle vide son voisinage 3 × 3, sauf les cadenas, puis les lignes pleines se résolvent ; elle ne compte aucune ligne par elle-même. |
+| 8 | **Fouille** | Objectif `gems` : libérer toutes les gemmes. Une gemme est libérée quand sa case disparaît (ligne effacée, ligne scellée, souffle) ; +250×(niveau) points chacune. Les gemmes sont tirées à cinq rangées au plus sous la surface des gravats, et ces strates ont trois trous par rangée de gravats. |
+| 12 | **Tapis** | Après chaque pièce posée, chaque rangée-tapis glisse d'une colonne dans son sens, en bouclant ; une flèche dans la marge l'indique. |
+| 16 | **Marée** | Toutes les `rise` pièces, le plateau monte d'une rangée et une rangée de gravats à un trou entre par le bas ; si la rangée du haut est occupée, défaite « La marée déborde ». Une jauge sous le puits compte les pièces restantes. |
+| 21 | **Cadenas** | Une rangée pleine contenant un cadenas ne s'efface pas. La clé est dans la rangée supérieure des gravats, les cadenas strictement en dessous ; libérer la clé change tous les cadenas en cristaux ordinaires. |
+| 26 | **Brouillard** | Une seule pièce suivante est visible. |
+| 30 | Le cœur | Fouille, cadenas, bombes, tapis, marée et brouillard. |
 
-Les quatre premières formes sont disponibles aux niveaux 1–5 ; les formes 4,
-5, 6 et 7 arrivent respectivement aux niveaux 6, 11, 16 et 21. Les gravats
-occupent les `rubble` rangées inférieures. Pour chacune, de haut en bas, un tirage
-`floor(random.next()*9)` choisit **un trou garanti**. Les huit autres cellules
-sont ordinaires, sauf celles de colonne `x < sealed`, qui portent un sceau.
-Le tirage des gravats précède celui des sacs. La moitié supérieure et la zone
-d'apparition restent libres, même au niveau 30.
+Les gravats gardent leur tirage historique (trous tirés de haut en bas, sceau
+en colonne `x < sealed`), puis le PRNG place la clé, les cadenas et les gemmes,
+toujours sur des cristaux ordinaires. La résolution d'une arrivée est la
+fonction pure `settle()`, partagée par le moteur et les politiques de placement ;
+le tapis est la fonction pure `slide()`.
+
+Preuve de faisabilité : `scripts/record-empilo.js` cherche, par strate, une
+graine où la politique ordinaire de placement (faisceau sur trois pièces,
+tapis simulés) gagne avec et sans réserve ; sur les défis, chaque pièce attend
+1,5 s de gravité et de chrono réels avant d'être jouée (entrée `wait`).
+`validate-character-games-3.js` rejoue les deux parties (fixture
+`tests/fixtures/empilo-campaign.json`) sous ce chrono. Les répétitions au doigt (150 ms de latence, strates 1 et 10) sont dans
+`tests/fixtures/empilo-finger.json`. Diversité mesurée
+(`scripts/empilo-diversity.js`) : 59,5 → **18,1**, 0 % de clones, plus long
+écart sans nouveauté 4 ; `tests/empilo-campaign.test.ts` refuse un score
+au-dessus de 22 et vérifie que 30 strates identiques donnent 100 % de clones.
 
 ### Présentation, contrôles et socle
 
@@ -1065,9 +1530,10 @@ Les écouteurs et le crochet sont libérés à la destruction de la scène.
 | E06 | Trois sacs successifs par graine, 40 graines par palier ; fréquence exacte et premières formes variées | Trois aperçus visibles dans les captures |
 | E07 | Apparition bloquée sur 80 graines, pas de substitution ; départ légal | Défaite après chute réelle, Rejouer |
 | E08 | Objectif exact et arrêt des entrées après victoire | Victoire, Niveau suivant, cumul, reprise du déblocage/record |
-| E09 | 30 niveaux × 20 graines, un trou par rangée, neuf colonnes atteintes | Capture niveau 30 |
+| E09 | 30 niveaux × 20 graines, `holes` trous par rangée, neuf colonnes atteintes | Capture niveau 30 |
 | E10 | Première complétion fragilise sans score, seconde efface | Sceaux visibles au niveau 30 |
-| E11 | Chaque paramètre monotone et strict aux extrêmes, bornes | Sélecteur de 30 niveaux |
+| E11 | Calendrier des règles, défis, respiration, astuces ; diversité mesurée | Sélecteur de 30 niveaux, strates d'introduction |
+| E13-E18 | Bombe, fouille, tapis, marée, cadenas, chrono | — |
 | E12 | Entrées horodatées, découpages équivalents, graine témoin, huit formes dont deux seulement de quatre cellules | Crochet absent sans test ; géométrie sans scroll ni chevauchement Pause/canevas |
 
 Les E2E mobile utilisent uniquement taps `touchscreen` et gestes tactiles Chromium,
@@ -1077,6 +1543,8 @@ Les mutations murs, délai de verrouillage et sceaux ont chacune été détecté
 par E01, E03 et E10 respectivement, puis restaurées avant validation.
 
 ## Orbite
+
+Passe 82 : le compagnon pilote la tourelle ; Rafale double le tir pendant 1,5 s, une fois par vague (Characters).
 
 ### Règles et choix de jouabilité
 
@@ -1151,6 +1619,15 @@ Les champs modifient aussi les tirs ennemis. Un projectile déjà consommé ne
 peut plus intercepter un autre projectile. Les symboles et le HUD indiquent
 la règle active : arc de rotor, croix de scission, croix de réparation,
 halo furtif, rochers, anneaux de gravité et panneaux du satellite.
+
+**Flotte croissante par chapitre (passe 503, `fleet()`).** La formation ne reste plus à 3×6 : 3×5 aux
+niveaux 1-3 pour apprendre, 3×6 jusqu'au 9, 4×6 du 10 au 19, 4×7 du 20 au 28 (le 22, qui ouvre le satellite allié, reste en 4×6 : en 4×7 le pilote
+perdait avec la Rafale). Les respirations gardent deux
+rangées (7 colonnes à partir du 21), les gardiens trois rangées de quatre escortes, le 29 garde 3×6 (il cumule
+déjà essaim, réparateurs et furtives ; plus large ou plus profond, le pilote perd la graine 457) et le gardien
+final arrive avec 4×5. Effectifs graine 28 : 15, 15, 15, 18, 12, 12, 18, 18, 18, 12, 12, 24, 24, 24, 12, 24, 12,
+24, 24, 12, 14, 24, 28, 28, 12, 14, 28, 28, 18, 20. O-FLEET (`tests/variety-e.ts`, Vitest et Node) verrouille
+cette table, la croissance des flottes ordinaires et la tenue dans l'aire de jeu ; deux mutations rejetées.
 
 **Gardiens aux niveaux 5/10/15/20/25/30.** Ils oscillent à y=80, x=
 `180+sin(ticks/85)*110`. Les escortes verrouillent le cœur ; ensuite viser
@@ -1276,6 +1753,45 @@ ajoutés sont optionnels pour conserver les anciennes positions.
 
 ## Essaim
 
+### Signatures et graphismes — passes 101–102
+
+Le maintien manuel du bouton droit de l'interface (Tir/Charge) ou d'Espace pendant **300 ms minimum**, puis le relâchement, lance la signature du personnage choisi, sans caisse requise. La jauge normalisée est **0…1**, pleine à **1500 ms** ; le seuil de déclenchement est 0,2. Un maintien bref conserve le tir principal. La recharge commune est **8000 ms**, à compter du lancement ; une signature vit au maximum **360 pas (6000 ms)**. Un lancement partage **3 PV de dégâts effectifs maximum** entre tous ses projectiles et phases, sans reporter le reliquat à la vague suivante. Les boucliers frontaux et l'exposition des gardiens s'appliquent ; les dégâts bloqués ne consomment pas le budget. Les tirs ordinaires continuent, et les six caisses conservent leurs règles, dont la charge ramassable historique qui se compose avec la signature. Le Bouclier sur C et son bouton restent indépendants. Le guidage seul et le tir automatique ne chargent jamais la signature.
+
+| Personnage / signature | Mécanique et chiffres littéraux | Rangées | Chevron | Anneau |
+| --- | --- | ---: | ---: | ---: |
+| Boubou — Pluie de bao | Bao à −240 px/s ; éclatement à **y=320** en **5 fragments**, vx=−180/−90/0/90/180, vy=−170 ; zone de contact de demi-largeur **84**, **0,15 PV** par cible et fragment. | 2,40 | 2,40 | 2,10 |
+| CaliRoux — Tourbillon de feuilles | Montée **115 px/s**, spirale d'amplitude **48**, période **24π pas** ; zone **38**, **0,45 PV** par ennemi, au plus une fois par **18 pas (300 ms)**. | 2,25 | 2,70 | 2,25 |
+| Pestouille — Boule de feu draconique | Montée **240 px/s**, traverse chaque cible une fois à **0,5 PV** ; explosion finale **rayon 72**, **1,5 PV** par cible. Impact à y≤210 ou à la hauteur d'une cible plus haute, borne haute y=36. | 2,50 | 2,50 | 2,50 |
+| Tutu — Bananes galactiques | **3 bananes**, vx=−150/0/150, vy=−190, **4 rebonds latéraux** entre x=12 et 348 ; zone **46**, **0,175 PV/contact/300 ms** ; ralentissement **×0,45 pendant 108 pas (1800 ms)**, renouvelé au contact, combiné par minimum avec l'onde. | 2,10 | 2,80 | 2,45 |
+| Lumi — Arc étoilé | Trait guidé **300 px/s**, division après **30 pas (500 ms)** en **6 étoiles** à **0,4 PV**, verrouillage des six cibles visibles les plus proches ; guidage recalculé à chaque pas et nouvelle cible si destruction. | 2,40 | 2,40 | 2,40 |
+
+Mesure passe 102 : `tests/essaim-signature-checks.ts`, six cibles immobiles à **100 PV**, sans tir principal, lancement à x=180/y=526 et simulation de 360 pas. Formations étalées en littéraux : rangées (40,180), (180,180), (320,180), (40,300), (180,300), (320,300) ; chevron ouvert (180,120), (110,210), (250,210), (40,300), (320,300), (180,390) ; anneau de grand rayon (180,100), (310,175), (310,325), (180,400), (50,325), (50,175). Les valeurs sont les **PV effectivement retirés aux cibles**, contrôlés contre le compteur moteur ; toutes les cibles survivent et le budget reste strictement positif. Le plafond de sécurité de 3 PV ne participe donc pas à l'équilibre mesuré.
+
+| Écart signé à la moyenne | Rangées (2,33 PV) | Chevron (2,56 PV) | Anneau (2,34 PV) |
+| --- | ---: | ---: | ---: |
+| Boubou | +3,00 % | −6,25 % | −10,26 % |
+| CaliRoux | −3,43 % | +5,47 % | −3,85 % |
+| Pestouille | +7,30 % | −2,34 % | +6,84 % |
+| Tutu | −9,87 % | +9,38 % | +4,70 % |
+| Lumi | +3,00 % | −6,25 % | +2,56 % |
+
+Seuil **±15 % dans chaque formation**, écart maximal **10,26 %**. Les formations ont été fixées avant l'ajustement des armes : bao élargi à 84 et abaissé à 0,15 PV par fragment ; feuilles resserrées à 38 et abaissées à 0,45 PV ; bananes élargies à 46 et abaissées à 0,175 PV ; étoiles abaissées à 0,4 PV ; feu inchangé. Doubler les dégâts des fragments échoue au banc. Ce banc mesure ces trois situations, pas une égalité sur toutes les trajectoires de campagne. Une signature ne vide pas une vague normale de six ennemis ; les trente niveaux restent gagnables sans elle. À chaque nouvelle vague, projectiles et budget sont effacés, recharge conservée. Les étoiles ignorent les cadavres, y compris ceux créés pendant le même pas.
+
+
+L'activation est explicite (`enableSignature`) : les anciens états et moteurs sans signature ne reçoivent aucun champ supplémentaire, aucun tirage aléatoire ni changement des règles historiques. Les **60 rejeux** existants restent identiques, records et fichiers de commandes inchangés. `pilotWithSignature` ajoute un maintien/relâchement au pilote historique, dont le code et les entrées restent identiques : 12 s pour bao/bananes, 10 s pour étoiles, 9 s pour feuilles/feu. Tests de victoire avec les cinq personnages aux niveaux **1, 10, 20, 30**, graine 458 ; cas Vitest séparés pour rester sous 2 s.
+
+Rendu : vaisseau **84 px contre 58 (×1,448)**, hitbox inchangée, fuselage, ailes, verrière avec visage, réacteurs et inclinaisons gauche/droite ; panda blanc/vert, panda roux à ailes de flamme, dragon à ailes dentelées, singe rose à cœur et licorne ailée. Tirs principaux : lasers verts à cœur blanc, feuilles, flammes, cœurs et étoiles. Les sept rôles ennemis utilisent des contours polygonaux distincts, vérifiés par empreintes raster de forme (au moins **100 pixels différents** entre chaque paire), deux états de battement, plaques, verrières et réacteurs. Explosions : éclats triangulaires, traînées, anneau et flash dans le pool existant.
+
+Décors : alternance G01/G02/G03 par tranches de cinq niveaux ; les entrées du catalogue **6/8/14** (indices moteur) fixent respectivement Ceinture de bambou, Nébuleuse écarlate et Royaume des étoiles. Astéroïdes verts et traits laser verts, brumes rouges et météores, puis nébuleuses violettes et cristaux en parallaxe. Les éléments de décor n'ont pas de collision. Mouvement réduit : battement et inclinaison supprimés, parallaxe à 12 %, pas de traînée de motif ni de tremblement, quatre anneaux au plus ; trajectoires tactiques conservées.
+
+Budget inchangé : **96 particules**, **256 images** préallouées pour l'atlas, trois Graphics et deux Images de fond (261 objets retenus hors HUD/effet de Bouclier déjà existants). Le validateur Node dessine **2000 pas par personnage** avec signatures et saturation : pics d'images utilisées **41/45/37/45/45** dans l'ordre du tableau, particules **96/96** pour chacun, **0 génération de texture pendant le jeu**, identités et nombre d'objets stables. Les deux textures de fond et les textures vectorielles sont générées au démarrage seulement, mises en cache par gestionnaire. Aucun fichier image ni dépendance ajouté. Cette mesure Node certifie les budgets, pas la cadence GPU ; le scénario E2E de performance existant reste prévu pour l'orchestrateur.
+
+Validation : S-essaim-01 identité, seuil et recharge ; S-essaim-02 fragments et zone, répétition à 300 ms, traversée et explosion hors axe, rebonds et ralentissement expirant, verrous et guidage ; S-essaim-03 tableau ci-dessus ; S-essaim-04 campagne et rejeux historiques ; S-essaim-05 budgets sur 2000 pas. Scripts Node : `validate-essaim-signature.js`, `check-essaim-signature-mutations.js`, `check-essaim-signature-art.js`, `check-essaim-geometry.js`, intégrés à `test:node`. Seize mutations réellement tuées sous Node : personnage par défaut, ralentissement ignoré, explosion supprimée ou doublée, budget du feu doublé ; les huit mutations adverses (bao ×2, montée des feuilles ×2, répétition au pas 17, verrou mort conservé, rebond droit supprimé, vie à 180 pas, recharge à 1000/59, explosion à deux pas) ; collision avec cadavre, projectiles ou budget conservés au changement de vague. Les ancres et lignes sont calculées par le script. Les assertions locales vérifient chaque fragment, la montée sans réinitialisation, les pas 17/18, la disponibilité aux pas 479/480 puis une nouvelle charge, les deux rebonds, la présence au pas 359 et l'expiration au pas 360, la réattribution après destruction, et le changement de vague avec projectile en vol. Le validateur de rendu intercepte les appels Graphics réels : traînées présentes en mode normal et absentes en mouvement réduit pour les cinq armes ; cercle d'explosion visible jusqu'à l'âge 19 puis absent à 20.
+
+E2E mobiles **390×844** écrits dans `tests/e2e/essaim-signature.spec.ts` : captures `essaim-signature-<id>` pour les cinq armes en vol, `essaim-theme-G01/G02/G03`, conduite par événements tactiles CDP bruités **±12 px toutes les 150 ms**, temps réel sans `advance()`, victoire niveau 1 et compteur de signatures ≥1. Les seules captures de conduite sont avant/après. **Aucun navigateur ni Vitest lancé pendant cette passe** ; ces E2E et les mesures de cadence restent à exécuter par l'orchestrateur.
+
+Passe 84 : Bouclier de deux secondes par vague, contrôles aux deux pouces et tir automatique mémorisé ; contrat Characters ci-dessus.
+
 Passe 53, partie 1, corrigée en passe 54. Aire logique 360×640 ; vaisseau à y=552. Le glissement tactile commence à y=586, sous la ligne visible y=590. Flèches/A/D déplacent ; Espace ou bouton Tir maintenu tire. Les zones gauche/droite de 56 px et Tir de 64 px sont conservées. Tir auto facultatif mémorisé, pause commune sans progression. La sauvegarde de progression et les clés existantes restent compatibles ; les anciens états moteur reçoivent les valeurs par défaut des nouveaux champs.
 
 Le moteur utilise le PRNG partagé (graine par défaut 458), un pas fixe de 1000/60 ms et aucune horloge externe. Entrée de 1500 ms échelonnée de 100 ms par ennemi, courbes déterministes ; oscillation calculée sur l'âge local, donc ralentie par l'onde. Piqués vers la position mémorisée du joueur. Trois vies, invulnérabilité de 1000 ms, 10 points par ennemi (30 en piqué). Un capteur par vague conserve la silhouette de nacelle et libère une arme à ramasser. Le champ historique de double canon reste lisible dans les anciens états, mais les nouvelles parties ne le distribuent plus ; ramasser une nouvelle arme le remplace.
@@ -1336,15 +1852,15 @@ Vagues de respiration : 6, 11, 17 et 24 (quatre ennemis, pas de tir ordinaire ; 
 | 4 | Escortes | Boucliers frontaux ; rebonds | Rebond |
 | 5 | Gardien des flancs | Mini-boss : pince convergente | Rebond |
 | 6 | Escale | Respiration sans tir ordinaire | Rayon |
-| 7 | Champs de mines | Mines à explosion différée ; aimant | Aimant |
+| 7 | Ceinture de bambou | Mines à explosion différée ; aimant | Aimant |
 | 8 | Boucliers et mines | Combinaison des deux menaces | Rebond |
-| 9 | Rafales croisées | Rafales + essaim rapide | Drones |
+| 9 | Nébuleuse écarlate | Rafales + essaim rapide | Drones |
 | 10 | Scission | Deux fragments par scindeur ; gardien mineur | Rayon |
 | 11 | Halte | Respiration avec scindeurs | Rayon |
 | 12 | Éclats rapides | Scission + essaim rapide | Onde |
 | 13 | Spirales | Kamikazes en spirale | Onde |
 | 14 | Spirales minées | Spirales + mines | Aimant |
-| 15 | Gardien des rafales | Mini-boss : visée de la position du joueur | Aimant |
+| 15 | Royaume des étoiles | Mini-boss : visée de la position du joueur | Aimant |
 | 16 | Tourelles portées | Lanceurs guidés portés ; charge | Charge |
 | 17 | Répit | Respiration avec tourelles | Drones |
 | 18 | Convoi protégé | Tourelles + boucliers | Rebond |
@@ -1373,7 +1889,9 @@ Le contrôle G01 maintient Espace (bureau) ou le bouton tactile pendant la simul
 
 ## Dédale
 
-Une luciole cherche des graines et quatre soleils dans trente labyrinthes
+Passe 82 : le compagnon choisi est le héros ; Lueur révèle 3 s le chemin vers le soleil le plus proche (Characters).
+
+Le compagnon cherche des graines et quatre soleils dans trente labyrinthes
 19×23. La progression et les clés de sauvegarde communes restent compatibles.
 `loadState` accepte aussi les anciens états sans extension `journey` : ils
 conservent les déplacements et collisions historiques. Aucun tirage aléatoire
@@ -1418,6 +1936,29 @@ Les règles suivantes se cumulent, avec des marqueurs et une instruction dans le
   Le traqueur poursuit ; le devin anticipe trois cases. Les impasses permettent
   aux follets un demi-tour si aucune autre sortie n'existe.
 - Niveau 28 : seconde couleur, exigeant sa propre clé.
+
+**Dosage par niveau (passe 503, `encounters()`).** Les règles ci-dessus donnent la **première apparition** ;
+elles ne se cumulent plus toutes sur chaque plateau, toujours aux mêmes fractions du chemin. Chaque niveau tire sa
+composition : défis (tous les cinq) et final, tout l'acquis ; respirations, la seule nouveauté ; niveau
+d'introduction, la nouveauté plus une famille ancienne ; les autres, la nouveauté plus deux anciennes en rotation.
+Les familles (clé, flèche, portail, interrupteur, mur cyclique, glace, ombres, seconde couleur) occupent des
+fenêtres égales entre 8 % et 88 % du chemin, dans un ordre qui tourne d'un niveau à l'autre ; clé avant porte et
+interrupteur avant grille sont conservés. Deux niveaux voisins n'ont jamais la même suite de rencontres, et chaque
+famille revient dans chaque chapitre après son introduction. Le HUD (`src/games/dedale/lessons.ts`) nomme la famille la plus récente réellement présente, et les rôles de
+follets seulement au niveau 25 où ils apparaissent.
+D-MIX (`tests/variety-e.ts`, Vitest et Node) verrouille ces propriétés et la correspondance plateau ↔ plan ;
+trois mutations rejetées ; les 60 parties BFS sont réenregistrées. Le niveau 26 est la **revue** : tout l'acquis
+aux fractions historiques, avec son sel d'origine (un mélange tournant y donnait toujours un parcours long qui
+recouvrait le court parcours du niveau 2 au-delà de 30 %). Ses portails gardent l'écart historique de 0,02 du chemin (souvent une seule case) : c'est une
+exception assumée de la revue, la règle des trois cases vaut pour tous les autres niveaux. La flèche a sa propre
+fenêtre comme les autres familles (première portion droite de la fenêtre). La glace est posée sur la première portion droite de sa
+fenêtre (elle glisse vraiment) et les portails sont distants d'au moins trois cases (vrai raccourci). Les sels des
+niveaux 20, 24 et 27 à 30 ont été re-sélectionnés par recherche : victoire BFS sur les graines 28 et 459, D-ROUTE ≤ 30 %
+contre tous les niveaux, D-CURVE et, pour le final, les onze témoins de D-FINAL.
+
+**Oracles sans horloge (passe 503).** `test-dedale.js` et `validate-dedale.js` ne comparent plus le temps écoulé
+à 2 s : ils comptent les appels à `Engine.step` et les comparent à des budgets fixes (`scripts/dedale-step-budgets.js`,
+mesure × 1,5). Une machine chargée ralentit un contrôle sans changer son nombre d'étapes ; le temps reste affiché.
 
 Respirations aux niveaux 6/11/17/22/27 : un traqueur, soleils de 12 s.
 Défis à 5/10/15/20/25 : combinaison des règles acquises avec 25 s de temps réel
@@ -1531,6 +2072,8 @@ le solveur réel et la géométrie des anneaux, spirales et miroirs.
 
 ## Ferraille
 
+Passe 84 : Super-tir frontal de courte portée, trois dégâts et dix secondes de recharge ; contrat Characters ci-dessus.
+
 Robot de récupération original dans trente ateliers à défilement horizontal.
 Tout est dessiné par code ; les sons sont synthétisés par le son global. Aucun
 asset externe ni dépendance ajoutée. Le moteur pur est dans
@@ -1566,71 +2109,103 @@ réorienter à 1300 ms ; volant en sinusoïde (amplitude 22 px), bombes soumises
 tourelle fixe, rotation limitée à 0,012 rad/pas et salve de trois tirs à 2000 ms.
 Les ennemis s'activent à 360 px ; aucune IA n'utilise de hasard en cours de jeu.
 
-### Générateur des trente niveaux — passe 51
+### Trente parcours écrits — passe 103
 
-`levels.ts` décrit explicitement thèmes, structures, rencontres, armes et
-motifs des gardiens. Le générateur garantit chaque type annoncé, y compris
-sur les niveaux peu peuplés. Les blocs gardent leur enveloppe physique et
-leurs emplacements sûrs ; des sols en marches et plateformes hautes rendent
-les montées/descentes jouables. Le wagonnet avance à 210 px/s (±30 avec le
-joystick), avec le même saut ; la caméra suit son déplacement. Trois cages
-s'ouvrent après trois tirs ou une explosion et accordent chacune 300 points.
-Les sauvetages sont optionnels pour la sortie, et leur compte figure au HUD.
+`levels.ts` contient trente séquences littérales de cinq modules ; la graine
+ne choisit plus ni terrain ni cycles physiques ; elle ne décale que le décor. Chaque niveau commence par une démonstration sans
+dégât du module vedette à x=128, puis son défi à x=352. Les deux premières
+sections offrent l'exploration ; la suite combine les mécanismes et les
+rencontres. Un drapeau visible à x=800 marque le point de contrôle médian.
+La sortie est à x=1712. Le nom et l'idée restent affichés 120 ticks (2 s).
 
-Gardiens aux niveaux 5/10/15/20/25 : éventail, onde au sol, pluie de bombes,
-balayage séquentiel, tirs convergents des deux côtés. Chaque cycle attaque à 600 ms, avant toute ouverture. Le cœur reste protégé pendant 1200 ms, s'ouvre pendant
-1200 ms après l'attaque puis recommence. À 330 px ou plus, l'horloge et
-le déclenchement des attaques restent figés ; revenir ne rejoue pas une attaque.
-Le HUD et le cœur exposé signalent cette faiblesse. Le réacteur final au 30 alterne éventail, ondes au sol puis bombes
-aux seuils des deux tiers et du tiers de vie. Les trois phases changent donc
-la géométrie de l'attaque. Les respirations 6/11/16/21/26 offrent respectivement
-montée, ricochet, volant, grenade et bouclier, avec un seul ennemi garanti.
+Seize mécanismes physiques dans `modules.ts` : convoyeur +0,4 px/pas au sol ;
+vent −0,6 px/pas ; piston fermé aux ticks [100,145[ d'un cycle de 180 ;
+pont dont 48 px s'effondrent au 36e tick après entrée ; ascenseur vertical
+(amplitude 28 px) ; chaîne oscillante horizontale (20 px) ; interrupteur
+à viser vers le haut pendant 18 ticks ; mur secret détruit après 30 ticks
+de tir, donnant un seul bouclier lors de la transition d’ouverture ; caisse poussée de 0,8 px/pas sur 48 px ; tour
+à tourelle surélevée ; cabane à cage libérable ; projecteur alternant toutes
+les 90 ticks, seul son faisceau autorise les sentinelles à agir ; aiguillage
+qui entraîne de 1 px/pas et bifurque vers le haut ; lave montant de 0,4 px/pas
+jusqu'à 80 px, dangereuse après 100 ticks ; conduit de 16 px à franchir
+accroupi ; tremplin d'impulsion −390 px/s. Les plateformes portent réellement
+le héros. Les caisses et portes interrompent sa course. Les ponts et la lave
+se réarment à la réapparition pour laisser le point de contrôle franchissable.
 
-Quatre décors dessinés par code : cheminées d'usine, dunes, arbres et tours
-éclairées de base nocturne ; deux couches en parallaxe, sans asset externe.
-Couleurs et noms sont exclus du calcul des nouveautés.
+Les gardiens 5/10/15/20/25/30 conservent leurs six motifs et leur cycle
+protégé/ouvert de 1200/1200 ms ; chacun possède une dernière instance de sa
+vedette dans l'arène. Leurs PV vont de 8 à 13 : le défi progresse avec les
+combinaisons et les arènes plutôt que par l'allongement de la barre de vie.
+Le tir horizontal reste horizontal quand le héros avance accroupi.
+Les wagonnets et sauvetages existants sont conservés. Les ajouts de cabanes
+peuvent porter le nombre d'otages au-delà de trois.
 
-| N° | Thème | Structure | Découverte / rythme | Ennemis |
-| ---: | --- | --- | --- | --- |
-| 1 | Usine | Corridor | Patrouilles | rampant |
-| 2 | Usine | Corridor | Tireur : visée verrouillée | tireur, rampant |
-| 3 | Usine | Corridor | Combinaison | tireur, rampant |
-| 4 | Usine | Corridor | Lance-flammes | tireur, rampant |
-| 5 | Usine | Arène | Gardien : éventail | tireur, rampant |
-| 6 | Désert | Montée | Respiration · Montée à étages | rampant |
-| 7 | Désert | Descente | Descente à étages | tireur, rampant |
-| 8 | Désert | Corridor | Kamikaze | kamikaze, tireur |
-| 9 | Désert | Montée | Combinaison | kamikaze, tireur |
-| 10 | Désert | Arène | Gardien : onde au sol | kamikaze, tireur |
-| 11 | Jungle | Corridor | Respiration · Tir rebondissant | rampant |
-| 12 | Jungle | Wagonnet | Wagonnet | kamikaze, tireur |
-| 13 | Jungle | Montée | Combinaison | kamikaze, tireur |
-| 14 | Jungle | Corridor | Tourelle à rotation lente | tourelle, kamikaze |
-| 15 | Jungle | Arène | Gardien : pluie de bombes | tourelle, kamikaze |
-| 16 | Base de nuit | Corridor | Respiration · Volant bombardier | volant |
-| 17 | Base de nuit | Wagonnet | Combinaison | volant, tireur |
-| 18 | Base de nuit | Otages | Otages | volant, tireur |
-| 19 | Base de nuit | Montée | Combinaison | volant, tireur |
-| 20 | Base de nuit | Arène | Gardien : balayage | tourelle, kamikaze |
-| 21 | Usine | Corridor | Respiration · Grenades | rampant |
-| 22 | Usine | Otages | Combinaison | volant, tireur |
-| 23 | Usine | Wagonnet | Combinaison | tourelle, kamikaze |
-| 24 | Usine | Corridor | Blindé : dos ou retournement | blindé, volant, kamikaze |
-| 25 | Usine | Arène | Gardien : tirs croisés | blindé, volant, kamikaze |
-| 26 | Désert | Otages | Respiration · Bouclier de sauvetage | blindé |
-| 27 | Jungle | Montée | Combinaison | blindé, volant, kamikaze |
-| 28 | Base de nuit | Wagonnet | Combinaison | blindé, volant, kamikaze |
-| 29 | Usine | Otages | Combinaison | blindé, volant, kamikaze |
-| 30 | Base de nuit | Arène | Réacteur : trois phases | blindé, volant, kamikaze |
+R01 (14), R02 (6) et R03 (24) conservent noms, décors et indices de sauvegarde.
+R01 fait jouer la tour dans le camp ; R02 met en scène l'ascenseur, les chaînes
+et sa voie haute à bonus ; R03 associe convoyeur, lave, piston et robots.
 
-`nice -n 19 ionice -c3 node scripts/validate-ferraille.js` exécute les scénarios
-F-ENEMY-01…06, F-WEAPON-01…04, F-BOSS-01…06, F-STRUCT/02, F-SAVE,
-F-TERRAIN, F-RENDER-01, F-DIV-01 et le pilote normal des trente niveaux
-sur les graines 460 (défaut) et 28. Le plafond du pilote est
-18000 pas par niveau, sans injection d'état, de vies ou de victoire. Les
-résultats par graine et treize mutations réellement rejetées, avec lignes, sont dans
-`docs/ferraille-validation.json`. Les signatures proviennent du générateur
-et des snapshots via le même adaptateur que le rapport de diversité.
+| N° | Nom | Module vedette | Séquence écrite |
+| ---: | --- | --- | --- |
+| 1 | Le quai roulant | Convoyeur | Convoyeur → Vent → Tour → Tremplin → Lave montante |
+| 2 | Les presses patientes | Piston | Piston → Vent → Conduit bas → Chaîne → Tremplin |
+| 3 | Le pont fragile | Pont fragile | Pont fragile → Aiguillage → Caisse → Tour → Mur secret |
+| 4 | Sous les conduites | Conduit bas | Conduit bas → Lave montante → Projecteur → Piston → Caisse |
+| 5 | La vanne de l’Éventreur | Interrupteur | Interrupteur → Piston → Pont fragile → Ascenseur → Projecteur |
+| 6 | Forteresse oubliée | Ascenseur | Ascenseur → Conduit bas → Convoyeur → Tremplin → Chaîne |
+| 7 | Les chaînes du rempart | Chaîne | Chaîne → Cabane → Interrupteur → Pont fragile → Vent |
+| 8 | La dune contraire | Vent | Vent → Mur secret → Conduit bas → Aiguillage → Cabane |
+| 9 | La cour des caisses | Caisse | Caisse → Vent → Aiguillage → Mur secret → Ascenseur |
+| 10 | Le tremplin du Pilon | Tremplin | Tremplin → Vent → Projecteur → Cabane → Conduit bas |
+| 11 | La cache des bambous | Mur secret | Mur secret → Ascenseur → Piston → Interrupteur → Tremplin |
+| 12 | Le rail bifurqué | Aiguillage | Aiguillage → Cabane → Ascenseur → Vent → Tremplin |
+| 13 | La passerelle suspendue | Pont fragile | Pont fragile → Interrupteur → Chaîne → Lave montante → Cabane |
+| 14 | Jungle mécanique | Tour | Tour → Ascenseur → Vent → Cabane → Chaîne |
+| 15 | Les chaînes du Scarabombe | Chaîne | Chaîne → Tour → Mur secret → Piston → Aiguillage |
+| 16 | Les faisceaux de nuit | Projecteur | Projecteur → Caisse → Aiguillage → Piston → Cabane |
+| 17 | Le conduit des sentinelles | Conduit bas | Conduit bas → Vent → Tremplin → Piston → Aiguillage |
+| 18 | Les cabanes prisonnières | Cabane | Cabane → Mur secret → Chaîne → Convoyeur → Tour |
+| 19 | Le monte-charge nocturne | Ascenseur | Ascenseur → Tour → Projecteur → Conduit bas → Caisse |
+| 20 | La rafale de la Faucheuse | Vent | Vent → Chaîne → Aiguillage → Piston → Pont fragile |
+| 21 | Le rythme des presses | Piston | Piston → Tour → Lave montante → Convoyeur → Mur secret |
+| 22 | La réserve cachée | Mur secret | Mur secret → Aiguillage → Convoyeur → Interrupteur → Chaîne |
+| 23 | Les rails de livraison | Aiguillage | Aiguillage → Projecteur → Tremplin → Ascenseur → Tour |
+| 24 | Usine infernale | Convoyeur | Convoyeur → Lave montante → Piston → Mur secret → Aiguillage |
+| 25 | La cuve de Tenaille | Lave montante | Lave montante → Tremplin → Pont fragile → Conduit bas → Chaîne |
+| 26 | Le refuge des dunes | Cabane | Cabane → Interrupteur → Tour → Projecteur → Convoyeur |
+| 27 | L’entrepôt empilé | Caisse | Caisse → Vent → Piston → Convoyeur → Projecteur |
+| 28 | Le rebond des étoiles | Tremplin | Tremplin → Conduit bas → Mur secret → Projecteur → Aiguillage |
+| 29 | La serrure du réacteur | Interrupteur | Interrupteur → Cabane → Convoyeur → Caisse → Projecteur |
+| 30 | Le dernier projecteur | Projecteur | Projecteur → Caisse → Interrupteur → Lave montante → Mur secret |
+
+`ferraille-diversity.js` mesure l'ordre par plus longue sous-séquence commune,
+normalisée par la longueur maximale : aucune des 435 paires ne dépasse 50 % ;
+les 29 transitions consécutives sont aussi publiées, avec distance des gestes
+réellement enregistrés (saut, accroupi, tir vers le haut, attente, marche/tir).
+La vedette doit être le premier module réellement rencontré et différer des deux précédentes ;
+au moins 14 mécanismes physiques sont exigés. Deux parcours identiques et une
+vedette répétée sont des contre-exemples testés. Le score historique garde
+sa formule ; son adaptateur inclut désormais les mécanismes physiques,
+leurs emplacements et leurs effectifs, en plus des tuiles et objets.
+Il passe de 11,2 à 0 ; ce score de configuration reste distinct de la mesure
+ordonnée de répétition, qui fait autorité pour les parcours.
+
+F-niv-01 vérifie les seize effets sur états littéraux ; F-niv-02 rejoue 180
+parties enregistrées (30 niveaux × graines 28/1/2026 × sans/avec Super-tir),
+pour chacun des cinq personnages aux règles identiques, soit 900 victoires.
+Les cas Vitest sont séparés par niveau/graine/mode et n'ont aucun oracle
+horaire. Calibration hors tests : `scripts/record-ferraille-levels.js`.
+F-niv-03 contrôle les 435 paires et les contre-exemples ; F-niv-04 recharge
+un véritable état de `dab7aed` après 120 pas, en conservant tous ses champs, puis poursuit la simulation.
+Les clés de progression et records sont inchangées ; aucun ancien terrain
+sauvegardé ne reçoit de nouveaux pièges lors du chargement.
+
+`npm run test:node` exécute `validate-ferraille-levels.js` et les tests
+historiques. Les onze mutations des passes 103 et 104 sont réellement exécutées
+et rejetées, avec lignes dans `tests/fixtures/ferraille-validation-104.json`.
+Les témoins du catalogue et des contrôles tactiles ont été réenregistrés.
+`tests/e2e/ferraille-levels.spec.ts`, écrit pour l'orchestrateur et non exécuté
+localement, prévoit les huit captures `ferraille-niveau-<n>` en 390×844 et les
+victoires 1/10 au doigt bruité ±12 px, 150 ms, en temps réel sans avance forcée.
 
 ### Correction de relecture — passe 52
 
@@ -1710,7 +2285,69 @@ Saut, Tir, Niveaux et Recommencer, les tailles minimales et l'absence de scroll.
 Chromium seul, un worker et fixture commune échouant sur toute erreur JS ou
 `console.error`. Captures play/level30/won/lost pour bureau et mobile.
 
+
+### Corrections de la passe 104
+
+Le piston partage une boîte physique et dessinée : x+16 à x+w−16,
+y−78 à y, mortelle uniquement pendant [100,145[ et en intersection sur les
+deux axes. Le mur secret plafonne à 30 et n’accorde son bonus qu’à l’ouverture,
+y compris après relâchement et reprise du tir.
+
+Les introductions construisent ascenseur, plateforme sur chaîne, cage et
+plafond de conduit comme les défis. Les tourelles et sentinelles introductives
+sont des cibles inertes. Le pont introductif s’effondre au 36e pas ; un fond
+à y=272 empêche toute chute dangereuse. Le pilote traverse chaque introduction
+sans perdre de vie ; des attentes de 400 pas vérifient aussi les cycles.
+
+Les distances utilisent exclusivement `moduleTrace` et `actionTrace` produits
+par les rejeux : introductions, arènes et nouvelles rencontres après une
+réapparition sont comptées, un module généré mais jamais atteint est exclu.
+Les six groupes graine/mode respectent le plafond de 50 % avec 16 modules.
+Le rapport publié en passe 103 utilisait les modules générés : distance moyenne
+consécutive 0,8057471264367819 (gestes 0,5319850360367603). La mesure corrigée
+sur rencontres vaut 0,8413382594417077 (gestes 0,5400166029222825), pour la
+graine 28 sans Super-tir ; ces définitions différentes sont explicites.
+La référence `dab7aed` reste 5 modules et 85,714 % de similarité maximale ;
+la version corrigée a 16 modules et 50 %. Le score historique reste à 0.
+
+F-niv-03 fixe les distances en littéraux et isole chaque refus : recouvrement
+60 %, seulement 13 modules, vedette absente du premier contact et vedette
+répétée. `record-ferraille-legacy.js` utilise `git show dab7aed:<fichier>`
+pour matérialiser moteur, niveaux et dépendances historiques dans un dossier
+temporaire et produire `tests/fixtures/ferraille-dab7aed.json`.
+
+`ferraille-scene-checks.js` exécute le vrai dessin sous Node avec les ports
+graphiques substitués : annonce présente aux pas 0…119 puis retirée à 120,
+drapeaux visibles, boîte du piston et démonstrations dessinées. Les 900 rejeux
+passent par les moteurs des scènes des cinq personnages ; identité, atlas et
+expression de victoire sont vérifiés. `validate-ferraille-levels.js` exécute
+les corps de test contre les 11 mutations des passes 103 et 104, toutes tuées
+par assertion, et produit `tests/fixtures/ferraille-validation-104.json`.
+
 ## Alunir
+
+### Compagnon et stabilisation — passe 70
+
+Le personnage est dessiné dans la verrière du module et tourne avec lui ; son
+animation saut répond à la poussée, puis il célèbre l'atterrissage. La coque de
+collision et les seuils historiques restent ceux du polygone décrit ci-dessous.
+**Stabilisation** (Espace) : angle immédiatement nul, vitesse latérale multipliée
+par **0,5 une seule fois**, vitesse verticale inchangée, puis verrouillage de
+l'angle pendant **60 pas fixes = 1 s**, même avec une touche de rotation maintenue.
+Deux usages par niveau, **30 unités de carburant** par activation ; impossible
+si carburant <30, usage épuisé, état terminal ou stabilisation déjà active.
+À 30 unités exactement, elle fonctionne et laisse zéro. Le vent et la gravité
+continuent normalement ; il faut toujours piloter la descente. Le HUD montre les
+charges et la durée active en secondes ; bouton tactile de 56 px. Aucune
+recharge hors rechargement de niveau. Pas de modification de la formule du score.
+
+Scores de témoins, **pas des maxima optimisés** : pilote historique sans spécial
+= **1100 / 1020** aux niveaux 1 / 10. Pilote échantillonné à 150 ms et stabilisé
+à moins de 40 px de la plateforme = **1056 / 980**, graine 28. Les 30 scores sans
+spécial sont figés et rejoués ; le validateur couvre aussi 90 atterrissages sans
+spécial (graines 28, 1 et 2026). La stabilisation ne gagne jamais seule : elle
+ne freine pas la descente et consomme du carburant.
+
 
 Neuvième jeu original : un module doré doit se poser sur une terrasse turquoise.
 Aire logique 360×640, aucun asset externe, aucune marque ni dépendance ajoutée.
@@ -1784,9 +2421,9 @@ La vignette applique cette même politique au niveau 3, quatre pas par image.
 ### Commandes et intégration
 
 ↑/W : poussée ; ← →/A D : rotation à maintenir. Une seule rangée tactile :
-↺ et ↻ à gauche (56 px), Poussée à droite (76×64 px). La zone utile exposée
+↺ et ↻ à gauche (56 px), Poussée (76×64 px) et Stable (56 px) à droite. La zone utile exposée
 par le crochet est tout le canevas ; aucun bouton ne la recouvre.
-Le HUD tient en deux lignes de 13 px. Il est à y=10, ou à y=590 si le
+Le HUD tient en deux lignes de 11 px, charges et durée incluses. Il est à y=10, ou à y=590 si le
 haut du module passe au-dessus de y=65, pour ne jamais masquer celui-ci.
 Le crochet Alunir expose aussi `bounds()` (polygone avec contour et HUD).
 Le parcours E2E convertit ces boîtes vers le rectangle écran du canevas et
@@ -1834,6 +2471,60 @@ Vitest et Playwright sont écrits et relus ici, mais leur exécution appartient
 
 ## Caisses
 
+### Compagnon et tirage — passe 70
+
+Le personnage remplace le pousseur sur sa case, marche et regarde dans le sens
+du déplacement. **Tirer** (ou Espace), puis une direction vers la caisse, fait
+reculer le héros d'une case et ramène la caisse sur l'ancienne case du héros.
+Un seul tirage réussi par niveau ; mur derrière, caisse derrière ou absence de
+caisse devant : refus sans consommation. Un tirage compte **un pas, zéro poussée**.
+Annuler restaure la position et les compteurs mais ne rembourse jamais la charge ;
+Recommencer la restaure. L'effet dure 800 ms, sans recharge additionnelle. Le HUD
+montre charge, sélection directionnelle et records de poussées sans/avec tirage.
+Six boutons de 56 px occupent 356 px à 390 px de largeur ; sous 380 px, la colonne
+droite passe sur deux lignes pour préserver chaque cible tactile.
+
+`solve(board, objective, true)` ajoute l'arête de tirage et sa disponibilité à
+la clé A*. Les anciennes signatures et recherches sans tirage sont conservées.
+La variante optionnelle utilise une borne de Manhattan diminuée d'une unité
+et ne rejette pas les cases récupérables par tirage. Les nouveaux minima en
+`records.ts` sont recalculés par le validateur et tous les témoins sont rejoués.
+Les minima en pas et en poussées sont optimisés séparément.
+
+| Niveau | Poussées sans / avec | Pas sans / avec |
+| --- | --- | --- |
+| 1 | 1 / 0 | 2 / 2 |
+| 2 | 2 / 1 | 5 / 5 |
+| 3 | 2 / 1 | 8 / 8 |
+| 4 | 2 / 1 | 6 / 6 |
+| 5 | 2 / 1 | 9 / 9 |
+| 6 | 4 / 3 | 10 / 10 |
+| 7 | 4 / 3 | 12 / 12 |
+| 8 | 4 / 3 | 14 / 14 |
+| 9 | 4 / 3 | 15 / 15 |
+| 10 | 4 / 3 | 14 / 14 |
+| 11 | 6 / 5 | 16 / 16 |
+| 12 | 6 / 5 | 18 / 14 |
+| 13 | 6 / 5 | 19 / 19 |
+| 14 | 7 / 6 | 10 / 10 |
+| 15 | 7 / 6 | 11 / 11 |
+| 16 | 8 / 7 | 14 / 12 |
+| 17 | 8 / 7 | 11 / 11 |
+| 18 | 10 / 7 | 17 / 17 |
+| 19 | 10 / 9 | 15 / 15 |
+| 20 | 10 / 9 | 20 / 20 |
+| 21 | 11 / 10 | 21 / 21 |
+| 22 | 11 / 10 | 23 / 23 |
+| 23 | 11 / 10 | 23 / 23 |
+| 24 | 11 / 10 | 20 / 20 |
+| 25 | 11 / 10 | 21 / 21 |
+| 26 | 12 / 11 | 20 / 20 |
+| 27 | 12 / 11 | 21 / 19 |
+| 28 | 13 / 12 | 21 / 21 |
+| 29 | 13 / 12 | 19 / 19 |
+| 30 | 13 / 12 | 19 / 19 |
+
+
 Dixième jeu, `caisses`, puzzle au tour par tour (`realtime: false`). Aucun
 hasard de règle, aucune défaite, aucun écran Prêt ni pause. Les effets nommés
 `move`, `push`, `undo`, `won` utilisent le son commun ; la victoire utilise donc
@@ -1843,7 +2534,7 @@ socle. Aucun fichier de `src/shell` modifié.
 ### Règles et présentation
 
 Un pas cardinal traverse le sol libre ; une seule caisse peut être poussée si
-la case suivante est libre. Aucune traction. Toutes les caisses sur des cibles
+la case suivante est libre. Les déplacements ordinaires ne tirent pas. Toutes les caisses sur des cibles
 terminent le niveau. Les entrées directionnelles sont alors gelées ; Annuler
 reste possible et restaure le cumul d'avant le niveau. Le panneau de
 progression propose de poursuivre ou rejouer. Annulation illimitée des pas
@@ -1860,44 +2551,49 @@ une défaite inexistante : le menu propose Recommencer et ↶ reste disponible.
 Flèches ou QSD / **Maj+Z** pour monter ; W/A aussi acceptés. **Z** sans Maj
 ou Retour arrière annule ; R recommence. Ce choix explicite résout le conflit
 entre ZQSD et Z pour annuler. Glisser déclenche un pas ; quatre boutons
-fléchés et ↶ sont alignés, chacun 56×56 px, sur une rangée de 64 px maximum.
+fléchés, ↶ et Tirer sont alignés, chacun 56×56 px (disposition étroite ci-dessus).
 Recommencer est dans ☰ sur mobile pour tenir à 360 px ; sur bureau il est dans
 le menu commun. Aucun contrôle ne recouvre le canevas 360×640, qui est la zone
-utile exposée. Les cinq boutons prennent 296 px avec leurs espacements.
+utile exposée. Les six boutons prennent 356 px avec leurs espacements à 390 px.
 
-### Trente ateliers originaux
+### Trente ateliers (passe 403)
 
-`levels.ts` contient les trente grilles textuelles littérales composées pour
-ce jeu, sans collection externe : `#` mur, espace sol, `.` cible, `$` caisse,
-`@` joueur. L'analyseur accepte aussi `*` caisse sur cible et `+` joueur sur
-cible ; il refuse les rectangles irréguliers, symboles inconnus, bords ouverts,
-nombres de caisses/cibles différents et joueurs absents ou multiples.
+`levels.ts` garde onze ateliers historiques (figés par l'A* exact, mêmes
+records) et ajoute dix-neuf ateliers à mécanisme. Une mécanique neuve arrive tous
+les quatre à cinq ateliers, puis revient combinée ; les ateliers 5, 10, 15, 20
+et 25 sont des **défis à budget de pas** ; le 30 combine tout.
 
-Les grilles sont des petites salles originales (au plus 8×8), avec six
-familles de géométrie : pilier central, piliers décalés, double pilier,
-étranglement, îlots alternés et cour centrale. Les positions de caisses,
-cibles et joueur sont propres à chaque atelier ; aucune collection externe
-n'est utilisée. Les grilles finales sont figées en littéraux, sans génération
-à l'exécution. Le premier atelier garde l'apprentissage en deux entrées ;
-les suivants imposent repositionnements et virages autour des obstacles.
+| Atelier | Nouveauté | Symbole | Règle exacte (`src/engines/caisses/rules.ts`) |
+| --- | --- | --- | --- |
+| 4 | **Glace** | `~` | Une caisse poussée sur la glace continue dans le même sens tant que la case suivante l'accepte ; elle s'arrête sur la première case hors glace ou devant un obstacle ; un trou l'avale. Le joueur ne glisse pas. |
+| 5 | **Budget** | — | `budget` pas au plus (min + max(4, 30 %)) ; au budget atteint sans victoire, la tentative est perdue ; Annuler reprend. |
+| 8 | **Sens unique** | `< > ^ v` | On n'entre sur la case que dans le sens de la flèche, joueur comme caisse. |
+| 12 | **Bouton et porte** | `o`, `\|` | Une porte exige au moins un bouton. La porte est franchissable tant qu'une caisse ou le joueur presse un bouton (évalué avant le pas), ou tant que quelque chose occupe le seuil. |
+| 16 | **Trou** | `O` | Infranchissable à pied ; une caisse poussée dedans le comble et disparaît ; la case devient du sol. Les salles à trou ont une caisse de plus par trou. |
+| 21 | **Plots** | `1`, `2` | Le joueur qui arrive sur un plot ressort sur l'autre s'il est libre ; les caisses ne voyagent pas. |
+| 26 | **Couleurs** | `r`, `R` | Une caisse rouge ne compte que sur une cible rouge, une dorée que sur une dorée. |
 
-Les six paliers de cinq niveaux ont respectivement 1, 2, 3, 4, 5 et 6 caisses.
-Les minimums de poussées ne décroissent pas (1 à 13). Certaines caisses
-commencent sur cible : il faut décider si elles doivent rester en place ou
-être déplacées. `minimumSteps` est le véritable minimum de déplacements,
-calculé indépendamment du minimum de poussées ; les deux solutions optimales
-peuvent donc différer. C06 rejoue le témoin optimal en pas et vérifie le score.
+Le tirage optionnel (passe 70) reste valable partout : il ne fait jamais glisser
+la caisse. L'analyseur accepte les nouveaux symboles, refuse un plot seul ou répété, et exige assez de caisses de chaque couleur (égalité stricte sans trou).
 
-C10b suit les identités des caisses pendant la solution optimale en poussées.
-Un **virage** est un changement de direction entre deux poussées de la même
-caisse (demi-tour inclus, même si une autre caisse est poussée entre-temps).
-Un **détour** est une séquence d'au moins deux déplacements sans poussée
-entre deux poussées consécutives, approche initiale exclue. Un simple pas
-pour rejoindre l'arrière d'une caisse ne compte donc pas. Dès le niveau 4,
-chaque solution comporte au moins un virage et un détour. C10c compare la
-**moyenne arithmétique de `visited` par palier de cinq**, sans imposer une
-hausse à chaque niveau individuel. `visited` compte les états distincts
-retenus par la recherche en poussées, avec ordre de départage déterministe.
+Les dix-neuf ateliers à mécanisme ont été trouvés par une recherche hors ligne
+(salles aléatoires résolues, **chaque mécanisme présent utilisé par le témoin
+minimal en pas** — glissade, flèche franchie, seuil de porte franchi, trou
+comblé, téléportation — et, sans trou, salle neutralisée invalide, insoluble ou
+à au moins 4 pas d'écart), puis figés en littéraux ; `usage()` (rules.ts) est
+l'oracle de C21 et de `validate-caisses.js`. `solve()` choisit l'A* historique pour une salle sans mécanisme et
+une recherche exacte 0-1 en largeur sur les positions complètes (joueur, caisses
+et couleurs, trous comblés, tirage utilisé) sinon ; chaque arête est le `push`
+ou le `pull` du moteur. `scripts/validate-caisses.js` vérifie les records
+exacts, le budget en positions visitées (≤ 300 000, sans horloge) et l'effet de
+chaque mécanisme ; `scripts/record-caisses.js` écrit les quatre preuves par
+atelier (`tests/fixtures/caisses-campaign.json`) et `records.ts`. Vitest rejoue
+ces preuves et ne re-résout que les salles historiques. Sur un défi, une preuve
+plus longue que le budget se termine en défaite au budget (vérifié tel quel).
+
+Diversité mesurée (`scripts/caisses-diversity.js`) : 56,9 → **24,1**, un seul
+couple voisin sous le seuil de clone (ateliers 1-2), plus long écart sans
+nouveauté 4. Partie au doigt : ateliers 1 et 14 (glace et flèches).
 
 ### Mesure Node, passe 34
 
@@ -1905,7 +2601,7 @@ Commande reproductible, sans Vitest ni Playwright ni nouvelle dépendance :
 `node --import ./scripts/ts-loader.js scripts/validate-caisses.js`.
 Le chargeur utilise le compilateur TypeScript déjà installé dans le dépôt.
 Le script vérifie C08/C09, les deux minimums, rejoue les deux solutions dans
-le moteur, vérifie les dimensions, C10b, C10c et le budget de 1 s par niveau
+le moteur, vérifie les dimensions, C10b (salles historiques) et, depuis la passe 403, un budget en positions visitées au lieu du budget de 1 s par niveau
 pour les deux recherches cumulées. Les durées dépendent de la machine.
 
 | Niveau | Caisses | Pas min. | Poussées min. | visited | Durée ms¹ | Virages | Détours |
@@ -2000,11 +2696,63 @@ projets. Aucun résultat d'exécution de ces suites n'est présumé.
 
 ## Traverse
 
+### Compagnon et bond — passe 70
+
+Le personnage remplace le carré du traverseur, avec face/profil, saut et réactions.
+Son dessin vectoriel de 40 px reste dans sa case de 38 px (contours du corps),
+avec les effets du spécial autour. **Bond** (Espace) réserve une seule charge par
+vie, immédiatement, puis saute de deux rangées vers le haut au prochain quantum.
+La case intermédiaire est survolée ; la destination subit les deux contacts et
+le transport ordinaires. Aucun bouclier. Une arrivée dans un abri ne recharge
+pas ; une vie perdue ou un niveau rechargé rend la charge. Effet 500 ms, pas de
+recharge temporelle. Le HUD de 12 px indique BOND 0/1 ou 1/1 ; cinq boutons de
+56 px occupent 296 px. Le score complet reste identique sans/avec : 300 au
+niveau 1, 3000 au niveau 10, 15000 au niveau 30 (trois vies intactes).
+
+Le BFS historique n'inclut toujours pas le bond. `solveWithBond` prouve un
+parcours qui l'emploie exactement une fois, en ajoutant sa disponibilité à l'état.
+Les minima autorisant le bond sont le minimum des deux preuves. Tableau depuis
+le départ à phase zéro vers l'abri médian, graine 28, en quanta :
+
+| Niveau | Quanta sans / avec |
+| --- | --- |
+| 1 | 16 / 15 |
+| 2 | 16 / 14 |
+| 3 | 16 / 14 |
+| 4 | 16 / 15 |
+| 5 | 16 / 15 |
+| 6 | 18 / 15 |
+| 7 | 18 / 15 |
+| 8 | 18 / 15 |
+| 9 | 18 / 16 |
+| 10 | 18 / 15 |
+| 11 | 20 / 16 |
+| 12 | 20 / 14 |
+| 13 | 20 / 16 |
+| 14 | 20 / 15 |
+| 15 | 20 / 15 |
+| 16 | 22 / 17 |
+| 17 | 22 / 18 |
+| 18 | 22 / 17 |
+| 19 | 22 / 19 |
+| 20 | 22 / 17 |
+| 21 | 24 / 19 |
+| 22 | 24 / 15 |
+| 23 | 24 / 16 |
+| 24 | 24 / 22 |
+| 25 | 24 / 19 |
+| 26 | 26 / 17 |
+| 27 | 26 / 18 |
+| 28 | 26 / 17 |
+| 29 | 26 / 16 |
+| 30 | 26 / 19 |
+
+
 Onzième jeu, `traverse`, temps réel. Grille originale de 9×15 cases, départ
 (4,14), abris en rangée 0. Flèches/ZQSD : une entrée = un pas, sans répétition
 clavier ; une file conserve les entrées rapides jusqu'au prochain quantum.
 Toucher l'aire monte ; un glisser émet une seule direction au relâchement.
-Quatre boutons de 56×56 sont sur une rangée de 64 px. P/Échap et les panneaux
+Cinq boutons de 56×56 sont sur une rangée de 64 px. P/Échap et les panneaux
 communs gèrent Prêt, pause, menu mobile, progression et sauvegarde
 `arcade-lab:traverse:v1`. Effets synthétisés `step`, `life`, `won`, `lost`.
 Aucune modification de `src/shell`, dépendance ou ressource externe.
@@ -2135,7 +2883,7 @@ Le crochet `__ARCADE_TEST__.games.traverse` expose read/loadLevel/advance,
 hudText/usefulArea/bounds et des scénarios `finish` (dernier abri à un pas)
 et `danger` (une vie devant un véhicule réel), sans changer les règles.
 Le HUD occupe une bande séparée au-dessus de y=64 ; la zone utile est
-(9,64,342,570). Héros de 24 px, obstacles de 34×26 px sur cases de 38 px.
+(9,64,342,570). Héros vectoriel sur case de 38 px, obstacles de 34×26 px sur cases de 38 px.
 Les boîtes HUD/héros réellement dessinées sont exposées par bounds.
 
 `tests/e2e/traverse.spec.ts` écrit les parcours bureau/mobile avec victoire
@@ -2149,7 +2897,40 @@ Vitest et Playwright ne sont pas exécutés ici ; leur exécution et les capture
 restent à vérifier par l'orchestrateur.
 
 
+
+### Les 30 traversées (passe 404)
+
+`src/engines/traverse/levels.ts` (`PLANS`) ajoute à chaque traversée générée
+des règles écrites ; les sels de flux de `generate()` ont été recalibrés pour que
+chaque traversée soit gagnée par la BFS espace-temps. Une règle neuve tous les
+quatre à cinq niveaux ; les niveaux 5, 10, 15, 20 et 25 sont des **défis à une
+seule vie** ; le flux ralentit (`slower`, quanta plus longs) sur la traversée qui
+suit chaque défi et sur chaque introduction.
+
+| Niveau | Nouveauté | Règle exacte |
+| --- | --- | --- |
+| 4 | **Feux** | Une voie routière à feu reste immobile pendant les quanta `t` où `t % 6 < 2` ; le feu est dessiné à gauche de la voie. |
+| 7 | **Rondins plongeurs** | Immersion `1 + floor((i-6)/6)` quanta sur 18 (avant : dès le niveau 10). |
+| 8 | **Rapides** | `speed = 2` : la voie avance de deux cases par quantum et le rondin emporte de deux. |
+| 12 | **Marée** | Le sens de la voie s'inverse tous les `period` quanta (déplacement cumulé triangulaire). |
+| 16 | **Rochers** | Cases de berge infranchissables : le pas est refusé, sans perte de vie. |
+| 21 | **Naufragé** | Il dérive sur un rondin non plongeur (à défaut, la première voie fluviale devient une voie de rondins stables : la règle ne disparaît jamais) ; le joueur qui arrive sur sa case le recueille (+300 × niveau). Les abris restent fermés (entrer = vie perdue) tant qu'il n'est pas recueilli. |
+| 26 | **Abris en file** | Seul le premier abri libre, de gauche à droite, est ouvert. |
+| 30 | Le dernier convoi | File, naufragé, feux, rapides, marée et rochers. |
+
+Le déplacement d'une voie est `travel(lane, phase)` (forme close, feux et marée
+compris) ; le transport d'un rondin est `drift = travel(t+1) − travel(t)`.
+`solve()` porte un bit « naufragé à bord » ; `crossingAction` (parties au doigt)
+le porte aussi et indexe la phase absolue. Preuves : `scripts/validate-traverse.js`
+(chaque abri seul si les abris ne sont pas en file, partie complète en vies
+intactes, bond, budget en positions visitées, sans horloge) et
+`tests/fixtures/traverse-campaign.json` rejouée par Vitest et
+`validate-character-games.js`. Parties au doigt : traversées 1 et 13. Diversité
+mesurée (`scripts/traverse-diversity.js`) : 41,4 → **21,6**, 0 % de clones.
+
 ## Dérapage
+
+Passe 72 : les cinq compagnons pilotent les karts (joueur et quatre IA), avec un sixième pilote neutre ; Élan et ses preuves suivent le contrat Characters ci-dessus.
 
 Douzième jeu, `derapage`, `realtime: true`. Course de karts originale,
 vue de dessus avec caméra suivant le joueur, fixe avec le nord en haut par défaut ; caméra tournante disponible dans ☰.
@@ -2564,3 +3345,250 @@ Résultats Z36 (aide activée, six karts) : niveaux 1, 3, 15 et Le Rocher :
 3 tours chacun, plus long arrêt 0,167 s (départ compris), 0 % hors piste.
 Le détail, l’ordre complet et les mutations sont dans
 `docs/derapage-joystick-validation.json` après validation Node.
+
+#### Corrections d'intégration — passe 73
+
+Serpentin peint le corps de la queue vers la tête, puis le personnage. Le validateur
+Node des scènes construit une vraie traversée du corps et verrouille l'ordre des
+appels de dessin. Il contrôle aussi les réactions issues d'une collision Dérapage,
+d'un tir Bubble attaché sans éclatement et d'une mort Serpentin, les compteurs du
+HUD avant/après usage, la géométrie de chaque rival et celle du pilote neutre.
+Le Joker est testé contre une bombe d'une autre couleur, avec témoin sans Joker.
+Les E2E tactiques comparent les mêmes positions et entrées avec/sans spécial :
+un unique tir Joker vide un groupe qui reste intact sans lui ; l'Esquive absorbe
+un contact réel avec le corps qui tue le témoin. Ces E2E sont écrits, non exécutés
+ici (ni navigateur ni Vitest).
+
+Dérapage : l'Élan des IA est volontaire. La politique de la passe 72 l'active une
+fois par tour lorsqu'une IA est en retard de plus de deux portes, roule à plus de
+16 unités/s et braque de moins de 0,12. Aucun tirage aléatoire supplémentaire.
+Même sans Élan du joueur, les IA accélérées modifient les contacts entre karts,
+les positions/classements et ensuite les bonus : les anciennes entrées ne donnent
+plus nécessairement la même trajectoire. Sur les bandes originales de `038a0c1`,
+les arrivées L1/L3/L5 passent de 3623/4083/3431 à 3614/4080/3397 pas ; L15 reste
+identique (3451). Les cinq IA emploient l'Élan dans chacune de ces quatre bandes ;
+le pilote n'en emploie aucun. Les bandes réenregistrées de la passe 72 restent testées.
+
+L'ancien oracle est conservé séparément dans `tests/derapage-recordings-038a0c1.ts`
+(copie exacte de Git). `scripts/validate-derapage-historical.js`, également appelé
+par le validateur Dérapage, rejoue ces quatre bandes et les 30 courses du pilote
+historique avec un moteur de test qui refuse tout Élan, IA comprises. Les empreintes
+SHA-256 de `tests/fixtures/derapage-038a0c1.json` proviennent du moteur ET de la
+physique de `038a0c1` (`node scripts/record-derapage-historical.js --record` ;
+la génération refuse des dépendances modifiées depuis cette référence). Elles
+couvrent la suite complète des états dynamiques à chaque pas : les six karts, contrôles, RNG, objets, chronos et coupe. Seul le nouveau
+champ inerte `specialMs: 0` est retiré ; toute activation est rejetée par assertion.
+Chaque rejeu est découpé en contrôles de 600 pas, chacun borné à 2 s réelles,
+avec empreinte historique intermédiaire et empreinte finale intégrale. Les résultats
+historiques sont préservés, y compris les classements perdants du pilote aux L11/L20/L24/L26.
+
+## Collier — présentation et contrôles
+
+Le treizième jeu, **Le Collier du Singe** (id `collier`), se renomme dans
+la seule constante `GAME_NAME` de `src/engines/collier/levels.ts`. Champ 360 × 640,
+pas fixe 1000/60 ms, PRNG partagé, snapshots sérialisables. Les parcours sont
+des courbes originales : ovales paramétriques, dont un ovale croissant, raccords circulaires tangents de
+rayon 40 et deux couloirs arrondis aux derniers niveaux. Une table d'abscisse
+curviligne à pas maximal d’une unité permet `pointAt(s)`, borné au départ et au trou. La longueur cible
+tronque le parcours sans agrandir ses coordonnées. Les courbes restent dans le
+champ utile, à 30 unités minimum du tireur ; les portions éloignées et les deux
+couloirs restent séparés d'au moins un diamètre hors tunnels. Deux tangentes à
+20 unités d'écart tournent de moins de 35°.
+
+La queue avance et pousse les perles en contact, espacées de 20 unités. Les six
+premières sont déployées ; jusqu'à douze sorties, le déroulé avance à 100 unités/s,
+puis à la vitesse du tableau. Chaque nouvelle perle entre à s = 0, même après disparition de la queue.
+La queue rejoint les segments distants avant de les pousser. Les couleurs viennent
+du PRNG à graine, en séries de une à trois perles : chaque nouvelle série change
+de couleur, donc jamais quatre identiques. Une série de trois émise ne déclenche
+aucun éclatement spontané. Au-delà de 85 %, danger
+et vitesse ×1,4 (×1,8 dès le niveau 25). Deux parcours indépendants partagent le
+tireur et le quota aux niveaux 29–30 ; chacun conserve sa propre queue et son trou.
+
+Le rendu ajuste uniformément chaque champ dans une zone de 312 × 456, avec
+marges pour les acteurs ; son rectangle de tracé couvre entre 60,3 % et 77,5 %
+de la zone utile 360 × 510. La transformation inverse est commune aux trois
+écouteurs de pointeur, et exposée par `view()` dans le crochet de test. Les perles
+ont un diamètre affiché de 23 unités et six silhouettes (cœur, étoile, banane,
+feuille, goutte, fleur), avec contour et reflet. Les bonus ont quatre icônes propres.
+Le meneur est dessiné sur 64 unités affichées ; le tireur sur 60. Son anneau de
+visée et sa flèche entourent la tête ; courante et réserve sont sous le visage.
+
+Les niveaux 1–8 présentent le Cirque Tutu, 9–16 la Jungle des bananes,
+17–24 la Fête foraine de nuit, 25–30 le Ciel arc-en-ciel. Chaque décor est dessiné
+une seule fois en texture, conservée pour les niveaux du même univers. Le rail
+clair bordé est dessiné en trois chemins continus pour limiter le coût du rendu.
+La sortie devient malle, panier, chapeau ou nuage selon l’univers ; son ouverture s’élargit au danger. Les éclatements dispersent le
+motif de la perle ; les réactions affichent « Combo ×N » et une petite secousse.
+Le meneur danse plus vite au danger. Avec mouvement réduit, le décor reste fixe,
+les particules et secousses sont désactivées, sans accélération de danse.
+
+Les titres des cartes gardent leur police et leur interligne : 20 × 1,2 = 24 px.
+Une hauteur commune de deux lignes (48 px) évite que le centrage du contenu
+des boutons décale une vignette de (48 − 24) / 2 = 12 px. Aucune règle de dessin
+des douze autres vignettes n’a changé.
+
+Un projectile de 650 unités/s maximum en vol, trajectoire droite, disparaît hors
+champ. Couleurs courante/suivante tirées uniquement parmi les couleurs présentes.
+La projection du contact sur la tangente choisit l'insertion avant/arrière.
+Un groupe contigu de trois ou plus contenant la perle insérée éclate (10 points
+par perle × multiplicateur). Après un éclatement, le segment avant s'arrête :
+bords identiques, attraction arrière à 100 unités/s jusqu'au contact puis nouvelle
+résolution ; bords différents, seule la queue referme le trou. Les résolutions
+successives augmentent le multiplicateur. Une traversée réelle d'un trou rapporte
+25 points, une seule fois par projectile. Les portions en tunnel sont invisibles
+et intouchables. Défaite à l'arrivée d'une tête au trou ; victoire après sortie
+du quota et disparition de toutes les perles, avec bonus égal à la distance
+restante du dernier groupe au trou (arrondie).
+
+Les bonus portés par les perles s'activent à l'éclatement : Ralentir ×0,5 pendant
+5000 ms ; Reculer à 60 unités/s pendant 1500 ms (arrêt au départ) ; Bombe détruit
+les perles à distance euclidienne ≤40 du prochain impact, mesurée avant tout
+déplacement dû à l’insertion ; Viser montre le point
+d'impact exact pendant 8000 ms. Une réactivation relance la durée, sans cumul.
+Les bonus disponibles sont introduits un par un tous les quatre niveaux ; une
+perle bonus toutes les N sorties (colonne rareté), avec type choisi à graine.
+
+Tutu danse devant la tête, s'inquiète au danger, célèbre les combos de trois
+résolutions et devient triste en cas de défaite. Si le tireur choisi est Tutu,
+Boubou mène le collier. Le tireur utilise `GameCharacter` et donc le choix de
+l'accueil ; aucun paramètre de règle ne dépend de son identité. CaliRoux tire
+visuellement la queue pendant Reculer. Dessins et sons sont procéduraux.
+
+Au doigt ou à la souris : viser partout puis relâcher ; guide pointillé au-delà
+du doigt ; Viser le borne au point d'impact exact. Appui commencé sur le tireur ou la
+réserve, déplacement maximal strictement inférieur à 10 unités logiques : échanger
+sans tirer, quelle que soit la durée (y compris 600 ms). Une excursion de 10 unités
+ou plus reste un glissé, même après retour au départ. Le bouton ⇄ de 56 px échange aussi. Clavier : ← →, Espace, X,
+P/Échap. Le socle assure Prêt ?, pause, ☰, panneaux, sélection des niveaux et
+progression sauvegardée dans `arcade-lab:collier:v1`. Le hook de scène
+`__COLLIER_TEST__` offre lecture, HUD, aire utile, chargement, avance temporelle
+et trois états presque finis résolus par les règles ordinaires.
+
+| Niv. | Forme | Couleurs | Quota | Vitesse | Longueur | Bonus disponibles | Rareté N | Nouveau ressort |
+| ---: | --- | ---: | ---: | ---: | ---: | --- | ---: | --- |
+| 1 | Ovale croissant | 3 | 24 | 4.00 | 1050 | — | 6 | chaîne |
+| 2 | Ruban en S | 3 | 26 | 4.16 | 1045 | — | 6 | — |
+| 3 | Serpent | 3 | 28 | 4.32 | 1040 | — | 6 | — |
+| 4 | Arche arrondie | 3 | 30 | 4.48 | 1035 | — | 6 | — |
+| 5 | Fer à cheval | 3 | 32 | 4.64 | 1030 | Ralentir | 7 | Ralentir |
+| 6 | Zigzag | 3 | 34 | 4.80 | 1025 | Ralentir | 7 | — |
+| 7 | Cœur ouvert | 3 | 36 | 4.96 | 1020 | Ralentir | 7 | — |
+| 8 | Ovale ouvert | 3 | 38 | 5.12 | 1015 | Ralentir | 7 | — |
+| 9 | Ovale croissant | 4 | 40 | 5.28 | 1010 | Ralentir, Reculer | 8 | Reculer |
+| 10 | Ruban en S | 4 | 42 | 5.44 | 1005 | Ralentir, Reculer | 8 | — |
+| 11 | Serpent | 4 | 44 | 5.60 | 1000 | Ralentir, Reculer | 8 | — |
+| 12 | Arche arrondie | 4 | 46 | 5.76 | 995 | Ralentir, Reculer | 8 | — |
+| 13 | Fer à cheval | 4 | 48 | 5.92 | 990 | Ralentir, Reculer, Bombe | 9 | Bombe |
+| 14 | Zigzag | 4 | 50 | 6.08 | 985 | Ralentir, Reculer, Bombe | 9 | — |
+| 15 | Cœur ouvert | 4 | 52 | 6.24 | 980 | Ralentir, Reculer, Bombe | 9 | — |
+| 16 | Ovale ouvert | 4 | 54 | 6.40 | 975 | Ralentir, Reculer, Bombe | 9 | — |
+| 17 | Ovale croissant | 5 | 56 | 6.56 | 970 | Ralentir, Reculer, Bombe, Viser | 10 | Viser |
+| 18 | Ruban en S | 5 | 58 | 6.72 | 965 | Ralentir, Reculer, Bombe, Viser | 10 | — |
+| 19 | Serpent | 5 | 60 | 6.88 | 960 | Ralentir, Reculer, Bombe, Viser | 10 | — |
+| 20 | Arche arrondie | 5 | 62 | 7.04 | 955 | Ralentir, Reculer, Bombe, Viser | 10 | — |
+| 21 | Fer à cheval | 5 | 64 | 7.20 | 950 | Ralentir, Reculer, Bombe, Viser | 11 | tunnels |
+| 22 | Zigzag | 5 | 66 | 7.36 | 945 | Ralentir, Reculer, Bombe, Viser | 11 | — |
+| 23 | Cœur ouvert | 5 | 68 | 7.52 | 940 | Ralentir, Reculer, Bombe, Viser | 11 | — |
+| 24 | Ovale ouvert | 5 | 70 | 7.68 | 935 | Ralentir, Reculer, Bombe, Viser | 11 | — |
+| 25 | Ovale croissant | 6 | 72 | 7.84 | 930 | Ralentir, Reculer, Bombe, Viser | 12 | décentrage et accélération |
+| 26 | Ruban en S | 6 | 74 | 8.00 | 925 | Ralentir, Reculer, Bombe, Viser | 12 | — |
+| 27 | Serpent | 6 | 76 | 8.16 | 920 | Ralentir, Reculer, Bombe, Viser | 12 | — |
+| 28 | Arche arrondie | 6 | 78 | 8.32 | 915 | Ralentir, Reculer, Bombe, Viser | 12 | — |
+| 29 | Rails jumeaux | 6 | 80 | 8.48 | 910 | Ralentir, Reculer, Bombe, Viser | 13 | deux colliers |
+| 30 | Rails jumeaux | 6 | 82 | 8.64 | 905 | Ralentir, Reculer, Bombe, Viser | 13 | — |
+
+### Oracle Collier
+
+Les corps partagés de `tests/collier-cases.ts` sont appelés par Vitest
+(`tests/collier.test.ts`) et directement en Node par
+`scripts/validate-collier.js`, inscrit dans `test:node`. C15 est découpé en quatre lots consécutifs de 500 images conservant leur état.
+Chaque cas est borné à deux secondes ; aucune campagne complète ne tourne dans Vitest.
+C16 et C21–C30 sont exécutés en Node dans `scripts/collier-scene-oracles.js` :
+la scène livrée est transpilée en mémoire, les services de plateforme sont doublés,
+et ses vrais écouteurs et appels de dessin sont contrôlés. Aucun moteur alternatif
+ni logique de contrôle recopiée n'est utilisé. C16 construit cinq scènes avec les
+cinq identités, vérifie tireur/meneur et compare les snapshots du vrai moteur.
+
+| Oracle | Preuve |
+| --- | --- |
+| C01 | Bornes littérales, interpolation, longueur euclidienne et huit signatures normalisées de formes |
+| C02 | Poussée de la queue, segment avant arrêté, espacement exact au contact, espacement à l’entrée et quota |
+| C03 | Insertions avant/arrière sur un tracé rectiligne indépendant |
+| C04 | Deux perles conservées, trois éclatées et 30 points |
+| C05 | Attraction avec couleurs égales, aucun recul avec couleurs différentes puis fermeture |
+| C06 | Groupe central retiré, rapprochement, second groupe et score ×2 |
+| C07 | Palette de tir limitée à la couleur réellement présente |
+| C08 | Échange sans consommation de graine, refus pendant le vol, un seul projectile |
+| C09 | Ralentir et Reculer : porteur, effet, durée et relance ; événement bonus à l’éclatement |
+| C10 | Bombe avant déplacement : témoins à 38,5 / 40 / 40,1 et reproduction à 21 unités ; Viser, durée, relance, impact exact |
+| C11 | Traversée réelle d'un trou : 25 points ; tunnel intouchable avec témoin découvert |
+| C12 | Danger et événement au franchissement par avance ou insertion, sans doublon ; accélération à 85 %, facteur ×1,8 au niveau 25, signaux life/lost, victoire, bonus de distance et quota non terminé |
+| C13 | Snapshots identiques pour graine/entrées identiques et découpage temporel équivalent |
+| C14 | Sens de chacun des cinq paramètres, valeurs extrêmes strictes, longueurs réelles |
+| C15 | Raster des cercles réellement dessinés sur 2000 pas, aucune série de 36 images fixes |
+| C16 | Cinq scènes construites avec identités réelles ; meneur choisi et snapshots moteur identiques (Node) |
+| C17 | Huit formes, introductions 1/5/9/13/17/21/25/29, bonus, tunnels, deux parcours |
+| C18 | Émissions à s = 0 après des éclatements réellement obtenus par le pilote |
+| C19 | 300 émissions dans le test court ; 2000 dans le validateur complet ; séries 1/2/3, jamais 4, aucune période 1–12, graines reproductibles |
+| C20 | Contrôle fin des niveaux 1, 10, 30 et contrôle léger des 30 ; le validateur contrôle finement les 30. Champ, tireur/réserve, courbure et séparation exacte par cellules spatiales |
+| C21 | Vrais écouteurs : tap réserve/tireur, limite stricte de 10 px, appuis de 600 ms sur réserve/tireur et ailleurs et excursion avec retour ; visée au relâché distincte du dernier mouvement au doigt et à la souris ; reprise après touchcancel/pointerupoutside ; Espace, X, flèches (Node) |
+| C22 | Vrais appels de dessin : meneur suivant la tête, guide Viser borné à l’impact (Node) |
+| C23 | Événements danger, bonus, life et lost transmis une seule fois au service sonore par la scène (Node) |
+| C24 | Cinq personnages × 16 angles : anneau, flèche et perles hors de l’ellipse conservatrice de la tête, via les vrais appels de dessin |
+| C25 | Quatre univers distincts, texture de décor réutilisée |
+| C26 | Six silhouettes de motifs distinctes dans les perles réellement dessinées |
+| C27 | Transformation réellement appliquée, conversion inverse du doigt, couverture ≥55 % sur les 30 niveaux, perles ≥22 px CSS et meneur ≥44 px à 390×844 |
+| C28 | Aucune secousse avec mouvement réduit ; quatre icônes de bonus distinctes |
+| C29 | Hauteur de titre réservée à deux lignes dans les cartes, calcul de l’alignement |
+| C30 | Lecture pilote légère : vrais écouteurs de scène, cibles et tête identiques au moteur, aucun appel à snapshot ; noms des formes cohérents |
+
+Le pilote déterministe vise les groupes visibles de sa couleur et échange si la
+réserve prolonge un meilleur groupe. Le validateur rejoue les trente niveaux sur
+la graine 300 avec de vrais tirs et vols, et vérifie trente défaites par inaction
+ainsi que six campagnes de tirs aléatoires perdantes. Il appelle également
+`measureDiversity` : couverture 30/30, moins de 10 % de voisins clones, au plus
+trois niveaux sans nouveau ressort. Ce sont des preuves du pilote, pas une mesure
+de difficulté humaine.
+
+E2E écrits, à exécuter par l'orchestrateur : `collier.spec.ts` sur desktop et
+mobile (glissé CDP avec angle contrôlé avant relâché et tap réserve/tireur ;
+sur desktop souris, Espace et X ; victoire par entrées, suivant, défaite/rejouer, progression conservée
+après rechargement, console propre et quatre captures), et
+`collier-finger.spec.ts` sur mobile 390×844 (CDP tactile, bruit ±12 px, latence
+150 ms, niveaux 1 et 5 sans avance artificielle, échange et pièce jointe JSON).
+Le pilote privilégie explicitement les groupes d’au moins deux et utilise la réserve
+si elle offre mieux ; après échange il tire dans le même cycle. Les coordonnées
+cibles restent à l’intérieur du canevas transformé. Le rejeu Node emploie le même
+bruit en pixels CSS, 150 ms de latence et une cadence de 1,5 s. Il doit gagner sous 120 secondes simulées ;
+l’E2E exige une victoire avant 120 secondes pour un délai total de 240 secondes.
+Le pilote lit directement l’état minimal, sans construire de snapshot complet.
+La visée E2E est comparée à la position CSS réellement envoyée, arrondie et
+convertie avec `view()` ; une tolérance de 0,01 rad couvre l’arrondi du pointeur,
+tout en refusant une visée figée ou une mauvaise échelle.
+M01–M04 incluent Collier sur les trois formats ; V04–V08 comptent treize vignettes.
+Aucun navigateur ni Vitest exécuté pendant cette passe.
+
+Les vingt-trois mutations de `scripts/collier-mutations.json` ont chacune une ancre unique.
+`scripts/check-collier-mutations.js` exécute un témoin intact puis les vingt-trois versions
+mutées dans des processus Node isolés, chacune contre son oracle dédié ; les lectures de sources sont remplacées
+en mémoire, sans modifier l’arbre. Une assertion doit échouer pour compter une
+mutation tuée : une erreur de syntaxe ou de chargement ne suffit pas. Ces mêmes
+oracles sont appelés par `npm run test:node -- --only=validate-collier.js`.
+Les captures restent à examiner par l’orchestrateur : rondeur et marges des tracés,
+placement du meneur, guide Viser, réserve accessible et deux couloirs distincts.
+
+
+Le pilote tactile Collier utilise `readDriver()` : courante, suivante, angle,
+état de vol, tête et cibles visibles/cachées, sans table de tracé ni acteurs.
+La transformation et le rectangle du canevas sont lus avant la conduite et gardés
+pour ce niveau à fenêtre fixe. Chaque itération effectue une seule lecture distante ;
+aucune recherche DOM ni capture ne se produit pendant la conduite. Un vol en cours
+est relu après 150 ms, sans attendre explicitement son atterrissage. Les échanges
+et tirs passent par les vrais paquets tactiles. Le JSON expose les temps par
+itération : lecture, politique, attente de vol, latence, CDP, total et intervalle
+entre entrées. Les intervalles doivent rester sous 1,5 s.
+Le validateur rejoue les niveaux 1 et 5 à une décision toutes les 1,5 s,
+avec bruit ±12 px CSS, 150 ms de latence plus le coût mesuré de lecture Node.
+Il exige une victoire avant 120 s (délai E2E : 240 s) ; ce modèle ne mesure
+pas la latence CDP du conteneur, que le JSON E2E doit établir sur l'hôte.

@@ -106,8 +106,8 @@ export function nearest(t: Track, p: Vec) {
         // A segment outside the current distance box cannot improve the result.
         // Keep a margin for rounding and visit ties in the original index order.
         const reach = best.distance + 1e-9;
-        if (p.x < Math.min(a.x, b.x) - reach || p.x > Math.max(a.x, b.x) + reach
-            || p.y < Math.min(a.y, b.y) - reach || p.y > Math.max(a.y, b.y) + reach) return;
+        if ((p.x < a.x - reach && p.x < b.x - reach) || (p.x > a.x + reach && p.x > b.x + reach)
+            || (p.y < a.y - reach && p.y < b.y - reach) || (p.y > a.y + reach && p.y > b.y + reach)) return;
         const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
         const u = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (len * len)));
         const x = a.x + dx * u, y = a.y + dy * u, dist = Math.hypot(p.x - x, p.y - y);

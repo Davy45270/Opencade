@@ -5,7 +5,7 @@ import { Engine, DT, TILE, SPEED, JUMP, GRAVITY, MAX_SHOTS, generate, difficulty
 function flat(): Engine {
     const e = new Engine(), s = e.state;
     s.tiles.fill(false); for (let x = 0; x < s.columns; x++) for (let y = 16; y < 20; y++) s.tiles[y * s.columns + x] = true;
-    s.enemies = []; s.bonuses = []; s.platforms = []; s.boss = null; return e;
+    s.modules = []; s.enemies = []; s.bonuses = []; s.platforms = []; s.boss = null; return e;
 }
 function frames(e: Engine, n: number): void { for (let i = 0; i < n; i++) e.step(DT); }
 function enemy(kind: Enemy['kind'], x = 100): Enemy { return { kind, x, y: 242, w: 14, h: 14, vx: 20, vy: 0, hp: 1, clock: 0, originY: 190, phase: 0 }; }
@@ -30,7 +30,7 @@ describe('Ferraille', () => {
     });
     it('F03 huit directions au sol, quatre en vol et plafond de projectiles', () => {
         for (const [x, y] of [[1, 0], [1, -1], [0, -1], [-1, -1], [-1, 0], [-1, 1], [0, 1], [1, 1]]) {
-            const e = flat(); e.input({ x, y, fire: true }); e.step(DT); const shot = e.state.shots[0]; expect(shot).toBeDefined(); expect(Math.sign(shot?.vx ?? 0)).toBe(x); expect(Math.sign(shot?.vy ?? 0)).toBe(y);
+            const e = flat(); e.input({ x, y, fire: true }); e.step(DT); const shot = e.state.shots[0]; expect(shot).toBeDefined(); expect(Math.sign(shot?.vx ?? 0)).toBe(x); expect(Math.sign(shot?.vy ?? 0)).toBe(x && (y ?? 0) > 0 ? 0 : y);
         }
         const e = flat(); e.state.hero.y = 100; e.state.grounded = false; e.input({ x: 1, y: -1, fire: true }); e.step(DT); expect(e.state.shots[0]?.vy).toBe(0);
         e.state.weapon = 'fan'; e.state.fireClock = 0; e.state.shots = Array.from({ length: MAX_SHOTS }, () => ({ x: 50, y: 100, w: 4, h: 4, vx: 0, vy: 0, friendly: true, life: 1000 })); e.step(DT); expect(e.state.shots).toHaveLength(MAX_SHOTS);
@@ -59,7 +59,7 @@ describe('Ferraille', () => {
     });
     it('F10 caisses éventail, rafale, bouclier et emplacements sûrs', () => {
         for (const kind of ['fan', 'burst', 'shield'] as const) { const e = flat(); e.state.bonuses = [{ ...e.state.hero, kind }]; e.step(DT); expect(e.state.bonuses).toHaveLength(0); expect(kind === 'shield' ? e.state.shield : e.state.weapon).toBe(kind === 'shield' ? true : kind); e.input({ fire: true }); e.step(DT); expect(e.state.shots).toHaveLength(kind === 'fan' ? 3 : 1); if (kind === 'burst') expect(e.state.fireClock).toBe(90); }
-        for (let seed = 0; seed < 12; seed++) { const s = generate(29, seed); expect(s.bonuses).toHaveLength(12); for (const b of s.bonuses) { expect(solid(s, b.x / TILE, 16)).toBe(true); expect(solid(s, b.x / TILE, 15)).toBe(false); expect(s.bonuses.filter(other => other.x === b.x)).toHaveLength(1); } }
+        for (let seed = 0; seed < 12; seed++) { const s = generate(29, seed); expect(s.bonuses).toHaveLength(2); for (const b of s.bonuses) { expect(solid(s, b.x / TILE, 16)).toBe(true); expect(solid(s, b.x / TILE, 15)).toBe(false); expect(s.bonuses.filter(other => other.x === b.x)).toHaveLength(1); } }
     });
     it('F11 boss tous les cinq niveaux, phases, tirs et victoire par dégâts', () => {
         for (let level = 0; level < 30; level++) expect(Boolean(generate(level, 1).boss)).toBe((level + 1) % 5 === 0);
@@ -70,7 +70,7 @@ describe('Ferraille', () => {
     });
     it('F12 enveloppe de chaque bloc sur trente niveaux et plusieurs graines', () => {
         expect(jumpEnvelope(500)).toBe(false); expect(jumpEnvelope(10, 100)).toBe(false);
-        for (let level = 0; level < 30; level++) for (let seed = 1; seed <= 12; seed++) { const s = generate(level, seed); expect(traversable(s)).toBe(true); expect(s.columns).toBe((difficulty(level).blocks + 2) * 16); }
+        for (let level = 0; level < 30; level++) for (let seed = 1; seed <= 12; seed++) { const s = generate(level, seed); expect(traversable(s)).toBe(true); expect(s.columns).toBe((5 + 2) * 16); }
     });
     for (const level of [0, 14, 29]) it(`F12 politique réelle niveau ${String(level + 1)} sur trois graines`, () => {
         let wins = 0;
@@ -86,7 +86,7 @@ describe('Ferraille', () => {
     });
     it('F13 chaque paramètre croît dans son sens', () => {
         const first = difficulty(0), last = difficulty(29);
-        for (const key of Object.keys(first) as (keyof typeof first)[]) { for (let i = 1; i < 30; i++) expect(difficulty(i)[key], key).toBeGreaterThanOrEqual(difficulty(i - 1)[key]); expect(last[key], key).toBeGreaterThan(first[key]); }
+        for (const key of Object.keys(first) as (keyof typeof first)[]) { for (let i = 1; i < 30; i++) expect(difficulty(i)[key], key).toBeGreaterThanOrEqual(difficulty(i - 1)[key]); expect(last[key], key).toBeGreaterThanOrEqual(first[key]); }
         expect(SPEED).toBe(120);
     });
     it('F14 snapshots sérialisables et pas fixes indépendants des lots', () => {

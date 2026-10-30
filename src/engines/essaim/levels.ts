@@ -1,3 +1,4 @@
+import { levelCatalogue } from '../../content/level-catalogue';
 export const WEAPONS = ['beam', 'bounce', 'drones', 'slow', 'magnet', 'charge'] as const;
 export type Weapon = typeof WEAPONS[number];
 export type Formation = 'patrol' | 'shield' | 'burst' | 'fast' | 'miner' | 'split' | 'spiral' | 'turret' | 'rescue' | 'mirror' | 'column' | 'command';
@@ -18,7 +19,7 @@ const plan: [string, Formation[], Layout, Weapon, boolean?][] = [
     ['Éclats rapides', ['split', 'fast'], 'pincer', 'slow'],
     ['Spirales', ['spiral'], 'ring', 'slow'],
     ['Spirales minées', ['spiral', 'miner'], 'rows', 'magnet'],
-    ['Gardien des rafales', ['burst', 'spiral'], 'wedge', 'magnet'],
+    ['Gardien des rafales', ['burst', 'spiral'], 'ring', 'magnet'],
     ['Tourelles portées', ['turret'], 'column', 'charge'],
     ['Répit', ['patrol', 'turret'], 'pincer', 'drones', true],
     ['Convoi protégé', ['turret', 'shield'], 'ring', 'bounce'],
@@ -36,3 +37,8 @@ const plan: [string, Formation[], Layout, Weapon, boolean?][] = [
     ['Commandement', ['command', 'shield', 'burst'], 'column', 'charge'],
 ];
 export const LEVELS: Level[] = plan.map(([name, formations, layout, weapon, rest], i) => ({ name: `Essaim ${String(i + 1)} · ${name}`, formations, layout, weapon, rest: !!rest, boss: (i + 1) % 5 === 0 ? (i + 1) / 5 : 0 }));
+
+for (const entry of levelCatalogue) if (entry.game === 'essaim') {
+    const level = LEVELS[entry.index];
+    if (level) level.name = entry.name;
+}

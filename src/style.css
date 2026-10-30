@@ -134,7 +134,7 @@ body.orbite .orbite-options input { width: 22px; height: 22px; accent-color: #78
 
 body.essaim #touch-controls { display: flex; align-items: center; }
 body.essaim #touch-controls button { padding: 0; font-size: 22px; }
-body.essaim #game { height: min(640px, calc(100svh - 240px)); }
+body.essaim #game { height: min(640px, calc(100svh - 272px)); }
 body.essaim .essaim-options { display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; font-size: 13px; cursor: pointer; touch-action: none; }
 body.essaim .essaim-options input { width: 22px; height: 22px; accent-color: #78ead5; }
 body.dedale #touch-controls { display: flex; justify-content: center; gap: 4px; }
@@ -231,7 +231,7 @@ body.playing.derapage #touch-controls { height: 152px; min-height: 152px; flex-b
 body.derapage #touch-controls .touch-slot.right { flex-direction: column-reverse; align-items: flex-end; }
 body.playing.derapage #touch-controls #derapage-drift { width: 88px; height: 88px; min-width: 88px !important; min-height: 88px !important; }
 body.playing.derapage #touch-controls #derapage-bonus { width: 56px; height: 56px; min-width: 56px !important; min-height: 56px !important; }
-#derapage-steering { display: block; width: 180px; font-size: 14px; min-height: 48px; color: #c9f8ed; }
+#derapage-steering { display: block; width: 160px; font-size: 14px; min-height: 48px; color: #c9f8ed; }
 
 /* Original cast, home selection and opt-in review sheets. */
 #character-toggle { display: inline-flex; align-items: center; gap: 4px; min-height: 48px; font-size: .85rem; }
@@ -271,3 +271,36 @@ body.playing #game-menu [data-build] { grid-column: 1 / -1; order: -2; }
    is laid out inline, and an extra line would push the game page past the viewport. */
 #game-menu > [data-build] { display: none; }
 body.playing.menu-open #game-menu > [data-build] { display: block; }
+
+/* Six Bubble controls fit the 358 px mobile content width with 56 px targets. */
+body.playing.bubble #touch-controls, body.playing.bubble #touch-controls .touch-slot { gap: 2px; }
+/* M02b: common 16 px font; tighter tracking keeps the seven-letter labels inside 56 px. */
+body.serpentin #touch-controls #serpentin-special, body.empilo #touch-controls #empilo-special { font-size: 16px; letter-spacing: -0.06em; }
+
+#game-menu .compact-menu-control { min-width: 56px; min-height: 56px; font-size: 16px; }
+
+/* Pass 82: six primary Empilo controls fit one row at 390 px. */
+body.empilo #empilo-counterclockwise { display: none; }
+body.dedale #touch-controls #dedale-special, body.orbite #touch-controls #orbite-special { font-size: 16px; letter-spacing: -0.06em; }
+
+/* Pass 84: one thumb row; reserve the whole field above it. */
+body.ferraille #touch-controls #ferraille-special, #touch-controls #briqueterie-special, body.essaim #touch-controls #essaim-special { font-size: 16px; letter-spacing: -0.06em; padding: 2px; width: 56px; }
+body.ferraille .touch-slot.right { gap: 4px; }
+body.essaim .touch-slot { flex-direction: row; flex-wrap: nowrap; }
+@media (pointer: coarse), (width < 600px) {
+  body.playing.essaim #touch-controls { height: 64px; min-height: 64px; flex-basis: 64px; }
+  body.playing.essaim #touch-controls .center { display: none; }
+}
+@media (orientation: landscape) and (pointer: coarse) {
+  body.playing.essaim main { max-width: none; }
+  body.playing.essaim #play { position: relative; }
+  body.playing.essaim #play-area { margin: 0 124px; }
+  body.playing.essaim #touch-controls { position: absolute; inset: 0; height: 100%; min-height: 0; pointer-events: none; }
+  body.playing.essaim #touch-controls .touch-slot { position: absolute; bottom: 8px; width: 120px; pointer-events: auto; }
+  body.playing.essaim #touch-controls .left { left: 0; }
+  body.playing.essaim #touch-controls .right { right: 0; }
+  body.playing.essaim #touch-controls button { width: 56px !important; height: 56px !important; min-width: 56px !important; min-height: 56px !important; }
+}
+
+/* Keep card artwork aligned when a title wraps onto its second line. */
+.card-content strong { min-height: 2.4em; max-height: 2.4em; overflow: hidden; }

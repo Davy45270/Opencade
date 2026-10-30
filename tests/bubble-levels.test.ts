@@ -15,3 +15,8 @@ test('B-LVL-04 graine 28 : les trente niveaux',()=>{
 }, 5000);
 
 test('B-LVL-05 tirs moyens croissants et respirations',()=>{difficulty(fixedResults ?? campaign());});
+import { leaf, crystal, prism, catalogueBoards } from './bubble-catalogue';
+test('B-CAT-01 feuille : balaie sa rangée, en chaîne', () => { leaf(); });
+test('B-CAT-02 cristal : fixe, ancre, hors victoire et défaite', () => { crystal(); });
+test('B-CAT-03 prisme : joker, réaction en chaîne, jamais distribué', () => { prism(); });
+test('B-CAT-04 plateaux du catalogue P01–P03', () => { catalogueBoards(); });

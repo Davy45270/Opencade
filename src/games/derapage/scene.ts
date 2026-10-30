@@ -1,3 +1,9 @@
+import { others } from '../../characters/selection';
+import { GameCharacter } from '../../characters/game';
+import { arcadeArt, bonusEmblem, emblems, liveries, vehicleDrawing, type Emblem } from '../../characters/arcade-art';
+import { ids, expressions } from '../../characters/model';
+import { ArcadePaint } from '../../characters/arcade-phaser';
+import { renderCharacter } from '../../characters/canvas';
 import { required } from '../../engines/derapage/access';
 import Phaser from 'phaser';
 import { Engine, LEVELS } from '../../engines/derapage/engine';
@@ -17,12 +23,14 @@ export function formatTime(ms: number | null): string {
     return `${String(Math.floor(cs / 6000)).padStart(2, '0')}:${String(Math.floor(cs / 100) % 60).padStart(2, '0')}.${String(cs % 100).padStart(2, '0')}`;
 }
 export const derapageButtons: readonly TouchButton[] = [
+    { id: 'derapage-special', label: 'Élan', ariaLabel: 'Élan : mini turbo', size: 56, placement: 'center', mode: 'tap' },
     { id: 'derapage-drift', label: 'Dérapage', ariaLabel: 'Dérapage', size: 64, placement: 'right', mode: 'hold' },
     { id: 'derapage-bonus', label: 'Bonus', ariaLabel: 'Bonus', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface DerapageHook {
+    art(): string[];
     overview(enabled: boolean): void;
-    read(): ReturnType<Engine['snapshot']>;
+    read(): ReturnType<Engine['snapshot']> & { character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
     loadLevel(i: number, seed?: number): void;
     advance(ms: number): void;
     scenario(name: 'finish' | 'danger' | 'trees-boost' | 'lap' | 'slalom-gate' | 'bmx-jump'): void;
@@ -56,6 +64,8 @@ declare global {
 export class DerapageScene extends Phaser.Scene {
     private recordedLaps = 0;
     private newRecord = false;
+    private hero = new GameCharacter();
+    private rivals = others(this.hero.id).map(id => new GameCharacter(id));
     private engine = new Engine();
     private progress = new Progression(readSave(browserStorage(), 'derapage', 30), 30);
     private inputs = new Inputs();
@@ -63,6 +73,10 @@ export class DerapageScene extends Phaser.Scene {
     private manual = false;
     private overviewMode = false;
     private graphics?: Phaser.GameObjects.Graphics;
+    private paint?: ArcadePaint;
+    private kartTextures = new Map<string, string>();
+    private emblemTextures = new Map<Emblem, string>();
+    private resultArt?: HTMLCanvasElement;
     private hud?: HTMLElement;
     private held = new Set<string>();
     private pointer = 0;
@@ -86,6 +100,18 @@ export class DerapageScene extends Phaser.Scene {
     private panels(): void {
         renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.score, this.progress.total, this.selecting);
         if (this.engine.status !== 'playing') {
+            if (!this.resultArt) {
+                const canvas = document.createElement('canvas');
+                canvas.width = canvas.height = 400;
+                canvas.style.cssText = 'width:180px;height:180px;max-width:100%;display:block;margin:auto';
+                canvas.setAttribute('role', 'img');
+                canvas.setAttribute('aria-label', `${liveries[this.hero.id].name} en action`);
+                canvas.dataset.vehicleAction = this.hero.id;
+                const context = canvas.getContext('2d');
+                if (context) renderCharacter(context, arcadeArt[this.hero.id].vehicles.action, 0, 0, 400);
+                document.querySelector('#result-title')?.after(canvas);
+                this.resultArt = canvas;
+            }
             const scores = document.querySelector('#result-scores'), s = this.engine.snapshot();
             if (scores) scores.textContent = `Temps total ${formatTime(s.timing.raceMs)} · Meilleur tour ${formatTime(s.timing.bestLapMs)} · Record du circuit ${formatTime(this.progress.save.circuitRecords?.[circuitKey(this.engine.level)] ?? null)} · Classement ${s.order.map((id, i) => `${String(i + 1)}. Kart ${String(id + 1)}`).join(' · ')}`;
         }
@@ -125,10 +151,13 @@ export class DerapageScene extends Phaser.Scene {
             });
             this.inputs.cleanup(() => { button.remove(); });
         }
-        const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
+        const cleanup = (): void => { this.inputs.dispose(); this.paint?.destroy(); this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         this.graphics = this.add.graphics();
+        this.paint = new ArcadePaint(this, 96);
+        for (const id of ids) for (const expression of expressions) this.kartTextures.set(`${id}-${expression}`, this.paint.texture(`kart-${id}-${expression}`, vehicleDrawing(id, 'dessus', expression)));
+        for (const kind of Object.keys(emblems) as Emblem[]) this.emblemTextures.set(kind, this.paint.texture(`emblem-${kind}`, emblems[kind], 80));
         this.hud = document.createElement('div');
         this.hud.setAttribute('aria-live', 'off');
         this.hud.dataset.derapageHud = 'true';
@@ -140,13 +169,14 @@ export class DerapageScene extends Phaser.Scene {
                 this.session.send('start');
             if (this.session.paused || this.selecting)
                 return;
+            if (id === 'special') this.engine.special();
             if (id === 'bonus')
                 this.pendingBonus = true;
             this.held.add(id);
         };
         renderTouchControls(this.inputs, derapageButtons, (id, held) => { action(id.replace('derapage-', ''), held); });
         const indicator = document.createElement('output'); indicator.id = 'derapage-steering'; indicator.setAttribute('aria-label', 'Braquage'); document.querySelector('#touch-controls .left')?.append(indicator); this.inputs.cleanup(() => { indicator.remove(); });
-        const keys: Record<string, string> = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', Space: 'drift', ShiftLeft: 'drift', ShiftRight: 'drift', KeyX: 'bonus', ControlLeft: 'bonus', ControlRight: 'bonus' };
+        const keys: Record<string, string> = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', Space: 'drift', ShiftLeft: 'drift', ShiftRight: 'drift', KeyC: 'special', KeyX: 'bonus', ControlLeft: 'bonus', ControlRight: 'bonus' };
         for (const type of ['keydown', 'keyup'])
             this.inputs.on(document, type, event => { const e = event as KeyboardEvent; const id = keys[e.code]; if (id) {
                 e.preventDefault();
@@ -194,8 +224,9 @@ export class DerapageScene extends Phaser.Scene {
         this.game.canvas.setAttribute('aria-label', 'Dérapage : course de karts, vue de dessus');
         if (new URLSearchParams(location.search).get('test') === '1')
             window.__DERAPAGE_TEST__ = {
+                art: () => this.paint?.keys() ?? [],
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
-                read: () => this.engine.snapshot(), loadLevel: (i, seed) => { this.start(i, seed, true); },
+                read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
                 hudText: () => this.hud?.textContent ?? '', usefulArea: () => ({ x: 0, y: 96, width: 360, height: 544 }),
@@ -253,6 +284,7 @@ export class DerapageScene extends Phaser.Scene {
             this.tiltEnabled = false;
         }
     }
+    updatePaused(): void { this.tick(0); }
     update(_time: number, delta: number): void { this.tick(this.manual ? 0 : delta); }
     private tick(ms: number): void {
         if (this.selecting || this.session.paused) { this.held.clear(); this.pointer = 0; this.thumb = null; this.pendingBonus = false; }
@@ -266,7 +298,7 @@ export class DerapageScene extends Phaser.Scene {
             this.engine.step(ms);
             if (k.hits > hits) {
                 sound.playEffect('life');
-                sound.playEffect('impact');
+                sound.playEffect('impact'); this.hero.impact = 350;
             }
             if (k.boostMs > boost)
                 sound.playEffect('boost');
@@ -290,6 +322,11 @@ export class DerapageScene extends Phaser.Scene {
             writeSave(browserStorage(), this.progress.save, 'derapage');
             sound.playEffect(this.engine.status);
         }
+        this.hero.advance(ms, this.session.paused || this.selecting, this.engine.status, (this.engine.karts[0]?.specialMs ?? 0) > 0);
+        for (const [i, actor] of this.rivals.entries()) {
+            const k = this.engine.karts[i + 1];
+            if (k) { actor.impact = (k.railHitMs ?? 0) > 0 ? 180 : actor.impact; actor.advance(ms, this.session.paused || this.selecting, k.finishMs !== null ? 'won' : 'playing', (k.specialMs ?? 0) > 0); }
+        }
         this.panels();
         this.draw();
     }
@@ -305,6 +342,7 @@ export class DerapageScene extends Phaser.Scene {
         const project = (x: number, y: number) => this.overviewMode ? { x:180+(x-cx)*fit, y:360+(y-cy)*fit } : ({ x: 180 + ((x - p.x) * Math.cos(angle) - (y - p.y) * Math.sin(angle)) * 5, y: (this.cameraFixed ? 368 : 466) + ((x - p.x) * Math.sin(angle) + (y - p.y) * Math.cos(angle)) * 5 });
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         g.clear();
+        this.paint?.begin();
         g.fillStyle(t.circuit.snow.length ? 0xe0eff5 : t.circuit.theme.ground);
         g.fillRect(0, 96, 360, 544);
         // Clip geometry to the useful rectangle so the reserved HUD never hides the road ahead.
@@ -436,14 +474,24 @@ export class DerapageScene extends Phaser.Scene {
         for (const c of [...e.crates.filter(c => c.cooldown === 0), ...e.puddles]) {
             const a = project(c.x, c.y);
             if (a.y > 106 && a.y < 630) {
-                g.fillStyle('owner' in c ? 0x4da2cc : 0xffd166);
-                g.fillRoundedRect(a.x - 6, a.y - 6, 12, 12, 3);
+                if ('owner' in c) {
+                    const owner = c.owner === 0 ? this.hero : this.rivals[c.owner - 1];
+                    const kind = liveries[owner?.id ?? 'panda'].trap;
+                    const key = this.emblemTextures.get(kind);
+                    // A dark rim keeps the trap readable against every road surface.
+                    g.fillStyle(0x181b2c); g.fillCircle(a.x, a.y, 11);
+                    if (key) this.paint?.draw(key, a.x, a.y, 24);
+                } else {
+                    g.fillStyle(0xffd166); g.fillRoundedRect(a.x - 7, a.y - 7, 14, 14, 3);
+                    g.lineStyle(2, 0x533946); g.strokeRoundedRect(a.x - 7, a.y - 7, 14, 14, 3);
+                    g.lineBetween(a.x - 4, a.y, a.x + 4, a.y); g.lineBetween(a.x, a.y - 4, a.x, a.y + 4);
+                }
             }
         }
         const colors = [0xffdb70, 0xff786a, 0x67d9ec, 0xc797ff, 0x9ee278, 0xf29acd];
         for (const k of e.karts) {
             const a = project(k.x, k.y);
-            if (a.y < 114 || a.y > 622)
+            if (a.y < 126 || a.y > 614)
                 continue;
             g.save();
             const height=k.jumpHeight ?? 0, size=this.overviewMode ? scale/5 : 1;
@@ -463,16 +511,30 @@ export class DerapageScene extends Phaser.Scene {
             g.scaleCanvas(jumpScale,jumpScale);
             g.rotateCanvas(k.angle + (this.overviewMode ? 0 : angle));
             if (this.overviewMode) g.scaleCanvas(scale/5,scale/5);
-            g.fillStyle(0x17202d);
-            g.fillRect(-8, -8, 16, 16);
-            g.fillStyle(required(colors[k.id]));
-            g.fillRoundedRect(-11, -6, 22, 12, 4);
-            g.fillStyle(0x26394a);
-            g.fillCircle(0, 0, 4);
-            if (k.boostMs > 0) { g.fillStyle(0x70eeff); g.fillTriangle(-12, -5, -12, 5, -24, 0); }
+            const driver = k.id === 0 ? this.hero : this.rivals[k.id - 1];
+            const livery = liveries[driver?.id ?? 'panda'];
+            if (driver) {
+                const key = this.kartTextures.get(`${driver.id}-${driver.expression}`);
+                if (key) this.paint?.draw(key, a.x, a.y - height * scale, 46 * size * jumpScale, k.angle + (this.overviewMode ? 0 : angle) + Math.PI / 2);
+            } else {
+                g.fillStyle(0x89949c); g.fillRoundedRect(-13, -8, 26, 16, 4);
+                g.fillStyle(0x222937); for (const x of [-8, 8]) for (const y of [-9, 9]) g.fillCircle(x, y, 4);
+                g.fillStyle(0xf2eee1); g.fillCircle(0, 0, 5);
+            }
+            const emblemAt = (kind: Emblem, localX: number, localY: number, diameter: number): void => {
+                const key = this.emblemTextures.get(kind), r = k.angle + (this.overviewMode ? 0 : angle);
+                if (key) this.paint?.draw(key, a.x + (localX * Math.cos(r) - localY * Math.sin(r)) * size, a.y - height * scale + (localX * Math.sin(r) + localY * Math.cos(r)) * size, diameter * size, 0, 1, 2);
+            };
+            if (k.boostMs > 0 || (k.specialMs ?? 0) > 0) {
+                g.fillStyle(0xffdb70); g.fillTriangle(-15, -5, -15, 5, -29, 0);
+                emblemAt(livery.boost, -29, 0, 23);
+            }
+            if (k.item) emblemAt(bonusEmblem(driver?.id ?? 'panda', k.item), 0, -29, 20);
+            if (k.jumpMs > 0) emblemAt(livery.motif, 0, 28, 17);
             if (k.shield) {
-                g.lineStyle(2, 0x8cefff);
-                g.strokeCircle(0, 0, 16);
+                g.lineStyle(2, Number.parseInt(livery.light.slice(1), 16));
+                g.strokeCircle(0, 0, 25);
+                emblemAt(livery.shield, 0, -28, 19);
             }
             if (!reduced && k.driftMs >= 600) {
                 g.fillStyle(k.driftMs >= 1400 ? 0xff67bd : 0x66dcff);
@@ -505,7 +567,7 @@ export class DerapageScene extends Phaser.Scene {
         const text = `DÉRAPAGE ${String(e.level + 1)}/30 · PLACE ${String(s.order.indexOf(0) + 1)}/6 · TOUR ${String(Math.min(3, p.lap + 1))}/3
 SCORE ${String(s.score)} · COURSE ${formatTime(timing.raceMs)} · TOUR ${formatTime(timing.currentLapMs)}
 MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${(p.noticeMs ?? 0) > 0 ? 'Porte manquée +2,0 s' : p.item ?? '—'}${crossing ? ` · ${crossing}` : ''}
-COUPE ${String(s.cup.races)}/4 · ${s.cup.order.map(id => `${String(id + 1)}:${String(s.cup.scores[id])}`).join(' ')}`;
+ÉLAN ${p.specialLap === p.lap ? '0' : '1'}/1 · COUPE ${String(s.cup.races)}/4 · ${s.cup.order.map(id => `${String(id + 1)}:${String(s.cup.scores[id])}`).join(' ')}`;
         if (this.hud) {
             this.hud.replaceChildren();
             const lines = text.split('\n');

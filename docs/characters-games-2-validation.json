@@ -1,0 +1,1738 @@
+{
+  "timings": [
+    {
+      "name": "P-derapage-01",
+      "ms": 107
+    },
+    {
+      "name": "P-derapage-02/03",
+      "ms": 27
+    },
+    {
+      "name": "P-derapage-05",
+      "ms": 172
+    },
+    {
+      "name": "P-derapage-03 advance partition",
+      "ms": 20
+    },
+    {
+      "name": "P-bubble-01",
+      "ms": 19
+    },
+    {
+      "name": "P-bubble-02/03",
+      "ms": 4
+    },
+    {
+      "name": "P-bubble-05",
+      "ms": 19
+    },
+    {
+      "name": "P-bubble-03 advance partition",
+      "ms": 0
+    },
+    {
+      "name": "P-serpentin-01",
+      "ms": 24
+    },
+    {
+      "name": "P-serpentin-02/03",
+      "ms": 1
+    },
+    {
+      "name": "P-serpentin-05",
+      "ms": 21
+    },
+    {
+      "name": "P-serpentin-03 advance partition",
+      "ms": 0
+    },
+    {
+      "name": "P-derapage-04 L1 mode 0 recorded controls",
+      "ms": 882
+    },
+    {
+      "name": "P-derapage-04 L1 mode 1 recorded controls",
+      "ms": 806
+    },
+    {
+      "name": "P-bubble-04 L1 historical solution",
+      "ms": 4
+    },
+    {
+      "name": "P-serpentin-04 L1 recorded ordinary pilot",
+      "ms": 90
+    },
+    {
+      "name": "P-derapage-04 L2 mode 0 recorded controls",
+      "ms": 725
+    },
+    {
+      "name": "P-derapage-04 L2 mode 1 recorded controls",
+      "ms": 729
+    },
+    {
+      "name": "P-bubble-04 L2 historical solution",
+      "ms": 3
+    },
+    {
+      "name": "P-serpentin-04 L2 recorded ordinary pilot",
+      "ms": 9
+    },
+    {
+      "name": "P-derapage-04 L3 mode 0 recorded controls",
+      "ms": 847
+    },
+    {
+      "name": "P-derapage-04 L3 mode 1 recorded controls",
+      "ms": 788
+    },
+    {
+      "name": "P-bubble-04 L3 historical solution",
+      "ms": 6
+    },
+    {
+      "name": "P-serpentin-04 L3 recorded ordinary pilot",
+      "ms": 10
+    },
+    {
+      "name": "P-derapage-04 L4 mode 0 recorded controls",
+      "ms": 926
+    },
+    {
+      "name": "P-derapage-04 L4 mode 1 recorded controls",
+      "ms": 850
+    },
+    {
+      "name": "P-bubble-04 L4 historical solution",
+      "ms": 3
+    },
+    {
+      "name": "P-serpentin-04 L4 recorded ordinary pilot",
+      "ms": 10
+    },
+    {
+      "name": "P-derapage-04 L5 mode 0 recorded controls",
+      "ms": 622
+    },
+    {
+      "name": "P-derapage-04 L5 mode 1 recorded controls",
+      "ms": 599
+    },
+    {
+      "name": "P-bubble-04 L5 historical solution",
+      "ms": 2
+    },
+    {
+      "name": "P-serpentin-04 L5 recorded ordinary pilot",
+      "ms": 7
+    },
+    {
+      "name": "P-derapage-04 L6 mode 0 recorded controls",
+      "ms": 616
+    },
+    {
+      "name": "P-derapage-04 L6 mode 1 recorded controls",
+      "ms": 542
+    },
+    {
+      "name": "P-bubble-04 L6 historical solution",
+      "ms": 2
+    },
+    {
+      "name": "P-serpentin-04 L6 recorded ordinary pilot",
+      "ms": 9
+    },
+    {
+      "name": "P-derapage-04 L7 mode 0 recorded controls",
+      "ms": 626
+    },
+    {
+      "name": "P-derapage-04 L7 mode 1 recorded controls",
+      "ms": 536
+    },
+    {
+      "name": "P-bubble-04 L7 historical solution",
+      "ms": 4
+    },
+    {
+      "name": "P-serpentin-04 L7 recorded ordinary pilot",
+      "ms": 11
+    },
+    {
+      "name": "P-derapage-04 L8 mode 0 recorded controls",
+      "ms": 746
+    },
+    {
+      "name": "P-derapage-04 L8 mode 1 recorded controls",
+      "ms": 490
+    },
+    {
+      "name": "P-bubble-04 L8 historical solution",
+      "ms": 5
+    },
+    {
+      "name": "P-serpentin-04 L8 recorded ordinary pilot",
+      "ms": 11
+    },
+    {
+      "name": "P-derapage-04 L9 mode 0 recorded controls",
+      "ms": 454
+    },
+    {
+      "name": "P-derapage-04 L9 mode 1 recorded controls",
+      "ms": 640
+    },
+    {
+      "name": "P-bubble-04 L9 historical solution",
+      "ms": 12
+    },
+    {
+      "name": "P-serpentin-04 L9 recorded ordinary pilot",
+      "ms": 13
+    },
+    {
+      "name": "P-derapage-04 L10 mode 0 recorded controls",
+      "ms": 498
+    },
+    {
+      "name": "P-derapage-04 L10 mode 1 recorded controls",
+      "ms": 537
+    },
+    {
+      "name": "P-bubble-04 L10 historical solution",
+      "ms": 11
+    },
+    {
+      "name": "P-serpentin-04 L10 recorded ordinary pilot",
+      "ms": 11
+    },
+    {
+      "name": "P-derapage-04 L11 mode 0 recorded controls",
+      "ms": 513
+    },
+    {
+      "name": "P-derapage-04 L11 mode 1 recorded controls",
+      "ms": 793
+    },
+    {
+      "name": "P-bubble-04 L11 historical solution",
+      "ms": 4
+    },
+    {
+      "name": "P-serpentin-04 L11 recorded ordinary pilot",
+      "ms": 15
+    },
+    {
+      "name": "P-derapage-04 L12 mode 0 recorded controls",
+      "ms": 585
+    },
+    {
+      "name": "P-derapage-04 L12 mode 1 recorded controls",
+      "ms": 517
+    },
+    {
+      "name": "P-bubble-04 L12 historical solution",
+      "ms": 4
+    },
+    {
+      "name": "P-serpentin-04 L12 recorded ordinary pilot",
+      "ms": 18
+    },
+    {
+      "name": "P-derapage-04 L13 mode 0 recorded controls",
+      "ms": 545
+    },
+    {
+      "name": "P-derapage-04 L13 mode 1 recorded controls",
+      "ms": 579
+    },
+    {
+      "name": "P-bubble-04 L13 historical solution",
+      "ms": 3
+    },
+    {
+      "name": "P-serpentin-04 L13 recorded ordinary pilot",
+      "ms": 21
+    },
+    {
+      "name": "P-derapage-04 L14 mode 0 recorded controls",
+      "ms": 571
+    },
+    {
+      "name": "P-derapage-04 L14 mode 1 recorded controls",
+      "ms": 524
+    },
+    {
+      "name": "P-bubble-04 L14 historical solution",
+      "ms": 97
+    },
+    {
+      "name": "P-serpentin-04 L14 recorded ordinary pilot",
+      "ms": 19
+    },
+    {
+      "name": "P-derapage-04 L15 mode 0 recorded controls",
+      "ms": 521
+    },
+    {
+      "name": "P-derapage-04 L15 mode 1 recorded controls",
+      "ms": 430
+    },
+    {
+      "name": "P-bubble-04 L15 historical solution",
+      "ms": 3
+    },
+    {
+      "name": "P-serpentin-04 L15 recorded ordinary pilot",
+      "ms": 18
+    },
+    {
+      "name": "P-derapage-04 L16 mode 0 recorded controls",
+      "ms": 487
+    },
+    {
+      "name": "P-derapage-04 L16 mode 1 recorded controls",
+      "ms": 529
+    },
+    {
+      "name": "P-bubble-04 L16 historical solution",
+      "ms": 5
+    },
+    {
+      "name": "P-serpentin-04 L16 recorded ordinary pilot",
+      "ms": 108
+    },
+    {
+      "name": "P-derapage-04 L17 mode 0 recorded controls",
+      "ms": 730
+    },
+    {
+      "name": "P-derapage-04 L17 mode 1 recorded controls",
+      "ms": 759
+    },
+    {
+      "name": "P-bubble-04 L17 historical solution",
+      "ms": 2
+    },
+    {
+      "name": "P-serpentin-04 L17 recorded ordinary pilot",
+      "ms": 111
+    },
+    {
+      "name": "P-derapage-04 L18 mode 0 recorded controls",
+      "ms": 578
+    },
+    {
+      "name": "P-derapage-04 L18 mode 1 recorded controls",
+      "ms": 556
+    },
+    {
+      "name": "P-bubble-04 L18 historical solution",
+      "ms": 3
+    },
+    {
+      "name": "P-serpentin-04 L18 recorded ordinary pilot",
+      "ms": 30
+    },
+    {
+      "name": "P-derapage-04 L19 mode 0 recorded controls",
+      "ms": 547
+    },
+    {
+      "name": "P-derapage-04 L19 mode 1 recorded controls",
+      "ms": 567
+    },
+    {
+      "name": "P-bubble-04 L19 historical solution",
+      "ms": 3
+    },
+    {
+      "name": "P-serpentin-04 L19 recorded ordinary pilot",
+      "ms": 33
+    },
+    {
+      "name": "P-derapage-04 L20 mode 0 recorded controls",
+      "ms": 776
+    },
+    {
+      "name": "P-derapage-04 L20 mode 1 recorded controls",
+      "ms": 783
+    },
+    {
+      "name": "P-bubble-04 L20 historical solution",
+      "ms": 4
+    },
+    {
+      "name": "P-serpentin-04 L20 recorded ordinary pilot",
+      "ms": 26
+    },
+    {
+      "name": "P-derapage-04 L21 mode 0 recorded controls",
+      "ms": 642
+    },
+    {
+      "name": "P-derapage-04 L21 mode 1 recorded controls",
+      "ms": 642
+    },
+    {
+      "name": "P-bubble-04 L21 historical solution",
+      "ms": 6
+    },
+    {
+      "name": "P-serpentin-04 L21 recorded ordinary pilot",
+      "ms": 36
+    },
+    {
+      "name": "P-derapage-04 L22 mode 0 recorded controls",
+      "ms": 590
+    },
+    {
+      "name": "P-derapage-04 L22 mode 1 recorded controls",
+      "ms": 592
+    },
+    {
+      "name": "P-bubble-04 L22 historical solution",
+      "ms": 5
+    },
+    {
+      "name": "P-serpentin-04 L22 recorded ordinary pilot",
+      "ms": 35
+    },
+    {
+      "name": "P-derapage-04 L23 mode 0 recorded controls",
+      "ms": 624
+    },
+    {
+      "name": "P-derapage-04 L23 mode 1 recorded controls",
+      "ms": 653
+    },
+    {
+      "name": "P-bubble-04 L23 historical solution",
+      "ms": 3
+    },
+    {
+      "name": "P-serpentin-04 L23 recorded ordinary pilot",
+      "ms": 39
+    },
+    {
+      "name": "P-derapage-04 L24 mode 0 recorded controls",
+      "ms": 742
+    },
+    {
+      "name": "P-derapage-04 L24 mode 1 recorded controls",
+      "ms": 556
+    },
+    {
+      "name": "P-bubble-04 L24 historical solution",
+      "ms": 5
+    },
+    {
+      "name": "P-serpentin-04 L24 recorded ordinary pilot",
+      "ms": 111
+    },
+    {
+      "name": "P-derapage-04 L25 mode 0 recorded controls",
+      "ms": 567
+    },
+    {
+      "name": "P-derapage-04 L25 mode 1 recorded controls",
+      "ms": 591
+    },
+    {
+      "name": "P-bubble-04 L25 historical solution",
+      "ms": 6
+    },
+    {
+      "name": "P-serpentin-04 L25 recorded ordinary pilot",
+      "ms": 39
+    },
+    {
+      "name": "P-derapage-04 L26 mode 0 recorded controls",
+      "ms": 601
+    },
+    {
+      "name": "P-derapage-04 L26 mode 1 recorded controls",
+      "ms": 596
+    },
+    {
+      "name": "P-bubble-04 L26 historical solution",
+      "ms": 10
+    },
+    {
+      "name": "P-serpentin-04 L26 recorded ordinary pilot",
+      "ms": 127
+    },
+    {
+      "name": "P-derapage-04 L27 mode 0 recorded controls",
+      "ms": 661
+    },
+    {
+      "name": "P-derapage-04 L27 mode 1 recorded controls",
+      "ms": 654
+    },
+    {
+      "name": "P-bubble-04 L27 historical solution",
+      "ms": 10
+    },
+    {
+      "name": "P-serpentin-04 L27 recorded ordinary pilot",
+      "ms": 55
+    },
+    {
+      "name": "P-derapage-04 L28 mode 0 recorded controls",
+      "ms": 725
+    },
+    {
+      "name": "P-derapage-04 L28 mode 1 recorded controls",
+      "ms": 569
+    },
+    {
+      "name": "P-bubble-04 L28 historical solution",
+      "ms": 7
+    },
+    {
+      "name": "P-serpentin-04 L28 recorded ordinary pilot",
+      "ms": 58
+    },
+    {
+      "name": "P-derapage-04 L29 mode 0 recorded controls",
+      "ms": 1098
+    },
+    {
+      "name": "P-derapage-04 L29 mode 1 recorded controls",
+      "ms": 864
+    },
+    {
+      "name": "P-bubble-04 L29 historical solution",
+      "ms": 10
+    },
+    {
+      "name": "P-serpentin-04 L29 recorded ordinary pilot",
+      "ms": 64
+    },
+    {
+      "name": "P-derapage-04 L30 mode 0 recorded controls",
+      "ms": 602
+    },
+    {
+      "name": "P-derapage-04 L30 mode 1 recorded controls",
+      "ms": 432
+    },
+    {
+      "name": "P-bubble-04 L30 historical solution",
+      "ms": 10
+    },
+    {
+      "name": "P-serpentin-04 L30 recorded ordinary pilot",
+      "ms": 49
+    },
+    {
+      "name": "Traverse rendered pixels 0..499",
+      "ms": 575
+    },
+    {
+      "name": "Traverse rendered pixels 500..999",
+      "ms": 287
+    },
+    {
+      "name": "Traverse rendered pixels 1000..1499",
+      "ms": 233
+    },
+    {
+      "name": "Traverse rendered pixels 1500..1999",
+      "ms": 291
+    },
+    {
+      "name": "mutation derapage k.specialMs = 800;",
+      "ms": 7
+    },
+    {
+      "name": "mutation derapage k.specialLap === k.lap",
+      "ms": 6
+    },
+    {
+      "name": "mutation bubble trajectory.target.color = struck.color",
+      "ms": 3
+    },
+    {
+      "name": "mutation bubble this.specialUses === 0",
+      "ms": 1
+    },
+    {
+      "name": "mutation serpentin if (!this.specialArmed)",
+      "ms": 2
+    },
+    {
+      "name": "mutation serpentin this.specialUses === 0",
+      "ms": 2
+    },
+    {
+      "name": "mutation always default hero for three games",
+      "ms": 7
+    }
+  ],
+  "mutations": [
+    {
+      "file": "src/engines/derapage/engine.ts",
+      "line": 68,
+      "mutation": "k.specialMs = 800;",
+      "killed": true
+    },
+    {
+      "file": "src/engines/derapage/engine.ts",
+      "line": 67,
+      "mutation": "k.specialLap === k.lap",
+      "killed": true
+    },
+    {
+      "file": "src/engines/bubble/engine.ts",
+      "line": 280,
+      "mutation": "trajectory.target.color = struck.color",
+      "killed": true
+    },
+    {
+      "file": "src/engines/bubble/engine.ts",
+      "line": 83,
+      "mutation": "this.specialUses === 0",
+      "killed": true
+    },
+    {
+      "file": "src/engines/serpentin/engine.ts",
+      "line": 132,
+      "mutation": "if (!this.specialArmed)",
+      "killed": true
+    },
+    {
+      "file": "src/engines/serpentin/engine.ts",
+      "line": 55,
+      "mutation": "this.specialUses === 0",
+      "killed": true
+    },
+    {
+      "file": "src/characters/game.ts",
+      "line": 8,
+      "mutation": "always panda",
+      "killed": true
+    }
+  ],
+  "records": {
+    "derapage": [
+      {
+        "level": 1,
+        "without": {
+          "score": 10,
+          "raceMs": 62583.333333333336,
+          "bestLapMs": 20466.666666666668,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 62500.00000000001,
+          "bestLapMs": 20383.333333333336,
+          "uses": 1
+        }
+      },
+      {
+        "level": 2,
+        "without": {
+          "score": 10,
+          "raceMs": 57183.333333333336,
+          "bestLapMs": 18483.333333333336,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 57083.333333333336,
+          "bestLapMs": 18483.333333333336,
+          "uses": 1
+        }
+      },
+      {
+        "level": 3,
+        "without": {
+          "score": 10,
+          "raceMs": 70933.33333333334,
+          "bestLapMs": 22650,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 70866.66666666667,
+          "bestLapMs": 22583.333333333336,
+          "uses": 1
+        }
+      },
+      {
+        "level": 4,
+        "without": {
+          "score": 10,
+          "raceMs": 76666.66666666667,
+          "bestLapMs": 18400,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 76550,
+          "bestLapMs": 18400,
+          "uses": 1
+        }
+      },
+      {
+        "level": 5,
+        "without": {
+          "score": 10,
+          "raceMs": 56816.66666666667,
+          "bestLapMs": 18266.666666666668,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 57016.66666666667,
+          "bestLapMs": 18366.666666666668,
+          "uses": 1
+        }
+      },
+      {
+        "level": 6,
+        "without": {
+          "score": 10,
+          "raceMs": 65383.333333333336,
+          "bestLapMs": 20400,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 65266.66666666667,
+          "bestLapMs": 20300,
+          "uses": 1
+        }
+      },
+      {
+        "level": 7,
+        "without": {
+          "score": 10,
+          "raceMs": 61400.00000000001,
+          "bestLapMs": 19533.333333333336,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 61283.333333333336,
+          "bestLapMs": 19416.666666666668,
+          "uses": 1
+        }
+      },
+      {
+        "level": 8,
+        "without": {
+          "score": 10,
+          "raceMs": 62066.66666666667,
+          "bestLapMs": 19850,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 61966.66666666667,
+          "bestLapMs": 19750,
+          "uses": 1
+        }
+      },
+      {
+        "level": 9,
+        "without": {
+          "score": 10,
+          "raceMs": 62250.00000000001,
+          "bestLapMs": 20083.333333333336,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 62133.333333333336,
+          "bestLapMs": 19966.666666666668,
+          "uses": 1
+        }
+      },
+      {
+        "level": 10,
+        "without": {
+          "score": 10,
+          "raceMs": 61483.333333333336,
+          "bestLapMs": 19366.666666666668,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 61366.66666666667,
+          "bestLapMs": 19366.666666666668,
+          "uses": 1
+        }
+      },
+      {
+        "level": 11,
+        "without": {
+          "score": 10,
+          "raceMs": 60583.333333333336,
+          "bestLapMs": 19533.333333333336,
+          "uses": 0
+        },
+        "with": {
+          "score": 6,
+          "raceMs": 80866.66666666667,
+          "bestLapMs": 20250,
+          "uses": 1
+        }
+      },
+      {
+        "level": 12,
+        "without": {
+          "score": 10,
+          "raceMs": 62216.66666666667,
+          "bestLapMs": 19133.333333333336,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 62116.66666666667,
+          "bestLapMs": 19033.333333333336,
+          "uses": 1
+        }
+      },
+      {
+        "level": 13,
+        "without": {
+          "score": 10,
+          "raceMs": 59100.00000000001,
+          "bestLapMs": 18200,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 59000.00000000001,
+          "bestLapMs": 18200,
+          "uses": 1
+        }
+      },
+      {
+        "level": 14,
+        "without": {
+          "score": 10,
+          "raceMs": 63100.00000000001,
+          "bestLapMs": 18783.333333333336,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 63000.00000000001,
+          "bestLapMs": 18683.333333333336,
+          "uses": 1
+        }
+      },
+      {
+        "level": 15,
+        "without": {
+          "score": 10,
+          "raceMs": 58400.00000000001,
+          "bestLapMs": 18250,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 58283.333333333336,
+          "bestLapMs": 18133.333333333336,
+          "uses": 1
+        }
+      },
+      {
+        "level": 16,
+        "without": {
+          "score": 10,
+          "raceMs": 54300.00000000001,
+          "bestLapMs": 17133.333333333336,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 54200.00000000001,
+          "bestLapMs": 17133.333333333336,
+          "uses": 1
+        }
+      },
+      {
+        "level": 17,
+        "without": {
+          "score": 10,
+          "raceMs": 77933.33333333334,
+          "bestLapMs": 22283.333333333336,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 77833.33333333334,
+          "bestLapMs": 22183.333333333336,
+          "uses": 1
+        }
+      },
+      {
+        "level": 18,
+        "without": {
+          "score": 10,
+          "raceMs": 62050.00000000001,
+          "bestLapMs": 19016.666666666668,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 61933.333333333336,
+          "bestLapMs": 19016.666666666668,
+          "uses": 1
+        }
+      },
+      {
+        "level": 19,
+        "without": {
+          "score": 10,
+          "raceMs": 62300.00000000001,
+          "bestLapMs": 19550,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 62233.333333333336,
+          "bestLapMs": 19483.333333333336,
+          "uses": 1
+        }
+      },
+      {
+        "level": 20,
+        "without": {
+          "score": 10,
+          "raceMs": 66983.33333333334,
+          "bestLapMs": 19416.666666666668,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 66983.33333333334,
+          "bestLapMs": 19416.666666666668,
+          "uses": 1
+        }
+      },
+      {
+        "level": 21,
+        "without": {
+          "score": 10,
+          "raceMs": 56400.00000000001,
+          "bestLapMs": 17866.666666666668,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 56300.00000000001,
+          "bestLapMs": 17866.666666666668,
+          "uses": 1
+        }
+      },
+      {
+        "level": 22,
+        "without": {
+          "score": 10,
+          "raceMs": 58416.66666666667,
+          "bestLapMs": 18766.666666666668,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 58350.00000000001,
+          "bestLapMs": 18766.666666666668,
+          "uses": 1
+        }
+      },
+      {
+        "level": 23,
+        "without": {
+          "score": 10,
+          "raceMs": 58733.333333333336,
+          "bestLapMs": 18733.333333333336,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 58683.333333333336,
+          "bestLapMs": 18733.333333333336,
+          "uses": 1
+        }
+      },
+      {
+        "level": 24,
+        "without": {
+          "score": 10,
+          "raceMs": 58583.333333333336,
+          "bestLapMs": 18783.333333333336,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 58500.00000000001,
+          "bestLapMs": 18783.333333333336,
+          "uses": 1
+        }
+      },
+      {
+        "level": 25,
+        "without": {
+          "score": 10,
+          "raceMs": 63283.333333333336,
+          "bestLapMs": 19516.666666666668,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 63216.66666666667,
+          "bestLapMs": 19516.666666666668,
+          "uses": 1
+        }
+      },
+      {
+        "level": 26,
+        "without": {
+          "score": 10,
+          "raceMs": 59600.00000000001,
+          "bestLapMs": 19500,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 59516.66666666667,
+          "bestLapMs": 19416.666666666668,
+          "uses": 1
+        }
+      },
+      {
+        "level": 27,
+        "without": {
+          "score": 10,
+          "raceMs": 66450,
+          "bestLapMs": 19650,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 66350,
+          "bestLapMs": 19550,
+          "uses": 1
+        }
+      },
+      {
+        "level": 28,
+        "without": {
+          "score": 10,
+          "raceMs": 65066.66666666667,
+          "bestLapMs": 20700,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 65016.66666666667,
+          "bestLapMs": 20700,
+          "uses": 1
+        }
+      },
+      {
+        "level": 29,
+        "without": {
+          "score": 10,
+          "raceMs": 77283.33333333334,
+          "bestLapMs": 24766.666666666668,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 77183.33333333334,
+          "bestLapMs": 24666.666666666668,
+          "uses": 1
+        }
+      },
+      {
+        "level": 30,
+        "without": {
+          "score": 10,
+          "raceMs": 54700.00000000001,
+          "bestLapMs": 16666.666666666668,
+          "uses": 0
+        },
+        "with": {
+          "score": 10,
+          "raceMs": 54650.00000000001,
+          "bestLapMs": 16616.666666666668,
+          "uses": 1
+        }
+      }
+    ],
+    "bubble": [
+      {
+        "level": 1,
+        "without": {
+          "shots": 6,
+          "score": 590
+        },
+        "with": {
+          "shots": 6,
+          "score": 590
+        }
+      },
+      {
+        "level": 2,
+        "without": {
+          "shots": 16,
+          "score": 510
+        },
+        "with": {
+          "shots": 16,
+          "score": 510
+        }
+      },
+      {
+        "level": 3,
+        "without": {
+          "shots": 29,
+          "score": 810
+        },
+        "with": {
+          "shots": 29,
+          "score": 810
+        }
+      },
+      {
+        "level": 4,
+        "without": {
+          "shots": 11,
+          "score": 680
+        },
+        "with": {
+          "shots": 11,
+          "score": 680
+        }
+      },
+      {
+        "level": 5,
+        "without": {
+          "shots": 12,
+          "score": 510
+        },
+        "with": {
+          "shots": 12,
+          "score": 510
+        }
+      },
+      {
+        "level": 6,
+        "without": {
+          "shots": 13,
+          "score": 770
+        },
+        "with": {
+          "shots": 13,
+          "score": 770
+        }
+      },
+      {
+        "level": 7,
+        "without": {
+          "shots": 28,
+          "score": 780
+        },
+        "with": {
+          "shots": 28,
+          "score": 780
+        }
+      },
+      {
+        "level": 8,
+        "without": {
+          "shots": 21,
+          "score": 890
+        },
+        "with": {
+          "shots": 21,
+          "score": 890
+        }
+      },
+      {
+        "level": 9,
+        "without": {
+          "shots": 70,
+          "score": 1390
+        },
+        "with": {
+          "shots": 70,
+          "score": 1390
+        }
+      },
+      {
+        "level": 10,
+        "without": {
+          "shots": 56,
+          "score": 1290
+        },
+        "with": {
+          "shots": 56,
+          "score": 1290
+        }
+      },
+      {
+        "level": 11,
+        "without": {
+          "shots": 13,
+          "score": 870
+        },
+        "with": {
+          "shots": 13,
+          "score": 870
+        }
+      },
+      {
+        "level": 12,
+        "without": {
+          "shots": 14,
+          "score": 930
+        },
+        "with": {
+          "shots": 14,
+          "score": 930
+        }
+      },
+      {
+        "level": 13,
+        "without": {
+          "shots": 16,
+          "score": 850
+        },
+        "with": {
+          "shots": 16,
+          "score": 850
+        }
+      },
+      {
+        "level": 14,
+        "without": {
+          "shots": 13,
+          "score": 810
+        },
+        "with": {
+          "shots": 13,
+          "score": 810
+        }
+      },
+      {
+        "level": 15,
+        "without": {
+          "shots": 12,
+          "score": 840
+        },
+        "with": {
+          "shots": 12,
+          "score": 840
+        }
+      },
+      {
+        "level": 16,
+        "without": {
+          "shots": 32,
+          "score": 1170
+        },
+        "with": {
+          "shots": 32,
+          "score": 1170
+        }
+      },
+      {
+        "level": 17,
+        "without": {
+          "shots": 11,
+          "score": 850
+        },
+        "with": {
+          "shots": 11,
+          "score": 850
+        }
+      },
+      {
+        "level": 18,
+        "without": {
+          "shots": 13,
+          "score": 1090
+        },
+        "with": {
+          "shots": 13,
+          "score": 1090
+        }
+      },
+      {
+        "level": 19,
+        "without": {
+          "shots": 18,
+          "score": 1050
+        },
+        "with": {
+          "shots": 18,
+          "score": 1050
+        }
+      },
+      {
+        "level": 20,
+        "without": {
+          "shots": 15,
+          "score": 980
+        },
+        "with": {
+          "shots": 15,
+          "score": 980
+        }
+      },
+      {
+        "level": 21,
+        "without": {
+          "shots": 24,
+          "score": 1280
+        },
+        "with": {
+          "shots": 24,
+          "score": 1280
+        }
+      },
+      {
+        "level": 22,
+        "without": {
+          "shots": 17,
+          "score": 1190
+        },
+        "with": {
+          "shots": 17,
+          "score": 1190
+        }
+      },
+      {
+        "level": 23,
+        "without": {
+          "shots": 13,
+          "score": 970
+        },
+        "with": {
+          "shots": 13,
+          "score": 970
+        }
+      },
+      {
+        "level": 24,
+        "without": {
+          "shots": 19,
+          "score": 1140
+        },
+        "with": {
+          "shots": 19,
+          "score": 1140
+        }
+      },
+      {
+        "level": 25,
+        "without": {
+          "shots": 21,
+          "score": 1390
+        },
+        "with": {
+          "shots": 21,
+          "score": 1390
+        }
+      },
+      {
+        "level": 26,
+        "without": {
+          "shots": 37,
+          "score": 1160
+        },
+        "with": {
+          "shots": 37,
+          "score": 1160
+        }
+      },
+      {
+        "level": 27,
+        "without": {
+          "shots": 34,
+          "score": 1480
+        },
+        "with": {
+          "shots": 34,
+          "score": 1480
+        }
+      },
+      {
+        "level": 28,
+        "without": {
+          "shots": 34,
+          "score": 1260
+        },
+        "with": {
+          "shots": 34,
+          "score": 1260
+        }
+      },
+      {
+        "level": 29,
+        "without": {
+          "shots": 43,
+          "score": 1490
+        },
+        "with": {
+          "shots": 43,
+          "score": 1490
+        }
+      },
+      {
+        "level": 30,
+        "without": {
+          "shots": 39,
+          "score": 1530
+        },
+        "with": {
+          "shots": 39,
+          "score": 1530
+        }
+      }
+    ],
+    "serpentin": [
+      {
+        "level": 1,
+        "without": {
+          "moves": 86,
+          "score": 80
+        },
+        "with": {
+          "moves": 86,
+          "score": 80
+        }
+      },
+      {
+        "level": 2,
+        "without": {
+          "moves": 94,
+          "score": 260
+        },
+        "with": {
+          "moves": 94,
+          "score": 260
+        }
+      },
+      {
+        "level": 3,
+        "without": {
+          "moves": 110,
+          "score": 270
+        },
+        "with": {
+          "moves": 110,
+          "score": 270
+        }
+      },
+      {
+        "level": 4,
+        "without": {
+          "moves": 106,
+          "score": 400
+        },
+        "with": {
+          "moves": 106,
+          "score": 400
+        }
+      },
+      {
+        "level": 5,
+        "without": {
+          "moves": 84,
+          "score": 550
+        },
+        "with": {
+          "moves": 84,
+          "score": 550
+        }
+      },
+      {
+        "level": 6,
+        "without": {
+          "moves": 117,
+          "score": 660
+        },
+        "with": {
+          "moves": 117,
+          "score": 660
+        }
+      },
+      {
+        "level": 7,
+        "without": {
+          "moves": 137,
+          "score": 840
+        },
+        "with": {
+          "moves": 137,
+          "score": 840
+        }
+      },
+      {
+        "level": 8,
+        "without": {
+          "moves": 131,
+          "score": 1040
+        },
+        "with": {
+          "moves": 131,
+          "score": 1040
+        }
+      },
+      {
+        "level": 9,
+        "without": {
+          "moves": 142,
+          "score": 1260
+        },
+        "with": {
+          "moves": 142,
+          "score": 1260
+        }
+      },
+      {
+        "level": 10,
+        "without": {
+          "moves": 117,
+          "score": 1400
+        },
+        "with": {
+          "moves": 117,
+          "score": 1400
+        }
+      },
+      {
+        "level": 11,
+        "without": {
+          "moves": 149,
+          "score": 1650
+        },
+        "with": {
+          "moves": 149,
+          "score": 1650
+        }
+      },
+      {
+        "level": 12,
+        "without": {
+          "moves": 178,
+          "score": 1920
+        },
+        "with": {
+          "moves": 178,
+          "score": 1920
+        }
+      },
+      {
+        "level": 13,
+        "without": {
+          "moves": 218,
+          "score": 2860
+        },
+        "with": {
+          "moves": 218,
+          "score": 2860
+        }
+      },
+      {
+        "level": 14,
+        "without": {
+          "moves": 192,
+          "score": 2380
+        },
+        "with": {
+          "moves": 192,
+          "score": 2380
+        }
+      },
+      {
+        "level": 15,
+        "without": {
+          "moves": 163,
+          "score": 2700
+        },
+        "with": {
+          "moves": 163,
+          "score": 2700
+        }
+      },
+      {
+        "level": 16,
+        "without": {
+          "moves": 235,
+          "score": 3040
+        },
+        "with": {
+          "moves": 235,
+          "score": 3040
+        }
+      },
+      {
+        "level": 17,
+        "without": {
+          "moves": 253,
+          "score": 3400
+        },
+        "with": {
+          "moves": 253,
+          "score": 3400
+        }
+      },
+      {
+        "level": 18,
+        "without": {
+          "moves": 265,
+          "score": 3600
+        },
+        "with": {
+          "moves": 265,
+          "score": 3600
+        }
+      },
+      {
+        "level": 19,
+        "without": {
+          "moves": 275,
+          "score": 3990
+        },
+        "with": {
+          "moves": 275,
+          "score": 3990
+        }
+      },
+      {
+        "level": 20,
+        "without": {
+          "moves": 198,
+          "score": 4400
+        },
+        "with": {
+          "moves": 198,
+          "score": 4400
+        }
+      },
+      {
+        "level": 21,
+        "without": {
+          "moves": 292,
+          "score": 4830
+        },
+        "with": {
+          "moves": 292,
+          "score": 4830
+        }
+      },
+      {
+        "level": 22,
+        "without": {
+          "moves": 288,
+          "score": 5060
+        },
+        "with": {
+          "moves": 288,
+          "score": 5060
+        }
+      },
+      {
+        "level": 23,
+        "without": {
+          "moves": 296,
+          "score": 5520
+        },
+        "with": {
+          "moves": 296,
+          "score": 5520
+        }
+      },
+      {
+        "level": 24,
+        "without": {
+          "moves": 328,
+          "score": 6000
+        },
+        "with": {
+          "moves": 328,
+          "score": 6000
+        }
+      },
+      {
+        "level": 25,
+        "without": {
+          "moves": 272,
+          "score": 6500
+        },
+        "with": {
+          "moves": 272,
+          "score": 6500
+        }
+      },
+      {
+        "level": 26,
+        "without": {
+          "moves": 405,
+          "score": 6760
+        },
+        "with": {
+          "moves": 405,
+          "score": 6760
+        }
+      },
+      {
+        "level": 27,
+        "without": {
+          "moves": 396,
+          "score": 7290
+        },
+        "with": {
+          "moves": 396,
+          "score": 7290
+        }
+      },
+      {
+        "level": 28,
+        "without": {
+          "moves": 410,
+          "score": 7840
+        },
+        "with": {
+          "moves": 410,
+          "score": 7840
+        }
+      },
+      {
+        "level": 29,
+        "without": {
+          "moves": 435,
+          "score": 8410
+        },
+        "with": {
+          "moves": 435,
+          "score": 8410
+        }
+      },
+      {
+        "level": 30,
+        "without": {
+          "moves": 319,
+          "score": 10500
+        },
+        "with": {
+          "moves": 319,
+          "score": 10500
+        }
+      }
+    ]
+  }
+}

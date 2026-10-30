@@ -1,4 +1,4 @@
-import { Engine, TICK, type State, type Probe } from '../src/engines/orbite/engine';
+import { Engine, TICK, type State, type Probe, difficulty } from '../src/engines/orbite/engine';
 type Factory = typeof Engine;
 function must<T>(value: T | undefined): T { if (value === undefined) throw new Error('Missing entity'); return value; }
 const check = (value: boolean, message: string): void => { if (!value) throw new Error(message); };
@@ -11,6 +11,11 @@ function shoot(e: Engine, x = e.state.probes[0]?.x ?? 180): void {
     e.state.shots = [{ x, y: 220, owner: 'player' }]; e.step(TICK);
 }
 export const behaviors: Record<string, (E: Factory) => void> = {
+    'O-FINAL huit mécaniques réellement générées': E => {
+        const e = new E(29);
+        for (const kind of ['rotor', 'split', 'stealth', 'repair']) check(e.state.probes.some(p => p.kind === kind), 'final probe type ' + kind);
+        check(Boolean(e.state.asteroids?.length && e.state.wells?.length && e.state.satellite && e.state.swarm), 'final environmental mechanics');
+    },
     'O-MEC-01 rotor ferme puis ouvre sans perdre de PV': E => {
         const e = setup(E, 3); const p = e.state.probes[0]; if (!p) throw new Error('probe');
         p.kind = 'rotor'; shoot(e);
@@ -22,6 +27,7 @@ export const behaviors: Record<string, (E: Factory) => void> = {
         p.kind = 'split'; shoot(e);
         check(e.state.probes.length === 2 && e.state.probes.every(p => p.kind === 'fragment' && p.hp === 1), 'two fragments');
         check(must(e.state.probes[1]).x - must(e.state.probes[0]).x === 28 && must(e.state.probes[0]).id !== must(e.state.probes[1]).id, 'separated unique fragments');
+        check(e.state.probes.every(fragment => fragment.y === p.y - 8), 'fragments eight pixels above parent');
         check(e.status === 'playing' && e.speed() > 0, 'fragments remain objectives without reversing fleet speed');
     },
     'O-MEC-03 astéroïde dévie une fois les deux camps': E => {
@@ -38,6 +44,11 @@ export const behaviors: Record<string, (E: Factory) => void> = {
         e.state.shots = [{ x: 140, y: 350, owner: 'player' }]; e.step(TICK);
         check(e.state.shots[0]?.vx === 0.48 && e.state.shots[0].x === 140.008, 'literal gravity acceleration');
         check(e.events.includes('gravity'), 'observed gravity');
+        for (const sign of [-1, 1]) {
+            const capped = setup(E, 12); capped.state.wells = [{ x: 180, y: 350 }];
+            capped.state.shots = [{ x: 180 - sign * 40, y: 350, vx: sign * 89.9, owner: 'player' }];
+            capped.step(TICK); check(capped.state.shots[0]?.vx === sign * 90, 'gravity saturates at both limits');
+        }
     },
     'O-MEC-05 furtive intangible puis vulnérable': E => {
         const e = setup(E, 15); const p = e.state.probes[0]; if (!p) throw new Error('probe');
@@ -67,8 +78,35 @@ export const behaviors: Record<string, (E: Factory) => void> = {
         cleared.state.shots = [{ x: 180, y: 478, owner: 'enemy' }, { x: 180, y: 488, owner: 'player' }];
         cleared.step(TICK);
         check(cleared.state.shields.length === 0 && cleared.state.shots.length === 1 && !cleared.events.includes('intercept'), 'consumed enemy cannot consume another shot');
+        for (const enemyY of [536, 540]) {
+            const outcomes = [false, true].map(reverse => {
+                const guard = setup(E, 21); guard.state.satellite = { x: 180, y: 550, hp: 1 };
+                const shots: State['shots'] = [{ x: 180, y: enemyY, owner: 'enemy' }, { x: 180, y: 550, owner: 'player' }];
+                guard.state.shots = reverse ? shots.reverse() : shots; guard.step(TICK);
+                check(guard.status === (enemyY === 536 ? 'playing' : 'lost'), 'earlier contact wins satellite/interception race');
+                return JSON.stringify({ ...guard.snapshot(), events: guard.events });
+            });
+            check(outcomes[0] === outcomes[1], 'shot permutation gives identical outcome');
+        }
         const rescue = setup(E, 21); rescue.state.satellite = { x: 180, y: 550, hp: 3 }; shoot(rescue);
+        check(rescue.state.score === difficulty(21).rows * 10 * 22 + 3 * 100 * 22, 'satellite bonus scales with remaining hp and level');
         check(rescue.status === 'won' && rescue.snapshot().satellite === null && rescue.events.includes('satellite-saved'), 'ally exits when escorts are cleared');
+    },
+    'O-CONTACT permutations multiples et cibles simultanées': E => {
+        const shots: State['shots'] = [{ x: 180, y: 536, owner: 'enemy' }, { x: 180, y: 550, owner: 'player' }, { x: 180, y: 552, owner: 'player' }];
+        let baseline = '';
+        for (const order of [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]]) {
+            const e = setup(E, 21); e.state.satellite = { x: 180, y: 550, hp: 1 };
+            e.state.shots = order.map(i => ({ ...must(shots[i]) })); e.step(TICK);
+            check(e.state.satellite.hp === 1 && e.state.shots.length === 1 && e.events.filter(v => v === 'intercept').length === 1, 'single interception consumes exactly two shots');
+            const result = JSON.stringify({ ...e.snapshot(), events: e.events });
+            if (baseline) check(result === baseline, 'all six insertion permutations agree'); else baseline = result;
+        }
+        for (const reverse of [false, true]) {
+            const probes: Probe[] = [0, 1].map(id => ({ id, x: 180, y: 200, row: 0, column: id, hp: 1 }));
+            const e = setup(E, 0, reverse ? probes.reverse() : probes); shoot(e);
+            check(e.state.probes.length === 1 && e.state.probes[0]?.id === 1, 'simultaneous probe contacts use stable ids');
+        }
     },
     'O-MEC-08 essaim coordonné courbe les deux axes': E => {
         const a = setup(E, 24), b = setup(E, 24); a.state.swarm = true;
@@ -85,17 +123,21 @@ export const behaviors: Record<string, (E: Factory) => void> = {
         check(e.state.boss.hp === 6 && e.state.boss.phase === 2 && e.events.includes('boss-phase'), 'phase at six hp');
         e.state.ticks = 71; e.state.shots = []; e.step(TICK);
         check(e.events.includes('boss-fire') && e.state.shots.length === 3, 'phase two fan at tick72');
+        check(Math.abs(must(must(e.state.shots[1]).vx) - (e.state.cannon - e.state.boss.x) * 0.35) < 1e-8, 'phase two middle shot aims at cannon');
+        for (let tick = 73; tick <= 144; tick++) {
+            e.step(TICK); check(e.events.includes('boss-fire') === (tick === 144), 'phase two fires exactly every 72 ticks');
+        }
         for (const [level, count] of [[4, 2], [9, 1], [14, 3], [19, 2], [24, 2], [29, 3]] as const) {
             const spawned = new E(level); check(spawned.state.boss?.motif === (level + 1) / 5, 'every fifth level has boss');
             spawned.loadState({ ...spawned.state, probes: [], shots: [], shields: [], wells: [], asteroids: [], satellite: null, ticks: 119, enemyTimer: 1000000, cometTimer: 1000000 });
             spawned.step(TICK);
-            const vx = spawned.state.shots.map(s => s.vx ?? 0);
+            const vx = spawned.state.shots.map(s => s.vx ?? 0).sort((a, b) => a - b);
             check(spawned.events.includes('boss-fire') && vx.length === count, 'generated guardian emits its pattern');
             if (level === 4) check(vx[0] === -80 && vx[1] === 80, 'double diagonal');
             if (level === 9) check(Math.abs(must(vx[0]) + 38.01417238) < 0.00001, 'aimed shot');
             if (level === 14 || level === 29) check(vx[0] === -65 && vx[1] === 0 && vx[2] === 65, 'triple fan');
-            if (level === 19) check(vx[0] === 100 && vx[1] === 0, 'alternating sweep');
-            if (level === 24) check(Math.abs(must(vx[0]) - 100.02271695) < 0.00001 && Math.abs(must(vx[1]) + 45.77615202) < 0.00001, 'rotating pair');
+            if (level === 19) check(vx[0] === 0 && vx[1] === 100, 'alternating sweep');
+            if (level === 24) check(Math.abs(must(vx[1]) - 100.02271695) < 0.00001 && Math.abs(must(vx[0]) + 45.77615202) < 0.00001, 'rotating pair');
         }
         const side = setup(E, 4, []); side.state.boss = { x: 180, y: 200, hp: 5, maxHp: 5, phase: 1, motif: 1 }; side.state.ticks = 60;
         side.state.shots = [{ x: x + 18, y: 220, owner: 'player' }]; side.step(TICK);

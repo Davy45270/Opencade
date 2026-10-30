@@ -5,6 +5,173 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0-beta.1] — 2026-10-30
+
+Preview build so the new art and levels can be played on a phone tonight. Known gaps: some noisy-finger end-to-end checks are still being rebuilt on a stepped clock; Ferraille, Briqueterie and Alunir art passes are still in progress.
+
+### Corrections E2E — passe 105
+
+- Pause : pose endormie synchronisée avant toute lecture, puis état figé pour tous les jeux.
+- Essaim : clavier actif après la case de tir automatique ; budget vertical desktop corrigé et rangée tactile de 64 px. Police des spéciaux commune à 16 px.
+- Pilotes au doigt : échéances en temps de jeu, horizon issu du retard réellement observé et attentes explicites de 30 s ; latence de 150 ms et bruit de ±12 px conservés.
+- Briqueterie : suppression du redimensionnement à chaque image ; K02 vérifie la pause avec le temps simulé.
+- Ferraille : 30 rejeux échantillonnés par la graine fixe 105 (niveaux, personnages et graines listés dans le rapport), rencontres mises en cache et divergence du premier module détectée immédiatement ; onze mutations conservées.
+- Régressions Node : pause immédiate, clavier après focus, toucher du spécial, contrôles K02, budgets CSS et retard de lecture de 450 ms.
+
+### Ferraille — passe 104
+
+- Bonus secret accordé une seule fois ; collision du piston limitée à sa boîte dessinée sur les deux axes.
+- Introductions jouables : ascenseur, chaîne, otage et plafond construits, pont qui s’effondre sur un fond sûr, cibles inertes ; pilote adapté aux introductions.
+- Mesure sur les rencontres et gestes effectivement rejoués : 16 modules, similarité maximale 50 %, distance moyenne consécutive 0,8413 (publication 103 : 0,8057 sur modules générés). Score historique maintenu à 0.
+- Fixture authentique de `dab7aed`, cas négatifs isolés et distances littérales ; scène contrôlée sous Node (annonce 120 pas, checkpoints, démonstrations, cinq personnages et 900 victoires). Les 11 mutations sont exécutées et tuées par assertions ; rejeux Ferraille régénérés.
+
+### Ferraille — passe 103
+
+- Trente parcours écrits, seize modules physiques, démonstrations sûres, drapeaux médians et six arènes à module vedette ; R01–R03 conservent leurs noms et décors.
+- Répétition mesurée sur les séquences et gestes : 435 paires, plafond 50 %, vedette distincte des deux précédentes. Score historique 11,2 → 0.
+- F-niv-01…04 : effets littéraux, 900 victoires enregistrées (cinq personnages, trois graines, deux modes), anciens états compatibles et quatre mutations rejetées. E2E tactiles et huit captures écrits pour l'orchestrateur, non exécutés localement.
+
+### Essaim — passe 102
+
+- Étoiles : réattribution après destruction et collisions ignorant les cadavres du même pas ; projectiles et budget supprimés à chaque nouvelle vague ; traînées masquées en mouvement réduit.
+- Banc d'équilibre étalé à 100 PV par cible, sans saturation : dégâts 2,10–2,80 PV, écart maximal 10,26 % ; paramètres propres aux armes ajustés et tableau détaillé dans GAME_SPEC.
+- Assertions exactes sur fragments, montée et répétition 17/18, recharge complète, rebond droit, durée de vie, transition de vague et expiration visuelle. Seize mutations exécutées sous Node, dont les huit de la relecture adverse.
+- Cadence du pilote avec signature adaptée au nouvel équilibre ; pilote historique, rejeux et records sans signature inchangés.
+
+### Essaim — passe 101
+
+- Cinq signatures déterministes : bao fragmenté, spirale de feuilles, feu traversant et explosion, bananes à rebonds ralentissants, étoiles guidées ; charge manuelle et recharge commune de 8 s.
+- Vaisseaux à visage agrandis de 58 à 84 px, tirs contrastés, sept contours ennemis et trois décors en parallaxe ; pool de 96 particules conservé.
+- Équilibre mesuré sur trois formations, campagnes avec les cinq personnages, 60 rejeux historiques inchangés, budgets de rendu sur 2000 pas et quatre mutations détectées sous Node.
+- E2E mobiles écrits pour armes en vol, décors et victoire au doigt bruité ; aucun navigateur ni Vitest exécuté.
+
+### Corrections des spéciaux — passe 100
+
+- Balle forte conserve la téléportation et la temporisation des portails ; tests
+  littéraux de tous les types de briques et reprise après contact traversant.
+- Super-tir : 20 points par PV de boss effectivement retiré ; ouverture des cages
+  et protection du Bouclier lors de la perte d'escorte verrouillées sous Node.
+- Validation par événement clavier C des trois jeux, HUD prêt/utilisé/recharge
+  et durée réelle des effets ; compteur E2E fondé sur l'activation moteur.
+- Délais E2E de l'habillage portés à 15 s pour le démarrage mobile.
+
+### Personnages dans les jeux, partie 4 — passe 84
+
+- Ferraille : Super-tir frontal de courte portée, recharge de dix secondes.
+- Briqueterie : Balle forte traverse trois briques, une fois par vie.
+- Essaim : Bouclier de deux secondes par vague ; glisser au pouce gauche,
+  tir/charge et spécial à droite, champ réservé en portrait et paysage ; tir
+  automatique actif par défaut, préférence mémorisée dans ☰.
+- Effets procéduraux du compagnon choisi via le rendu commun ; mêmes règles
+  pour Boubou, CaliRoux, Pestouille, Tutu et Lumi, anciens records conservés.
+- Alunir : l'alignement ne corrige plus l'angle sur le pas de collision ; corps
+  inchangés de U06/U07 exécutés sous Node.
+- Traverse : trafic continu renforcé, 2000 dessins raster sans fenêtre figée
+  de 600 ms à 15 Hz.
+- 180 campagnes enregistrées avec/sans spécial, sept mutations rejetées ;
+  E2E CDP bruités et deux pouces écrits pour l'hôte, sans exécution locale.
+### Le Collier du Singe — correction passe 302
+
+- Tir orienté vers la position finale du relâchement au doigt et à la souris.
+- Avertissement de danger également déclenché par une insertion au-delà de 85 %.
+- Oracles Node renforcés : limites du tap, excursion puis retour, reprise après
+  annulation/sortie et transmission des événements au service sonore (C23).
+- Huit mutations ajoutées aux onze précédentes, avec ancres uniques et
+  vérification des substitutions en mémoire.
+
+### Le Collier du Singe — correction passe 301
+
+- Émissions au départ après éclatement, couleurs à graine par séries de 1 à 3,
+  bombe résolue sur les positions à l’impact avant insertion.
+- Courbes arrondies avec table fine, longueurs tronquées sans agrandissement,
+  contrôles de champ, de courbure et de séparation sur les trente niveaux.
+- C01–C22, contrôles et dessin de la scène exécutés en Node, onze mutations
+  tuées en mémoire ; E2E préparés pour glissé, tap réserve et clavier réels.
+- Code Collier remis en forme et oracles documentés.
+
+### Le Collier du Singe — passe 300
+
+- Treizième jeu : 30 parcours à perles, recul aimanté, combos, quatre bonus,
+  tunnels et deux colliers finaux ; tireur choisi et meneur dansant de la troupe.
+- Visée au doigt partout, tir au relâcher, échange tactile de 56 px, vignette
+  procédurale animée et progression du socle.
+- Oracles C01–C17 et campagne Node : 30 victoires et 30 inactions perdantes ;
+  E2E desktop/mobile et doigt CDP bruité écrits pour exécution externe.
+
+### Personnages dans les jeux, partie 3 — passe 82
+
+- Dédale : héros choisi à la place de la luciole, Lueur de trois secondes vers le
+  soleil le plus proche, une fois par niveau ; les follets restent distincts.
+- Orbite : compagnon dans la tourelle, Rafale de 1,5 seconde une fois par vague.
+- Empilo : mascotte à côté du puits, réserve classique une fois par pièce posée,
+  six boutons principaux sur une seule rangée tactile.
+- Réactions issues des vrais événements, dodo en pause, motifs procéduraux des
+  cinq compagnons ; sauvegardes, barèmes et témoins ordinaires conservés.
+- Rejeux Node de 180 victoires, états littéraux, vrais appels Graphics des cinq
+  identités, sept mutations rejetées et répétition des pilotes avec latence.
+- E2E CDP mobiles bruités écrits pour les niveaux 1 et 10 et un cas où la réserve
+  change la défaite en victoire ; captures seulement après la conduite.
+- Vignette Traverse : rondins et véhicules en mouvement continu, test raster
+  sur 2 000 dessins interdisant 36 pas consécutifs identiques.
+
+### Habillages d'action et catalogue catalogue — passe 77
+
+- Ferraille : cinq aventuriers équipés, huit poses chacun, projectiles thématiques
+  et cinq véhicules distincts, dessinés par les primitives vectorielles communes.
+- Briqueterie : raquettes à quatre vues, balles à visage/emblème, traînées,
+  bonus illustrés et décors par compagnon et tranche de niveaux.
+- Essaim : cinq vaisseaux à quatre vues, habillage des six armes, menaces
+  contrastées et décors spatiaux du catalogue. Hitboxes et règles des armes conservées.
+- Neuf niveaux réels : Jungle mécanique, Forteresse oubliée, Usine infernale,
+  Festin de Boubou, Tourbillon d'automne, Constellations, Ceinture de bambou,
+  Nébuleuse écarlate, Royaume des étoiles. Ascenseur et convoyeurs utilisables,
+  nouvelles grilles et formation en anneau ; autres règles conservées.
+- Cache de textures vectorielles de la passe 75 réutilisé ; réserves d'images
+  bornées à 224/160/256, sans génération pendant le jeu. Références hors dépôt.
+- Pilotes et rejeux gagnants sur deux graines ; scores de diversité inchangés
+  (11,2/18,1/16,4). Nouveaux contrôles Node sous 2 s par cas, scènes réelles avec
+  ports simulés et nettoyage vérifié. Rapports de validation actualisés.
+- Bundle principal : 1 522,46 → 1 538,63 kB ; gzip 421,44 → 427,12 kB.
+- 29 E2E de captures préparés, sans exécution de navigateur ni Vitest : quinze
+  habillages, cinq véhicules et neuf niveaux catalogue.
+
+### Habillages de Dérapage et Bubble Lab — passe 75
+
+- Cinq véhicules vectoriels distincts avec pilote visible, cinq vues chacun,
+  accessoires propres et illustration en action sur le résultat de Dérapage.
+- Cinq lanceurs avec cinq vues, canon articulé, bulles thématiques lisibles par
+  six couleurs et six motifs contrastés, et cinq effets visuels de Joker.
+- Bonus et Élan habillés selon le pilote, sans modification des moteurs ; décors
+  jungle, automne, volcan, cirque et ciel par groupes de six niveaux de Bubble Lab.
+- Galerie des équipements sur les cartes de personnages ; textures procédurales
+  mises en cache, réserves fixes et expressions des pilotes conservées.
+- Contrôles purs Node des vues, motifs, contraste et budgets ; contrôles de scènes
+  adaptés et dix E2E de capture écrits, sans lancer navigateur ni Vitest.
+- Les références restent hors dépôt ; aucun fichier image ajouté, aucun commit.
+- Bundle principal : 1 506 147 → 1 522 011 octets ; gzip 415 559 → 421 301
+  octets (+15 864 / +5 742). CSS inchangé : 12 386 octets, gzip 2 993.
+
+### Characters enter the games — pass 72
+
+- Selected companion drives Dérapage, holds Bubble Lab's launcher and leads
+  Serpentin; the other four companions drive rival karts, with one neutral driver.
+- Deterministic optional specials: additive 800 ms Élan once per lap for every
+  kart, one next-shot colour Joker per level, and one body-contact Esquive per level.
+- Shared pass-71 Graphics rendering, reactions and paused redraws; mobile special
+  buttons, preserved saves/scores and recorded 30-level campaign witnesses.
+- Continuous Traverse thumbnail traffic with a 2000-step drawing oracle; pure
+  Node scene/mutation checks and three written mobile CDP noisy-touch scenarios.
+
+### Characters enter the games — pass 70
+
+- The home companion is now the playable hero in Caisses and Traverse and the
+  pilot visible in Alunir's cockpit, with procedural poses, reactions and specials.
+- Equal rules for all five companions: one crate pull per level, one two-cell
+  bond per life, or two fuel-consuming one-second stabilisations per level.
+- Exact Caisses records with/without pull, preserved ordinary solvers and saves,
+  recorded campaign replays and Node mutation checks. Three noisy-finger mobile
+  CDP touch scenarios are written for execution on the test host.
+
 ## [0.3.2] - 2026-10-30
 
 ### Dérapage: playable by touch

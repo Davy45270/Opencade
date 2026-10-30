@@ -2,8 +2,8 @@ import { Engine, difficulty, TICK } from '../src/engines/essaim/engine.ts';
 import { pilot } from '../src/engines/essaim/pilot.ts';
 import { essaimDiversity, observeEssaim } from './essaim-diversity.js';
 function check(condition, message) { if (!condition) throw new Error(message); }
-export function diversity(E = Engine) {
-    const r = essaimDiversity(E, difficulty);
+export function diversity(E = Engine, observe) {
+    const r = essaimDiversity(E, difficulty, observe);
     check(r.noveltyCount >= 8, 'E-DIV-01: eight generated novelties');
     check(r.cloneShare < 0.25, 'E-DIV-01: clones below 25 percent');
     let previous = 1;
@@ -19,10 +19,10 @@ export function campaign(E, seed) {
         return { level: level+1, frames: frame, lives: e.state.lives, score: e.state.score };
     });
 }
-export function generatedWitnesses(E = Engine) {
+export function generatedWitnesses(E = Engine, observe = observeEssaim) {
     const required = [[1,'burst-fan'],[2,'fast-ellipse'],[3,'frontal-block'],[6,'mine-explosion'],[9,'split-fragments'],[12,'spiral-approach'],[15,'guided-turn'],[18,'rescue-present'],[21,'mirror-tracking'],[29,'command-phase-two-fire']];
     for (const [level,behavior] of required) {
-        const result = observeEssaim(new E(level,28));
+        const result = observe(new E(level,28));
         check(result.status === 'won', 'observation follows full generated attempt');
         check(result.witnesses[behavior], `E-DIV-01 missing observed ${behavior}`);
     }

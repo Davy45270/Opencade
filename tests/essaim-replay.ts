@@ -19,7 +19,7 @@ export function stateWitness(e: Engine): [number, number] {
     for (let i = 0; i < source.length; i++) { const c = source.charCodeAt(i); a = Math.imul(a ^ c, 16777619) >>> 0; b = (Math.imul(b, 33) ^ c) >>> 0; }
     return [a, b];
 }
-export function replay(record: EssaimRecording, E = Engine): ReturnType<typeof observeEssaim> {
+export function replay(record: EssaimRecording, E = Engine, observe?: (engine: Engine) => void): ReturnType<typeof observeEssaim> {
     const e = new E(record.level, record.seed);
     let input = 0, checkpoint = 0;
     const verify = (frame: number): void => {
@@ -30,6 +30,7 @@ export function replay(record: EssaimRecording, E = Engine): ReturnType<typeof o
     };
     const observation = observeEssaim(e, record.observation.frames, (engine, frame) => {
         verify(frame);
+        observe?.(engine);
         let next = record.inputs[input+1];
         while (next && next[0] <= frame) { input++; next = record.inputs[input+1]; }
         const entry = record.inputs[input];

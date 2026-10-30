@@ -1,0 +1,71 @@
+{
+  "pass": 77,
+  "commitCreated": false,
+  "browserRun": false,
+  "vitestRun": false,
+  "staticChecks": {
+    "lint": "passed",
+    "typecheck": "passed",
+    "build": "passed"
+  },
+  "bundle": {
+    "units": "Vite decimal kB, principal JavaScript chunk",
+    "before": {
+      "raw": 1522.46,
+      "gzip": 421.44
+    },
+    "after": {
+      "raw": 1538.63,
+      "gzip": 427.12
+    },
+    "delta": {
+      "raw": 16.17,
+      "gzip": 5.68
+    }
+  },
+  "targeted": {
+    "level-catalogue": "9 cases, 18 winning replays, each case < 288 ms in isolated run",
+    "briqueterie": "60 winning replays in 821.5 ms, 18 mutations rejected",
+    "art": "distinct views and ball drawings; cache and fixed pool pass; each case < 2 s",
+    "scenes": "15 game/character combinations, real scenes with simulated platform ports; each case < 2 s"
+  },
+  "diversity": {
+    "ferraille": {
+      "before": 11.2,
+      "after": 11.2
+    },
+    "briqueterie": {
+      "before": 18.1,
+      "after": 18.1
+    },
+    "essaim": {
+      "before": 16.4,
+      "after": 16.4
+    }
+  },
+  "fullNodeSuite": {
+    "status": "failed temporal budgets",
+    "validators": 28,
+    "seconds": 229.34,
+    "suiteLimitSeconds": 180,
+    "failed": [
+      "validate-derapage.js",
+      "validate-orbite.js",
+      "validate-character-games-2.js",
+      "validate-briqueterie.js",
+      "validate-characters.js",
+      "validate-character-scenes.js",
+      "validate-level-catalogue.js",
+      "test-dedale.js"
+    ],
+    "note": "Run overlapped static checks. Thresholds unchanged; isolated targeted rechecks pass."
+  },
+  "plannedCaptures": {
+    "habillage-ferraille-<id>": "equipped character, weapon and themed special projectile",
+    "habillage-ferraille-<id>-vehicule": "character vehicle in motion with ricochet",
+    "habillage-briqueterie-<id>": "paddle, themed ball and active wide bonus",
+    "habillage-essaim-<id>": "ship, thematic shots and satellites or ricochet",
+    "level-catalogue-<code>": "nine real catalogue stages, including final wave and boss for G03"
+  },
+  "rasterAssetsAdded": false
+}

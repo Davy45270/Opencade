@@ -21,7 +21,8 @@ export function levelDiversity(indices = LEVELS.map((_,i)=>i), generate = genera
     const result = measureDiversity(rows);
     assert.ok(result.cloneShare < 0.2);
     assert.ok(result.noveltyCount >= 6);
-    assert.equal(new Set(levels.flatMap(l=>l?.mechanics ?? [])).size,6);
+    // Six chapter mechanics plus catalogue leaf (P02, L20) and crystal/prism (P03, L26), on existing novelty levels.
+    assert.equal(new Set(levels.flatMap(l=>l?.mechanics ?? [])).size,9);
     const added = result.noveltyLevels.filter(n=>n >=11);
     assert.equal(added.length,6);
     for(let i=1;i<added.length;i++) {

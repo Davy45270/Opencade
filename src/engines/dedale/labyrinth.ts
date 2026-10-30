@@ -15,11 +15,54 @@ function required<T>(value: T | undefined): T {
     return value;
 }
 const width = 19;
-// Seed salts selected by full engine replays, route separation and campaign pacing.
-const placementSalts = [0, 837832, 0, 733103, 0, 0, 0, 209458, 104729, 104729, 0, 0, 0, 209458, 209458, 523645, 104729, 104729, 733103, 104729, 733103, 1256748, 117087022, 1570935, 418916, 22097819, 1361477, 223491686, 77813647, 45242928];
+// Seed salts selected by full engine replays, route separation and campaign pacing
+// (levels 20, 24, 27-30 re-selected for the per-level encounter mix, pass 503: both seeds won, D-ROUTE ≤ 30 %, D-CURVE;
+// level 26 is the review board and keeps its historical salt and placement).
+const placementSalts = [0, 837832, 0, 733103, 0, 0, 0, 209458, 104729, 104729, 0, 0, 0, 209458, 209458, 523645, 104729, 104729, 733103, 314501198, 733103, 1256748, 117087022, 1466367, 418916, 22097819, 2723136, 319842377, 56344398, 324869369];
 const offsets: Record<Heading, number> = { up: -19, left: -1, down: 19, right: 1 };
 /** The principal corridor is also the placement frame: there is no common gallery. */
 export const labyrinthSeed = (level: number, seed: number): number => (seed + level * 7919 + (placementSalts[level] ?? 0)) >>> 0;
+/** Placement families, in order of first appearance (level = index + 1). */
+export const ENCOUNTERS = ['key', 'arrow', 'portal', 'switch', 'moving', 'ice', 'dark', 'key2'] as const;
+export type Encounter = typeof ENCOUNTERS[number];
+const INTRO: Record<Encounter, number> = { key: 3, arrow: 4, portal: 8, switch: 12, moving: 15, ice: 18, dark: 21, key2: 27 };
+const BREATHERS = [5, 10, 16, 21, 26];
+const REVIEW = 25;
+/** Historical route fractions, kept for the review board (its long route stays distinct from the short early ones). */
+const HISTORICAL: Partial<Record<Encounter, number>> = { key: 0.08, portal: 0.30, switch: 0.40, moving: 0.69, ice: 0.76, dark: 0.86 };
+/**
+ * Encounters of a level. Challenges (every fifth) and the final use everything acquired; breathers only the newest;
+ * an introduction level adds one older family; the others mix the newest with two older ones in rotation, so two
+ * neighbouring levels never meet the same set in the same order.
+ */
+export function encounters(level: number): Encounter[] {
+    const acquired = ENCOUNTERS.filter(m => INTRO[m] <= level && m !== 'key2');
+    const newest = [...acquired].sort((a, b) => INTRO[b] - INTRO[a])[0];
+    if (!newest) return [];
+    // From level 28 the second colour comes with its first-colour pair (it needs its own key).
+    const second: Encounter[] = level >= INTRO.key2 ? ['key2'] : [];
+    // Level 26 is the review board: everything acquired at the historical route fractions (see `slot`).
+    if (level === REVIEW) return [...acquired];
+    if ((level + 1) % 5 === 0) return rotate([...acquired, ...second], level);
+    if (BREATHERS.includes(level)) return second.length ? rotate([newest, 'key', ...second], level) : [newest];
+    const older = acquired.filter(m => m !== newest);
+    const picks = Object.values(INTRO).includes(level) ? 1 : 2;
+    const chosen = Array.from({ length: Math.min(picks, older.length) }, (_, k) => older[(level * 2 + k) % older.length]).filter((m): m is Encounter => m !== undefined);
+    const mix = new Set<Encounter>([newest, ...chosen]);
+    if (second.length) mix.add('key');
+    return rotate([...mix, ...second], level);
+}
+function rotate<T>(items: T[], level: number): T[] {
+    const n = items.length, k = n ? (level * 3) % n : 0;
+    return [...items.slice(k), ...items.slice(0, k)];
+}
+/** Route fraction where a family starts: equal windows between 8 % and 88 % of the principal route, in plan order. */
+function slot(plan: readonly Encounter[], m: Encounter, level: number): number {
+    if (level === REVIEW) return HISTORICAL[m] ?? 0.5;
+    // Every family, the arrow included, gets its own route slice in plan order.
+    const placed: readonly Encounter[] = plan, i = placed.indexOf(m), width = 0.8 / Math.max(1, placed.length);
+    return 0.08 + Math.max(0, i) * width;
+}
 export function createLabyrinth(level: number, seed: number): { maze: boolean[]; journey: Journey; seeds: number[]; suns: number[] } {
     const random = new Random(labyrinthSeed(level, seed)), shape = SHAPES[level % 5] ?? 'corridors';
     const maze = Array<boolean>(437).fill(false);
@@ -98,24 +141,39 @@ export function createLabyrinth(level: number, seed: number): { maze: boolean[];
     const length = shape === 'spiral' ? principal.length : Math.min(principal.length, 26 + level * 4);
     principal = principal.slice(0, length);
     const point = (fraction: number): number => required(principal[Math.min(length - 1, Math.max(1, Math.floor(fraction * (length - 1))))]);
-    const arrowAt = principal.findIndex((at, i) => i >= 2 && i < length - 1 && at - required(principal[i - 1]) === required(principal[i + 1]) - at);
+    // Each level draws its own mix and order of encounters (see `encounters`), not the cumulative list.
+    const plan = encounters(level), has = (m: Encounter): boolean => plan.includes(m);
+    const at = (m: Encounter): number => slot(plan, m, level);
+    // Ice must sit on a straight run so entering it really slides (first straight cell at or after its slice).
+    const straightIndex = (fraction: number): number => {
+        const from = Math.min(length - 2, Math.max(1, Math.floor(fraction * (length - 1))));
+        for (let i = from; i < length - 1; i++) if (required(principal[i]) - required(principal[i - 1]) === required(principal[i + 1]) - required(principal[i])) return i;
+        return -1;
+    };
+    const straight = (fraction: number): number => { const i = straightIndex(fraction); return i < 0 ? point(fraction) : required(principal[i]); };
+    // The arrow sits on the first straight run of its own slice (review board: the historical first straight run).
+    const firstStraight = principal.findIndex((at, i) => i >= 2 && i < length - 1 && at - required(principal[i - 1]) === required(principal[i + 1]) - at);
+    const windowed = level === REVIEW ? -1 : straightIndex(at('arrow'));
+    const arrowAt = windowed >= 0 ? windowed : firstStraight;
     const direction = (a: number, b: number): Heading => b - a === -19 ? 'up' : b - a === 19 ? 'down' : b < a ? 'left' : 'right';
     const journey: Journey = {
         shape, start: required(principal[0]), principal, corridor,
         wispStart: shape === 'spiral' ? point(0.1 + random.next() * 0.85) : point(0.6),
-        keys: level >= 3 ? [{ at: point(0.08), color: 0 }, ...(level >= 27 ? [{ at: point(0.55), color: 1 }] : [])] : [],
-        doors: level >= 3 ? [{ at: point(0.16), color: 0 }, ...(level >= 27 ? [{ at: point(0.62), color: 1 }] : [])] : [],
-        arrows: level >= 4 ? [{ at: required(principal[arrowAt]), direction: direction(required(principal[arrowAt]), required(principal[arrowAt + 1])) }] : [],
-        portals: level >= 8 ? [[point(0.30), point(0.32)]] : [],
-        switches: level >= 12 ? [point(0.40)] : [], gates: level >= 12 ? [point(0.46)] : [],
-        moving: level >= 15 ? [point(0.69)] : [], ice: level >= 18 ? [point(0.76)] : [], dark: level >= 21 ? [point(0.86), point(0.87)] : [],
+        keys: has('key') ? [{ at: point(at('key')), color: 0 }, ...(has('key2') ? [{ at: point(at('key2')), color: 1 }] : [])] : [],
+        doors: has('key') ? [{ at: point(at('key') + 0.08), color: 0 }, ...(has('key2') ? [{ at: point(at('key2') + 0.07), color: 1 }] : [])] : [],
+        arrows: has('arrow') ? [{ at: required(principal[arrowAt]), direction: direction(required(principal[arrowAt]), required(principal[arrowAt + 1])) }] : [],
+        // At least three cells apart on short routes, so the portal is a real shortcut (historical 0.02 on long ones).
+        portals: has('portal') ? [[point(at('portal')), point(at('portal') + (level === REVIEW ? 0.02 : Math.max(0.02, 3 / (length - 1))))]] : [],
+        switches: has('switch') ? [point(at('switch'))] : [], gates: has('switch') ? [point(at('switch') + 0.06)] : [],
+        moving: has('moving') ? [point(at('moving'))] : [], ice: has('ice') ? [level === REVIEW ? point(at('ice')) : straight(at('ice'))] : [], dark: has('dark') ? [point(at('dark')), point(at('dark') + 0.01)] : [],
         held: 0, toggled: 0, turn: 0, remaining: (level + 1) % 5 === 0 ? (level === 29 ? 40000 : 25000) : 0,
     };
     // Goals on both sides of every interaction make the route playable evidence.
     const goals = new Set([point(0.05), point(0.25), point(0.52), point(1),
         ...journey.keys.map(v => v.at), ...journey.doors.map(v => v.at), ...journey.arrows.map(v => v.at),
         ...journey.switches, ...journey.gates, ...journey.moving, ...journey.ice, ...journey.dark,
-        ...(journey.portals.length ? [point(0.34)] : [])]);
+        // A goal just past the portal makes the route take it (historical 0.34 = 0.30 + 0.04).
+        ...(journey.portals.length ? [point(at('portal') + (level === REVIEW ? 0.04 : Math.max(0.04, 5 / (length - 1))))] : [])]);
     const suns = [point(0.05), point(0.25), point(0.52), point(1)];
     for (const at of [point(0.12), point(0.36), point(0.65), point(0.92)]) goals.add(at);
     if (shape === 'mirror' && (level === 19 || level === 29)) {

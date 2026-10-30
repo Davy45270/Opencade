@@ -1,10 +1,22 @@
+<h1 align="center"><a href="https://davy45270.github.io/Opencade/">▶ Play / Jouer</a></h1>
+
+<p align="center"><a href="https://davy45270.github.io/Opencade/"><img src="docs/screenshots/home-desktop.webp" alt="Accueil d’Opencade sur ordinateur : douze cartes de jeux" width="100%"></a></p>
+
 [English](README.md) | Français
+
+Ferraille propose 30 parcours écrits et 16 modules physiques, avec mesure de répétition ordonnée et 900 rejeux gagnants pour les cinq personnages (passe 103).
+
+La passe 101 enrichit Essaim de cinq signatures mécaniquement distinctes, de grands vaisseaux procéduraux, de sept silhouettes ennemies et de trois décors spatiaux, avec rejeux historiques préservés.
+
+La passe 84 ajoute les spéciaux des compagnons à Ferraille, Briqueterie et Essaim, avec contrôles aux deux pouces et tir automatique mémorisé dans Essaim.
+
+Passe 82 : le compagnon choisi explore Dédale, pilote Orbite et guide Empilo, avec Lueur, Rafale et Mise de côté, vérifiés par rejeux Node déterministes.
 
 La spécification détaillée des jeux, [GAME_SPEC.md](GAME_SPEC.md), est en français.
 
 # Opencade
 
-Cinq compagnons récurrents originaux disposent désormais d’un choix mémorisé sur l’accueil et de dessins vectoriels procéduraux partagés ; leur intégration aux jeux viendra ensuite.
+Le compagnon choisi joue dans Caisses, Traverse, Alunir, Dérapage, Bubble Lab et Serpentin, avec dessins procéduraux partagés, réactions et spéciaux tactiques de même puissance.
 
 Ferraille propose 30 étapes avec six comportements ennemis, flammes/ricochets/grenades, wagonnet, otages et gardiens à faiblesse, dont un réacteur en trois phases.
 
@@ -12,17 +24,44 @@ Ferraille propose 30 étapes avec six comportements ennemis, flammes/ricochets/g
 [![Pages](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml/badge.svg)](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml)
 [![Licence MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 
-Douze jeux originaux réunis dans une arcade pour navigateur. Opencade se joue
+Treize jeux originaux réunis dans une arcade pour navigateur. Opencade se joue
 sur téléphone et ordinateur, au toucher, à la souris et au clavier, sans compte
 ni serveur applicatif. Le projet utilise TypeScript strict, Phaser 3 et Vite.
 **L’interface est en français.**
 
 **[Jouer à la démo](https://davy45270.github.io/Opencade/)**
 
-L’accueil présente douze vignettes Canvas animées par les moteurs purs des jeux.
+L’accueil présente treize vignettes Canvas animées par les moteurs purs des jeux.
 Elles se suspendent hors écran, en arrière-plan et pendant une partie. La
 réduction des animations les remplace par des images fixes. Sur téléphone,
 la grille comporte deux colonnes.
+
+## Captures d’écran
+
+Captures en portrait sur téléphone, prises en cours de partie (`node scripts/screenshots.js` les régénère après `npm run build`).
+
+<table>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/game-bubble.webp" alt="Bubble Lab" width="240"><br><b>Bubble Lab</b><br>Éclater des groupes de trois bulles avant que le plafond ne descende.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-serpentin.webp" alt="Serpentin" width="240"><br><b>Serpentin</b><br>Allonger une traînée lumineuse en récoltant étincelles et cristaux.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-briqueterie.webp" alt="Briqueterie" width="240"><br><b>Briqueterie</b><br>Casser 30 murs dessinés, avec portails, clés et multibille.</td>
+</tr>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/game-empilo.webp" alt="Empilo" width="240"><br><b>Empilo</b><br>Caser des pièces de cristal dans le puits et compléter les lignes.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-orbite.webp" alt="Orbite" width="240"><br><b>Orbite</b><br>Repousser trente formations et six gardiens depuis l’orbite.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-essaim.webp" alt="Essaim" width="240"><br><b>Essaim</b><br>Traverser des étapes tactiques avec six armes et des vaisseaux à sauver.</td>
+</tr>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/game-dedale.webp" alt="Dédale" width="240"><br><b>Dédale</b><br>Ramasser les graines du labyrinthe, puis chasser les feux follets.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-ferraille.webp" alt="Ferraille" width="240"><br><b>Ferraille</b><br>Courir, sauter et tirer à travers les ateliers et leurs gardiens.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-alunir.webp" alt="Alunir" width="240"><br><b>Alunir</b><br>Poser le module en douceur malgré les rafales et le peu de carburant.</td>
+</tr>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/game-caisses.webp" alt="Caisses" width="240"><br><b>Caisses</b><br>Pousser les caisses sur leurs cibles, avec annulation illimitée.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-traverse.webp" alt="Traverse" width="240"><br><b>Traverse</b><br>Rejoindre les abris à travers la circulation, les troncs et les flotteurs.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-derapage.webp" alt="Dérapage" width="240"><br><b>Dérapage</b><br>Faire déraper un kart sur 30 circuits et viser le podium.</td>
+</tr>
+</table>
 
 ## Jeux et contrôles
 
@@ -37,6 +76,7 @@ partie en pause.
 
 | Jeu | Principe | Contrôles |
 |---|---|---|
+| **Le Collier du Singe** | 30 niveaux de perles en chaîne, reculs aimantés et combos. | Viser partout puis relâcher ; tap tireur ou ⇄/X : échanger ; flèches/Espace : viser/tirer ; P/Échap : pause. |
 | **Bubble Lab** | Former des groupes d’au moins trois bulles de même couleur avant que le plafond ne descende. | Souris : viser et tirer ; doigt : glisser puis relâcher ; flèches : viser ; Espace : tirer ; boutons tactiles : ajuster et tirer. |
 | **Serpentin** | Allonger une traînée lumineuse en récoltant étincelles et cristaux, entre murs ou sur un tore. | Flèches, ZQSD ou WASD ; toucher : glisser ou croix directionnelle. |
 | **Briqueterie** | 30 murs dessinés : coulisses, explosions, repousse, portails, chicanes, angles, clés, multi-balle, gravité inversée et suspensions. | Souris : guider ; Gauche/Droite ou A/D : déplacer ; Espace : lancer ; toucher : glisser en bas, tap ou bouton Lancer. |
@@ -63,8 +103,10 @@ quand il est disponible ; le jeu fonctionne sans. Les clés historiques
 
 ## Installer sur téléphone et jouer hors ligne
 
+<img src="docs/screenshots/home-phone.webp" alt="Accueil d’Opencade sur téléphone" width="240" align="right">
+
 Ouvrir [la démo](https://davy45270.github.io/Opencade/) avec une connexion et
-attendre le chargement complet de l’accueil pour mettre les douze jeux en cache.
+attendre le chargement complet de l’accueil pour mettre les treize jeux en cache.
 
 - **Android / Chrome :** ouvrir le menu ⋮ et choisir « Installer l’application » ou « Ajouter à l’écran d’accueil ».
 - **iOS / Safari :** ouvrir Partager, choisir « Sur l’écran d’accueil » et confirmer.
@@ -104,6 +146,7 @@ npm test           # tests Vitest des moteurs et du socle
 npm run build      # site statique dans dist/
 npx playwright install --with-deps chromium
 npm run test:e2e   # Playwright sur le build de production
+node scripts/check-pwa-mutations.js # assertions PWA + huit mutations, sans navigateur ni Vitest
 npm run preview    # aperçu de dist/ par HTTP
 ```
 
@@ -183,3 +226,19 @@ Orbite (passe 64) : régénérer/vérifier les 60 victoires par commandes normal
 (`--record` pour régénérer). Chaque test rejoue un enregistrement court ; les campagnes longues restent dans Node.
 
 Dérapage (passe 67) propose par défaut un joystick au nord fixe avec cap visible, aide légère désactivable, rails sans collage et premier circuit large ; les records migrent par nom de circuit.
+
+Le compagnon choisi sur l'accueil joue désormais dans Caisses, Traverse et Alunir, avec un spécial tactique et des animations dessinées par le code.
+
+### Personnages
+
+| Identifiant | Nom et sous-titre | Devise |
+| --- | --- | --- |
+| `panda` | **Boubou** — Panda glouton | « Manger, foncer, recommencer ! » |
+| `pandaroux` | **CaliRoux** — Panda roux joueur et câlin | « Des câlins et des dérapages ! » |
+| `dragon` | **Pestouille** — Dragon assidu | « Toujours plus loin, toujours plus fort ! » |
+| `singe` | **Tutu** — Singe en tutu | « Des pirouettes plein la piste ! » |
+| `licorne` | **Lumi** — Licorne joueuse | « La magie au service de la victoire ! » |
+
+Le choix du personnage affiche son nom, son sous-titre et sa devise.
+
+**Le Collier du Singe** (`collier`), treizième jeu : 30 niveaux de perles en chaîne ; viser partout et relâcher pour tirer, tap sur le tireur ou ⇄/X pour échanger. Validation Node : `npm run test:node -- --only=validate-collier.js`.

@@ -22,7 +22,7 @@ for (const [name, oracle, file, before, after] of [
     } else overrides['../src/shell/storage'] = mutant.url;
     const { module: cases } = await mutationModule('../tests/derapage-joystick.ts', "from '../src/engines/derapage/engine'", "from '../src/engines/derapage/engine'", overrides);
     const check = (ok, message) => { assert.ok(ok, message); };
-    if (oracle === 'Z36') assert.throws(() => cases.replayHuman(recordings.find(t => t.name === 'Le Rocher'), check), /rejeu/, name);
+    if (oracle === 'Z36') assert.throws(() => cases.replayHuman(recordings.find(t => t.name === 'Le Rocher'), check), /trois tours|rejeu/, name);
     else assert.throws(() => cases.joystickCases.find(c => c.name.startsWith(oracle)).run(check), name);
     const source = readFileSync(new URL(file, import.meta.url), 'utf8');
     const line = source.slice(0, source.indexOf(before)).split('\n').length;

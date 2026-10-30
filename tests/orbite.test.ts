@@ -27,10 +27,12 @@ test('V03 limite un projectile puis deux dès le niveau 15, cadence et sortie é
     }
 });
 test('V04 collision balayée, première cible et score distinct pour chaque rangée', () => {
-    for (let row = 0; row < 3; row++) {
+    // The final fleet has four rows (score = (rows - row) × 10 × level 30).
+    expect(difficulty(29).rows).toBe(4);
+    for (let row = 0; row < 4; row++) {
         const e = new Engine(29), s = position(e, [probe(180, 200, row), probe(30, 100)]);
         s.shots = [{ x: 180, y: 220, owner: 'player' }]; e.loadState(s); e.step(TICK);
-        expect(e.state.probes).toHaveLength(1); expect(e.state.shots).toHaveLength(0); expect(e.state.score).toBe((3 - row) * 300);
+        expect(e.state.probes).toHaveLength(1); expect(e.state.shots).toHaveLength(0); expect(e.state.score).toBe((difficulty(29).rows - row) * 300);
     }
     const e = new Engine(), s = position(e, [probe(180, 200), probe(180, 240, 1)]); s.shots = [{ x: 180, y: 260, owner: 'player' }]; e.loadState(s); e.step(TICK);
     expect(e.state.probes.map(p => p.row)).toEqual([0]);
@@ -72,7 +74,8 @@ test('V08 dernière sonde détruite gagne, aucune victoire anticipée', () => {
 });
 test('V09 comète : fréquence déterministe, deux sens, zone interdite et saturation', () => {
     // Short seeded spawn recordings; the 400-seed distribution audit lives in the script.
-    for (const [seed, expected] of [[0, 0], [7919, 1], [15838, 0], [47514, -1], [102947, -1], [142542, 1], [197975, 1], [237570, 1]]) {
+    // Re-recorded for the 3×5 first fleet (fewer probes, fewer draws before the comet): 18 spawns over 80 seeds, 9 each way.
+    for (const [seed, expected] of [[0, 0], [7919, 0], [23757, 1], [31676, -1], [71271, -1], [166299, 1], [213813, 1], [261327, -1]]) {
         const e = new Engine(0, seed), s = position(e); s.cometTimer = 0; e.loadState(s); e.step(TICK);
         expect(e.state.comet?.direction ?? 0).toBe(expected);
         if (e.state.comet) { expect(e.state.comet.y).toBe(56); expect(e.state.comet.x < 0 || e.state.comet.x > 360).toBe(true); }

@@ -254,7 +254,8 @@ test('Z16 contrat monde sérialisable sans notion de vue', () => {
     const s = new Engine().snapshot();
     expect(Object.keys(s).sort()).toEqual(['controls', 'crates', 'cup', 'frames', 'karts', 'level', 'order', 'puddles', 'random', 'remainder', 'score', 'seed', 'status', 'time', 'timing', 'track']);
     expect(JSON.stringify(s)).not.toMatch(/camera|screen|viewport|pixel|canvas/i);
-    expect(Object.getOwnPropertyNames(Engine.prototype).sort()).toEqual(['constructor', 'input', 'loadLevel', 'snapshot', 'step']);
+    // advance is simulation time; special is the kart's per-lap Élan, both in world space.
+    expect(Object.getOwnPropertyNames(Engine.prototype).sort()).toEqual(['advance', 'constructor', 'input', 'loadLevel', 'snapshot', 'special', 'step']);
 });
 
 test('Z09 rejouer une course ne double pas les points de coupe', () => {

@@ -6,8 +6,9 @@ import assert from 'node:assert/strict';
 import { collectStatistics, readStatistics, writeStatistics, fingerprint } from './bubble-statistics.js';
 const cases = await import('../tests/bubble-cases.ts');
 const { levelDiversity, cloneDetection } = await import('../tests/bubble-diversity.ts');
+const catalogue = await import('../tests/bubble-catalogue.ts');
 import { readFileSync } from 'node:fs';
-import ts from 'typescript';
+import { transpile } from './transpile.js';
 const { Engine } = await import('../src/engines/bubble/engine.ts');
 
 // Independent literal oracle; no browser, test runner or emitted repository files.
@@ -49,14 +50,14 @@ function drop(EngineClass) {
 geometry(Engine); reflection(Engine); drop(Engine);
 const source = readFileSync(new URL('../src/engines/bubble/engine.ts', import.meta.url), 'utf8');
 for (const [name, before, after, oracle] of [
-    ['struck center', 'const contact = struck ?', 'const contact = struck ?? to; const unusedContact = struck ?', geometry],
+    ['struck center', 'const target = snap(to, geometry.occupied, this.drops);', 'const target = snap(hit ? center(hit, this.drops) : to, geometry.occupied, this.drops);', geometry],
     ['no drop', 'const fallen = popped.length ?', 'const fallen = false ?', drop],
     ['full radius', 'CONTACT_SCALE = 0.85', 'CONTACT_SCALE = 1', geometry],
     ['reflection × 1.05', 'direction = { x: -direction.x, y: direction.y };', 'const reflected = Math.atan2(-direction.x, -direction.y) * 1.05; direction = { x: Math.sin(reflected), y: -Math.cos(reflected) };', reflection],
 ]) {
     assert.ok(source.includes(before), `Mutation anchor: ${name}`);
     const mutated = source.replace(before, after).replace(/from '([^']+)'/g, (_, path) => `from '${new URL(`${path}.ts`, new URL('../src/engines/bubble/engine.ts', import.meta.url)).href}'`);
-    const js = ts.transpile(mutated, { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext });
+    const js = transpile(mutated);
     const { Engine: Mutant } = await import(`data:text/javascript,${encodeURIComponent(js)}`);
     assert.throws(() => oracle(Mutant), `Surviving mutation: ${name}`);
     console.log(`Rejected mutation: ${name}`);
@@ -64,22 +65,33 @@ for (const [name, before, after, oracle] of [
 console.log('B-HEX Node: nine literal geometries, reflection, drops and four mutations passed.');
 
 for (const oracle of Object.values(cases)) oracle();
+for (const oracle of [catalogue.leaf, catalogue.crystal, catalogue.prism, catalogue.catalogueBoards]) oracle();
 levelDiversity(); cloneDetection();
 assert.throws(() => levelDiversity(Array.from({length:30},()=>0)));
 for (const [name, before, after, oracle] of [
-    ['bomb without blast', "if (bomb?.kind !== 'bomb') continue;", 'continue;', cases.bomb],
-    ['stone matched by color', "c.color === target.color && c.kind !== 'stone'", 'c.color === target.color', cases.stone],
+    ['bomb without blast', "? neighbors(source).map(n => this.grid.find(c => key(c) === key(n)))", '? []', cases.bomb],
+    ['stone matched by color', "return cell.kind === undefined || cell.kind === 'bomb' || cell.kind === 'leaf';", "return cell.kind === undefined || cell.kind === 'bomb' || cell.kind === 'leaf' || cell.kind === 'stone';", cases.stone],
     ['ice opens on first burst', 'if (frozen.ice === 0)', 'if (frozen.ice <= 1)', cases.ice],
-    ['bomb skips second bomb', "victim.kind !== 'star' && !popped.includes(victim)", "victim.kind !== 'star' && victim.kind !== 'bomb' && !popped.includes(victim)", cases.bomb],
-    ['bomb destroys stone', "victim && victim.kind !== 'stone' && victim.kind !== 'ice'", "victim && victim.kind !== 'ice'", cases.bomb],
+    ['bomb skips second bomb', 'if (victim && breakable(victim) && !popped.includes(victim))', "if (victim && breakable(victim) && victim.kind !== 'bomb' && !popped.includes(victim))", cases.bomb],
+    ['bomb destroys stone', "return cell.kind !== 'stone' && cell.kind !== 'ice' && cell.kind !== 'star' && cell.kind !== 'crystal';", "return cell.kind !== 'ice' && cell.kind !== 'star' && cell.kind !== 'crystal';", cases.bomb],
     ['distant ice damaged', 'if (popped.some(c => neighbors(frozen).some(n => key(n) === key(c)))) {', 'if (popped.length > 0) {', cases.ice],
     ['rainbow every shot', 'this.shots % 3 === 0', 'this.shots % 1 === 0', cases.rainbow],
     ['one star remains', "!this.grid.some(c => c.kind === 'star')", "this.grid.filter(c => c.kind === 'star').length < 2", cases.stars],
     ['right bumper moved', '{ x: 260, top: 290, bottom: 380 }', '{ x: 280, top: 290, bottom: 380 }', cases.bumpers],
+    ['leaf sweeps nothing', ": this.grid.filter(c => c.row === source.row);", ": [];", catalogue.leaf],
+    ['leaf sweeps crystals', "return cell.kind !== 'stone' && cell.kind !== 'ice' && cell.kind !== 'star' && cell.kind !== 'crystal';", "return cell.kind !== 'stone' && cell.kind !== 'ice' && cell.kind !== 'star';", catalogue.crystal],
+    ['crystal does not anchor', "this.grid.filter(c => c.row === 0 || c.kind === 'crystal')", 'this.grid.filter(c => c.row === 0)', catalogue.crystal],
+    ['crystal blocks the win', "const won = this.grid.every(c => c.kind === 'crystal')", 'const won = this.grid.length === 0', catalogue.crystal],
+    ['crystal at the loss line', "this.grid.some(c => c.kind !== 'crystal' && (c.row === ROWS - 1", "this.grid.some(c => (c.row === ROWS - 1", catalogue.crystal],
+    ['crystal loads as lost', "grid.some(c => c.row === ROWS - 1 && c.kind !== 'crystal')", 'grid.some(c => c.row === ROWS - 1)', catalogue.crystal],
+    ['prism not wild', "|| c.kind === 'prism');", '|| false);', catalogue.prism],
+    ['stars broken by blasts and sweeps', "return cell.kind !== 'stone' && cell.kind !== 'ice' && cell.kind !== 'star' && cell.kind !== 'crystal';", "return cell.kind !== 'stone' && cell.kind !== 'ice' && cell.kind !== 'crystal';", catalogue.leaf],
+    ['prism colour loaded', "const dealable = grid.filter(c => c.kind !== 'crystal' && c.kind !== 'prism');", 'const dealable = grid;', catalogue.prism],
+    ['prism colour dealt', "this.grid.filter(c => c.kind !== 'crystal' && c.kind !== 'prism')", "this.grid.filter(c => c.kind !== 'crystal')", catalogue.prism],
 ]) {
     assert.ok(source.includes(before), `Mutation anchor: ${name}`);
     const mutated = source.replace(before, after).replace(/from '([^']+)'/g, (_, path) => `from '${new URL(`${path}.ts`, new URL('../src/engines/bubble/engine.ts', import.meta.url)).href}'`);
-    const js = ts.transpile(mutated, { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext });
+    const js = transpile(mutated);
     const { Engine: Mutant } = await import(`data:text/javascript,${encodeURIComponent(js)}`);
     assert.throws(() => oracle(Mutant), `Surviving mutation: ${name}`);
     console.log(`Rejected mutation: ${name}`);
@@ -87,11 +99,12 @@ for (const [name, before, after, oracle] of [
 const levelSource = readFileSync(new URL('../src/engines/bubble/levels.ts',import.meta.url),'utf8');
 for (const [name,before,after,oracle] of [
     ['historical L2 mask', 'if (row === 0 || masks[index]) {', 'if (row === 0 || (index === 1 ? true : masks[index])) {', generator=>cases.historicalLevels(generator)],
-    ['generated ice missing', "if (level.mechanics?.includes('ice') && row === 2 && col === 6)", 'if (false)', generator=>levelDiversity(undefined,generator)],
+    // Ice opens at level 20 through the P02 locks (catalogue), so the locks carry the novelty.
+    ['catalogue locks missing', "if (at(CATALOGUE_CELLS.P02.locks)) return { row, col, color, kind: 'ice', ice: 1 };", 'if (false) return { row, col, color };', generator=>levelDiversity(undefined,generator)],
 ]) {
     assert.ok(levelSource.includes(before),`Mutation anchor: ${name}`);
     const mutated = levelSource.replace(before,after).replace(/from '([^']+)'/g,(_,path)=>`from '${new URL(`${path}.ts`,new URL('../src/engines/bubble/levels.ts',import.meta.url)).href}'`);
-    const js = ts.transpile(mutated,{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.ESNext});
+    const js = transpile(mutated);
     const {generateLevel} = await import(`data:text/javascript,${encodeURIComponent(js)}`);
     assert.throws(()=>oracle(generateLevel),`Surviving mutation: ${name}`);
     console.log(`Rejected mutation: ${name}`);

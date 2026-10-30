@@ -6,11 +6,14 @@ async function open(page: Page): Promise<void> {
     await expect.poll(() => page.evaluate(() => Boolean(window.__ARCADE_TEST__?.games.essaim))).toBe(true);
 }
 async function tap(page: Page, selector: string, mobile: boolean): Promise<void> {
+    let optionMenu = false;
+    if (selector === '.essaim-options' && await page.locator('#game-menu-toggle').isVisible() && !await page.locator(selector).isVisible()) { await page.locator('#game-menu-toggle').tap(); optionMenu = true; }
     await openGameMenu(page, selector);
     if (mobile) {
         const box = await page.locator(selector).evaluate(element => { const r = element.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; }); if (!box.width || !box.height) throw new Error(`Contrôle absent : ${selector}`);
         await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
     } else await page.locator(selector).click();
+    if (optionMenu) await page.locator('#game-menu-toggle').tap();
 }
 async function drag(page: Page, from: number, to: number, y = 618): Promise<void> {
     const a = await point(page, from, y), b = await point(page, to, y);
@@ -22,7 +25,7 @@ async function drag(page: Page, from: number, to: number, y = 618): Promise<void
 }
 async function layout(page: Page): Promise<void> {
     const { canvas, controls, scroll, height } = await measureLayout(page,
-        ['#pause', '#sound', '#essaim-fire', '#essaim-left', '#essaim-right', '.essaim-options', '#levels', '#restart']);
+        ['#pause', '#sound', '#essaim-fire', '#essaim-left', '#essaim-right', '#levels', '#restart']);
     const viewport = page.viewportSize(); if (!viewport) throw new Error('Viewport absent');
     expect(canvas.x).toBeGreaterThanOrEqual(0); expect(canvas.y).toBeGreaterThanOrEqual(0);
     expect(canvas.x + canvas.width).toBeLessThanOrEqual(viewport.width); expect(canvas.y + canvas.height).toBeLessThanOrEqual(viewport.height);
@@ -80,6 +83,9 @@ test('G06 G10 défaite après guidage réel puis rejouer restaure vies et score'
 });
 test('G01 G03 G12 guidage clavier souris doigt, tir auto sauvé et pause', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium'; await open(page); await tap(page, '#resume', mobile);
+    expect((await read(page))?.autoFire).toBe(true);
+    await tap(page, '.essaim-options', mobile); expect((await read(page))?.autoFire).toBe(false);
+    expect(await page.evaluate(() => localStorage.getItem('arcade-lab:essaim:autofire:v1'))).toBe('off');
     // Use simulation time for guidance, independently of rendering.
     await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(0); });
     if (mobile) {

@@ -15,6 +15,7 @@ export interface TouchButton {
     size: 44 | 56 | 64;
     placement: 'left' | 'center' | 'right';
     mode: 'tap' | 'hold';
+    compactMenu?: boolean;
     repeatMs?: number;
     repeatDelayMs?: number;
 }
@@ -33,6 +34,18 @@ export function renderTouchControls(inputs: Inputs, buttons: readonly TouchButto
         button.setAttribute('aria-label', spec.ariaLabel);
         button.style.minWidth = button.style.minHeight = `${String(spec.size)}px`;
         button.style.order = String(['left', 'center', 'right'].indexOf(spec.placement));
+        // Secondary commands stay reachable in the menu when six targets cannot fit.
+        if (spec.compactMenu) {
+            const compact = matchMedia('(width < 380px)');
+            const place = (): void => {
+                const parent = compact.matches ? document.querySelector('#game-menu') : slots.get(spec.placement);
+                parent?.append(button);
+                button.classList.toggle('compact-menu-control', compact.matches);
+            };
+            inputs.on(compact, 'change', place);
+            inputs.cleanup(() => { button.remove(); });
+            place();
+        }
         let pointer: number | null = null;
         let timer: ReturnType<typeof setInterval> | undefined;
         const stop = (): void => {
@@ -42,6 +55,7 @@ export function renderTouchControls(inputs: Inputs, buttons: readonly TouchButto
         };
         inputs.cleanup(stop);
         inputs.on(button, 'pointerdown', event => {
+            if (button.classList.contains('compact-menu-control')) return;
             const e = event as PointerEvent;
             e.preventDefault();
             if (pointer !== null) return;
@@ -61,9 +75,11 @@ export function renderTouchControls(inputs: Inputs, buttons: readonly TouchButto
         });
         inputs.on(button, 'click', event => {
             event.preventDefault();
-            if ((event as MouseEvent).detail === 0) { action(spec.id, true); if (spec.mode === 'hold') action(spec.id, false); }
+            const inMenu = button.classList.contains('compact-menu-control');
+            if (inMenu) document.querySelector<HTMLButtonElement>('#game-menu-toggle')?.click();
+            if (inMenu || (event as MouseEvent).detail === 0) { action(spec.id, true); if (spec.mode === 'hold') action(spec.id, false); }
         });
-        slots.get(spec.placement)?.append(button);
+        if (!spec.compactMenu) slots.get(spec.placement)?.append(button);
     }
     inputs.on(document.querySelector('#play-area'), 'touchmove', event => { event.preventDefault(); }, { passive: false });
     inputs.on(document.querySelector('#game'), 'pointerdown', event => {

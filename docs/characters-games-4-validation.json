@@ -1,0 +1,1409 @@
+{
+  "records": {
+    "ferraille": [
+      {
+        "level": 1,
+        "special": false,
+        "score": 800,
+        "lives": 3,
+        "frames": 839
+      },
+      {
+        "level": 1,
+        "special": true,
+        "score": 800,
+        "lives": 3,
+        "frames": 839
+      },
+      {
+        "level": 2,
+        "special": false,
+        "score": 800,
+        "lives": 3,
+        "frames": 978
+      },
+      {
+        "level": 2,
+        "special": true,
+        "score": 800,
+        "lives": 3,
+        "frames": 978
+      },
+      {
+        "level": 3,
+        "special": false,
+        "score": 825,
+        "lives": 1,
+        "frames": 1192
+      },
+      {
+        "level": 3,
+        "special": true,
+        "score": 825,
+        "lives": 1,
+        "frames": 1192
+      },
+      {
+        "level": 4,
+        "special": false,
+        "score": 900,
+        "lives": 2,
+        "frames": 1382
+      },
+      {
+        "level": 4,
+        "special": true,
+        "score": 900,
+        "lives": 2,
+        "frames": 1382
+      },
+      {
+        "level": 5,
+        "special": false,
+        "score": 960,
+        "lives": 2,
+        "frames": 1840
+      },
+      {
+        "level": 5,
+        "special": true,
+        "score": 960,
+        "lives": 2,
+        "frames": 1840
+      },
+      {
+        "level": 6,
+        "special": false,
+        "score": 700,
+        "lives": 3,
+        "frames": 943
+      },
+      {
+        "level": 6,
+        "special": true,
+        "score": 700,
+        "lives": 3,
+        "frames": 943
+      },
+      {
+        "level": 7,
+        "special": false,
+        "score": 1100,
+        "lives": 2,
+        "frames": 1066
+      },
+      {
+        "level": 7,
+        "special": true,
+        "score": 1100,
+        "lives": 2,
+        "frames": 1066
+      },
+      {
+        "level": 8,
+        "special": false,
+        "score": 1025,
+        "lives": 3,
+        "frames": 992
+      },
+      {
+        "level": 8,
+        "special": true,
+        "score": 1025,
+        "lives": 3,
+        "frames": 992
+      },
+      {
+        "level": 9,
+        "special": false,
+        "score": 725,
+        "lives": 3,
+        "frames": 938
+      },
+      {
+        "level": 9,
+        "special": true,
+        "score": 725,
+        "lives": 3,
+        "frames": 938
+      },
+      {
+        "level": 10,
+        "special": false,
+        "score": 1380,
+        "lives": 1,
+        "frames": 1498
+      },
+      {
+        "level": 10,
+        "special": true,
+        "score": 1380,
+        "lives": 1,
+        "frames": 1498
+      },
+      {
+        "level": 11,
+        "special": false,
+        "score": 750,
+        "lives": 3,
+        "frames": 966
+      },
+      {
+        "level": 11,
+        "special": true,
+        "score": 750,
+        "lives": 3,
+        "frames": 966
+      },
+      {
+        "level": 12,
+        "special": false,
+        "score": 1100,
+        "lives": 3,
+        "frames": 425
+      },
+      {
+        "level": 12,
+        "special": true,
+        "score": 1100,
+        "lives": 3,
+        "frames": 425
+      },
+      {
+        "level": 13,
+        "special": false,
+        "score": 900,
+        "lives": 2,
+        "frames": 1137
+      },
+      {
+        "level": 13,
+        "special": true,
+        "score": 900,
+        "lives": 2,
+        "frames": 1137
+      },
+      {
+        "level": 14,
+        "special": false,
+        "score": 1300,
+        "lives": 3,
+        "frames": 882
+      },
+      {
+        "level": 14,
+        "special": true,
+        "score": 1300,
+        "lives": 3,
+        "frames": 882
+      },
+      {
+        "level": 15,
+        "special": false,
+        "score": 1125,
+        "lives": 3,
+        "frames": 1954
+      },
+      {
+        "level": 15,
+        "special": true,
+        "score": 1125,
+        "lives": 3,
+        "frames": 1954
+      },
+      {
+        "level": 16,
+        "special": false,
+        "score": 1200,
+        "lives": 3,
+        "frames": 866
+      },
+      {
+        "level": 16,
+        "special": true,
+        "score": 1200,
+        "lives": 3,
+        "frames": 866
+      },
+      {
+        "level": 17,
+        "special": false,
+        "score": 800,
+        "lives": 2,
+        "frames": 505
+      },
+      {
+        "level": 17,
+        "special": true,
+        "score": 800,
+        "lives": 2,
+        "frames": 505
+      },
+      {
+        "level": 18,
+        "special": false,
+        "score": 2325,
+        "lives": 3,
+        "frames": 1077
+      },
+      {
+        "level": 18,
+        "special": true,
+        "score": 2325,
+        "lives": 3,
+        "frames": 1077
+      },
+      {
+        "level": 19,
+        "special": false,
+        "score": 1000,
+        "lives": 3,
+        "frames": 988
+      },
+      {
+        "level": 19,
+        "special": true,
+        "score": 1000,
+        "lives": 3,
+        "frames": 988
+      },
+      {
+        "level": 20,
+        "special": false,
+        "score": 1020,
+        "lives": 2,
+        "frames": 1088
+      },
+      {
+        "level": 20,
+        "special": true,
+        "score": 1020,
+        "lives": 2,
+        "frames": 1088
+      },
+      {
+        "level": 21,
+        "special": false,
+        "score": 825,
+        "lives": 3,
+        "frames": 840
+      },
+      {
+        "level": 21,
+        "special": true,
+        "score": 825,
+        "lives": 3,
+        "frames": 840
+      },
+      {
+        "level": 22,
+        "special": false,
+        "score": 1650,
+        "lives": 3,
+        "frames": 838
+      },
+      {
+        "level": 22,
+        "special": true,
+        "score": 1650,
+        "lives": 3,
+        "frames": 838
+      },
+      {
+        "level": 23,
+        "special": false,
+        "score": 1000,
+        "lives": 3,
+        "frames": 423
+      },
+      {
+        "level": 23,
+        "special": true,
+        "score": 1000,
+        "lives": 3,
+        "frames": 423
+      },
+      {
+        "level": 24,
+        "special": false,
+        "score": 825,
+        "lives": 3,
+        "frames": 852
+      },
+      {
+        "level": 24,
+        "special": true,
+        "score": 825,
+        "lives": 3,
+        "frames": 852
+      },
+      {
+        "level": 25,
+        "special": false,
+        "score": 1200,
+        "lives": 3,
+        "frames": 1491
+      },
+      {
+        "level": 25,
+        "special": true,
+        "score": 1200,
+        "lives": 3,
+        "frames": 1491
+      },
+      {
+        "level": 26,
+        "special": false,
+        "score": 2500,
+        "lives": 3,
+        "frames": 901
+      },
+      {
+        "level": 26,
+        "special": true,
+        "score": 2500,
+        "lives": 3,
+        "frames": 901
+      },
+      {
+        "level": 27,
+        "special": false,
+        "score": 700,
+        "lives": 3,
+        "frames": 949
+      },
+      {
+        "level": 27,
+        "special": true,
+        "score": 700,
+        "lives": 3,
+        "frames": 949
+      },
+      {
+        "level": 28,
+        "special": false,
+        "score": 825,
+        "lives": 3,
+        "frames": 420
+      },
+      {
+        "level": 28,
+        "special": true,
+        "score": 825,
+        "lives": 3,
+        "frames": 420
+      },
+      {
+        "level": 29,
+        "special": false,
+        "score": 2200,
+        "lives": 3,
+        "frames": 985
+      },
+      {
+        "level": 29,
+        "special": true,
+        "score": 2200,
+        "lives": 3,
+        "frames": 985
+      },
+      {
+        "level": 30,
+        "special": false,
+        "score": 1545,
+        "lives": 2,
+        "frames": 2191
+      },
+      {
+        "level": 30,
+        "special": true,
+        "score": 1545,
+        "lives": 2,
+        "frames": 2191
+      }
+    ],
+    "briqueterie": [
+      {
+        "level": 1,
+        "special": false,
+        "score": 720,
+        "lives": 3,
+        "frames": 2516
+      },
+      {
+        "level": 1,
+        "special": true,
+        "score": 720,
+        "lives": 3,
+        "frames": 7872
+      },
+      {
+        "level": 2,
+        "special": false,
+        "score": 360,
+        "lives": 3,
+        "frames": 2937
+      },
+      {
+        "level": 2,
+        "special": true,
+        "score": 360,
+        "lives": 3,
+        "frames": 2583
+      },
+      {
+        "level": 3,
+        "special": false,
+        "score": 510,
+        "lives": 3,
+        "frames": 1818
+      },
+      {
+        "level": 3,
+        "special": true,
+        "score": 510,
+        "lives": 3,
+        "frames": 1232
+      },
+      {
+        "level": 4,
+        "special": false,
+        "score": 420,
+        "lives": 3,
+        "frames": 1185
+      },
+      {
+        "level": 4,
+        "special": true,
+        "score": 420,
+        "lives": 3,
+        "frames": 1834
+      },
+      {
+        "level": 5,
+        "special": false,
+        "score": 360,
+        "lives": 3,
+        "frames": 4205
+      },
+      {
+        "level": 5,
+        "special": true,
+        "score": 360,
+        "lives": 3,
+        "frames": 3397
+      },
+      {
+        "level": 6,
+        "special": false,
+        "score": 300,
+        "lives": 3,
+        "frames": 1683
+      },
+      {
+        "level": 6,
+        "special": true,
+        "score": 300,
+        "lives": 3,
+        "frames": 989
+      },
+      {
+        "level": 7,
+        "special": false,
+        "score": 480,
+        "lives": 3,
+        "frames": 772
+      },
+      {
+        "level": 7,
+        "special": true,
+        "score": 480,
+        "lives": 3,
+        "frames": 809
+      },
+      {
+        "level": 8,
+        "special": false,
+        "score": 540,
+        "lives": 3,
+        "frames": 762
+      },
+      {
+        "level": 8,
+        "special": true,
+        "score": 540,
+        "lives": 3,
+        "frames": 1439
+      },
+      {
+        "level": 9,
+        "special": false,
+        "score": 390,
+        "lives": 3,
+        "frames": 1759
+      },
+      {
+        "level": 9,
+        "special": true,
+        "score": 390,
+        "lives": 3,
+        "frames": 937
+      },
+      {
+        "level": 10,
+        "special": false,
+        "score": 730,
+        "lives": 3,
+        "frames": 2905
+      },
+      {
+        "level": 10,
+        "special": true,
+        "score": 760,
+        "lives": 3,
+        "frames": 2479
+      },
+      {
+        "level": 11,
+        "special": false,
+        "score": 400,
+        "lives": 3,
+        "frames": 3115
+      },
+      {
+        "level": 11,
+        "special": true,
+        "score": 460,
+        "lives": 3,
+        "frames": 6934
+      },
+      {
+        "level": 12,
+        "special": false,
+        "score": 850,
+        "lives": 3,
+        "frames": 1612
+      },
+      {
+        "level": 12,
+        "special": true,
+        "score": 850,
+        "lives": 3,
+        "frames": 1341
+      },
+      {
+        "level": 13,
+        "special": false,
+        "score": 420,
+        "lives": 3,
+        "frames": 1363
+      },
+      {
+        "level": 13,
+        "special": true,
+        "score": 420,
+        "lives": 3,
+        "frames": 905
+      },
+      {
+        "level": 14,
+        "special": false,
+        "score": 420,
+        "lives": 3,
+        "frames": 2415
+      },
+      {
+        "level": 14,
+        "special": true,
+        "score": 420,
+        "lives": 3,
+        "frames": 1941
+      },
+      {
+        "level": 15,
+        "special": false,
+        "score": 650,
+        "lives": 3,
+        "frames": 3427
+      },
+      {
+        "level": 15,
+        "special": true,
+        "score": 640,
+        "lives": 3,
+        "frames": 1972
+      },
+      {
+        "level": 16,
+        "special": false,
+        "score": 360,
+        "lives": 3,
+        "frames": 3159
+      },
+      {
+        "level": 16,
+        "special": true,
+        "score": 360,
+        "lives": 3,
+        "frames": 1111
+      },
+      {
+        "level": 17,
+        "special": false,
+        "score": 210,
+        "lives": 3,
+        "frames": 977
+      },
+      {
+        "level": 17,
+        "special": true,
+        "score": 210,
+        "lives": 3,
+        "frames": 2108
+      },
+      {
+        "level": 18,
+        "special": false,
+        "score": 450,
+        "lives": 3,
+        "frames": 1971
+      },
+      {
+        "level": 18,
+        "special": true,
+        "score": 450,
+        "lives": 3,
+        "frames": 1096
+      },
+      {
+        "level": 19,
+        "special": false,
+        "score": 540,
+        "lives": 3,
+        "frames": 1384
+      },
+      {
+        "level": 19,
+        "special": true,
+        "score": 540,
+        "lives": 3,
+        "frames": 1045
+      },
+      {
+        "level": 20,
+        "special": false,
+        "score": 660,
+        "lives": 3,
+        "frames": 1030
+      },
+      {
+        "level": 20,
+        "special": true,
+        "score": 660,
+        "lives": 3,
+        "frames": 8398
+      },
+      {
+        "level": 21,
+        "special": false,
+        "score": 540,
+        "lives": 3,
+        "frames": 2502
+      },
+      {
+        "level": 21,
+        "special": true,
+        "score": 540,
+        "lives": 3,
+        "frames": 2072
+      },
+      {
+        "level": 22,
+        "special": false,
+        "score": 600,
+        "lives": 3,
+        "frames": 829
+      },
+      {
+        "level": 22,
+        "special": true,
+        "score": 600,
+        "lives": 3,
+        "frames": 864
+      },
+      {
+        "level": 23,
+        "special": false,
+        "score": 270,
+        "lives": 3,
+        "frames": 678
+      },
+      {
+        "level": 23,
+        "special": true,
+        "score": 260,
+        "lives": 3,
+        "frames": 967
+      },
+      {
+        "level": 24,
+        "special": false,
+        "score": 420,
+        "lives": 3,
+        "frames": 798
+      },
+      {
+        "level": 24,
+        "special": true,
+        "score": 420,
+        "lives": 3,
+        "frames": 699
+      },
+      {
+        "level": 25,
+        "special": false,
+        "score": 480,
+        "lives": 3,
+        "frames": 4776
+      },
+      {
+        "level": 25,
+        "special": true,
+        "score": 480,
+        "lives": 3,
+        "frames": 17512
+      },
+      {
+        "level": 26,
+        "special": false,
+        "score": 420,
+        "lives": 3,
+        "frames": 1162
+      },
+      {
+        "level": 26,
+        "special": true,
+        "score": 420,
+        "lives": 3,
+        "frames": 888
+      },
+      {
+        "level": 27,
+        "special": false,
+        "score": 240,
+        "lives": 3,
+        "frames": 627
+      },
+      {
+        "level": 27,
+        "special": true,
+        "score": 240,
+        "lives": 3,
+        "frames": 872
+      },
+      {
+        "level": 28,
+        "special": false,
+        "score": 450,
+        "lives": 3,
+        "frames": 1061
+      },
+      {
+        "level": 28,
+        "special": true,
+        "score": 450,
+        "lives": 3,
+        "frames": 941
+      },
+      {
+        "level": 29,
+        "special": false,
+        "score": 540,
+        "lives": 3,
+        "frames": 551
+      },
+      {
+        "level": 29,
+        "special": true,
+        "score": 540,
+        "lives": 3,
+        "frames": 986
+      },
+      {
+        "level": 30,
+        "special": false,
+        "score": 1170,
+        "lives": 3,
+        "frames": 1114
+      },
+      {
+        "level": 30,
+        "special": true,
+        "score": 1170,
+        "lives": 3,
+        "frames": 623
+      }
+    ],
+    "essaim": [
+      {
+        "level": 1,
+        "special": false,
+        "score": 160,
+        "lives": 3,
+        "frames": 1038
+      },
+      {
+        "level": 1,
+        "special": true,
+        "score": 160,
+        "lives": 3,
+        "frames": 1038
+      },
+      {
+        "level": 2,
+        "special": false,
+        "score": 160,
+        "lives": 3,
+        "frames": 380
+      },
+      {
+        "level": 2,
+        "special": true,
+        "score": 160,
+        "lives": 3,
+        "frames": 380
+      },
+      {
+        "level": 3,
+        "special": false,
+        "score": 140,
+        "lives": 3,
+        "frames": 918
+      },
+      {
+        "level": 3,
+        "special": true,
+        "score": 140,
+        "lives": 3,
+        "frames": 918
+      },
+      {
+        "level": 4,
+        "special": false,
+        "score": 180,
+        "lives": 2,
+        "frames": 2389
+      },
+      {
+        "level": 4,
+        "special": true,
+        "score": 180,
+        "lives": 2,
+        "frames": 2389
+      },
+      {
+        "level": 5,
+        "special": false,
+        "score": 494,
+        "lives": 3,
+        "frames": 1199
+      },
+      {
+        "level": 5,
+        "special": true,
+        "score": 494,
+        "lives": 3,
+        "frames": 1199
+      },
+      {
+        "level": 6,
+        "special": false,
+        "score": 100,
+        "lives": 3,
+        "frames": 258
+      },
+      {
+        "level": 6,
+        "special": true,
+        "score": 100,
+        "lives": 3,
+        "frames": 258
+      },
+      {
+        "level": 7,
+        "special": false,
+        "score": 200,
+        "lives": 3,
+        "frames": 673
+      },
+      {
+        "level": 7,
+        "special": true,
+        "score": 200,
+        "lives": 3,
+        "frames": 673
+      },
+      {
+        "level": 8,
+        "special": false,
+        "score": 200,
+        "lives": 3,
+        "frames": 1171
+      },
+      {
+        "level": 8,
+        "special": true,
+        "score": 200,
+        "lives": 3,
+        "frames": 1171
+      },
+      {
+        "level": 9,
+        "special": false,
+        "score": 310,
+        "lives": 3,
+        "frames": 791
+      },
+      {
+        "level": 9,
+        "special": true,
+        "score": 310,
+        "lives": 3,
+        "frames": 791
+      },
+      {
+        "level": 10,
+        "special": false,
+        "score": 1417,
+        "lives": 2,
+        "frames": 4639
+      },
+      {
+        "level": 10,
+        "special": true,
+        "score": 1417,
+        "lives": 2,
+        "frames": 4639
+      },
+      {
+        "level": 11,
+        "special": false,
+        "score": 460,
+        "lives": 3,
+        "frames": 474
+      },
+      {
+        "level": 11,
+        "special": true,
+        "score": 460,
+        "lives": 3,
+        "frames": 474
+      },
+      {
+        "level": 12,
+        "special": false,
+        "score": 860,
+        "lives": 3,
+        "frames": 3212
+      },
+      {
+        "level": 12,
+        "special": true,
+        "score": 860,
+        "lives": 3,
+        "frames": 3212
+      },
+      {
+        "level": 13,
+        "special": false,
+        "score": 250,
+        "lives": 3,
+        "frames": 2376
+      },
+      {
+        "level": 13,
+        "special": true,
+        "score": 250,
+        "lives": 3,
+        "frames": 2376
+      },
+      {
+        "level": 14,
+        "special": false,
+        "score": 360,
+        "lives": 3,
+        "frames": 845
+      },
+      {
+        "level": 14,
+        "special": true,
+        "score": 360,
+        "lives": 3,
+        "frames": 845
+      },
+      {
+        "level": 15,
+        "special": false,
+        "score": 569,
+        "lives": 3,
+        "frames": 2609
+      },
+      {
+        "level": 15,
+        "special": true,
+        "score": 569,
+        "lives": 3,
+        "frames": 2609
+      },
+      {
+        "level": 16,
+        "special": false,
+        "score": 540,
+        "lives": 3,
+        "frames": 2278
+      },
+      {
+        "level": 16,
+        "special": true,
+        "score": 540,
+        "lives": 3,
+        "frames": 2278
+      },
+      {
+        "level": 17,
+        "special": false,
+        "score": 280,
+        "lives": 3,
+        "frames": 1334
+      },
+      {
+        "level": 17,
+        "special": true,
+        "score": 280,
+        "lives": 3,
+        "frames": 1334
+      },
+      {
+        "level": 18,
+        "special": false,
+        "score": 560,
+        "lives": 3,
+        "frames": 6835
+      },
+      {
+        "level": 18,
+        "special": true,
+        "score": 560,
+        "lives": 3,
+        "frames": 6835
+      },
+      {
+        "level": 19,
+        "special": false,
+        "score": 1240,
+        "lives": 3,
+        "frames": 1203
+      },
+      {
+        "level": 19,
+        "special": true,
+        "score": 1240,
+        "lives": 3,
+        "frames": 1203
+      },
+      {
+        "level": 20,
+        "special": false,
+        "score": 1654,
+        "lives": 3,
+        "frames": 1691
+      },
+      {
+        "level": 20,
+        "special": true,
+        "score": 1654,
+        "lives": 3,
+        "frames": 1691
+      },
+      {
+        "level": 21,
+        "special": false,
+        "score": 1210,
+        "lives": 3,
+        "frames": 1295
+      },
+      {
+        "level": 21,
+        "special": true,
+        "score": 1210,
+        "lives": 3,
+        "frames": 1295
+      },
+      {
+        "level": 22,
+        "special": false,
+        "score": 500,
+        "lives": 3,
+        "frames": 3036
+      },
+      {
+        "level": 22,
+        "special": true,
+        "score": 500,
+        "lives": 3,
+        "frames": 3036
+      },
+      {
+        "level": 23,
+        "special": false,
+        "score": 1800,
+        "lives": 2,
+        "frames": 5052
+      },
+      {
+        "level": 23,
+        "special": true,
+        "score": 1800,
+        "lives": 2,
+        "frames": 5052
+      },
+      {
+        "level": 24,
+        "special": false,
+        "score": 1280,
+        "lives": 3,
+        "frames": 970
+      },
+      {
+        "level": 24,
+        "special": true,
+        "score": 1280,
+        "lives": 3,
+        "frames": 970
+      },
+      {
+        "level": 25,
+        "special": false,
+        "score": 1012,
+        "lives": 3,
+        "frames": 3633
+      },
+      {
+        "level": 25,
+        "special": true,
+        "score": 1012,
+        "lives": 3,
+        "frames": 3633
+      },
+      {
+        "level": 26,
+        "special": false,
+        "score": 870,
+        "lives": 2,
+        "frames": 2771
+      },
+      {
+        "level": 26,
+        "special": true,
+        "score": 870,
+        "lives": 2,
+        "frames": 2771
+      },
+      {
+        "level": 27,
+        "special": false,
+        "score": 1050,
+        "lives": 2,
+        "frames": 5795
+      },
+      {
+        "level": 27,
+        "special": true,
+        "score": 1050,
+        "lives": 2,
+        "frames": 5795
+      },
+      {
+        "level": 28,
+        "special": false,
+        "score": 1770,
+        "lives": 3,
+        "frames": 1843
+      },
+      {
+        "level": 28,
+        "special": true,
+        "score": 1770,
+        "lives": 3,
+        "frames": 1843
+      },
+      {
+        "level": 29,
+        "special": false,
+        "score": 1790,
+        "lives": 3,
+        "frames": 2208
+      },
+      {
+        "level": 29,
+        "special": true,
+        "score": 1790,
+        "lives": 3,
+        "frames": 2208
+      },
+      {
+        "level": 30,
+        "special": false,
+        "score": 1458,
+        "lives": 1,
+        "frames": 16264
+      },
+      {
+        "level": 30,
+        "special": true,
+        "score": 1458,
+        "lives": 1,
+        "frames": 16264
+      }
+    ]
+  },
+  "mutations": [
+    {
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 136,
+      "before": "enemy.hp -= 3;",
+      "after": "enemy.hp -= 0;",
+      "killed": true
+    },
+    {
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 136,
+      "before": "enemy.hp -= 3; s.score += 100;",
+      "after": "enemy.hp -= 3; s.score += 0;",
+      "killed": true
+    },
+    {
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 138,
+      "before": "cage.hp = Math.max(0, cage.hp - 3);",
+      "after": "cage.hp = Math.max(0, cage.hp - 0);",
+      "killed": true
+    },
+    {
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 140,
+      "before": "s.score += Math.min(3, s.boss.hp) * 20;",
+      "after": "s.score += 0;",
+      "killed": true
+    },
+    {
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 129,
+      "before": "s.specialCooldown = 600; s.specialTicks = 18;",
+      "after": "s.specialCooldown = 600; s.specialTicks = 1;",
+      "killed": true
+    },
+    {
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 143,
+      "before": "this.portal(ball, hit.brick, hit);",
+      "after": "void 0;",
+      "killed": true
+    },
+    {
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 144,
+      "before": "this.damage(hit.brick); this.events.push('pierce');",
+      "after": "this.damage(hit.brick); if (hit.brick.kind === 'regen') this.damage(hit.brick); this.events.push('pierce');",
+      "killed": true
+    },
+    {
+      "file": "src/engines/essaim/engine.ts",
+      "line": 97,
+      "before": "if ((s.specialTicks ?? 0) > 0 || !forced && s.invulnerable > 1e-8) return;",
+      "after": "if (!forced && ((s.specialTicks ?? 0) > 0 || s.invulnerable > 1e-8)) return;",
+      "killed": true
+    },
+    {
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 128,
+      "before": "(s.specialCooldown ?? 0) > 0",
+      "after": "false",
+      "killed": true
+    },
+    {
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 68,
+      "before": "ball.pierce = 3;",
+      "after": "ball.pierce = 0;",
+      "killed": true
+    },
+    {
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 65,
+      "before": "this.status !== 'playing' || s.specialUsed",
+      "after": "this.status !== 'playing'",
+      "killed": true
+    },
+    {
+      "file": "src/engines/essaim/engine.ts",
+      "line": 74,
+      "before": "s.specialTicks = 120;",
+      "after": "s.specialTicks = 0;",
+      "killed": true
+    },
+    {
+      "file": "src/engines/essaim/engine.ts",
+      "line": 73,
+      "before": "this.status !== 'playing' || s.specialUsed",
+      "after": "this.status !== 'playing'",
+      "killed": true
+    },
+    {
+      "file": "src/characters/action-phaser.ts",
+      "line": 9,
+      "before": "selectedCharacter()",
+      "after": "'panda'",
+      "oracle": "validate-action-scenes.js: actual hero texture for all five identities",
+      "killed": true
+    },
+    {
+      "file": "src/games/ferraille/scene.ts",
+      "before": "if (e.code === 'KeyC' && !e.repeat) this.special();",
+      "after": "if (e.code === 'KeyC' && !e.repeat) void 0;",
+      "oracle": "validate-action-scenes.js: keyboard, HUD and visual lifetime",
+      "killed": true
+    },
+    {
+      "file": "src/games/briqueterie/scene.ts",
+      "before": "if (e.code === 'KeyC' && !e.repeat) this.special();",
+      "after": "if (e.code === 'KeyC' && !e.repeat) void 0;",
+      "oracle": "validate-action-scenes.js: keyboard, HUD and visual lifetime",
+      "killed": true
+    },
+    {
+      "file": "src/games/essaim/scene.ts",
+      "before": "if (e.code === 'KeyC' && !e.repeat) this.special();",
+      "after": "if (e.code === 'KeyC' && !e.repeat) void 0;",
+      "oracle": "validate-action-scenes.js: keyboard, HUD and visual lifetime",
+      "killed": true
+    },
+    {
+      "file": "src/games/essaim/scene.ts",
+      "before": "s.specialUsed ? 'UTILISÉ' : 'PRÊT'",
+      "after": "s.specialUsed ? 'PRÊT' : 'PRÊT'",
+      "oracle": "validate-action-scenes.js: keyboard, HUD and visual lifetime",
+      "killed": true
+    },
+    {
+      "file": "src/engines/ferraille/engine.ts",
+      "before": "s.specialCooldown = 600; s.specialTicks = 18;",
+      "after": "s.specialCooldown = 600; s.specialTicks = 1;",
+      "oracle": "validate-action-scenes.js: keyboard, HUD and visual lifetime",
+      "killed": true
+    }
+  ],
+  "alunir": "Unchanged U06/U07 bodies passed",
+  "traverse": "2000 raster drawings; fewer than 9 unchanged at 15Hz",
+  "e2e": "written, not executed locally"
+}

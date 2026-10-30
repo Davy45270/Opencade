@@ -1,7 +1,7 @@
 import { test, expect } from './fixture';
 const cast = [
-    ['panda', 'Panda glouton'], ['pandaroux', 'Panda roux joueur et câlin'], ['dragon', 'Dragon assidu'],
-    ['singe', 'Singe en tutu'], ['licorne', 'Licorne joueuse'],
+    ['panda', 'Boubou'], ['pandaroux', 'CaliRoux'], ['dragon', 'Pestouille'],
+    ['singe', 'Tutu'], ['licorne', 'Lumi'],
 ] as const;
 
 test('Characters: real selection, persistence and animated pixels within 600 ms', async ({ page, isMobile }) => {
@@ -49,7 +49,7 @@ test('Characters: keyboard, reduced motion and review captures', async ({ page }
     await toggle.focus(); await page.keyboard.press('Enter');
     await expect(page.getByRole('button', { name: 'Fermer le choix du personnage' })).toBeFocused();
     await page.keyboard.press('Tab');
-    await expect(page.getByRole('button', { name: 'Choisir Panda glouton', exact: true })).toBeFocused();
+    await expect(page.getByRole('button', { name: 'Choisir Boubou', exact: true })).toBeFocused();
     await page.keyboard.press('Escape'); await expect(toggle).toBeFocused();
     await page.keyboard.press('Enter');
     const preview = page.locator('[data-character-preview="panda"]');

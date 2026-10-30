@@ -61,6 +61,14 @@ export class Engine {
         });
         this.crates = [16, 40, 64, 88].map(i => ({ ...required(this.track.points[i]), cooldown: 0 }));
     }
+    /** One independent 800 ms impulse per lap, including the opening lap. */
+    special(id = 0): boolean {
+        const k = this.karts[id];
+        if (this.status !== 'playing' || !k || k.finishMs !== null || k.specialLap === k.lap) return false;
+        k.specialLap = k.lap; k.specialMs = 800;
+        return true;
+    }
+    advance(ms: number): void { this.step(ms); }
     input(input: Input): void { this.controls = { ...input, steer: Math.max(-1, Math.min(1, input.steer)), bonus: this.controls.bonus || input.bonus }; }
     step(ms: number): void {
         if (!Number.isFinite(ms) || ms < 0)
@@ -77,6 +85,8 @@ export class Engine {
             const previous = this.karts.map(k => ({ x: k.x, y: k.y }));
             for (const k of this.karts) {
                 const input = k.id === 0 ? this.controls : aiInput(k, this.track, this.level, this.random.next() * 2 - 1);
+                // Deterministic straight-line policy, no extra random draw.
+                if (k.id > 0 && k.passed + 2 < (this.karts[0]?.passed ?? 0) && Math.abs(input.steer) < 0.12 && Math.hypot(k.vx, k.vy) > 16) this.special(k.id);
                 if (input.bonus)
                     useItem(k, this.puddles);
                 physics(k, input, this.track, FIXED_MS / 1000, difficulty(this.level).grassGrip, k.id === 0 ? 24 : aiSpeed(k, this.track, this.level));
@@ -110,7 +120,9 @@ export class Engine {
             }
         }
     }
-    snapshot() {
-        return structuredClone({ level: this.level, seed: this.seed, status: this.status, score: this.score, time: this.time, timing: { raceMs: this.time + (required(this.karts[0]).penaltyMs ?? 0), currentLapMs: required(this.karts[0]).finishMs === null ? (this.frames - this.lapStartFrame) * FIXED_MS + (required(this.karts[0]).penaltyMs ?? 0) - this.lapPenaltyStartMs : 0, lapTimesMs: this.lapTimesMs, bestLapMs: this.bestLapMs, lastLapDeltaMs: this.lastLapDeltaMs }, frames: this.frames, remainder: this.remainder, random: this.random.state, controls: this.controls, track: this.track, karts: this.karts, crates: this.crates, puddles: this.puddles, order: ranking(this.karts, this.track), cup: { races: this.cup.races, scores: this.cup.scores, order: this.cup.standings() } });
+    /** Read-only timing consumers can retain the immutable track reference. */
+    snapshot(cloneTrack = true) {
+        const value = { level: this.level, seed: this.seed, status: this.status, score: this.score, time: this.time, timing: { raceMs: this.time + (required(this.karts[0]).penaltyMs ?? 0), currentLapMs: required(this.karts[0]).finishMs === null ? (this.frames - this.lapStartFrame) * FIXED_MS + (required(this.karts[0]).penaltyMs ?? 0) - this.lapPenaltyStartMs : 0, lapTimesMs: this.lapTimesMs, bestLapMs: this.bestLapMs, lastLapDeltaMs: this.lastLapDeltaMs }, frames: this.frames, remainder: this.remainder, random: this.random.state, controls: this.controls, track: this.track, karts: this.karts, crates: this.crates, puddles: this.puddles, order: ranking(this.karts, this.track), cup: { races: this.cup.races, scores: this.cup.scores, order: this.cup.standings() } };
+        return cloneTrack ? structuredClone(value) : { ...structuredClone({ ...value, track: undefined }), track: this.track };
     }
 }

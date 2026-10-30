@@ -1,0 +1,4664 @@
+{
+  "pass": 104,
+  "checks": [
+    "F-niv-01",
+    "F-niv-02",
+    "F-niv-03",
+    "F-niv-04"
+  ],
+  "wins": 900,
+  "seeds": [
+    28,
+    1,
+    2026
+  ],
+  "historical": {
+    "before": 11.2,
+    "after": 0
+  },
+  "beforeGameplay": {
+    "head": "dab7aed",
+    "seed": 28,
+    "used": 5,
+    "maxModuleSimilarity": 0.8571428571428571,
+    "failedPairs": 51,
+    "meanConsecutiveModuleDistance": 0.61129433963753
+  },
+  "beforePass103": {
+    "source": "docs/ferraille-levels-validation.json (HEAD 1dfdc9f)",
+    "method": "generated modules, recorded actions",
+    "used": 16,
+    "maxModuleSimilarity": 0.5,
+    "meanConsecutiveModuleDistance": 0.8057471264367819,
+    "meanConsecutiveActionDistance": 0.5319850360367603
+  },
+  "replayMeasures": [
+    {
+      "seed": 28,
+      "special": false,
+      "used": 16,
+      "maxModuleSimilarity": 0.5
+    },
+    {
+      "seed": 28,
+      "special": true,
+      "used": 16,
+      "maxModuleSimilarity": 0.5
+    },
+    {
+      "seed": 1,
+      "special": false,
+      "used": 16,
+      "maxModuleSimilarity": 0.5
+    },
+    {
+      "seed": 1,
+      "special": true,
+      "used": 16,
+      "maxModuleSimilarity": 0.5
+    },
+    {
+      "seed": 2026,
+      "special": false,
+      "used": 16,
+      "maxModuleSimilarity": 0.5
+    },
+    {
+      "seed": 2026,
+      "special": true,
+      "used": 16,
+      "maxModuleSimilarity": 0.5
+    }
+  ],
+  "gameplay": {
+    "passed": true,
+    "errors": [],
+    "used": 16,
+    "maxModuleSimilarity": 0.5,
+    "pairs": [
+      {
+        "from": 1,
+        "to": 2,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.4696969696969697
+      },
+      {
+        "from": 1,
+        "to": 3,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.55,
+        "distance": 0.6916666666666667
+      },
+      {
+        "from": 2,
+        "to": 3,
+        "moduleDistance": 1,
+        "actionDistance": 0.55,
+        "distance": 0.775
+      },
+      {
+        "from": 1,
+        "to": 4,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4375,
+        "distance": 0.6354166666666667
+      },
+      {
+        "from": 2,
+        "to": 4,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.375,
+        "distance": 0.6041666666666667
+      },
+      {
+        "from": 3,
+        "to": 4,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4,
+        "distance": 0.6166666666666667
+      },
+      {
+        "from": 1,
+        "to": 5,
+        "moduleDistance": 1,
+        "actionDistance": 0.7857142857142857,
+        "distance": 0.8928571428571429
+      },
+      {
+        "from": 2,
+        "to": 5,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7380952380952381,
+        "distance": 0.8065476190476191
+      },
+      {
+        "from": 3,
+        "to": 5,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.5952380952380952,
+        "distance": 0.6726190476190477
+      },
+      {
+        "from": 4,
+        "to": 5,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7142857142857143,
+        "distance": 0.7946428571428572
+      },
+      {
+        "from": 1,
+        "to": 6,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.18181818181818177,
+        "distance": 0.4242424242424242
+      },
+      {
+        "from": 2,
+        "to": 6,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.09090909090909094,
+        "distance": 0.3787878787878788
+      },
+      {
+        "from": 3,
+        "to": 6,
+        "moduleDistance": 1,
+        "actionDistance": 0.5,
+        "distance": 0.75
+      },
+      {
+        "from": 4,
+        "to": 6,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.375,
+        "distance": 0.6041666666666667
+      },
+      {
+        "from": 5,
+        "to": 6,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7380952380952381,
+        "distance": 0.8065476190476191
+      },
+      {
+        "from": 1,
+        "to": 7,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.18181818181818177,
+        "distance": 0.5194805194805194
+      },
+      {
+        "from": 2,
+        "to": 7,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.18181818181818177,
+        "distance": 0.5194805194805194
+      },
+      {
+        "from": 3,
+        "to": 7,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.5,
+        "distance": 0.6071428571428572
+      },
+      {
+        "from": 4,
+        "to": 7,
+        "moduleDistance": 1,
+        "actionDistance": 0.4375,
+        "distance": 0.71875
+      },
+      {
+        "from": 5,
+        "to": 7,
+        "moduleDistance": 0.625,
+        "actionDistance": 0.7380952380952381,
+        "distance": 0.6815476190476191
+      },
+      {
+        "from": 6,
+        "to": 7,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.09090909090909094,
+        "distance": 0.474025974025974
+      },
+      {
+        "from": 1,
+        "to": 8,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.2222222222222222,
+        "distance": 0.5277777777777778
+      },
+      {
+        "from": 2,
+        "to": 8,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.4696969696969697
+      },
+      {
+        "from": 3,
+        "to": 8,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.65,
+        "distance": 0.7416666666666667
+      },
+      {
+        "from": 4,
+        "to": 8,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 5,
+        "to": 8,
+        "moduleDistance": 1,
+        "actionDistance": 0.8095238095238095,
+        "distance": 0.9047619047619048
+      },
+      {
+        "from": 6,
+        "to": 8,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.553030303030303
+      },
+      {
+        "from": 7,
+        "to": 8,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.6103896103896104
+      },
+      {
+        "from": 1,
+        "to": 9,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.47058823529411764,
+        "distance": 0.6519607843137255
+      },
+      {
+        "from": 2,
+        "to": 9,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.47058823529411764,
+        "distance": 0.6519607843137255
+      },
+      {
+        "from": 3,
+        "to": 9,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.35,
+        "distance": 0.5083333333333333
+      },
+      {
+        "from": 4,
+        "to": 9,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.2941176470588235,
+        "distance": 0.5637254901960784
+      },
+      {
+        "from": 5,
+        "to": 9,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.6428571428571428,
+        "distance": 0.7589285714285714
+      },
+      {
+        "from": 6,
+        "to": 9,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4117647058823529,
+        "distance": 0.6225490196078431
+      },
+      {
+        "from": 7,
+        "to": 9,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.4117647058823529,
+        "distance": 0.634453781512605
+      },
+      {
+        "from": 8,
+        "to": 9,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5294117647058824,
+        "distance": 0.5980392156862745
+      },
+      {
+        "from": 1,
+        "to": 10,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.55,
+        "distance": 0.6916666666666667
+      },
+      {
+        "from": 2,
+        "to": 10,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.55,
+        "distance": 0.6083333333333334
+      },
+      {
+        "from": 3,
+        "to": 10,
+        "moduleDistance": 1,
+        "actionDistance": 0.19999999999999996,
+        "distance": 0.6
+      },
+      {
+        "from": 4,
+        "to": 10,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4,
+        "distance": 0.6166666666666667
+      },
+      {
+        "from": 5,
+        "to": 10,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.5714285714285714,
+        "distance": 0.7232142857142857
+      },
+      {
+        "from": 6,
+        "to": 10,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 7,
+        "to": 10,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.5,
+        "distance": 0.6785714285714286
+      },
+      {
+        "from": 8,
+        "to": 10,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.65,
+        "distance": 0.6583333333333333
+      },
+      {
+        "from": 9,
+        "to": 10,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4,
+        "distance": 0.6166666666666667
+      },
+      {
+        "from": 1,
+        "to": 11,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4666666666666667,
+        "distance": 0.65
+      },
+      {
+        "from": 2,
+        "to": 11,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4,
+        "distance": 0.5333333333333333
+      },
+      {
+        "from": 3,
+        "to": 11,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.44999999999999996,
+        "distance": 0.6416666666666666
+      },
+      {
+        "from": 4,
+        "to": 11,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.375,
+        "distance": 0.6041666666666667
+      },
+      {
+        "from": 5,
+        "to": 11,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.7142857142857143,
+        "distance": 0.7321428571428572
+      },
+      {
+        "from": 6,
+        "to": 11,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4,
+        "distance": 0.5333333333333333
+      },
+      {
+        "from": 7,
+        "to": 11,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.4,
+        "distance": 0.6285714285714286
+      },
+      {
+        "from": 8,
+        "to": 11,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4666666666666667,
+        "distance": 0.65
+      },
+      {
+        "from": 9,
+        "to": 11,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.3529411764705882,
+        "distance": 0.5098039215686274
+      },
+      {
+        "from": 10,
+        "to": 11,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 1,
+        "to": 12,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0,
+        "distance": 0.33333333333333337
+      },
+      {
+        "from": 2,
+        "to": 12,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.4696969696969697
+      },
+      {
+        "from": 3,
+        "to": 12,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.55,
+        "distance": 0.6916666666666667
+      },
+      {
+        "from": 4,
+        "to": 12,
+        "moduleDistance": 1,
+        "actionDistance": 0.4375,
+        "distance": 0.71875
+      },
+      {
+        "from": 5,
+        "to": 12,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7857142857142857,
+        "distance": 0.8303571428571428
+      },
+      {
+        "from": 6,
+        "to": 12,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.18181818181818177,
+        "distance": 0.4242424242424242
+      },
+      {
+        "from": 7,
+        "to": 12,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.18181818181818177,
+        "distance": 0.44805194805194803
+      },
+      {
+        "from": 8,
+        "to": 12,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.2222222222222222,
+        "distance": 0.4444444444444444
+      },
+      {
+        "from": 9,
+        "to": 12,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.47058823529411764,
+        "distance": 0.5686274509803921
+      },
+      {
+        "from": 10,
+        "to": 12,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.55,
+        "distance": 0.6916666666666667
+      },
+      {
+        "from": 11,
+        "to": 12,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4666666666666667,
+        "distance": 0.5666666666666667
+      },
+      {
+        "from": 1,
+        "to": 13,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.6666666666666667,
+        "distance": 0.7619047619047619
+      },
+      {
+        "from": 2,
+        "to": 13,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.6666666666666667,
+        "distance": 0.7619047619047619
+      },
+      {
+        "from": 3,
+        "to": 13,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.37037037037037035,
+        "distance": 0.5423280423280423
+      },
+      {
+        "from": 4,
+        "to": 13,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.5555555555555556,
+        "distance": 0.7063492063492064
+      },
+      {
+        "from": 5,
+        "to": 13,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.4285714285714286,
+        "distance": 0.5892857142857143
+      },
+      {
+        "from": 6,
+        "to": 13,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.6296296296296297,
+        "distance": 0.7433862433862434
+      },
+      {
+        "from": 7,
+        "to": 13,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.5925925925925926,
+        "distance": 0.6534391534391535
+      },
+      {
+        "from": 8,
+        "to": 13,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.7407407407407407,
+        "distance": 0.798941798941799
+      },
+      {
+        "from": 9,
+        "to": 13,
+        "moduleDistance": 1,
+        "actionDistance": 0.4814814814814815,
+        "distance": 0.7407407407407407
+      },
+      {
+        "from": 10,
+        "to": 13,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.40740740740740744,
+        "distance": 0.6322751322751323
+      },
+      {
+        "from": 11,
+        "to": 13,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.5925925925925926,
+        "distance": 0.7248677248677249
+      },
+      {
+        "from": 12,
+        "to": 13,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.6666666666666667,
+        "distance": 0.7619047619047619
+      },
+      {
+        "from": 1,
+        "to": 14,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.11111111111111116,
+        "distance": 0.4722222222222222
+      },
+      {
+        "from": 2,
+        "to": 14,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.5151515151515151
+      },
+      {
+        "from": 3,
+        "to": 14,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.6,
+        "distance": 0.7166666666666667
+      },
+      {
+        "from": 4,
+        "to": 14,
+        "moduleDistance": 1,
+        "actionDistance": 0.5,
+        "distance": 0.75
+      },
+      {
+        "from": 5,
+        "to": 14,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7857142857142857,
+        "distance": 0.8303571428571428
+      },
+      {
+        "from": 6,
+        "to": 14,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.4696969696969697
+      },
+      {
+        "from": 7,
+        "to": 14,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.564935064935065
+      },
+      {
+        "from": 8,
+        "to": 14,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.2222222222222222,
+        "distance": 0.4444444444444444
+      },
+      {
+        "from": 9,
+        "to": 14,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.47058823529411764,
+        "distance": 0.6519607843137255
+      },
+      {
+        "from": 10,
+        "to": 14,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.6,
+        "distance": 0.6333333333333333
+      },
+      {
+        "from": 11,
+        "to": 14,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4666666666666667,
+        "distance": 0.65
+      },
+      {
+        "from": 12,
+        "to": 14,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.11111111111111116,
+        "distance": 0.38888888888888895
+      },
+      {
+        "from": 13,
+        "to": 14,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.7037037037037037,
+        "distance": 0.7804232804232805
+      },
+      {
+        "from": 1,
+        "to": 15,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.9134615384615384,
+        "distance": 0.8853021978021978
+      },
+      {
+        "from": 2,
+        "to": 15,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.9134615384615384,
+        "distance": 0.8138736263736264
+      },
+      {
+        "from": 3,
+        "to": 15,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.8173076923076923,
+        "distance": 0.7657967032967032
+      },
+      {
+        "from": 4,
+        "to": 15,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.8846153846153846,
+        "distance": 0.8708791208791209
+      },
+      {
+        "from": 5,
+        "to": 15,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7307692307692308,
+        "distance": 0.8028846153846154
+      },
+      {
+        "from": 6,
+        "to": 15,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.9038461538461539,
+        "distance": 0.8804945054945055
+      },
+      {
+        "from": 7,
+        "to": 15,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.9038461538461539,
+        "distance": 0.8090659340659341
+      },
+      {
+        "from": 8,
+        "to": 15,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.9230769230769231,
+        "distance": 0.8186813186813187
+      },
+      {
+        "from": 9,
+        "to": 15,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.8557692307692308,
+        "distance": 0.856456043956044
+      },
+      {
+        "from": 10,
+        "to": 15,
+        "moduleDistance": 1,
+        "actionDistance": 0.8365384615384616,
+        "distance": 0.9182692307692307
+      },
+      {
+        "from": 11,
+        "to": 15,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.875,
+        "distance": 0.7946428571428572
+      },
+      {
+        "from": 12,
+        "to": 15,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.9134615384615384,
+        "distance": 0.8853021978021978
+      },
+      {
+        "from": 13,
+        "to": 15,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.7692307692307692,
+        "distance": 0.8131868131868132
+      },
+      {
+        "from": 14,
+        "to": 15,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.9134615384615384,
+        "distance": 0.8138736263736264
+      },
+      {
+        "from": 1,
+        "to": 16,
+        "moduleDistance": 1,
+        "actionDistance": 0.4444444444444444,
+        "distance": 0.7222222222222222
+      },
+      {
+        "from": 2,
+        "to": 16,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5454545454545454,
+        "distance": 0.6893939393939394
+      },
+      {
+        "from": 3,
+        "to": 16,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.7,
+        "distance": 0.7666666666666666
+      },
+      {
+        "from": 4,
+        "to": 16,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.6875,
+        "distance": 0.6770833333333334
+      },
+      {
+        "from": 5,
+        "to": 16,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.8571428571428572,
+        "distance": 0.8660714285714286
+      },
+      {
+        "from": 6,
+        "to": 16,
+        "moduleDistance": 1,
+        "actionDistance": 0.5454545454545454,
+        "distance": 0.7727272727272727
+      },
+      {
+        "from": 7,
+        "to": 16,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.5454545454545454,
+        "distance": 0.7012987012987013
+      },
+      {
+        "from": 8,
+        "to": 16,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4444444444444444,
+        "distance": 0.5555555555555556
+      },
+      {
+        "from": 9,
+        "to": 16,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.6470588235294117,
+        "distance": 0.6568627450980392
+      },
+      {
+        "from": 10,
+        "to": 16,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.75,
+        "distance": 0.7083333333333334
+      },
+      {
+        "from": 11,
+        "to": 16,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.6,
+        "distance": 0.7166666666666667
+      },
+      {
+        "from": 12,
+        "to": 16,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4444444444444444,
+        "distance": 0.5555555555555556
+      },
+      {
+        "from": 13,
+        "to": 16,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.7777777777777778,
+        "distance": 0.8174603174603174
+      },
+      {
+        "from": 14,
+        "to": 16,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4444444444444444,
+        "distance": 0.6388888888888888
+      },
+      {
+        "from": 15,
+        "to": 16,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.9519230769230769,
+        "distance": 0.904532967032967
+      },
+      {
+        "from": 1,
+        "to": 17,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5294117647058824,
+        "distance": 0.5980392156862745
+      },
+      {
+        "from": 2,
+        "to": 17,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4117647058823529,
+        "distance": 0.5392156862745098
+      },
+      {
+        "from": 3,
+        "to": 17,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.44999999999999996,
+        "distance": 0.6416666666666666
+      },
+      {
+        "from": 4,
+        "to": 17,
+        "moduleDistance": 0.5,
+        "actionDistance": 0.2941176470588235,
+        "distance": 0.3970588235294117
+      },
+      {
+        "from": 5,
+        "to": 17,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7142857142857143,
+        "distance": 0.7946428571428572
+      },
+      {
+        "from": 6,
+        "to": 17,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4117647058823529,
+        "distance": 0.5392156862745098
+      },
+      {
+        "from": 7,
+        "to": 17,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.4117647058823529,
+        "distance": 0.634453781512605
+      },
+      {
+        "from": 8,
+        "to": 17,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5294117647058824,
+        "distance": 0.5980392156862745
+      },
+      {
+        "from": 9,
+        "to": 17,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.3529411764705882,
+        "distance": 0.5098039215686274
+      },
+      {
+        "from": 10,
+        "to": 17,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 11,
+        "to": 17,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.2941176470588235,
+        "distance": 0.5637254901960784
+      },
+      {
+        "from": 12,
+        "to": 17,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5294117647058824,
+        "distance": 0.5980392156862745
+      },
+      {
+        "from": 13,
+        "to": 17,
+        "moduleDistance": 1,
+        "actionDistance": 0.5925925925925926,
+        "distance": 0.7962962962962963
+      },
+      {
+        "from": 14,
+        "to": 17,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5294117647058824,
+        "distance": 0.6813725490196079
+      },
+      {
+        "from": 15,
+        "to": 17,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.8942307692307693,
+        "distance": 0.8042582417582418
+      },
+      {
+        "from": 16,
+        "to": 17,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.6470588235294117,
+        "distance": 0.7401960784313726
+      },
+      {
+        "from": 1,
+        "to": 18,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5909090909090908,
+        "distance": 0.6287878787878788
+      },
+      {
+        "from": 2,
+        "to": 18,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5909090909090908,
+        "distance": 0.7121212121212122
+      },
+      {
+        "from": 3,
+        "to": 18,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.5984848484848485
+      },
+      {
+        "from": 4,
+        "to": 18,
+        "moduleDistance": 1,
+        "actionDistance": 0.5,
+        "distance": 0.75
+      },
+      {
+        "from": 5,
+        "to": 18,
+        "moduleDistance": 1,
+        "actionDistance": 0.5476190476190477,
+        "distance": 0.7738095238095238
+      },
+      {
+        "from": 6,
+        "to": 18,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5454545454545454,
+        "distance": 0.6893939393939394
+      },
+      {
+        "from": 7,
+        "to": 18,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.5454545454545454,
+        "distance": 0.7012987012987013
+      },
+      {
+        "from": 8,
+        "to": 18,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.6363636363636364,
+        "distance": 0.7348484848484849
+      },
+      {
+        "from": 9,
+        "to": 18,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.40909090909090906,
+        "distance": 0.6212121212121212
+      },
+      {
+        "from": 10,
+        "to": 18,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.5984848484848485
+      },
+      {
+        "from": 11,
+        "to": 18,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 12,
+        "to": 18,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5909090909090908,
+        "distance": 0.7121212121212122
+      },
+      {
+        "from": 13,
+        "to": 18,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.40740740740740744,
+        "distance": 0.6322751322751323
+      },
+      {
+        "from": 14,
+        "to": 18,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.6363636363636364,
+        "distance": 0.6515151515151515
+      },
+      {
+        "from": 15,
+        "to": 18,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.8076923076923077,
+        "distance": 0.760989010989011
+      },
+      {
+        "from": 16,
+        "to": 18,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.7727272727272727,
+        "distance": 0.803030303030303
+      },
+      {
+        "from": 17,
+        "to": 18,
+        "moduleDistance": 1,
+        "actionDistance": 0.5454545454545454,
+        "distance": 0.7727272727272727
+      },
+      {
+        "from": 1,
+        "to": 19,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.30000000000000004,
+        "distance": 0.5666666666666667
+      },
+      {
+        "from": 2,
+        "to": 19,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4545454545454546,
+        "distance": 0.643939393939394
+      },
+      {
+        "from": 3,
+        "to": 19,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.6,
+        "distance": 0.7166666666666667
+      },
+      {
+        "from": 4,
+        "to": 19,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5,
+        "distance": 0.5833333333333334
+      },
+      {
+        "from": 5,
+        "to": 19,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.7857142857142857,
+        "distance": 0.7678571428571428
+      },
+      {
+        "from": 6,
+        "to": 19,
+        "moduleDistance": 0.5,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.4318181818181819
+      },
+      {
+        "from": 7,
+        "to": 19,
+        "moduleDistance": 1,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.6818181818181819
+      },
+      {
+        "from": 8,
+        "to": 19,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 9,
+        "to": 19,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5882352941176471,
+        "distance": 0.7107843137254902
+      },
+      {
+        "from": 10,
+        "to": 19,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.6,
+        "distance": 0.6333333333333333
+      },
+      {
+        "from": 11,
+        "to": 19,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5333333333333333,
+        "distance": 0.6833333333333333
+      },
+      {
+        "from": 12,
+        "to": 19,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.30000000000000004,
+        "distance": 0.5666666666666667
+      },
+      {
+        "from": 13,
+        "to": 19,
+        "moduleDistance": 1,
+        "actionDistance": 0.7037037037037037,
+        "distance": 0.8518518518518519
+      },
+      {
+        "from": 14,
+        "to": 19,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4,
+        "distance": 0.6166666666666667
+      },
+      {
+        "from": 15,
+        "to": 19,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.9326923076923077,
+        "distance": 0.8949175824175825
+      },
+      {
+        "from": 16,
+        "to": 19,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4,
+        "distance": 0.5333333333333333
+      },
+      {
+        "from": 17,
+        "to": 19,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5294117647058824,
+        "distance": 0.6813725490196079
+      },
+      {
+        "from": 18,
+        "to": 19,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.6363636363636364,
+        "distance": 0.7348484848484849
+      },
+      {
+        "from": 1,
+        "to": 20,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.4375,
+        "distance": 0.65625
+      },
+      {
+        "from": 2,
+        "to": 20,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.4375,
+        "distance": 0.59375
+      },
+      {
+        "from": 3,
+        "to": 20,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.35,
+        "distance": 0.55
+      },
+      {
+        "from": 4,
+        "to": 20,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.375,
+        "distance": 0.625
+      },
+      {
+        "from": 5,
+        "to": 20,
+        "moduleDistance": 0.625,
+        "actionDistance": 0.6666666666666667,
+        "distance": 0.6458333333333334
+      },
+      {
+        "from": 6,
+        "to": 20,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.375,
+        "distance": 0.625
+      },
+      {
+        "from": 7,
+        "to": 20,
+        "moduleDistance": 0.625,
+        "actionDistance": 0.375,
+        "distance": 0.5
+      },
+      {
+        "from": 8,
+        "to": 20,
+        "moduleDistance": 0.625,
+        "actionDistance": 0.5,
+        "distance": 0.5625
+      },
+      {
+        "from": 9,
+        "to": 20,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.2941176470588235,
+        "distance": 0.5220588235294117
+      },
+      {
+        "from": 10,
+        "to": 20,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.4,
+        "distance": 0.6375
+      },
+      {
+        "from": 11,
+        "to": 20,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.3125,
+        "distance": 0.59375
+      },
+      {
+        "from": 12,
+        "to": 20,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.4375,
+        "distance": 0.59375
+      },
+      {
+        "from": 13,
+        "to": 20,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.5185185185185186,
+        "distance": 0.6342592592592593
+      },
+      {
+        "from": 14,
+        "to": 20,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.4375,
+        "distance": 0.59375
+      },
+      {
+        "from": 15,
+        "to": 20,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.8461538461538461,
+        "distance": 0.7980769230769231
+      },
+      {
+        "from": 16,
+        "to": 20,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.6875,
+        "distance": 0.71875
+      },
+      {
+        "from": 17,
+        "to": 20,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.4117647058823529,
+        "distance": 0.5808823529411764
+      },
+      {
+        "from": 18,
+        "to": 20,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.6193181818181819
+      },
+      {
+        "from": 19,
+        "to": 20,
+        "moduleDistance": 1,
+        "actionDistance": 0.5625,
+        "distance": 0.78125
+      },
+      {
+        "from": 1,
+        "to": 21,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.2222222222222222,
+        "distance": 0.4444444444444444
+      },
+      {
+        "from": 2,
+        "to": 21,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.4696969696969697
+      },
+      {
+        "from": 3,
+        "to": 21,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.6,
+        "distance": 0.6333333333333333
+      },
+      {
+        "from": 4,
+        "to": 21,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5625,
+        "distance": 0.6979166666666667
+      },
+      {
+        "from": 5,
+        "to": 21,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7857142857142857,
+        "distance": 0.8303571428571428
+      },
+      {
+        "from": 6,
+        "to": 21,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.5984848484848485
+      },
+      {
+        "from": 7,
+        "to": 21,
+        "moduleDistance": 1,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.6818181818181819
+      },
+      {
+        "from": 8,
+        "to": 21,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.33333333333333337,
+        "distance": 0.5833333333333334
+      },
+      {
+        "from": 9,
+        "to": 21,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5882352941176471,
+        "distance": 0.7107843137254902
+      },
+      {
+        "from": 10,
+        "to": 21,
+        "moduleDistance": 1,
+        "actionDistance": 0.6,
+        "distance": 0.8
+      },
+      {
+        "from": 11,
+        "to": 21,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5333333333333333,
+        "distance": 0.6833333333333333
+      },
+      {
+        "from": 12,
+        "to": 21,
+        "moduleDistance": 1,
+        "actionDistance": 0.2222222222222222,
+        "distance": 0.6111111111111112
+      },
+      {
+        "from": 13,
+        "to": 21,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.7407407407407407,
+        "distance": 0.798941798941799
+      },
+      {
+        "from": 14,
+        "to": 21,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.33333333333333337,
+        "distance": 0.5833333333333334
+      },
+      {
+        "from": 15,
+        "to": 21,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.9230769230769231,
+        "distance": 0.8186813186813187
+      },
+      {
+        "from": 16,
+        "to": 21,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4444444444444444,
+        "distance": 0.6388888888888888
+      },
+      {
+        "from": 17,
+        "to": 21,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5882352941176471,
+        "distance": 0.7107843137254902
+      },
+      {
+        "from": 18,
+        "to": 21,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.6363636363636364,
+        "distance": 0.7348484848484849
+      },
+      {
+        "from": 19,
+        "to": 21,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4,
+        "distance": 0.6166666666666667
+      },
+      {
+        "from": 20,
+        "to": 21,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.5,
+        "distance": 0.6875
+      },
+      {
+        "from": 1,
+        "to": 22,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4285714285714286,
+        "distance": 0.6309523809523809
+      },
+      {
+        "from": 2,
+        "to": 22,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5952380952380952
+      },
+      {
+        "from": 3,
+        "to": 22,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 4,
+        "to": 22,
+        "moduleDistance": 1,
+        "actionDistance": 0.375,
+        "distance": 0.6875
+      },
+      {
+        "from": 5,
+        "to": 22,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7380952380952381,
+        "distance": 0.8065476190476191
+      },
+      {
+        "from": 6,
+        "to": 22,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5119047619047619
+      },
+      {
+        "from": 7,
+        "to": 22,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.6071428571428571
+      },
+      {
+        "from": 8,
+        "to": 22,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4285714285714286,
+        "distance": 0.5476190476190477
+      },
+      {
+        "from": 9,
+        "to": 22,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3529411764705882,
+        "distance": 0.5931372549019608
+      },
+      {
+        "from": 10,
+        "to": 22,
+        "moduleDistance": 1,
+        "actionDistance": 0.5,
+        "distance": 0.75
+      },
+      {
+        "from": 11,
+        "to": 22,
+        "moduleDistance": 0.5,
+        "actionDistance": 0.1333333333333333,
+        "distance": 0.31666666666666665
+      },
+      {
+        "from": 12,
+        "to": 22,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4285714285714286,
+        "distance": 0.6309523809523809
+      },
+      {
+        "from": 13,
+        "to": 22,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.6296296296296297,
+        "distance": 0.671957671957672
+      },
+      {
+        "from": 14,
+        "to": 22,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5952380952380952
+      },
+      {
+        "from": 15,
+        "to": 22,
+        "moduleDistance": 0.5714285714285714,
+        "actionDistance": 0.875,
+        "distance": 0.7232142857142857
+      },
+      {
+        "from": 16,
+        "to": 22,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5714285714285714,
+        "distance": 0.7023809523809523
+      },
+      {
+        "from": 17,
+        "to": 22,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3529411764705882,
+        "distance": 0.5931372549019608
+      },
+      {
+        "from": 18,
+        "to": 22,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5,
+        "distance": 0.5833333333333334
+      },
+      {
+        "from": 19,
+        "to": 22,
+        "moduleDistance": 1,
+        "actionDistance": 0.5,
+        "distance": 0.75
+      },
+      {
+        "from": 20,
+        "to": 22,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.3125,
+        "distance": 0.59375
+      },
+      {
+        "from": 21,
+        "to": 22,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 1,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.18181818181818177,
+        "distance": 0.5075757575757576
+      },
+      {
+        "from": 2,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.18181818181818177,
+        "distance": 0.5075757575757576
+      },
+      {
+        "from": 3,
+        "to": 23,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.44999999999999996,
+        "distance": 0.5583333333333333
+      },
+      {
+        "from": 4,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.375,
+        "distance": 0.6041666666666667
+      },
+      {
+        "from": 5,
+        "to": 23,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7380952380952381,
+        "distance": 0.8065476190476191
+      },
+      {
+        "from": 6,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.09090909090909094,
+        "distance": 0.46212121212121215
+      },
+      {
+        "from": 7,
+        "to": 23,
+        "moduleDistance": 1,
+        "actionDistance": 0.09090909090909094,
+        "distance": 0.5454545454545454
+      },
+      {
+        "from": 8,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.5984848484848485
+      },
+      {
+        "from": 9,
+        "to": 23,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.3529411764705882,
+        "distance": 0.5098039215686274
+      },
+      {
+        "from": 10,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.44999999999999996,
+        "distance": 0.6416666666666666
+      },
+      {
+        "from": 11,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4,
+        "distance": 0.6166666666666667
+      },
+      {
+        "from": 12,
+        "to": 23,
+        "moduleDistance": 0.5,
+        "actionDistance": 0.18181818181818177,
+        "distance": 0.34090909090909083
+      },
+      {
+        "from": 13,
+        "to": 23,
+        "moduleDistance": 1,
+        "actionDistance": 0.5925925925925926,
+        "distance": 0.7962962962962963
+      },
+      {
+        "from": 14,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.553030303030303
+      },
+      {
+        "from": 15,
+        "to": 23,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.8942307692307693,
+        "distance": 0.8756868131868132
+      },
+      {
+        "from": 16,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5454545454545454,
+        "distance": 0.6893939393939394
+      },
+      {
+        "from": 17,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.47058823529411764,
+        "distance": 0.6519607843137255
+      },
+      {
+        "from": 18,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 19,
+        "to": 23,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.5151515151515151
+      },
+      {
+        "from": 20,
+        "to": 23,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.3125,
+        "distance": 0.59375
+      },
+      {
+        "from": 21,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.5984848484848485
+      },
+      {
+        "from": 22,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5952380952380952
+      },
+      {
+        "from": 1,
+        "to": 24,
+        "moduleDistance": 0.5,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.38636363636363635
+      },
+      {
+        "from": 2,
+        "to": 24,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.5984848484848485
+      },
+      {
+        "from": 3,
+        "to": 24,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.6,
+        "distance": 0.7166666666666667
+      },
+      {
+        "from": 4,
+        "to": 24,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5,
+        "distance": 0.5833333333333334
+      },
+      {
+        "from": 5,
+        "to": 24,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7857142857142857,
+        "distance": 0.8303571428571428
+      },
+      {
+        "from": 6,
+        "to": 24,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.553030303030303
+      },
+      {
+        "from": 7,
+        "to": 24,
+        "moduleDistance": 1,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.6363636363636364
+      },
+      {
+        "from": 8,
+        "to": 24,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.5151515151515151
+      },
+      {
+        "from": 9,
+        "to": 24,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.47058823529411764,
+        "distance": 0.6519607843137255
+      },
+      {
+        "from": 10,
+        "to": 24,
+        "moduleDistance": 1,
+        "actionDistance": 0.6,
+        "distance": 0.8
+      },
+      {
+        "from": 11,
+        "to": 24,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4,
+        "distance": 0.6166666666666667
+      },
+      {
+        "from": 12,
+        "to": 24,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.553030303030303
+      },
+      {
+        "from": 13,
+        "to": 24,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.7037037037037037,
+        "distance": 0.7804232804232805
+      },
+      {
+        "from": 14,
+        "to": 24,
+        "moduleDistance": 1,
+        "actionDistance": 0.18181818181818177,
+        "distance": 0.5909090909090908
+      },
+      {
+        "from": 15,
+        "to": 24,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.9038461538461539,
+        "distance": 0.8090659340659341
+      },
+      {
+        "from": 16,
+        "to": 24,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4545454545454546,
+        "distance": 0.643939393939394
+      },
+      {
+        "from": 17,
+        "to": 24,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.47058823529411764,
+        "distance": 0.5686274509803921
+      },
+      {
+        "from": 18,
+        "to": 24,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5909090909090908,
+        "distance": 0.7121212121212122
+      },
+      {
+        "from": 19,
+        "to": 24,
+        "moduleDistance": 1,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.6818181818181819
+      },
+      {
+        "from": 20,
+        "to": 24,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.4375,
+        "distance": 0.65625
+      },
+      {
+        "from": 21,
+        "to": 24,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4545454545454546,
+        "distance": 0.5606060606060607
+      },
+      {
+        "from": 22,
+        "to": 24,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5119047619047619
+      },
+      {
+        "from": 23,
+        "to": 24,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.553030303030303
+      },
+      {
+        "from": 1,
+        "to": 25,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.6785714285714286,
+        "distance": 0.6964285714285714
+      },
+      {
+        "from": 2,
+        "to": 25,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.6428571428571428,
+        "distance": 0.6785714285714286
+      },
+      {
+        "from": 3,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.3928571428571429,
+        "distance": 0.625
+      },
+      {
+        "from": 4,
+        "to": 25,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.5714285714285714,
+        "distance": 0.6428571428571429
+      },
+      {
+        "from": 5,
+        "to": 25,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.47619047619047616,
+        "distance": 0.6755952380952381
+      },
+      {
+        "from": 6,
+        "to": 25,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.6071428571428572,
+        "distance": 0.6607142857142857
+      },
+      {
+        "from": 7,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.6428571428571428,
+        "distance": 0.75
+      },
+      {
+        "from": 8,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.7142857142857143,
+        "distance": 0.7857142857142857
+      },
+      {
+        "from": 9,
+        "to": 25,
+        "moduleDistance": 1,
+        "actionDistance": 0.5357142857142857,
+        "distance": 0.7678571428571428
+      },
+      {
+        "from": 10,
+        "to": 25,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.4642857142857143,
+        "distance": 0.5892857142857143
+      },
+      {
+        "from": 11,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.5714285714285714,
+        "distance": 0.7142857142857143
+      },
+      {
+        "from": 12,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.6785714285714286,
+        "distance": 0.7678571428571428
+      },
+      {
+        "from": 13,
+        "to": 25,
+        "moduleDistance": 0.5714285714285714,
+        "actionDistance": 0.2857142857142857,
+        "distance": 0.4285714285714286
+      },
+      {
+        "from": 14,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.7142857142857143,
+        "distance": 0.7857142857142857
+      },
+      {
+        "from": 15,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.7596153846153846,
+        "distance": 0.8083791208791209
+      },
+      {
+        "from": 16,
+        "to": 25,
+        "moduleDistance": 1,
+        "actionDistance": 0.7857142857142857,
+        "distance": 0.8928571428571429
+      },
+      {
+        "from": 17,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.5714285714285714,
+        "distance": 0.7142857142857143
+      },
+      {
+        "from": 18,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.4285714285714286,
+        "distance": 0.6428571428571429
+      },
+      {
+        "from": 19,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.7142857142857143,
+        "distance": 0.7857142857142857
+      },
+      {
+        "from": 20,
+        "to": 25,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.5357142857142857,
+        "distance": 0.7053571428571428
+      },
+      {
+        "from": 21,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.75,
+        "distance": 0.8035714285714286
+      },
+      {
+        "from": 22,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.6071428571428572,
+        "distance": 0.7321428571428572
+      },
+      {
+        "from": 23,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.6071428571428572,
+        "distance": 0.7321428571428572
+      },
+      {
+        "from": 24,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.6785714285714286,
+        "distance": 0.7678571428571428
+      },
+      {
+        "from": 1,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.41666666666666663,
+        "distance": 0.625
+      },
+      {
+        "from": 2,
+        "to": 26,
+        "moduleDistance": 1,
+        "actionDistance": 0.41666666666666663,
+        "distance": 0.7083333333333333
+      },
+      {
+        "from": 3,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.55,
+        "distance": 0.6916666666666667
+      },
+      {
+        "from": 4,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 5,
+        "to": 26,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.7619047619047619,
+        "distance": 0.7559523809523809
+      },
+      {
+        "from": 6,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.41666666666666663,
+        "distance": 0.625
+      },
+      {
+        "from": 7,
+        "to": 26,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.33333333333333337,
+        "distance": 0.5238095238095238
+      },
+      {
+        "from": 8,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 9,
+        "to": 26,
+        "moduleDistance": 1,
+        "actionDistance": 0.47058823529411764,
+        "distance": 0.7352941176470589
+      },
+      {
+        "from": 10,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.55,
+        "distance": 0.6916666666666667
+      },
+      {
+        "from": 11,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4666666666666667,
+        "distance": 0.65
+      },
+      {
+        "from": 12,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.41666666666666663,
+        "distance": 0.625
+      },
+      {
+        "from": 13,
+        "to": 26,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.6666666666666667,
+        "distance": 0.7619047619047619
+      },
+      {
+        "from": 14,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.33333333333333337,
+        "distance": 0.5833333333333334
+      },
+      {
+        "from": 15,
+        "to": 26,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.8942307692307693,
+        "distance": 0.8756868131868132
+      },
+      {
+        "from": 16,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5833333333333333,
+        "distance": 0.7083333333333333
+      },
+      {
+        "from": 17,
+        "to": 26,
+        "moduleDistance": 1,
+        "actionDistance": 0.5294117647058824,
+        "distance": 0.7647058823529411
+      },
+      {
+        "from": 18,
+        "to": 26,
+        "moduleDistance": 0.5,
+        "actionDistance": 0.5909090909090908,
+        "distance": 0.5454545454545454
+      },
+      {
+        "from": 19,
+        "to": 26,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5,
+        "distance": 0.5833333333333334
+      },
+      {
+        "from": 20,
+        "to": 26,
+        "moduleDistance": 1,
+        "actionDistance": 0.375,
+        "distance": 0.6875
+      },
+      {
+        "from": 21,
+        "to": 26,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.41666666666666663,
+        "distance": 0.5416666666666666
+      },
+      {
+        "from": 22,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5952380952380952
+      },
+      {
+        "from": 23,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.33333333333333337,
+        "distance": 0.5833333333333334
+      },
+      {
+        "from": 24,
+        "to": 26,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.25,
+        "distance": 0.5416666666666667
+      },
+      {
+        "from": 25,
+        "to": 26,
+        "moduleDistance": 1,
+        "actionDistance": 0.6785714285714286,
+        "distance": 0.8392857142857143
+      },
+      {
+        "from": 1,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4375,
+        "distance": 0.6354166666666667
+      },
+      {
+        "from": 2,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.375,
+        "distance": 0.6041666666666667
+      },
+      {
+        "from": 3,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4,
+        "distance": 0.6166666666666667
+      },
+      {
+        "from": 4,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3125,
+        "distance": 0.5729166666666667
+      },
+      {
+        "from": 5,
+        "to": 27,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.6666666666666667,
+        "distance": 0.7083333333333334
+      },
+      {
+        "from": 6,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4375,
+        "distance": 0.6354166666666667
+      },
+      {
+        "from": 7,
+        "to": 27,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.4375,
+        "distance": 0.6473214285714286
+      },
+      {
+        "from": 8,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5625,
+        "distance": 0.6979166666666667
+      },
+      {
+        "from": 9,
+        "to": 27,
+        "moduleDistance": 0.5,
+        "actionDistance": 0.17647058823529416,
+        "distance": 0.3382352941176471
+      },
+      {
+        "from": 10,
+        "to": 27,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.44999999999999996,
+        "distance": 0.5583333333333333
+      },
+      {
+        "from": 11,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3125,
+        "distance": 0.5729166666666667
+      },
+      {
+        "from": 12,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4375,
+        "distance": 0.6354166666666667
+      },
+      {
+        "from": 13,
+        "to": 27,
+        "moduleDistance": 1,
+        "actionDistance": 0.5555555555555556,
+        "distance": 0.7777777777777778
+      },
+      {
+        "from": 14,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 15,
+        "to": 27,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.8846153846153846,
+        "distance": 0.8708791208791209
+      },
+      {
+        "from": 16,
+        "to": 27,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5625,
+        "distance": 0.6145833333333334
+      },
+      {
+        "from": 17,
+        "to": 27,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.3529411764705882,
+        "distance": 0.5098039215686274
+      },
+      {
+        "from": 18,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 19,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 20,
+        "to": 27,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.375,
+        "distance": 0.5625
+      },
+      {
+        "from": 21,
+        "to": 27,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5,
+        "distance": 0.5833333333333334
+      },
+      {
+        "from": 22,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.375,
+        "distance": 0.6041666666666667
+      },
+      {
+        "from": 23,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.375,
+        "distance": 0.6041666666666667
+      },
+      {
+        "from": 24,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 25,
+        "to": 27,
+        "moduleDistance": 1,
+        "actionDistance": 0.5357142857142857,
+        "distance": 0.7678571428571428
+      },
+      {
+        "from": 26,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 1,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5952380952380952
+      },
+      {
+        "from": 2,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5952380952380952
+      },
+      {
+        "from": 3,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.44999999999999996,
+        "distance": 0.6416666666666666
+      },
+      {
+        "from": 4,
+        "to": 28,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4375,
+        "distance": 0.5520833333333334
+      },
+      {
+        "from": 5,
+        "to": 28,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7142857142857143,
+        "distance": 0.7946428571428572
+      },
+      {
+        "from": 6,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.2857142857142857,
+        "distance": 0.5595238095238095
+      },
+      {
+        "from": 7,
+        "to": 28,
+        "moduleDistance": 1,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.6785714285714286
+      },
+      {
+        "from": 8,
+        "to": 28,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4285714285714286,
+        "distance": 0.5476190476190477
+      },
+      {
+        "from": 9,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4117647058823529,
+        "distance": 0.6225490196078431
+      },
+      {
+        "from": 10,
+        "to": 28,
+        "moduleDistance": 0.5,
+        "actionDistance": 0.44999999999999996,
+        "distance": 0.475
+      },
+      {
+        "from": 11,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.33333333333333337,
+        "distance": 0.5833333333333334
+      },
+      {
+        "from": 12,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5952380952380952
+      },
+      {
+        "from": 13,
+        "to": 28,
+        "moduleDistance": 1,
+        "actionDistance": 0.5925925925925926,
+        "distance": 0.7962962962962963
+      },
+      {
+        "from": 14,
+        "to": 28,
+        "moduleDistance": 1,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.6785714285714286
+      },
+      {
+        "from": 15,
+        "to": 28,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.8846153846153846,
+        "distance": 0.7994505494505495
+      },
+      {
+        "from": 16,
+        "to": 28,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5714285714285714,
+        "distance": 0.6190476190476191
+      },
+      {
+        "from": 17,
+        "to": 28,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4117647058823529,
+        "distance": 0.5392156862745098
+      },
+      {
+        "from": 18,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 19,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4285714285714286,
+        "distance": 0.6309523809523809
+      },
+      {
+        "from": 20,
+        "to": 28,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.25,
+        "distance": 0.5625
+      },
+      {
+        "from": 21,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 22,
+        "to": 28,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.2857142857142857,
+        "distance": 0.47619047619047616
+      },
+      {
+        "from": 23,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.2857142857142857,
+        "distance": 0.5595238095238095
+      },
+      {
+        "from": 24,
+        "to": 28,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.2857142857142857,
+        "distance": 0.47619047619047616
+      },
+      {
+        "from": 25,
+        "to": 28,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.5714285714285714,
+        "distance": 0.6428571428571429
+      },
+      {
+        "from": 26,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5952380952380952
+      },
+      {
+        "from": 27,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.375,
+        "distance": 0.6041666666666667
+      },
+      {
+        "from": 1,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.46153846153846156,
+        "distance": 0.6474358974358975
+      },
+      {
+        "from": 2,
+        "to": 29,
+        "moduleDistance": 1,
+        "actionDistance": 0.3846153846153846,
+        "distance": 0.6923076923076923
+      },
+      {
+        "from": 3,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.55,
+        "distance": 0.6916666666666667
+      },
+      {
+        "from": 4,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 5,
+        "to": 29,
+        "moduleDistance": 0.625,
+        "actionDistance": 0.7380952380952381,
+        "distance": 0.6815476190476191
+      },
+      {
+        "from": 6,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3846153846153846,
+        "distance": 0.608974358974359
+      },
+      {
+        "from": 7,
+        "to": 29,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.3076923076923077,
+        "distance": 0.5824175824175825
+      },
+      {
+        "from": 8,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.46153846153846156,
+        "distance": 0.6474358974358975
+      },
+      {
+        "from": 9,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.47058823529411764,
+        "distance": 0.6519607843137255
+      },
+      {
+        "from": 10,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.6,
+        "distance": 0.7166666666666667
+      },
+      {
+        "from": 11,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4,
+        "distance": 0.6166666666666667
+      },
+      {
+        "from": 12,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.46153846153846156,
+        "distance": 0.6474358974358975
+      },
+      {
+        "from": 13,
+        "to": 29,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.6666666666666667,
+        "distance": 0.6904761904761905
+      },
+      {
+        "from": 14,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.46153846153846156,
+        "distance": 0.6474358974358975
+      },
+      {
+        "from": 15,
+        "to": 29,
+        "moduleDistance": 1,
+        "actionDistance": 0.9134615384615384,
+        "distance": 0.9567307692307693
+      },
+      {
+        "from": 16,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5384615384615384,
+        "distance": 0.6858974358974359
+      },
+      {
+        "from": 17,
+        "to": 29,
+        "moduleDistance": 1,
+        "actionDistance": 0.47058823529411764,
+        "distance": 0.7352941176470589
+      },
+      {
+        "from": 18,
+        "to": 29,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5909090909090908,
+        "distance": 0.6287878787878788
+      },
+      {
+        "from": 19,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5384615384615384,
+        "distance": 0.6858974358974359
+      },
+      {
+        "from": 20,
+        "to": 29,
+        "moduleDistance": 1,
+        "actionDistance": 0.4375,
+        "distance": 0.71875
+      },
+      {
+        "from": 21,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.46153846153846156,
+        "distance": 0.6474358974358975
+      },
+      {
+        "from": 22,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5952380952380952
+      },
+      {
+        "from": 23,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3846153846153846,
+        "distance": 0.608974358974359
+      },
+      {
+        "from": 24,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3076923076923077,
+        "distance": 0.5705128205128205
+      },
+      {
+        "from": 25,
+        "to": 29,
+        "moduleDistance": 1,
+        "actionDistance": 0.6785714285714286,
+        "distance": 0.8392857142857143
+      },
+      {
+        "from": 26,
+        "to": 29,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.3076923076923077,
+        "distance": 0.4871794871794872
+      },
+      {
+        "from": 27,
+        "to": 29,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4375,
+        "distance": 0.5520833333333334
+      },
+      {
+        "from": 28,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5952380952380952
+      },
+      {
+        "from": 1,
+        "to": 30,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.8269230769230769,
+        "distance": 0.8509615384615384
+      },
+      {
+        "from": 2,
+        "to": 30,
+        "moduleDistance": 1,
+        "actionDistance": 0.8076923076923077,
+        "distance": 0.9038461538461539
+      },
+      {
+        "from": 3,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.6730769230769231,
+        "distance": 0.7115384615384616
+      },
+      {
+        "from": 4,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.7692307692307692,
+        "distance": 0.7596153846153846
+      },
+      {
+        "from": 5,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.46153846153846156,
+        "distance": 0.6057692307692308
+      },
+      {
+        "from": 6,
+        "to": 30,
+        "moduleDistance": 1,
+        "actionDistance": 0.7884615384615384,
+        "distance": 0.8942307692307693
+      },
+      {
+        "from": 7,
+        "to": 30,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7884615384615384,
+        "distance": 0.8317307692307692
+      },
+      {
+        "from": 8,
+        "to": 30,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.8269230769230769,
+        "distance": 0.8509615384615384
+      },
+      {
+        "from": 9,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.6923076923076923,
+        "distance": 0.7211538461538461
+      },
+      {
+        "from": 10,
+        "to": 30,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7115384615384616,
+        "distance": 0.7932692307692308
+      },
+      {
+        "from": 11,
+        "to": 30,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.75,
+        "distance": 0.8125
+      },
+      {
+        "from": 12,
+        "to": 30,
+        "moduleDistance": 1,
+        "actionDistance": 0.8269230769230769,
+        "distance": 0.9134615384615384
+      },
+      {
+        "from": 13,
+        "to": 30,
+        "moduleDistance": 0.625,
+        "actionDistance": 0.5961538461538461,
+        "distance": 0.6105769230769231
+      },
+      {
+        "from": 14,
+        "to": 30,
+        "moduleDistance": 1,
+        "actionDistance": 0.8269230769230769,
+        "distance": 0.9134615384615384
+      },
+      {
+        "from": 15,
+        "to": 30,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.6538461538461539,
+        "distance": 0.7644230769230769
+      },
+      {
+        "from": 16,
+        "to": 30,
+        "moduleDistance": 0.625,
+        "actionDistance": 0.8653846153846154,
+        "distance": 0.7451923076923077
+      },
+      {
+        "from": 17,
+        "to": 30,
+        "moduleDistance": 1,
+        "actionDistance": 0.75,
+        "distance": 0.875
+      },
+      {
+        "from": 18,
+        "to": 30,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.6346153846153846,
+        "distance": 0.7548076923076923
+      },
+      {
+        "from": 19,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.8269230769230769,
+        "distance": 0.7884615384615384
+      },
+      {
+        "from": 20,
+        "to": 30,
+        "moduleDistance": 1,
+        "actionDistance": 0.7115384615384616,
+        "distance": 0.8557692307692308
+      },
+      {
+        "from": 21,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.8461538461538461,
+        "distance": 0.7980769230769231
+      },
+      {
+        "from": 22,
+        "to": 30,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.75,
+        "distance": 0.8125
+      },
+      {
+        "from": 23,
+        "to": 30,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7884615384615384,
+        "distance": 0.8317307692307692
+      },
+      {
+        "from": 24,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.7884615384615384,
+        "distance": 0.7692307692307692
+      },
+      {
+        "from": 25,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.5769230769230769,
+        "distance": 0.6634615384615384
+      },
+      {
+        "from": 26,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.7692307692307692,
+        "distance": 0.7596153846153846
+      },
+      {
+        "from": 27,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.7307692307692308,
+        "distance": 0.7403846153846154
+      },
+      {
+        "from": 28,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.75,
+        "distance": 0.75
+      },
+      {
+        "from": 29,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.7884615384615384,
+        "distance": 0.7692307692307692
+      }
+    ],
+    "consecutive": [
+      {
+        "from": 1,
+        "to": 2,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.4696969696969697
+      },
+      {
+        "from": 2,
+        "to": 3,
+        "moduleDistance": 1,
+        "actionDistance": 0.55,
+        "distance": 0.775
+      },
+      {
+        "from": 3,
+        "to": 4,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4,
+        "distance": 0.6166666666666667
+      },
+      {
+        "from": 4,
+        "to": 5,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7142857142857143,
+        "distance": 0.7946428571428572
+      },
+      {
+        "from": 5,
+        "to": 6,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.7380952380952381,
+        "distance": 0.8065476190476191
+      },
+      {
+        "from": 6,
+        "to": 7,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.09090909090909094,
+        "distance": 0.474025974025974
+      },
+      {
+        "from": 7,
+        "to": 8,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.36363636363636365,
+        "distance": 0.6103896103896104
+      },
+      {
+        "from": 8,
+        "to": 9,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.5294117647058824,
+        "distance": 0.5980392156862745
+      },
+      {
+        "from": 9,
+        "to": 10,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.4,
+        "distance": 0.6166666666666667
+      },
+      {
+        "from": 10,
+        "to": 11,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 11,
+        "to": 12,
+        "moduleDistance": 0.6666666666666667,
+        "actionDistance": 0.4666666666666667,
+        "distance": 0.5666666666666667
+      },
+      {
+        "from": 12,
+        "to": 13,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.6666666666666667,
+        "distance": 0.7619047619047619
+      },
+      {
+        "from": 13,
+        "to": 14,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.7037037037037037,
+        "distance": 0.7804232804232805
+      },
+      {
+        "from": 14,
+        "to": 15,
+        "moduleDistance": 0.7142857142857143,
+        "actionDistance": 0.9134615384615384,
+        "distance": 0.8138736263736264
+      },
+      {
+        "from": 15,
+        "to": 16,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.9519230769230769,
+        "distance": 0.904532967032967
+      },
+      {
+        "from": 16,
+        "to": 17,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.6470588235294117,
+        "distance": 0.7401960784313726
+      },
+      {
+        "from": 17,
+        "to": 18,
+        "moduleDistance": 1,
+        "actionDistance": 0.5454545454545454,
+        "distance": 0.7727272727272727
+      },
+      {
+        "from": 18,
+        "to": 19,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.6363636363636364,
+        "distance": 0.7348484848484849
+      },
+      {
+        "from": 19,
+        "to": 20,
+        "moduleDistance": 1,
+        "actionDistance": 0.5625,
+        "distance": 0.78125
+      },
+      {
+        "from": 20,
+        "to": 21,
+        "moduleDistance": 0.875,
+        "actionDistance": 0.5,
+        "distance": 0.6875
+      },
+      {
+        "from": 21,
+        "to": 22,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 22,
+        "to": 23,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5952380952380952
+      },
+      {
+        "from": 23,
+        "to": 24,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.2727272727272727,
+        "distance": 0.553030303030303
+      },
+      {
+        "from": 24,
+        "to": 25,
+        "moduleDistance": 0.8571428571428572,
+        "actionDistance": 0.6785714285714286,
+        "distance": 0.7678571428571428
+      },
+      {
+        "from": 25,
+        "to": 26,
+        "moduleDistance": 1,
+        "actionDistance": 0.6785714285714286,
+        "distance": 0.8392857142857143
+      },
+      {
+        "from": 26,
+        "to": 27,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.5,
+        "distance": 0.6666666666666667
+      },
+      {
+        "from": 27,
+        "to": 28,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.375,
+        "distance": 0.6041666666666667
+      },
+      {
+        "from": 28,
+        "to": 29,
+        "moduleDistance": 0.8333333333333334,
+        "actionDistance": 0.3571428571428571,
+        "distance": 0.5952380952380952
+      },
+      {
+        "from": 29,
+        "to": 30,
+        "moduleDistance": 0.75,
+        "actionDistance": 0.7884615384615384,
+        "distance": 0.7692307692307692
+      }
+    ]
+  },
+  "observedEncounters": [
+    {
+      "level": 1,
+      "star": "conveyor",
+      "modules": [
+        "conveyor",
+        "conveyor",
+        "wind",
+        "tower",
+        "spring",
+        "lava"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "conveyor",
+        "conveyor",
+        "wind",
+        "tower",
+        "spring",
+        "lava"
+      ]
+    },
+    {
+      "level": 2,
+      "star": "piston",
+      "modules": [
+        "piston",
+        "piston",
+        "wind",
+        "tunnel",
+        "chain",
+        "spring"
+      ],
+      "actions": [
+        "marche-tir",
+        "attente-cycle",
+        "marche-tir",
+        "accroupi",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "piston",
+        "piston",
+        "wind",
+        "tunnel",
+        "chain",
+        "spring"
+      ]
+    },
+    {
+      "level": 3,
+      "star": "bridge",
+      "modules": [
+        "bridge",
+        "bridge",
+        "rails",
+        "crate",
+        "tower",
+        "secret"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "poussée",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "saut",
+        "marche-tir",
+        "attente",
+        "marche-tir"
+      ],
+      "encountered": [
+        "bridge",
+        "bridge",
+        "rails",
+        "crate",
+        "tower",
+        "secret"
+      ]
+    },
+    {
+      "level": 4,
+      "star": "tunnel",
+      "modules": [
+        "tunnel",
+        "tunnel",
+        "lava",
+        "spotlight",
+        "piston",
+        "crate"
+      ],
+      "actions": [
+        "marche-tir",
+        "accroupi",
+        "marche-tir",
+        "accroupi",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "attente-cycle",
+        "marche-tir",
+        "poussée",
+        "marche-tir"
+      ],
+      "encountered": [
+        "tunnel",
+        "tunnel",
+        "lava",
+        "spotlight",
+        "piston",
+        "crate"
+      ]
+    },
+    {
+      "level": 5,
+      "star": "gate",
+      "modules": [
+        "gate",
+        "gate",
+        "piston",
+        "bridge",
+        "lift",
+        "spotlight",
+        "gate",
+        "bridge"
+      ],
+      "actions": [
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir",
+        "attente-cycle",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "tir-en-haut",
+        "marche-tir",
+        "attente",
+        "accroupi",
+        "attente",
+        "accroupi",
+        "attente",
+        "accroupi",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "accroupi",
+        "attente",
+        "accroupi",
+        "attente",
+        "accroupi",
+        "attente",
+        "accroupi"
+      ],
+      "encountered": [
+        "gate",
+        "gate",
+        "piston",
+        "bridge",
+        "lift",
+        "spotlight",
+        "gate",
+        "bridge"
+      ]
+    },
+    {
+      "level": 6,
+      "star": "lift",
+      "modules": [
+        "lift",
+        "lift",
+        "tunnel",
+        "conveyor",
+        "spring",
+        "chain"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "accroupi",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "lift",
+        "lift",
+        "tunnel",
+        "conveyor",
+        "spring",
+        "chain"
+      ]
+    },
+    {
+      "level": 7,
+      "star": "chain",
+      "modules": [
+        "chain",
+        "chain",
+        "hut",
+        "gate",
+        "bridge",
+        "bridge",
+        "wind"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "chain",
+        "chain",
+        "hut",
+        "gate",
+        "bridge",
+        "bridge",
+        "wind"
+      ]
+    },
+    {
+      "level": 8,
+      "star": "wind",
+      "modules": [
+        "wind",
+        "wind",
+        "secret",
+        "tunnel",
+        "rails",
+        "hut"
+      ],
+      "actions": [
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "accroupi",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "wind",
+        "wind",
+        "secret",
+        "tunnel",
+        "rails",
+        "hut"
+      ]
+    },
+    {
+      "level": 9,
+      "star": "crate",
+      "modules": [
+        "crate",
+        "crate",
+        "wind",
+        "rails",
+        "secret",
+        "lift"
+      ],
+      "actions": [
+        "marche-tir",
+        "poussée",
+        "marche-tir",
+        "poussée",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "attente",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "crate",
+        "crate",
+        "wind",
+        "rails",
+        "secret",
+        "lift"
+      ]
+    },
+    {
+      "level": 10,
+      "star": "spring",
+      "modules": [
+        "spring",
+        "spring",
+        "wind",
+        "spotlight",
+        "hut",
+        "tunnel"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "accroupi",
+        "marche-tir",
+        "accroupi",
+        "marche-tir",
+        "accroupi"
+      ],
+      "encountered": [
+        "spring",
+        "spring",
+        "wind",
+        "spotlight",
+        "hut",
+        "tunnel"
+      ]
+    },
+    {
+      "level": 11,
+      "star": "secret",
+      "modules": [
+        "secret",
+        "secret",
+        "lift",
+        "piston",
+        "gate",
+        "spring"
+      ],
+      "actions": [
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente-cycle",
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "secret",
+        "secret",
+        "lift",
+        "piston",
+        "gate",
+        "spring"
+      ]
+    },
+    {
+      "level": 12,
+      "star": "rails",
+      "modules": [
+        "rails",
+        "rails",
+        "hut",
+        "lift",
+        "wind",
+        "spring"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "rails",
+        "rails",
+        "hut",
+        "lift",
+        "wind",
+        "spring"
+      ]
+    },
+    {
+      "level": 13,
+      "star": "bridge",
+      "modules": [
+        "bridge",
+        "bridge",
+        "gate",
+        "chain",
+        "lava",
+        "hut",
+        "lava"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "bridge",
+        "bridge",
+        "gate",
+        "chain",
+        "lava",
+        "hut",
+        "lava"
+      ]
+    },
+    {
+      "level": 14,
+      "star": "tower",
+      "modules": [
+        "tower",
+        "tower",
+        "lift",
+        "wind",
+        "hut",
+        "chain"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "tower",
+        "tower",
+        "lift",
+        "wind",
+        "hut",
+        "chain"
+      ]
+    },
+    {
+      "level": 15,
+      "star": "chain",
+      "modules": [
+        "chain",
+        "chain",
+        "tower",
+        "secret",
+        "piston",
+        "rails",
+        "chain"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "attente",
+        "marche-tir",
+        "saut",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "attente",
+        "marche-tir",
+        "saut",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "attente"
+      ],
+      "encountered": [
+        "chain",
+        "chain",
+        "tower",
+        "secret",
+        "piston",
+        "rails",
+        "chain"
+      ]
+    },
+    {
+      "level": 16,
+      "star": "spotlight",
+      "modules": [
+        "spotlight",
+        "spotlight",
+        "crate",
+        "rails",
+        "piston",
+        "hut"
+      ],
+      "actions": [
+        "marche-tir",
+        "poussée",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "spotlight",
+        "spotlight",
+        "crate",
+        "rails",
+        "piston",
+        "hut"
+      ]
+    },
+    {
+      "level": 17,
+      "star": "tunnel",
+      "modules": [
+        "tunnel",
+        "tunnel",
+        "wind",
+        "spring",
+        "piston",
+        "rails"
+      ],
+      "actions": [
+        "marche-tir",
+        "accroupi",
+        "marche-tir",
+        "accroupi",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "tir-en-haut",
+        "attente-cycle",
+        "tir-en-haut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "tunnel",
+        "tunnel",
+        "wind",
+        "spring",
+        "piston",
+        "rails"
+      ]
+    },
+    {
+      "level": 18,
+      "star": "hut",
+      "modules": [
+        "hut",
+        "hut",
+        "secret",
+        "chain",
+        "conveyor",
+        "tower"
+      ],
+      "actions": [
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "attente",
+        "accroupi",
+        "saut",
+        "attente",
+        "saut",
+        "attente",
+        "accroupi",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut"
+      ],
+      "encountered": [
+        "hut",
+        "hut",
+        "secret",
+        "chain",
+        "conveyor",
+        "tower"
+      ]
+    },
+    {
+      "level": 19,
+      "star": "lift",
+      "modules": [
+        "lift",
+        "lift",
+        "tower",
+        "spotlight",
+        "tunnel",
+        "crate"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "tir-en-haut",
+        "accroupi",
+        "marche-tir",
+        "poussée",
+        "marche-tir"
+      ],
+      "encountered": [
+        "lift",
+        "lift",
+        "tower",
+        "spotlight",
+        "tunnel",
+        "crate"
+      ]
+    },
+    {
+      "level": 20,
+      "star": "wind",
+      "modules": [
+        "wind",
+        "wind",
+        "chain",
+        "rails",
+        "piston",
+        "bridge",
+        "wind",
+        "bridge"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "wind",
+        "wind",
+        "chain",
+        "rails",
+        "piston",
+        "bridge",
+        "wind",
+        "bridge"
+      ]
+    },
+    {
+      "level": 21,
+      "star": "piston",
+      "modules": [
+        "piston",
+        "piston",
+        "tower",
+        "lava",
+        "conveyor",
+        "secret"
+      ],
+      "actions": [
+        "marche-tir",
+        "attente-cycle",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "marche-tir"
+      ],
+      "encountered": [
+        "piston",
+        "piston",
+        "tower",
+        "lava",
+        "conveyor",
+        "secret"
+      ]
+    },
+    {
+      "level": 22,
+      "star": "secret",
+      "modules": [
+        "secret",
+        "secret",
+        "rails",
+        "conveyor",
+        "gate",
+        "chain"
+      ],
+      "actions": [
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "tir-en-haut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "secret",
+        "secret",
+        "rails",
+        "conveyor",
+        "gate",
+        "chain"
+      ]
+    },
+    {
+      "level": 23,
+      "star": "rails",
+      "modules": [
+        "rails",
+        "rails",
+        "spotlight",
+        "spring",
+        "lift",
+        "tower"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "rails",
+        "rails",
+        "spotlight",
+        "spring",
+        "lift",
+        "tower"
+      ]
+    },
+    {
+      "level": 24,
+      "star": "conveyor",
+      "modules": [
+        "conveyor",
+        "conveyor",
+        "lava",
+        "piston",
+        "secret",
+        "rails"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "attente",
+        "marche-tir",
+        "tir-en-haut",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "conveyor",
+        "conveyor",
+        "lava",
+        "piston",
+        "secret",
+        "rails"
+      ]
+    },
+    {
+      "level": 25,
+      "star": "lava",
+      "modules": [
+        "lava",
+        "lava",
+        "spring",
+        "bridge",
+        "tunnel",
+        "chain",
+        "lava"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "accroupi",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "saut",
+        "attente",
+        "saut",
+        "attente",
+        "saut",
+        "attente",
+        "saut",
+        "attente"
+      ],
+      "encountered": [
+        "lava",
+        "lava",
+        "spring",
+        "bridge",
+        "tunnel",
+        "chain",
+        "lava"
+      ]
+    },
+    {
+      "level": 26,
+      "star": "hut",
+      "modules": [
+        "hut",
+        "hut",
+        "gate",
+        "tower",
+        "spotlight",
+        "conveyor"
+      ],
+      "actions": [
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "attente",
+        "marche-tir"
+      ],
+      "encountered": [
+        "hut",
+        "hut",
+        "gate",
+        "tower",
+        "spotlight",
+        "conveyor"
+      ]
+    },
+    {
+      "level": 27,
+      "star": "crate",
+      "modules": [
+        "crate",
+        "crate",
+        "wind",
+        "piston",
+        "conveyor",
+        "spotlight"
+      ],
+      "actions": [
+        "marche-tir",
+        "poussée",
+        "marche-tir",
+        "poussée",
+        "marche-tir",
+        "attente-cycle",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "tir-en-haut",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "crate",
+        "crate",
+        "wind",
+        "piston",
+        "conveyor",
+        "spotlight"
+      ]
+    },
+    {
+      "level": 28,
+      "star": "spring",
+      "modules": [
+        "spring",
+        "spring",
+        "tunnel",
+        "secret",
+        "spotlight",
+        "rails"
+      ],
+      "actions": [
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "accroupi",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "tir-en-haut",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "spring",
+        "spring",
+        "tunnel",
+        "secret",
+        "spotlight",
+        "rails"
+      ]
+    },
+    {
+      "level": 29,
+      "star": "gate",
+      "modules": [
+        "gate",
+        "gate",
+        "hut",
+        "conveyor",
+        "crate",
+        "spotlight"
+      ],
+      "actions": [
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "poussée",
+        "marche-tir",
+        "tir-en-haut",
+        "saut",
+        "marche-tir"
+      ],
+      "encountered": [
+        "gate",
+        "gate",
+        "hut",
+        "conveyor",
+        "crate",
+        "spotlight"
+      ]
+    },
+    {
+      "level": 30,
+      "star": "spotlight",
+      "modules": [
+        "spotlight",
+        "spotlight",
+        "crate",
+        "gate",
+        "lava",
+        "secret",
+        "spotlight",
+        "lava"
+      ],
+      "actions": [
+        "marche-tir",
+        "poussée",
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir",
+        "saut",
+        "attente",
+        "saut",
+        "attente",
+        "saut",
+        "attente",
+        "saut",
+        "marche-tir",
+        "saut",
+        "marche-tir",
+        "attente",
+        "marche-tir",
+        "tir-en-haut",
+        "marche-tir",
+        "saut",
+        "attente",
+        "accroupi",
+        "attente",
+        "accroupi",
+        "attente",
+        "accroupi",
+        "attente",
+        "accroupi",
+        "attente",
+        "accroupi",
+        "attente",
+        "accroupi",
+        "attente",
+        "accroupi",
+        "attente",
+        "accroupi",
+        "saut",
+        "marche-tir",
+        "tir-en-haut",
+        "saut",
+        "marche-tir",
+        "attente",
+        "saut",
+        "attente",
+        "marche-tir",
+        "saut",
+        "attente",
+        "marche-tir",
+        "saut",
+        "attente",
+        "marche-tir",
+        "saut"
+      ],
+      "encountered": [
+        "spotlight",
+        "spotlight",
+        "crate",
+        "gate",
+        "lava",
+        "secret",
+        "spotlight",
+        "lava"
+      ]
+    }
+  ],
+  "mutations": [
+    {
+      "name": "convoyeur sans effet",
+      "file": "src/engines/ferraille/modules.ts",
+      "line": 38,
+      "killed": true
+    },
+    {
+      "name": "piston toujours ouvert",
+      "file": "src/engines/ferraille/modules.ts",
+      "line": 29,
+      "killed": true
+    },
+    {
+      "name": "deux séquences identiques",
+      "file": "src/engines/ferraille/engine.ts",
+      "line": 46,
+      "killed": true
+    },
+    {
+      "name": "module vedette ignoré",
+      "file": "scripts/ferraille-diversity.js",
+      "line": 35,
+      "killed": true
+    },
+    {
+      "name": "distances d’actions constantes",
+      "file": "scripts/ferraille-diversity.js",
+      "line": 38,
+      "killed": true
+    },
+    {
+      "name": "seuil de répétition à 90 %",
+      "file": "scripts/ferraille-diversity.js",
+      "line": 40,
+      "killed": true
+    },
+    {
+      "name": "minimum de modules supprimé",
+      "file": "scripts/ferraille-diversity.js",
+      "line": 43,
+      "killed": true
+    },
+    {
+      "name": "première rencontre ignorée",
+      "file": "scripts/ferraille-diversity.js",
+      "line": 34,
+      "killed": true
+    },
+    {
+      "name": "annonce supprimée",
+      "file": "src/games/ferraille/scene.ts",
+      "line": 308,
+      "killed": true
+    },
+    {
+      "name": "checkpoints invisibles",
+      "file": "src/games/ferraille/scene.ts",
+      "line": 245,
+      "killed": true
+    },
+    {
+      "name": "démonstrations invisibles",
+      "file": "src/games/ferraille/scene.ts",
+      "line": 205,
+      "killed": true
+    }
+  ],
+  "browserRun": false
+}

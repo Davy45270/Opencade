@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { GameCharacter } from '../../characters/game';
 import { Engine, LEVELS, polygon, required } from '../../engines/alunir/engine';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
@@ -8,6 +9,7 @@ import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 export const alunirButtons: readonly TouchButton[] = [
+    { id: 'alunir-special', label: 'Stable', ariaLabel: 'Stabilisation', size: 56, placement: 'right', mode: 'tap' },
     { id: 'alunir-left', label: '↺', ariaLabel: 'Tourner à gauche', size: 56, placement: 'left', mode: 'hold' },
     { id: 'alunir-right', label: '↻', ariaLabel: 'Tourner à droite', size: 56, placement: 'left', mode: 'hold' },
     { id: 'alunir-thrust', label: 'Poussée', ariaLabel: 'Poussée', size: 64, placement: 'right', mode: 'hold' },
@@ -17,13 +19,14 @@ export interface AlunirHook {
     hudText(): string;
     bounds(): { module: { x: number; y: number; width: number; height: number }; hud: { x: number; y: number; width: number; height: number } };
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string };
+    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger'): void;
 }
 declare global { interface Window { __ALUNIR_TEST__?: AlunirHook } }
 export class AlunirScene extends Phaser.Scene {
     private engine = new Engine();
+    private hero = new GameCharacter();
     private progress = new Progression(readSave(browserStorage(), 'alunir', 30), 30);
     private inputs = new Inputs();
     private selecting = false;
@@ -43,19 +46,20 @@ export class AlunirScene extends Phaser.Scene {
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         this.graphics = this.add.graphics();
-        this.hud = this.add.text(10, 10, '', { fontFamily: 'system-ui', fontSize: '13px', color: '#e5f3ff', lineSpacing: 2 });
+        this.hud = this.add.text(10, 10, '', { fontFamily: 'system-ui', fontSize: '11px', color: '#e5f3ff', lineSpacing: 2 });
         const control = (id: string, held: boolean): void => {
             if (held && !this.session.menuOpen && !this.selecting && this.session.state === 'ready') this.session.send('start');
             if (held && !this.session.paused && !this.selecting) {
+                if (id === 'alunir-special') { this.engine.special(); return; }
                 if (id === 'alunir-thrust' && !this.held.has(id)) sound.playEffect('thrust');
                 this.held.add(id);
             } else this.held.delete(id);
         };
         renderTouchControls(this.inputs, alunirButtons, control);
-        const keys: Record<string, string> = { ArrowUp: 'thrust', KeyW: 'thrust', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
+        const keys: Record<string, string> = { Space: 'special', ArrowUp: 'thrust', KeyW: 'thrust', ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
         for (const type of ['keydown', 'keyup']) this.inputs.on(document, type, event => {
             const e = event as KeyboardEvent, key = keys[e.code];
-            if (key) { e.preventDefault(); control(`alunir-${key}`, type === 'keydown'); }
+            if (key && !e.repeat) { e.preventDefault(); control(`alunir-${key}`, type === 'keydown'); }
         });
         this.inputs.on(window, 'blur', () => { this.held.clear(); });
         const choose = (): void => {
@@ -78,7 +82,7 @@ export class AlunirScene extends Phaser.Scene {
                     hud: { x: hud?.x ?? 0, y: hud?.y ?? 0, width: hud?.width ?? 0, height: hud?.height ?? 0 } };
             },
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
-            read: () => ({ ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 this.start(0, 454, true);
@@ -107,14 +111,19 @@ export class AlunirScene extends Phaser.Scene {
             this.tick(0);
         }
     }
+    updatePaused(): void { this.tick(0); }
     update(_time: number, delta: number): void {
         this.tick(this.testManual ? 0 : delta);
     }
     private tick(delta: number): void {
+        const previousStatus = this.engine.status;
         if (this.session.paused || this.selecting) this.held.clear();
         const thrust = this.held.has('alunir-thrust');
         this.engine.input({ thrust, left: this.held.has('alunir-left'), right: this.held.has('alunir-right') });
         if (!this.session.paused && !this.selecting) this.engine.step(delta);
+        if (thrust) this.hero.move(0, true);
+        if (previousStatus === 'playing' && this.engine.status === 'lost') this.hero.impact = 350;
+        this.hero.advance(delta, this.session.paused || this.selecting, this.engine.status, this.engine.specialTicks > 0);
         if (this.engine.status !== 'playing' && this.progress.state === 'playing') {
             this.progress.finish(this.engine.status, this.engine.state.score); writeSave(browserStorage(), this.progress.save, 'alunir'); sound.playEffect(this.engine.status);
         }
@@ -134,11 +143,12 @@ export class AlunirScene extends Phaser.Scene {
         for (const p of this.engine.terrain.pads) { g.lineStyle(5, 0x64e4cc); g.lineBetween(p.x, p.y, p.x + p.width, p.y); }
         const s = this.engine.state, body = polygon(s.x, s.y, s.angle);
         g.fillStyle(0xffd080); g.fillPoints(body, true); g.lineStyle(2, 0xffffff); g.strokePoints(body, true);
-        g.fillStyle(0x70cfff); g.fillCircle(s.x, s.y - 2, 3);
+        g.fillStyle(0x18394e); g.fillCircle(s.x, s.y - 3, 12);
+        this.hero.draw(g, s.x - 17, s.y - 21, 34, s.angle);
         if (this.engine.controls.thrust && s.fuel > 0 && this.engine.status === 'playing') {
             g.lineStyle(4, 0xff9955); g.lineBetween(s.x - Math.sin(s.angle) * 12, s.y + Math.cos(s.angle) * 12, s.x - Math.sin(s.angle) * 22, s.y + Math.cos(s.angle) * 22);
         }
-        this.hud?.setText(`ALUNIR ${String(this.engine.level + 1)}/30 · ×${String(required(this.engine.terrain.pads[0]).multiplier)} · SCORE ${String(s.score)} · F ${s.fuel.toFixed(0)}\nVX ${s.vx.toFixed(2)} /0,6 · VY ${s.vy.toFixed(2)} /1,2 · ${(s.angle * 180 / Math.PI).toFixed(0)}° /10°`);
+        this.hud?.setText(`ALUNIR ${String(this.engine.level + 1)}/30 · ×${String(required(this.engine.terrain.pads[0]).multiplier)} · SCORE ${String(s.score)} · F ${s.fuel.toFixed(0)} · STAB ${String(this.engine.specialUses)}/2 (${(this.engine.specialTicks / 60).toFixed(1)} s)\nVX ${s.vx.toFixed(2)} /0,6 · VY ${s.vy.toFixed(2)} /1,2 · ${(s.angle * 180 / Math.PI).toFixed(0)}° /10°`);
         // Place the two-line HUD on the opposite side of the module at every frame.
         const top = Math.min(...body.map(p => p.y));
         this.hud?.setY(top < 65 ? 590 : 10);

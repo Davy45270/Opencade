@@ -6,6 +6,14 @@ import { ferrailleFeatures } from './ferraille-diversity.js';
 import { dedaleDiversity } from './dedale-diversity.js';
 import { briqueterieDiversity } from './briqueterie-diversity.js';
 import { orbiteDiversity } from './orbite-diversity.js';
+import { serpentinFeatures } from './serpentin-diversity.js';
+import { empiloFeatures } from './empilo-diversity.js';
+import { caissesFeatures } from './caisses-diversity.js';
+import { traverseFeatures } from './traverse-diversity.js';
+const { PLANS: traversePlans } = await import('../src/engines/traverse/engine.ts');
+const { LEVELS: caissesLevels } = await import('../src/engines/caisses/engine.ts');
+const { stratum: empiloStratum } = await import('../src/engines/empilo/engine.ts');
+const { layout: serpentinLayout } = await import('../src/engines/serpentin/engine.ts');
 import { measureDiversity } from './diversity-metrics.js';
 import ts from 'typescript';
 import { readFileSync } from 'node:fs';
@@ -13,7 +21,6 @@ const ids = ['bubble', 'briqueterie', 'empilo', 'serpentin', 'orbite', 'essaim',
 const names = ['Bulles', 'Briqueterie', 'Empilo', 'Serpentin', 'Orbite', 'Essaim', 'Dédale', 'Caisses', 'Alunir', 'Ferraille', 'Traverse', 'Dérapage'];
 const SEED = 28, CAP = 1800, CLONE = 0.08, FLAT = 0.08;
 const numeric = (o, prefix = '') => Object.fromEntries(Object.entries(o).flatMap(([k, v]) => typeof v === 'number' || typeof v === 'boolean' ? [[prefix + k, Number(v)]] : []));
-const cells = (a, kind) => a.map(p => `${kind}:${p.x},${p.y}`);
 function extract(id, e, d) {
     const s = e.snapshot(), elements = new Set(), layout = [], params = {};
     const add = (...a) => a.forEach(x => elements.add(x));
@@ -24,12 +31,13 @@ function extract(id, e, d) {
         for (const cell of s.grid) if (cell.kind) add(cell.kind);
         if (e.rainbow) add('rainbow'); if (e.bumpers.length) add('bumper');
         layout.push(...s.grid.map(c => `${c.row},${c.col}:${c.color}:${c.kind ?? 'color'}`)); break;
-    case 'empilo':
-        add('rotation', 'line-clear', 'hard-drop'); for (let i = 0; i < d.shapes; i++) add(`shape:${i}`);
-        s.board.forEach((r, y) => r.forEach((v, x) => { if (v) { add(`tile:${v}`); layout.push(`${x},${y}:${v}`); } })); break;
-    case 'serpentin':
-        add('apple', 'growth', d.walls ? 'boundary-wall' : 'wrap'); if (s.obstacles.length) add('obstacle'); if (s.crystal) add('crystal');
-        layout.push(...cells(s.obstacles, 'obstacle')); break;
+    case 'empilo': {
+        const f = empiloFeatures(e, empiloStratum(e.level)); add(...f.elements); layout.push(...f.layout); break;
+    }
+    case 'serpentin': {
+        const f = serpentinFeatures(e, d, serpentinLayout); add(...f.elements); if (s.crystal) add('crystal');
+        layout.push(...f.layout); break;
+    }
     case 'orbite':
         add('probe', 'shield', 'shoot'); if (s.probes.some(p => p.hp > 1)) add('armored-probe'); if (s.comet) add('comet');
         if (d.shotLimit > 1) add('two-player-shots');
@@ -39,10 +47,10 @@ function extract(id, e, d) {
     case 'dedale':
         add('maze', 'seed', 'sun', 'scatter', 'chase'); typed(s.wisps, 'wisp');
         layout.push(...s.maze.flatMap((v, i) => v ? [String(i)] : [])); break;
-    case 'caisses':
-        add('wall', 'box', 'target', 'push', 'undo', 'deadlock');
-        for (const k of ['walls', 'targets', 'boxes']) layout.push(...e.board[k].map(i => `${i % e.board.width},${Math.floor(i / e.board.width)}:${k}`));
+    case 'caisses': {
+        const f = caissesFeatures(e.board, caissesLevels[e.level]); add(...f.elements); layout.push(...f.layout);
         Object.assign(params, { width: e.board.width, height: e.board.height }); break;
+    }
     case 'alunir':
         add('terrain', 'landing-pad', 'thrust', 'fuel'); if (d.wind) add('wind'); if (d.gust) add('gust');
         // Fixed screen bins, not per-level rescaling: retain relief and pad width.
@@ -53,9 +61,9 @@ function extract(id, e, d) {
         } Object.assign(params, { padMultiplier: s.terrain.pads[0].multiplier }); break;
     case 'ferraille':
         return ferrailleFeatures(s);
-    case 'traverse':
-        add('shelter', 'road', 'river', 'log', 'traffic'); if (d.diveDuration && s.board.lanes.some(l => l.diver)) add('diving-log');
-        layout.push(...s.board.lanes.map(l => `${l.y}:${l.kind}:${l.direction}:${l.offset}:${l.diver}`)); break;
+    case 'traverse': {
+        const f = traverseFeatures(s.board, d, traversePlans[e.level]); add(...f.elements); layout.push(...f.layout); break;
+    }
     case 'derapage': {
         add('kart', 'drift', 'item-crate', 'grass'); const t = e.track, c = t.circuit;
         for (const k of ['snow', 'berms', 'jumps', 'gates']) if (c[k].length) add(`track:${k}`);
@@ -87,15 +95,15 @@ async function policy(id, mod, level) {
 const variations = [
     'Thirty seeded layouts with increasing density and pressure; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers.',
     'Thirty authored silhouettes; observed sliding rows, chicanes, neighbor explosions, regrowth, portals, inclined reflections, keys, brick multiball, inverse-gravity zones and falling suspensions.',
-    'Piece vocabulary, initial rubble and sealed tiles, gravity and line target.',
-    'Obstacle placement and patterns, boundary wrapping, speed and apple target.',
+    'Thirty authored strata; bombs, dig-for-gems objectives, sliding conveyor rows, a rising floor, padlocks with a key, fog over the queue, five timed challenges and calmer strata after each new rule.',
+    'Thirty authored rooms; portals, timed gates, a fleeing prey, arrows imposing the next move, scissors and sentries, five timed challenges and calmer rooms after each new rule.',
     'Six authored formations; observed rotating shields, split fragments, asteroid deflections, gravity curves, stealth, local repair, satellite defense and coordinated swarms; six guardians and a two-phase finale.',
     'Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship.',
     'Seeded routes inside five topologies; observed mechanism positions, colored locks, one-way passages, portals, switches, cyclic walls, sliding ice, darkness and distinct wisp behaviors.',
-    'Authored room topology, box/target positions and solution length; the rules stay fixed.',
+    'Thirty workshops; fifteen historical rooms, then ice, one-way floors, plate doors, pits, paired pads and colour-matched boxes, five move-budget challenges.',
     'Terrain relief, landing width, wind, gusts, fuel and initial offset.',
     'Authored ascent/descent, wagon rides, hostage rescues, six enemy behaviors, three special weapons and five guardian patterns plus a three-phase reactor.',
-    'Lane placement, direction and phase, diving logs, shelters and flow speed.',
+    'Thirty crossings; traffic lights, diving logs, rapids, tides, bank rocks, a castaway to rescue, shelters in order, five one-life challenges and slower flow after each.',
     'Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning.'
 ];
 const games = [];

@@ -1,10 +1,22 @@
+<h1 align="center"><a href="https://davy45270.github.io/Opencade/">▶ Play / Jouer</a></h1>
+
+<p align="center"><a href="https://davy45270.github.io/Opencade/"><img src="docs/screenshots/home-desktop.webp" alt="Opencade home screen on a desktop browser: twelve game cards" width="100%"></a></p>
+
 English | [Français](README.fr.md)
+
+Ferraille now has 30 authored courses and 16 physical terrain modules, with ordered gameplay repetition checks and 900 winning character replays (pass 103).
+
+Pass 101 gives Essaim five mechanically distinct character signatures, larger procedural ships, seven enemy silhouettes and three space themes, preserving historical replays.
+
+Pass 84 adds character specials to Ferraille, Briqueterie and Essaim, with two-thumb controls and remembered default autofire in Essaim.
+
+Pass 82: the selected companion explores Dédale, pilots Orbite and guides Empilo, with Light, Burst and Hold specials and deterministic Node replay coverage.
 
 The detailed game specification, [GAME_SPEC.md](GAME_SPEC.md), is in French.
 
 # Opencade
 
-Five original recurring companions now have a persistent home character selector and shared procedural vector art; game integration will follow.
+The selected companion now plays in Caisses, Traverse, Alunir, Dérapage, Bubble Lab and Serpentin, with shared procedural art, reactions and equally balanced tactical specials.
 
 Ferraille now spans 30 authored stages with six enemy behaviors, flame/ricochet/grenade pickups, wagon rides, hostage rescues and vulnerable multi-phase guardians.
 
@@ -12,15 +24,42 @@ Ferraille now spans 30 authored stages with six enemy behaviors, flame/ricochet/
 [![Pages](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml/badge.svg)](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Twelve original games, one browser arcade. Opencade runs on phones and desktops,
+Thirteen original games, one browser arcade. Opencade runs on phones and desktops,
 with touch, mouse and keyboard controls and no account or backend. It is built
 with strict TypeScript, Phaser 3 and Vite. **The interface is in French.**
 
 **[Play the demo](https://davy45270.github.io/Opencade/)**
 
-The home screen features twelve animated Canvas previews driven by the games'
+The home screen features thirteen animated Canvas previews driven by the games'
 pure engines. Previews pause off screen, in the background and during play;
 reduced-motion preferences switch them to still images. Phones use a two-column grid.
+
+## Screenshots
+
+Phone portrait captures taken during play (`node scripts/screenshots.js` regenerates them after `npm run build`).
+
+<table>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/game-bubble.webp" alt="Bubble Lab" width="240"><br><b>Bubble Lab</b><br>Pop groups of three matching bubbles before the ceiling drops.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-serpentin.webp" alt="Serpentin" width="240"><br><b>Serpentin</b><br>Grow a glowing trail by collecting sparks and crystals.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-briqueterie.webp" alt="Briqueterie" width="240"><br><b>Briqueterie</b><br>Break 30 authored walls with portals, keys and multiball.</td>
+</tr>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/game-empilo.webp" alt="Empilo" width="240"><br><b>Empilo</b><br>Fit crystal pieces into the well and clear rows.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-orbite.webp" alt="Orbite" width="240"><br><b>Orbite</b><br>Hold off thirty formations and six guardians from orbit.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-essaim.webp" alt="Essaim" width="240"><br><b>Essaim</b><br>Fly through tactical stages with six weapons and rescue ships.</td>
+</tr>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/game-dedale.webp" alt="Dédale" width="240"><br><b>Dédale</b><br>Gather seeds in a maze, then turn the tables on the wisps.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-ferraille.webp" alt="Ferraille" width="240"><br><b>Ferraille</b><br>Run, jump and shoot through workshops and their guardians.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-alunir.webp" alt="Alunir" width="240"><br><b>Alunir</b><br>Land the module gently, against gusts and with little fuel.</td>
+</tr>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/game-caisses.webp" alt="Caisses" width="240"><br><b>Caisses</b><br>Push crates onto their targets, with unlimited undo.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-traverse.webp" alt="Traverse" width="240"><br><b>Traverse</b><br>Hop across traffic, logs and diving floats to the shelters.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-derapage.webp" alt="Dérapage" width="240"><br><b>Dérapage</b><br>Drift a kart around 30 tracks and race for the podium.</td>
+</tr>
+</table>
 
 ## Games and controls
 
@@ -34,6 +73,7 @@ while pausing play.
 
 | Game | How to play | Controls |
 |---|---|---|
+| **Le Collier du Singe** | 30 stages of moving pearl chains, magnetic retreats and combos. | Aim anywhere and release; tap shooter or ⇄/X: swap; arrows/Space: aim/fire; P/Escape: pause. |
 | **Bubble Lab** | Match groups of at least three bubbles of the same color before the ceiling comes down. | Mouse: aim and fire; touch: drag and release; arrows: aim; Space: fire; touch buttons: adjust and fire. |
 | **Serpentin** | Grow a glowing trail by collecting sparks and crystals, avoiding walls or wrapping around the board. | Arrows, ZQSD or WASD; touch: swipe or direction pad. |
 | **Briqueterie** | 30 authored walls: sliding rows, blasts, regrowth, portals, chicanes, deflectors, keys, multiball, inverse gravity and hanging structures. | Mouse: guide the paddle; Left/Right or A/D: move; Space: launch; touch: drag along the bottom, tap or use Launch. |
@@ -59,14 +99,16 @@ Existing `arcade-lab:*` and `bubble-lab:*` storage keys preserve earlier progres
 
 ## Install on your phone and play offline
 
+<img src="docs/screenshots/home-phone.webp" alt="Opencade home screen on a phone" width="240" align="right">
+
 Open [the demo](https://davy45270.github.io/Opencade/) online and let the home
-screen finish loading so all twelve games can be cached.
+screen finish loading so all thirteen games can be cached.
 
 - **Android / Chrome:** open the ⋮ menu and choose “Install app” or “Add to Home screen”.
 - **iOS / Safari:** open Share, choose “Add to Home Screen” and confirm.
 
 Launch Opencade from the new icon. Menu wording varies by browser version.
-After the initial cache is ready, the home screen and all twelve games work
+After the initial cache is ready, the home screen and all thirteen games work
 offline. Scores, unlocked levels and settings stay in the browser or installed
 app's local storage. Clearing that storage removes progress and may require
 another online visit.
@@ -98,6 +140,7 @@ npm test           # Vitest engine and shell tests
 npm run build      # static site in dist/
 npx playwright install --with-deps chromium
 npm run test:e2e   # Playwright against the production build
+node scripts/check-pwa-mutations.js # assertions PWA + huit mutations, sans navigateur ni Vitest
 npm run preview    # preview dist/ over HTTP
 ```
 
@@ -178,3 +221,19 @@ Orbite (pass 64): regenerate/check the 60 ordinary-input victories with
 Dérapage (pass 67) defaults to a north-up thumb joystick with visible heading, optional light assistance, non-sticky rails and a wide introductory circuit; records migrate by circuit name.
 
 The home footer and ☰ menu show the running build; use “Forcer la mise à jour” to refresh the PWA without deleting game saves.
+
+The companion selected at home now plays Caisses, Traverse and Alunir, with a tactical special and procedural character animation.
+
+### Personnages
+
+| Identifiant | Nom et sous-titre | Devise |
+| --- | --- | --- |
+| `panda` | **Boubou** — Panda glouton | « Manger, foncer, recommencer ! » |
+| `pandaroux` | **CaliRoux** — Panda roux joueur et câlin | « Des câlins et des dérapages ! » |
+| `dragon` | **Pestouille** — Dragon assidu | « Toujours plus loin, toujours plus fort ! » |
+| `singe` | **Tutu** — Singe en tutu | « Des pirouettes plein la piste ! » |
+| `licorne` | **Lumi** — Licorne joueuse | « La magie au service de la victoire ! » |
+
+Le choix du personnage affiche son nom, son sous-titre et sa devise.
+
+**Le Collier du Singe** (`collier`), the thirteenth game: 30 original chain-pearl stages; aim anywhere and release to shoot, tap the shooter or ⇄/X to swap. Node validation: `npm run test:node -- --only=validate-collier.js`.

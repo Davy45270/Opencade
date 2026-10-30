@@ -23,6 +23,7 @@ npm run dev
 - Put game rules in `src/engines/<game>/`, without Phaser, the DOM or `Math.random`. Use the seeded generator in `src/engines/shared/random.ts`. ESLint enforces these boundaries.
 - Phaser scenes in `src/games/<game>/` render state and forward input. Release their listeners on exit.
 - Cover new rules with Vitest tests and visible user journeys with Playwright tests using real inputs. For real-time gameplay assertions, advance the engine with `advance(ms)` rather than waiting for rendering to move a character.
+- Une règle se verrouille par Vitest ou par un validateur appelé par `test:node` ; un script hors de `test:node` ne compte pas comme test. See [the Node script inventory](docs/node-tests.md) for verification commands and recording tools.
 - Discuss new dependencies before adding them.
 - Keep the English and French READMEs in sync. The detailed game specification remains in French.
 
@@ -32,6 +33,7 @@ npm run dev
 npm run lint
 npm run typecheck
 npm test
+npm run test:node
 npm run build
 npm run test:e2e
 ```

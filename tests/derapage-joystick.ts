@@ -6,8 +6,8 @@ import { circuitKey } from '../src/engines/derapage/circuits';
 import { readSave, recordCircuitLap, type StoragePort } from '../src/shell/storage';
 import { recordings } from './derapage-recordings';
 type Check = (ok: boolean, message: string) => void;
-export function replayHuman(tape: typeof recordings[number], check: Check): void {
-    const e = new Engine(tape.level, 28), k = required(e.karts[0]);
+export function replayHuman(tape: typeof recordings[number], check: Check, EngineType: typeof Engine = Engine): void {
+    const e = new EngineType(tape.level, 28), k = required(e.karts[0]);
     let off = 0, stopped = 0, longest = 0;
     for (let frame = 0; frame < tape.frames; frame++) {
         e.input({ steer: 0, drift: false, bonus: false, mode: 'joystick', heading: required(tape.events[Math.floor(frame / 9)]), assist: true });

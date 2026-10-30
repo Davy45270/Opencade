@@ -1,5 +1,5 @@
 import { Random } from '../shared/random';
-import { createLabyrinth, labyrinthSeed, walk, type Journey } from './labyrinth';
+import { createLabyrinth, labyrinthSeed, walk, type Walker, type Journey } from './labyrinth';
 export { visible } from './labyrinth';
 export const WIDTH = 19, HEIGHT = 23, TICK = 1000 / 60;
 export type Direction = 'up' | 'left' | 'down' | 'right';
@@ -84,17 +84,46 @@ export function choose(s: State, w: Wisp): Direction | undefined {
 function wisps(): Wisp[] { return (['tracker', 'seer', 'roamer', 'shy'] as const).map((kind, i) => ({ ...HOME, kind, direction: 'up', returning: false, wait: 2500 + i * 1800 })); }
 export class Engine {
     level = 0; seed = 459; state!: State; status: 'playing' | 'won' | 'lost' = 'playing'; events: string[] = [];
+    specialUses = 1; specialTicks = 0; lightPath: number[] = [];
     private remainder = 0; private random = new Random(459);
     constructor(level = 0, seed = 459) { this.loadLevel(level, seed); }
     loadLevel(level: number, seed = 459): void {
+        this.specialUses = 1; this.specialTicks = 0; this.lightPath = [];
         const d = difficulty(level); this.level = level; this.seed = seed; this.random = new Random(labyrinthSeed(level, seed)); this.remainder = 0; this.status = 'playing'; this.events = [];
         const { maze, journey, seeds, suns } = createLabyrinth(level, seed);
         this.state = { journey, maze, suns, seeds, hero: { ...cell(journey.start ?? index(START)), direction: 'left' }, requested: 'left', wisps: wisps().filter(w => (level >= 24 && ![5, 10, 16, 21, 26].includes(level)) || w.kind === 'tracker'), score: 0, lives: 3, ticks: 0, heroClock: 0, wispClock: 0, vulnerable: 0, chain: 0, mode: 'scatter', phase: 0, modeTime: 0, schedule: Array.from({ length: 8 }, (_, i) => i % 2 ? d.chaseMs + Math.floor(this.random.next() * 1000) : 8000 + Math.floor(this.random.next() * 1000)), grace: 1800 };
         for (const w of this.state.wisps) Object.assign(w, cell(journey.wispStart ?? index(HOME)));
     }
-    loadState(state: State): void { this.state = structuredClone(state); this.remainder = 0; this.status = 'playing'; this.events = []; }
+    loadState(state: State & { specialUses?: number; specialTicks?: number; lightPath?: number[] }): void {
+        this.specialUses = state.specialUses ?? 1; this.specialTicks = state.specialTicks ?? 0; this.lightPath = [...(state.lightPath ?? [])]; this.state = structuredClone(state);
+        for (const key of ['specialUses', 'specialTicks', 'lightPath', 'reserve']) Reflect.deleteProperty(this.state, key); this.remainder = 0; this.status = 'playing'; this.events = []; }
+    /** Breadth first over actual turns, including inventory, slides and portals. */
+    special(): boolean {
+        if (this.status !== 'playing' || this.specialUses === 0) return false;
+        const s = this.state, j = s.journey;
+        const initial: Walker = { pos: index(s.hero), direction: s.hero.direction, held: j?.held ?? 0, toggled: j?.toggled ?? 0, phase: (j?.turn ?? 0) % 4 };
+        const queue = [{ state: initial, parent: -1, visited: [] as number[] }], seen = new Set([JSON.stringify(initial)]);
+        for (let i = 0; i < queue.length; i++) {
+            const node = queue[i]; if (!node) continue;
+            for (const direction of PRIORITY) {
+                const adjacent = neighbor(s.maze, cell(node.state.pos), direction);
+                const result = j ? walk(s.maze, j, node.state, direction) : { next: { ...node.state, pos: adjacent ? index(adjacent) : node.state.pos, direction }, visited: adjacent ? [index(adjacent)] : [] };
+                const goal = result.visited.findIndex(at => s.suns.includes(at));
+                if (goal >= 0) {
+                    const legs = [result.visited.slice(0, goal + 1)]; let parent = i;
+                    while (parent >= 0) { const leg = queue[parent]; if (!leg) break; legs.push(leg.visited); parent = leg.parent; }
+                    this.lightPath = [initial.pos, ...legs.reverse().flat()]; this.specialUses = 0; this.specialTicks = 180;
+                    this.events.push('special'); return true;
+                }
+                const key = JSON.stringify(result.next);
+                if (!seen.has(key)) { seen.add(key); queue.push({ state: result.next, parent: i, visited: result.visited }); }
+            }
+        }
+        return false;
+    }
+    advance(ms: number): void { this.step(ms); }
     input(d: Direction): void { this.state.requested = d; }
-    snapshot() { return { ...structuredClone(this.state), level: this.level, seed: this.seed, status: this.status, random: this.random.state, remainder: Math.max(0, Math.round(this.remainder * 1e8) / 1e8) }; }
+    snapshot() { return { ...structuredClone(this.state), ...(this.specialUses === 1 ? {} : { specialUses: this.specialUses, specialTicks: this.specialTicks, lightPath: [...this.lightPath] }), level: this.level, seed: this.seed, status: this.status, random: this.random.state, remainder: Math.max(0, Math.round(this.remainder * 1e8) / 1e8) }; }
     private collect(): void {
         const s = this.state, pos = index(s.hero), at = s.seeds.indexOf(pos), sun = s.suns.indexOf(pos);
         if (at >= 0) { s.seeds.splice(at, 1); s.score += 10; this.events.push('seed'); }
@@ -114,6 +143,7 @@ export class Engine {
     }
     private tick(): void {
         const s = this.state, d = difficulty(this.level); s.ticks++;
+        if (this.specialTicks > 0 && --this.specialTicks === 0) this.lightPath = [];
         const beforeHero = { ...s.hero }, beforeWisps = s.wisps.map(w => ({ ...w }));
         const wispsDue = s.wispClock + TICK + 1e-8 >= 1000 / (6 * d.wispRatio);
         s.grace = Math.max(0, s.grace - TICK); s.vulnerable = Math.max(0, s.vulnerable - TICK);

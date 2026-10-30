@@ -1,6 +1,6 @@
 import { test, expect } from './fixture';
 
-const ids = ['derapage', 'traverse', 'caisses', 'alunir', 'ferraille', 'dedale', 'essaim', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin'];
+const ids = ['collier', 'derapage', 'traverse', 'caisses', 'alunir', 'ferraille', 'dedale', 'essaim', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin'];
 const windows = [{ width: 390, height: 844 }, { width: 360, height: 640 }, { width: 390, height: 600 }];
 for (const viewport of windows) for (const id of ids) {
     test(`M01 M02 M02b M03 ${id} ${String(viewport.width)}x${String(viewport.height)}`, async ({ page }, testInfo) => {
@@ -124,4 +124,32 @@ test('M01 conteneur redimensionné sans resize puis sortie et retour au jeu', as
     await expect(page.locator('#game canvas')).toHaveCount(0);
     await page.getByRole('button', { name: /Serpentin/ }).tap();
     await expect.poll(async () => (await page.locator('#game canvas').boundingBox())?.height).toBeCloseTo(initial.height, 0);
+});
+
+for (const id of ['caisses', 'bubble'] as const) test(`M02 commandes regroupées ${id} à 360 px`, async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await page.goto(`/?test=1#/${id}`);
+    const selector = id === 'caisses' ? '#caisses-undo' : '#touch-mode';
+    const control = page.locator(selector);
+    await expect(page.locator(`#game-menu ${selector}`)).toHaveCount(1);
+    await expect(control).toBeHidden();
+    if (id === 'caisses') {
+        await page.locator('#caisses-right').tap();
+        expect((await page.evaluate(() => window.__CAISSES_TEST__?.read()))?.moves).toBe(1);
+    }
+    await page.locator('#game-menu-toggle').tap();
+    await expect(control).toBeVisible();
+    const box = await control.boundingBox();
+    if (!box) throw new Error('Commande regroupée absente');
+    expect(box.width).toBeGreaterThanOrEqual(56); expect(box.height).toBeGreaterThanOrEqual(56);
+    await control.tap();
+    await expect(page.locator('#game-menu-toggle')).toHaveAttribute('aria-expanded', 'false');
+    if (id === 'caisses') expect((await page.evaluate(() => window.__CAISSES_TEST__?.read()))?.moves).toBe(0);
+    else await expect(control).toHaveAttribute('aria-pressed', 'true');
+    await page.setViewportSize({ width: 390, height: 600 });
+    await expect(page.locator(`#touch-controls ${selector}`)).toBeVisible();
+    await page.setViewportSize({ width: 360, height: 640 });
+    await expect(page.locator(`#game-menu ${selector}`)).toHaveCount(1);
+    await page.locator('#topbar [data-home]').tap();
+    await expect(control).toHaveCount(0);
 });

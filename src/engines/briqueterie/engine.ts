@@ -4,10 +4,10 @@ export const STEP = 1000 / 60;
 export const RADIUS = 6;
 export type BrickKind = 'plain' | 'moving' | 'explosive' | 'regen' | 'portal' | 'angle' | 'key' | 'locked' | 'multi' | 'gravity' | 'anchor' | 'hanging';
 export interface Brick { kind?: BrickKind; homeX?: number; phase?: number; healAt?: number; falling?: boolean; x: number; y: number; w: number; h: number; hp: number; solid: boolean }
-export interface Ball { x: number; y: number; vx: number; vy: number; portalUntil?: number }
+export interface Ball { x: number; y: number; vx: number; vy: number; pierce?: number; pierced?: Brick[]; portalUntil?: number }
 export type BonusKind = 'wide' | 'multi' | 'life';
 export interface Bonus { x: number; y: number; kind: BonusKind }
-export interface State { bricks: Brick[]; balls: Ball[]; bonuses: Bonus[]; paddle: number; width: number; lives: number; score: number; ready: boolean; bounces: number; speed: number; wideUntil: number }
+export interface State { specialUsed?: boolean; strongPending?: boolean; bricks: Brick[]; balls: Ball[]; bonuses: Bonus[]; paddle: number; width: number; lives: number; score: number; ready: boolean; bounces: number; speed: number; wideUntil: number }
 export function difficulty(level: number) {
     if (!Number.isInteger(level) || level < 0 || level >= 30) throw new RangeError('Niveau invalide');
     const design = designs[level];
@@ -60,9 +60,18 @@ export class Engine {
         this.dock();
     }
     loadState(state: State): void { this.state = structuredClone(state); this.status = 'playing'; this.remainder = 0; this.ticks = 0; this.events = []; }
+    special(): boolean {
+        const s = this.state;
+        if (this.status !== 'playing' || s.specialUsed) return false;
+        s.specialUsed = true;
+        const ball = s.balls[0];
+        if (!s.ready && ball) { ball.pierce = 3; ball.pierced = []; }
+        else s.strongPending = true;
+        this.events.push('special'); return true;
+    }
     private dock(): void { this.state.balls = [{ x: this.state.paddle, y: 574, vx: 0, vy: 0 }]; }
     move(x: number): void { if (!Number.isFinite(x) || this.status !== 'playing') return; this.state.paddle = Math.max(this.state.width / 2, Math.min(360 - this.state.width / 2, x)); if (this.state.ready) this.dock(); }
-    launch(): void { if (!this.state.ready || this.status !== 'playing') return; this.state.ready = false; this.state.balls = [{ x: this.state.paddle, y: 574, vx: 0, vy: -this.state.speed }]; this.events.push('launch'); }
+    launch(): void { if (!this.state.ready || this.status !== 'playing') return; this.state.ready = false; this.state.balls = [{ x: this.state.paddle, y: 574, vx: 0, vy: -this.state.speed }]; if (this.state.strongPending) { const ball = this.state.balls[0]; if (ball) { ball.pierce = 3; ball.pierced = []; } this.state.strongPending = false; } this.events.push('launch'); }
     /** At most four drops, entirely inside the field, clear of bricks and other drops. */
     spawnBonus(x: number, y: number, kind: BonusKind): boolean {
         if (this.state.bonuses.length >= 4 || x < 10 || x > 350 || y < 10 || y > 560 || this.state.bricks.some(b => x + 10 > b.x && x - 10 < b.x + b.w && y + 10 > b.y && y - 10 < b.y + b.h) || this.state.bonuses.some(b => Math.abs(b.x - x) < 20 && Math.abs(b.y - y) < 20)) return false;
@@ -103,9 +112,9 @@ export class Engine {
                     this.events.push('gravity');
                 }
             }
-            for (const ball of [...s.balls]) this.travel(ball);
+            for (const ball of [...s.balls]) { if (ball.pierced) ball.pierced = ball.pierced.filter(b => ball.x + RADIUS >= b.x && ball.x - RADIUS <= b.x + b.w && ball.y + RADIUS >= b.y && ball.y - RADIUS <= b.y + b.h); this.travel(ball); }
             s.balls = s.balls.filter(b => b.y <= 646);
-            if (!s.balls.length && this.status === 'playing') { s.lives--; s.bonuses = []; this.events.push('life'); if (s.lives === 0) this.status = 'lost'; else { s.ready = true; this.dock(); } }
+            if (!s.balls.length && this.status === 'playing') { s.lives--; if (s.specialUsed !== undefined) { s.specialUsed = false; s.strongPending = false; } s.bonuses = []; this.events.push('life'); if (s.lives === 0) this.status = 'lost'; else { s.ready = true; this.dock(); } }
         }
         for (const drop of [...s.bonuses]) {
             drop.y += 2;
@@ -123,11 +132,18 @@ export class Engine {
             if (ball.vx < 0) wall((6 - ball.x) / ball.vx, 1, 0);
             if (ball.vx > 0) wall((354 - ball.x) / ball.vx, -1, 0);
             if (ball.vy < 0) wall((6 - ball.y) / ball.vy, 0, 1);
-            for (const brick of s.bricks) { const hit = contact(ball, brick, remaining); if (hit) hits.push({ ...hit, brick }); }
+            for (const brick of s.bricks) { if (ball.pierced?.some(b => b.x === brick.x && b.y === brick.y)) continue; const hit = contact(ball, brick, remaining); if (hit) hits.push({ ...hit, brick }); }
             if (ball.vy > 0 && ball.y <= 580) { const hit = contact(ball, { x: s.paddle - s.width / 2, y: 586, w: s.width, h: 12 }, remaining); if (hit) hits.push({ ...hit, paddle: true }); }
             const hit = hits.sort((a, b) => a.t - b.t)[0];
             if (!hit) { ball.x += ball.vx * remaining; ball.y += ball.vy * remaining; break; }
             ball.x += ball.vx * hit.t; ball.y += ball.vy * hit.t; remaining -= hit.t;
+            if (hit.brick && !hit.brick.solid && (ball.pierce ?? 0) > 0) {
+                ball.pierce = (ball.pierce ?? 0) - 1;
+                (ball.pierced ??= []).push(hit.brick);
+                this.portal(ball, hit.brick, hit);
+                this.damage(hit.brick); this.events.push('pierce');
+                continue;
+            }
             if (hit.brick?.kind === 'angle') {
                 const sign = hit.ny < 0 ? -1 : 1;
                 hit.nx = 0.5; hit.ny = sign * Math.sqrt(0.75); this.events.push('angle');
@@ -140,12 +156,17 @@ export class Engine {
             const brick = hit.brick;
             if (brick?.solid) this.events.push(brick.kind === 'locked' ? 'blocked' : 'solid');
             if (brick && !brick.solid) {
-                if (brick.kind === 'portal' && this.ticks >= (ball.portalUntil ?? 0)) {
-                    const partner = s.bricks.find(b => b !== brick && b.kind === 'portal');
-                    if (partner) { ball.x = partner.x + partner.w / 2; ball.y = partner.y + partner.h + RADIUS + 1; ball.vy = Math.abs(ball.vy); ball.portalUntil = this.ticks + 20; this.events.push('portal'); }
-                }
+                this.portal(ball, brick);
                 this.damage(brick);
             }
+        }
+    }
+    private portal(ball: Ball, brick: Brick, incoming?: Hit): void {
+        if (!(brick.kind === 'portal' && this.ticks >= (ball.portalUntil ?? 0))) return;
+        const partner = this.state.bricks.find(b => b !== brick && b.kind === 'portal');
+        if (partner) {
+            if (incoming) { const dot = ball.vx * incoming.nx + ball.vy * incoming.ny; ball.vx -= 2 * dot * incoming.nx; ball.vy -= 2 * dot * incoming.ny; }
+            ball.x = partner.x + partner.w / 2; ball.y = partner.y + partner.h + RADIUS + 1; ball.vy = Math.abs(ball.vy); ball.portalUntil = this.ticks + 20; this.events.push('portal');
         }
     }
     private damage(brick: Brick): void {

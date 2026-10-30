@@ -1,3 +1,4 @@
+import { signatureState, holdSignature, stepSignature, type SignatureCharacter, type SignatureState } from './signature';
 import { Random } from '../shared/random';
 import { LEVELS, type Weapon } from './levels';
 export { LEVELS, WEAPONS } from './levels';
@@ -7,9 +8,9 @@ export interface ActiveWeapon { kind: Weapon; remaining: number }
 export interface Pickup { kind: Weapon; x: number; y: number }
 export interface Boss { hp: number; maxHp: number; phase: number; clock: number; exposed: boolean; pattern: number; x: number; y: number }
 export const TICK = 1000 / 60, CANNON_Y = 552;
-export interface Enemy { id: number; x: number; y: number; homeX: number; homeY: number; phase: 'entry' | 'formation' | 'dive'; age: number; curve: number; type: 'scout' | 'armor' | 'split' | 'sensor' | 'fragment' | 'shield' | 'miner' | 'fast' | 'spiral' | 'turret' | 'mirror' | 'burst'; hp: number; originX: number; originY: number; targetX: number; captured: boolean; facing?: number; clock?: number; slow?: number }
+export interface Enemy { id: number; x: number; y: number; homeX: number; homeY: number; phase: 'entry' | 'formation' | 'dive'; age: number; curve: number; type: 'scout' | 'armor' | 'split' | 'sensor' | 'fragment' | 'shield' | 'miner' | 'fast' | 'spiral' | 'turret' | 'mirror' | 'burst'; hp: number; originX: number; originY: number; targetX: number; captured: boolean; facing?: number; clock?: number; slow?: number; bananaUntil?: number }
 export interface Shot { x: number; y: number; owner: 'player' | 'enemy'; vx?: number; vy?: number; bounces?: number; radius?: number; pierce?: number; hitIds?: number[]; reflected?: boolean; mine?: number; turnY?: number; seeking?: boolean }
-export interface State { enemies: Enemy[]; shots: Shot[]; cannon: number; target: number | null; move: -1 | 0 | 1; firing: boolean; ticks: number; lives: number; score: number; wave: number; cooldown: number; enemyTimer: number; diveTimer: number; invulnerable: number; double: number; fired: number; hits: number; nextId: number; weapons: ActiveWeapon[]; pickups: Pickup[]; heat: number; overheated: boolean; charge: number; beam: boolean; rescue: { x: number; y: number; hp: number } | null; boss: Boss | null }
+export interface State { signature?: SignatureState; specialUsed?: boolean; specialTicks?: number; enemies: Enemy[]; shots: Shot[]; cannon: number; target: number | null; move: -1 | 0 | 1; firing: boolean; ticks: number; lives: number; score: number; wave: number; cooldown: number; enemyTimer: number; diveTimer: number; invulnerable: number; double: number; fired: number; hits: number; nextId: number; weapons: ActiveWeapon[]; pickups: Pickup[]; heat: number; overheated: boolean; charge: number; beam: boolean; rescue: { x: number; y: number; hp: number } | null; boss: Boss | null }
 export function difficulty(level: number) {
     if (!Number.isInteger(level) || level < 0 || level > 29) throw new RangeError('Niveau invalide');
     return { waves: 2 + Math.floor(4 * level / 29), count: 6 + Math.floor(6 * level / 29), diveRate: 0.3 + level * 0.02, diveSpeed: 180 + level * 3, fireRate: 0.4 + level * 0.025, enemySpeed: 120 + level * 2, amplitude: 12 + level / 2 };
@@ -18,6 +19,13 @@ export class Engine {
     level = 0; seed = 458; status: 'playing' | 'won' | 'lost' = 'playing'; state!: State; events: string[] = [];
     private random = new Random(458); private remainder = 0;
     constructor(level = 0, seed = 458) { this.loadLevel(level, seed); }
+    enableSignature(character: SignatureCharacter): void { this.state.signature = signatureState(character); }
+    holdSignature(held: boolean): boolean {
+        if (this.status !== 'playing' || !this.state.signature) return false;
+        const released = holdSignature(this.state.signature, held, this.state.cannon);
+        if (released) this.events.push('signature');
+        return released;
+    }
     get challenge(): boolean { return (this.level + 1) % 5 === 0; }
     loadLevel(level: number, seed = 458): void {
         difficulty(level); this.level = level; this.seed = seed; this.random = new Random(seed); this.remainder = 0; this.status = 'playing'; this.events = [];
@@ -39,7 +47,8 @@ export class Engine {
     }
     inWave(x: number, y: number): boolean { return this.has('slow') && Math.hypot(x - this.state.cannon, y - (CANNON_Y - 140)) <= 125; }
     private spawnWave(): void {
-        const s = this.state, d = difficulty(this.level), c = this.config; s.wave++;
+        if (this.state.signature) { this.state.signature.projectiles = []; this.state.signature.budget = 0; }
+        const s = this.state, d = difficulty(this.level), c = this.config; s.wave++; if (s.specialUsed !== undefined) s.specialUsed = false;
         const count = c.rest ? 4 : d.count;
         for (let i = 0; i < count; i++) {
             const f = c.formations[(i + s.wave - 1) % c.formations.length] ?? 'patrol';
@@ -48,7 +57,7 @@ export class Engine {
             if (c.layout === 'wedge') { homeX = 180 + (i % 2 ? -1 : 1) * (25 + Math.floor(i / 2) * 23); homeY = 90 + Math.floor(i / 2) * 28; }
             if (c.layout === 'column') { homeX = 105 + (i % 2) * 150; homeY = 85 + Math.floor(i / 2) * 42; }
             if (c.layout === 'pincer') { homeX = i % 2 ? 290 : 70; homeY = 90 + Math.floor(i / 2) * 36; }
-            if (c.layout === 'ring') { homeX = 180 + Math.cos(i * Math.PI * 2 / count) * 115; homeY = 180 + Math.sin(i * Math.PI * 2 / count) * 80; }
+            if (c.layout === 'ring') { const radius = this.level === 14 && i % 2 ? 0.72 : 1; homeX = 180 + Math.cos(i * Math.PI * 2 / count) * 115 * radius; homeY = 180 + Math.sin(i * Math.PI * 2 / count) * 80 * radius; }
             s.enemies.push({ id: s.nextId++, x: homeX, y: -30, homeX, homeY, phase: 'entry', age: -i * 100, curve: (this.random.next() - 0.5) * 160, type, hp: type === 'armor' || type === 'turret' ? 2 : 1, originX: homeX, originY: -30, targetX: 180, captured: type === 'sensor', clock: 0 });
         }
         // Supplies can be collected before engaging; each carrier releases another.
@@ -58,6 +67,12 @@ export class Engine {
         if (c.formations.includes('rescue')) s.rescue = { x: 180, y: 460, hp: 4 };
         if (c.boss && s.wave === d.waves) s.boss = { hp: c.boss === 6 ? 24 : 10, maxHp: c.boss === 6 ? 24 : 10, phase: 1, clock: 0, exposed: false, pattern: c.boss, x: 180, y: 65 };
         this.events.push('wave');
+    }
+    special(): boolean {
+        const s = this.state;
+        if (this.status !== 'playing' || s.specialUsed) return false;
+        s.specialUsed = true; s.specialTicks = 120;
+        this.events.push('special'); return true;
     }
     move(direction: -1 | 0 | 1): void { this.state.move = direction; this.state.target = null; }
     moveTo(x: number): void { if (Number.isFinite(x)) { this.state.target = Math.max(18, Math.min(342, x)); this.state.move = 0; } }
@@ -79,7 +94,7 @@ export class Engine {
         for (let i = 0; i < n; i++) s.shots.push({ x: s.cannon + (n === 2 ? i * 12 - 6 : 0), y: CANNON_Y - 16, owner: 'player', ...(this.has('bounce') ? { vx: 420, vy: -350, bounces: 2 } : {}) });
         s.fired += n; s.cooldown = 150; this.events.push('fire'); return true;
     }
-    private damage(forced = false): void { const s = this.state; if (!forced && s.invulnerable > 1e-8) return; s.lives--; s.invulnerable = 1000; this.events.push('life'); if (!s.lives) this.status = 'lost'; }
+    private damage(forced = false): void { const s = this.state; if ((s.specialTicks ?? 0) > 0 || !forced && s.invulnerable > 1e-8) return; s.lives--; s.invulnerable = 1000; this.events.push('life'); if (!s.lives) this.status = 'lost'; }
     private strike(e: Enemy, damage = 1, vx = 0, vy = -600): boolean {
         const s = this.state;
         // The shield faces down by default. Only arrivals within its 90-degree front cone are blocked.
@@ -94,11 +109,11 @@ export class Engine {
         }
         return true;
     }
-    private bossHit(piercing: boolean): void {
+    private bossHit(piercing: boolean, amount?: number): void {
         const b = this.state.boss; if (!b) return;
         if (!b.exposed && !piercing) return;
-        b.hp -= piercing ? 2 : 1; this.state.hits++;
-        if (b.pattern === 6 && b.hp <= 12 && b.phase === 1) { b.phase = 2; b.clock = 0; this.events.push('phase'); }
+        b.hp -= amount ?? (piercing ? 2 : 1); this.state.hits++;
+        if ((b.pattern === 3 || b.pattern === 6) && b.hp <= b.maxHp / 2 && b.phase === 1) { b.phase = 2; b.clock = 0; this.events.push('phase'); }
         if (b.hp <= 0) { this.state.score += 200; this.state.boss = null; this.events.push('enemy'); }
     }
     private updateWeapons(): void {
@@ -132,7 +147,7 @@ export class Engine {
             s.diveTimer = 1000 / d.diveRate;
         }
         for (const e of s.enemies) {
-            const slow = this.inWave(e.x, e.y) ? (s.beam ? 0.2 : SLOW_FACTOR) : 1;
+            const slow = Math.min(this.inWave(e.x, e.y) ? (s.beam ? 0.2 : SLOW_FACTOR) : 1, (e.bananaUntil ?? 0) > s.ticks ? 0.45 : 1);
             e.slow = slow; e.age += TICK * slow; e.clock = (e.clock ?? 0) + TICK * slow;
             if (e.phase === 'entry') { const t = Math.max(0, Math.min(1, e.age / 1500)); e.x = e.homeX + Math.sin(t * Math.PI) * e.curve; e.y = -30 + (e.homeY + 30) * t; if (t === 1) { e.phase = 'formation'; e.age = 0; e.x = e.homeX; e.y = e.homeY; } }
             else if (e.phase === 'formation') { e.x = e.homeX + Math.sin(e.age / 1500) * d.amplitude; e.y = e.homeY; }
@@ -151,12 +166,21 @@ export class Engine {
             }
             if (Math.abs(e.x - s.cannon) < 22 && Math.abs(e.y - CANNON_Y) < 20) { this.damage(); if (e.type === 'spiral') s.enemies = s.enemies.filter(other => other !== e); }
         }
+        if (s.signature) stepSignature(s.signature, [...s.enemies, ...(s.boss ? [{ id: -1, x: s.boss.x, y: s.boss.y, hp: s.boss.hp }] : [])], s.ticks, (target, amount, vx, vy) => {
+            if (target.id === -1) {
+                const before = s.boss?.hp ?? 0; this.bossHit(false, amount);
+                const dealt = Math.max(0, before - (s.boss?.hp ?? 0)); target.hp -= dealt; return Math.min(before,dealt);
+            }
+            const enemy = target as Enemy, before = enemy.hp;
+            this.strike(enemy, amount, vx, vy);
+            return Math.min(before, Math.max(0, before - enemy.hp));
+        });
         s.enemyTimer -= TICK;
         if (s.enemyTimer <= 0) { const e = s.enemies[Math.floor(this.random.next() * s.enemies.length)]; if (!this.config.rest && e && e.y > 60 && s.shots.filter(p => p.owner === 'enemy').length < 8) s.shots.push({ x: e.x, y: e.y + 12, owner: 'enemy' }); s.enemyTimer = 1000 / d.fireRate; }
         const boss = s.boss;
         if (boss) {
             boss.clock += TICK; boss.exposed = boss.clock % 3000 >= 1800;
-            const pattern = boss.phase === 2 ? 3 : boss.pattern;
+            const pattern = boss.phase === 2 ? boss.pattern === 3 ? 4 : 3 : boss.pattern;
             boss.x = 180 + Math.sin(boss.clock / (400 + pattern * 80)) * 105;
             if (s.ticks % (boss.phase === 2 ? 45 : 75) === 0) {
                 const velocities = pattern === 1 ? [-90, 90] : pattern === 2 ? [-70, 0, 70] : pattern === 3 ? [(s.cannon - boss.x) * 0.5] : pattern === 4 ? [-100, -35, 35, 100] : pattern === 5 ? [-110, 0, 110] : [-80, 80];
@@ -203,7 +227,7 @@ export class Engine {
             }
             if (p.y > 0 && p.y < 640 && p.x > 0 && p.x < 360) survivors.push(p);
         }
-        s.shots = survivors;
+        s.shots = survivors; if (s.specialTicks !== undefined) s.specialTicks = Math.max(0, s.specialTicks - 1);
         if (!s.enemies.length && !s.boss && this.status === 'playing') { if (s.rescue) { s.score += s.rescue.hp * 50; this.events.push('rescue'); s.rescue = null; } if (s.wave < d.waves) this.spawnWave(); else { this.status = 'won'; if (this.challenge) s.score += Math.round(200 * Math.min(1, s.hits / Math.max(1, s.fired))); } }
     }
     step(dtMs: number): void { if (!Number.isFinite(dtMs) || dtMs < 0) throw new RangeError('Temps invalide'); this.events = []; if (this.status === 'playing') this.remainder += dtMs; while (this.remainder + 1e-8 >= TICK && this.status === 'playing') { this.remainder -= TICK; this.tick(); } if (this.status !== 'playing') this.remainder = 0; }

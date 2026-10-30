@@ -1,0 +1,140 @@
+[
+  {
+    "name": "bombe-rayon",
+    "file": "src/engines/collier/engine.ts",
+    "before": "Math.hypot(q.x - impact.x, q.y - impact.y) <= DIAMETER * 2;",
+    "after": "Math.hypot(q.x - impact.x, q.y - impact.y) <= DIAMETER * 1.9;"
+  },
+  {
+    "name": "formes-clonees",
+    "file": "src/engines/collier/levels.ts",
+    "before": "new Path(controls[shape] ?? [], d.length)",
+    "after": "new Path(controls[0] ?? [], d.length)"
+  },
+  {
+    "name": "acceleration-finale-supprimee",
+    "file": "src/engines/collier/levels.ts",
+    "before": "acceleration: level >= 24 ? 1.8 : 1.4",
+    "after": "acceleration: level >= 24 ? 1.4 : 1.4"
+  },
+  {
+    "name": "tap-reserve-supprime",
+    "file": "src/games/collier/scene.ts",
+    "before": "Math.hypot(down.x - (o.x + 44), down.y - (o.y + 35)) < 24",
+    "after": "Math.hypot(down.x - (o.x + 44), down.y - (o.y + 35)) < 0"
+  },
+  {
+    "name": "glisser-ne-vise-plus",
+    "file": "src/games/collier/scene.ts",
+    "before": "this.pointer.moved = Math.max(this.pointer.moved, Math.hypot(p.x - this.pointer.x, p.y - this.pointer.y));\n                aim(p);",
+    "after": "this.pointer.moved = Math.max(this.pointer.moved, Math.hypot(p.x - this.pointer.x, p.y - this.pointer.y));"
+  },
+  {
+    "name": "meneur-fixe",
+    "file": "src/games/collier/scene.ts",
+    "before": "path.pointAt((chain.beads.at(-1)?.s ?? 0) + 24)",
+    "after": "path.pointAt(24)"
+  },
+  {
+    "name": "visee-exacte-supprimee",
+    "file": "src/games/collier/scene.ts",
+    "before": "const length = e.aimMs > 0 ? Math.hypot(impact.x - o.x, impact.y - o.y) : 800;",
+    "after": "const length = 800;"
+  },
+  {
+    "name": "espace-ne-tire-plus",
+    "file": "src/games/collier/scene.ts",
+    "before": "if (e.code === 'Space' && !e.repeat)\n                this.engine.shoot();",
+    "after": "if (e.code === 'Space' && !e.repeat)\n                this.engine.aim(this.engine.angle);"
+  },
+  {
+    "name": "couleurs-periodiques",
+    "file": "src/engines/collier/engine.ts",
+    "before": "const color = chain.runColor ?? 0;",
+    "after": "const color = Math.floor(chain.emitted / 2) % this.config.colors;"
+  },
+  {
+    "name": "trace-anguleux",
+    "file": "src/engines/collier/levels.ts",
+    "before": "return samples;",
+    "after": "return points;"
+  },
+  {
+    "name": "trace-hors-champ",
+    "file": "src/engines/collier/levels.ts",
+    "before": "for (const x of [30, 260])",
+    "after": "for (const x of [30, 360])"
+  },
+  {
+    "name": "tap-distance-reduite",
+    "file": "src/games/collier/scene.ts",
+    "before": "Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) < 10",
+    "after": "Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) < 5"
+  },
+  {
+    "name": "tap-ignore-excursion-intermediaire",
+    "file": "src/games/collier/scene.ts",
+    "before": "Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y))",
+    "after": "Math.hypot(p.x - down.x, p.y - down.y)"
+  },
+  {
+    "name": "sortie-conserve-pointeur",
+    "file": "src/games/collier/scene.ts",
+    "before": "this.input.on('pointerupoutside', () => {\n            this.pointer = null;",
+    "after": "this.input.on('pointerupoutside', () => {\n            this.engine.aim(this.engine.angle);"
+  },
+  {
+    "name": "annulation-conserve-pointeur",
+    "file": "src/games/collier/scene.ts",
+    "before": "this.inputs.on(this.game.canvas, 'touchcancel', () => {\n            this.pointer = null;",
+    "after": "this.inputs.on(this.game.canvas, 'touchcancel', () => {\n            this.engine.aim(this.engine.angle);"
+  },
+  {
+    "name": "avertissement-danger-supprime",
+    "file": "src/engines/collier/engine.ts",
+    "before": "this.events.push('danger');",
+    "after": "this.events.push('silence');"
+  },
+  {
+    "name": "son-bonus-supprime",
+    "file": "src/engines/collier/engine.ts",
+    "before": "this.events.push('bonus');",
+    "after": "this.events.push('silence');"
+  },
+  {
+    "name": "signal-life-supprime",
+    "file": "src/engines/collier/engine.ts",
+    "before": "this.events.push('life', 'lost');",
+    "after": "this.events.push('lost');"
+  },
+  {
+    "name": "canon-sur-la-tete",
+    "file": "src/games/collier/scene.ts",
+    "before": "        this.hero.draw(g, o.x - layout.size / 2, o.y - layout.size / 2, layout.size);",
+    "after": "        this.hero.draw(g, o.x - layout.size / 2, o.y - layout.size / 2, layout.size);\n        g.lineStyle(7, theme.light);\n        g.lineBetween(o.x, o.y, layout.arrow.x, layout.arrow.y);"
+  },
+  {
+    "name": "decor-identique",
+    "file": "src/games/collier/scene.ts",
+    "before": "const universe = themeIndex(e.level);",
+    "after": "const universe = 0;"
+  },
+  {
+    "name": "motif-supprime",
+    "file": "src/games/collier/scene.ts",
+    "before": "        drawMotif(g, x, y, color, radius);",
+    "after": "        g.fillStyle(0xffffff);"
+  },
+  {
+    "name": "echelle-supprimee",
+    "file": "src/games/collier/scene.ts",
+    "before": "        g.setScale(view.scale);",
+    "after": "        g.setScale(1);"
+  },
+  {
+    "name": "appui-long-tire",
+    "file": "src/games/collier/scene.ts",
+    "before": "const tap = Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) < 10;",
+    "after": "const tap = Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) < 10 && p.upTime - down.time < 250;"
+  }
+]

@@ -13,7 +13,9 @@ async function open(page: Page): Promise<void> {
     await expect.poll(() => page.evaluate(() => Boolean(window.__ARCADE_TEST__?.games.empilo))).toBe(true);
 }
 async function layout(page: Page): Promise<void> {
-    const { canvas, controls, scroll, height } = await measureLayout(page, ['#pause', '#empilo-left', '#empilo-right', '#empilo-clockwise', '#empilo-counterclockwise', '#empilo-soft', '#empilo-drop']);
+    // Pass 82: the inverse rotation stays on the keyboard; below 380 px, soft drop moves to the menu (swipe down still drops).
+    const narrow = (page.viewportSize()?.width ?? 390) < 380;
+    const { canvas, controls, scroll, height } = await measureLayout(page, ['#pause', '#empilo-left', '#empilo-right', '#empilo-clockwise', ...(narrow ? [] : ['#empilo-soft']), '#empilo-drop', '#empilo-special']);
     const pause = controls[0]; if (!pause) throw new Error('Pause absente');
     expect(pause.width).toBeGreaterThanOrEqual(44); expect(pause.height).toBeGreaterThanOrEqual(44);
     expect(pause.x < canvas.x + canvas.width && pause.x + pause.width > canvas.x && pause.y < canvas.y + canvas.height && pause.y + pause.height > canvas.y).toBe(false);
@@ -79,7 +81,9 @@ test('E01 E02 E05 contrôles, gestes au doigt, pause et isolation du crochet', a
     if (mobile) { const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent'); await page.touchscreen.tap(box.x + 10, box.y + 10); }
     else { const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent'); await page.mouse.click(box.x + 10, box.y + 10); }
     expect((await read(page))?.active.cells).not.toEqual(cells);
-    await tap(page, '#empilo-counterclockwise', mobile); expect((await read(page))?.active.cells).toEqual(cells);
+    // Inverse rotation: keyboard Z, or three direct rotations by finger (four in all bring the piece back).
+    if (mobile) { for (let i = 0; i < 3; i++) await tap(page, '#empilo-clockwise', true); } else await page.keyboard.press('KeyZ');
+    expect((await read(page))?.active.cells).toEqual(cells);
     await tap(page, '#empilo-right', mobile); await tap(page, '#empilo-soft', mobile); expect((await read(page))?.score).toBeGreaterThanOrEqual(1);
     const before = (await read(page))?.board;
     if (mobile) await swipe(page, 0, 80); else await page.keyboard.press('Space');
@@ -95,4 +99,32 @@ test('E11 E08 niveau 30 et mise en page', async ({ page }, info) => {
     await tap(page, '#resume', mobile); await tap(page, '#pause', mobile);
     await page.evaluate(() => { window.__EMPILO_TEST__?.loadLevel(29, 456); }); await tap(page, '#pause', mobile); await layout(page);
     await page.screenshot({ path: `test-results/screenshots/empilo-level30-${info.project.name}.png` });
+});
+
+// Pass 402: each introduction stratum shows its rule and names it in the HUD.
+test('E11 strates d\'introduction : mécanisme visible et annoncé', async ({ page }, info) => {
+    const mobile = info.project.name === 'mobile-chromium'; await open(page); await tap(page, '#resume', mobile);
+    for (const [level, tip] of [[3, /Bombe/], [4, /⏱ 60 s/], [7, /GEMMES 0\/3/], [11, /Tapis/], [15, /Marée/], [20, /Cadenas/], [25, /Brouillard/]] as const) {
+        await page.evaluate(index => { window.__EMPILO_TEST__?.loadLevel(index, 456); window.__EMPILO_TEST__?.advance(50); }, level);
+        const hud = await page.evaluate(() => window.__EMPILO_TEST__?.hudText() ?? '');
+        expect(hud).toContain(`STRATE ${String(level + 1)}`); expect(hud).toMatch(tip);
+        const marks = await page.evaluate(() => window.__EMPILO_TEST__?.marks());
+        expect(marks?.previews).toBe(level === 25 ? 1 : 3);
+        if (level === 15) expect(marks?.riseLeft).toBe(6);
+        if (level === 11) expect(marks?.belts).toBe(1);
+        await page.screenshot({ path: `test-results/screenshots/empilo-intro-${String(level + 1)}-${info.project.name}.png` });
+    }
+});
+
+test('E13 E16 souffle de la bombe prévisualisé et jauge de marée qui décompte', async ({ page }, info) => {
+    const mobile = info.project.name === 'mobile-chromium'; await open(page); await tap(page, '#resume', mobile);
+    await page.evaluate(() => { window.__EMPILO_TEST__?.loadLevel(15, 456); });
+    for (let i = 0; i < 2; i++) { await page.keyboard.press('Space'); }
+    expect((await page.evaluate(() => window.__EMPILO_TEST__?.marks()))?.riseLeft).toBe(4);
+    await page.evaluate(() => { window.__EMPILO_TEST__?.loadLevel(3, 456); });
+    for (let i = 0; i < 12 && (await read(page))?.active.id !== 8; i++) await page.keyboard.press('Space');
+    const state = await read(page); expect(state?.active.id).toBe(8);
+    const blast = (await page.evaluate(() => window.__EMPILO_TEST__?.marks()))?.blast;
+    expect(blast?.width).toBe(84); expect(blast?.x).toBe(18 + ((state?.active.x ?? 0) - 1) * 28);
+    await page.screenshot({ path: `test-results/screenshots/empilo-bombe-${info.project.name}.png` });
 });

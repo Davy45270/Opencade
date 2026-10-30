@@ -58,3 +58,11 @@ export function pilot(e: Engine, frame: number): void {
     }
     e.moveTo(safest);
 }
+
+/** Opt-in controller: release cadence leaves ordinary fire active between signatures. */
+export function pilotWithSignature(e: Engine, frame: number): void {
+    pilot(e, frame);
+    const kind = e.state.signature?.kind;
+    const period = kind === 'bao' || kind === 'bananas' ? 720 : kind === 'stars' ? 600 : 540;
+    e.holdSignature(frame % period < 90);
+}

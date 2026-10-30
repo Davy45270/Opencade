@@ -2,7 +2,7 @@ import type Phaser from 'phaser';
 import type { Point, Primitive } from './model';
 
 /** Vector tessellation grows with destination size; never uses a cached texture. Does not clear the caller's graphics. */
-export function renderCharacter(graphics: Phaser.GameObjects.Graphics, list: readonly Primitive[], x = 0, y = 0, height = 240): void {
+export function renderCharacter(graphics: Phaser.GameObjects.Graphics, list: readonly Primitive[], x = 0, y = 0, height = 240, flip = false, rotation = 0): void {
     const scale = height / 240;
     const segments = Math.max(16, Math.ceil(height / 8));
     const color = (value: string): number => Number.parseInt(value.slice(1), 16);
@@ -29,7 +29,10 @@ export function renderCharacter(graphics: Phaser.GameObjects.Graphics, list: rea
                 previous = c.p;
             }
         } else { points.push(...p.points); closed = p.kind === 'polygon'; }
-        const vertices = points.map(p => ({ x: x + p[0] * scale, y: y + p[1] * scale }));
+        const vertices = points.map(p => {
+            const dx = (flip ? 120 - p[0] : p[0] - 120) * scale, dy = (p[1] - 120) * scale;
+            return { x: x + height / 2 + dx * Math.cos(rotation) - dy * Math.sin(rotation), y: y + height / 2 + dx * Math.sin(rotation) + dy * Math.cos(rotation) };
+        });
         if (p.fill) { graphics.fillStyle(color(p.fill)); graphics.fillPoints(vertices, true); }
         if (p.width > 0) { graphics.lineStyle(Math.max(p.width * scale, 0.75), color(p.stroke)); graphics.strokePoints(vertices, closed); }
     }

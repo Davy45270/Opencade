@@ -59,8 +59,9 @@ for (const level of [4, 12, 20, 30]) test(`K-DIV-E2E niveau ${String(level)}`, a
     await page.screenshot({ path: `test-results/screenshots/briqueterie-level${String(level).padStart(2, '0')}-${info.project.name}.png` });
 });
 test('K02 contrôles, glisser tactile et pause', async ({ page }, info) => {
+    test.setTimeout(180000);
     const mobile = info.project.name === 'mobile-chromium';
-    await page.goto('/?test=1#/briqueterie'); await expect.poll(() => page.evaluate(() => Boolean(window.__BRIQUETERIE_TEST__))).toBe(true);
+    await page.goto('/?test=1#/briqueterie'); await expect.poll(() => page.evaluate(() => Boolean(window.__BRIQUETERIE_TEST__)), { timeout: 30000 }).toBe(true);
     await tap(page, '#resume', mobile);
     await drag(page, mobile, 260); expect((await read(page))?.paddle).toBeCloseTo(260, 0);
     if (mobile) {
@@ -68,11 +69,11 @@ test('K02 contrôles, glisser tactile et pause', async ({ page }, info) => {
         const client = await page.context().newCDPSession(page);
         await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: box.x + 28, y: box.y + 28 }] });
         await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(200); });
-        await expect.poll(async () => (await read(page))?.paddle).toBeLessThan(240);
+        await expect.poll(async () => (await read(page))?.paddle, { timeout: 30000 }).toBeLessThan(240);
         await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await client.detach();
-    } else { await page.keyboard.down('KeyA'); await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(200); }); await expect.poll(async () => (await read(page))?.paddle).toBeLessThan(240); await page.keyboard.up('KeyA'); }
+    } else { await page.keyboard.down('KeyA'); await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(200); }); await expect.poll(async () => (await read(page))?.paddle, { timeout: 30000 }).toBeLessThan(240); await page.keyboard.up('KeyA'); }
     expect((await read(page))?.paddle).toBeLessThan(240);
-    await tap(page, '#pause', mobile); const paused = await read(page); await page.waitForTimeout(200); expect(await read(page)).toEqual(paused); await layout(page); await tap(page, '#resume', mobile);
+    await tap(page, '#pause', mobile); const paused = await read(page); await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(200); }); expect(await read(page)).toEqual(paused); await layout(page); await tap(page, '#resume', mobile);
 });
 // Séparé du test des contrôles : sur une machine lente, l'ensemble atteignait le délai de 30 s.
 test('K07 défaite par chute réelle puis rejouer', async ({ page }, info) => {

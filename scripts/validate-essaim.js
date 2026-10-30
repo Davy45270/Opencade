@@ -9,15 +9,32 @@ const { recordings } = await import('../tests/essaim-recordings.ts');
 const { replay } = await import('../tests/essaim-replay.ts');
 const { Engine } = await import('../src/engines/essaim/engine.ts');
 const { behaviors: focusedBehaviors, escortBenchmark } = await import('../tests/essaim-behavior.ts');
-const { diversity, campaign, generatedWitnesses } = await import('./essaim-campaigns.js');
-const behaviors = { ...focusedBehaviors, 'E-GEN-03 diversity witnesses come from simulated behavior': generatedWitnesses };
+const { diversity: freshDiversity, campaign, generatedWitnesses } = await import('./essaim-campaigns.js');
+const checksOnly = process.argv.includes('--checks-only');
+const observations = new Map();
+function recordedObservation(e) {
+    const record = recordings.find(r => r.level === e.level && r.seed === e.seed);
+    assert.ok(record, `Missing recording ${e.level}/${e.seed}`);
+    // Only reuse an observation after its complete replay passed on the original engine.
+    if (e.constructor === Engine && observations.has(record)) return observations.get(record);
+    const result = replay(record, e.constructor);
+    assert.equal(result.status, 'won');
+    if (e.constructor === Engine) observations.set(record, result);
+    return result;
+}
+const observer = checksOnly ? recordedObservation : undefined;
+const diversity = (E = Engine) => freshDiversity(E, observer);
+const behaviors = { ...focusedBehaviors, 'E-GEN-03 diversity witnesses come from simulated behavior': E => generatedWitnesses(E, observer) };
 const { weaponBenchmark, weaponScenarios } = await import('../tests/essaim-weapons.ts');
 const checks = [];
 const check = (name, run) => { try { const result = run(); checks.push({ name, passed: true }); return result; } catch (error) { checks.push({ name, passed: false, error: String(error) }); } };
 for (const [name, run] of Object.entries(behaviors)) check(name, () => run(Engine));
-for (const record of recordings) check(`E-REPLAY ${record.level+1}/${record.seed}`, () => replay(record));
+assert.equal(recordings.length, 60);
+for (const record of recordings) check(`E-REPLAY ${record.level+1}/${record.seed}`, () => recordedObservation(new Engine(record.level, record.seed)));
 const diversityResult = check('E-DIV-01', diversity);
-const pilot = [458,28].map(seed => ({ seed, levels: check(`E-PILOT ${seed}`, () => campaign(Engine,seed)) }));
+const pilot = [458,28].map(seed => ({ seed, levels: check(`E-PILOT ${seed}`, () => checksOnly
+    ? Array.from({ length: 30 }, (_, level) => recordedObservation(new Engine(level, seed)))
+    : campaign(Engine,seed)) }));
 const source = readFileSync('src/engines/essaim/engine.ts','utf8'), mutations = [];
 for (const [name,before,after,test] of [
     ['recorded inputs detect engine drift', 's.cooldown = 150;', 's.cooldown = 151;', E => replay(recordings.find(r => r.level === 1 && r.seed === 28), E)],
@@ -51,7 +68,7 @@ for (const [name,before,after,test] of [
 const escort = check('E-WPN-07 measured speed', () => escortBenchmark(Engine));
 const weapons = Object.keys(weaponScenarios).map(kind => check(`E-WPN-07 report ${kind}`, () => weaponBenchmark(kind,Engine)));
 const result = { checks, weapons, escort, diversity:diversityResult, pilot, mutations };
-writeFileSync('docs/essaim-validation.json',JSON.stringify(result,null,2)+'\n');
+if (!process.argv.includes('--checks-only')) writeFileSync('docs/essaim-validation.json',JSON.stringify(result,null,2)+'\n');
 console.log(JSON.stringify(result,null,2));
 assert.ok(checks.every(c => c.passed),'Essaim validation failed');
 assert.ok(mutations.every(m => m.killed),'Surviving mutation');

@@ -1,0 +1,8 @@
+{
+  "head": "dab7aed8a9820e7ad710cf07279e668b583fbe83",
+  "seed": 28,
+  "used": 5,
+  "maxModuleSimilarity": 0.8571428571428571,
+  "failedPairs": 51,
+  "meanConsecutiveModuleDistance": 0.61129433963753
+}

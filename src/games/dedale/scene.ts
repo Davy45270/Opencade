@@ -1,4 +1,6 @@
+import { lesson as dedaleLesson } from './lessons';
 import Phaser from 'phaser';
+import { GameCharacter } from '../../characters/game';
 import { Engine, LEVELS, WIDTH, HEIGHT, visible, index, type Direction } from '../../engines/dedale/engine';
 import { Inputs, renderTouchControls, directionalSwipe, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
@@ -9,6 +11,7 @@ import { renderLevels } from '../../shell/levels';
 import { displayedWalls } from './board';
 import { sound } from '../../shell/services';
 export const dedaleButtons: readonly TouchButton[] = [
+    { id: 'dedale-special', label: 'Lueur', ariaLabel: 'Lueur : chemin vers le soleil', size: 56, placement: 'right', mode: 'tap' },
     { id: 'dedale-left', label: '←', ariaLabel: 'Aller à gauche', size: 56, placement: 'left', mode: 'tap' },
     { id: 'dedale-up', label: '↑', ariaLabel: 'Monter', size: 56, placement: 'center', mode: 'tap' },
     { id: 'dedale-down', label: '↓', ariaLabel: 'Descendre', size: 56, placement: 'center', mode: 'tap' },
@@ -18,13 +21,14 @@ export interface DedaleHook {
     advance(ms: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string };
+    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger'): void;
 }
 declare global { interface Window { __DEDALE_TEST__?: DedaleHook } }
 export class DedaleScene extends Phaser.Scene {
     private engine = new Engine();
+    private hero = new GameCharacter();
     private progress = new Progression(readSave(browserStorage(), 'dedale', 30), 30);
     private inputs = new Inputs();
     private selecting = false;
@@ -60,18 +64,22 @@ export class DedaleScene extends Phaser.Scene {
         this.add.image(0, 0, 'dedale-board').setOrigin(0);
         this.graphics = this.add.graphics();
         this.title = this.add.text(20, 22, '', { fontFamily: 'system-ui', fontSize: '19px', color: '#b9fff0' });
-        this.hud = this.add.text(18, 510, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 5, wordWrap: { width: 324 } });
+        this.hud = this.add.text(18, 510, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 5, wordWrap: { width: 324 } });
         const direction = (value: Direction): void => {
             if (this.session.state === 'ready') this.session.send('start');
             if (this.session.paused || this.selecting || this.engine.status !== 'playing') return;
             this.engine.input(value); sound.playEffect('turn');
         };
-        renderTouchControls(this.inputs, dedaleButtons, (id, held) => { if (held) direction(id.replace('dedale-', '') as Direction); });
+        renderTouchControls(this.inputs, dedaleButtons, (id, held) => {
+            if (id === 'dedale-special') { if (held && !this.session.paused && !this.selecting) this.engine.special(); }
+            else if (held) direction(id.replace('dedale-', '') as Direction);
+        });
         const area = document.querySelector<HTMLElement>('#game');
         if (area) directionalSwipe(this.inputs, area, direction, 16, true);
         const keys: Record<string, Direction> = { ArrowUp: 'up', KeyW: 'up', KeyZ: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', KeyQ: 'left', ArrowRight: 'right', KeyD: 'right' };
         this.inputs.on(document, 'keydown', event => {
             const e = event as KeyboardEvent;
+            if (e.code === 'Space' && !e.repeat) { e.preventDefault(); if (!this.session.paused && !this.selecting) this.engine.special(); }
             const value = keys[e.code];
             if (value) { e.preventDefault(); if (!e.repeat) direction(value); }
         });
@@ -83,12 +91,12 @@ export class DedaleScene extends Phaser.Scene {
         this.inputs.on(document.querySelector('#next-level'), 'click', () => { if (this.progress.state === 'won') this.start(this.engine.level + 1); });
         const retry = (): void => { this.progress.retry(); this.engine.loadLevel(this.engine.level, this.engine.seed); this.panels(); this.draw(); };
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
-        this.game.canvas.setAttribute('aria-label', 'Dédale : guider la luciole et récolter la lumière');
+        this.game.canvas.setAttribute('aria-label', 'Dédale : guider le compagnon et récolter la lumière');
         if (new URLSearchParams(location.search).get('test') === '1') window.__DEDALE_TEST__ = {
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
-            read: () => ({ ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 this.start(0, 459, true);
@@ -123,17 +131,22 @@ export class DedaleScene extends Phaser.Scene {
             this.tick(0);
         }
     }
+    updatePaused(): void { this.tick(0); }
     update(_time: number, delta: number): void {
         this.tick(this.testManual ? 0 : delta);
     }
     private tick(delta: number): void {
-        if (!this.selecting) {
+        if (!this.session.paused && !this.selecting) {
             this.engine.step(delta);
             for (const event of new Set(this.engine.events)) {
                 sound.playEffect(event);
+                if (event === 'move') this.hero.move(this.engine.state.hero.direction === 'left' ? -1 : this.engine.state.hero.direction === 'right' ? 1 : 0);
+                if (event === 'life') this.hero.impact = 500;
+                if (event === 'sun' || event === 'wisp') { this.hero.animation = 'celebration'; this.hero.moving = 400; }
                 if (['seed', 'sun', 'wisp', 'life'].includes(event)) this.glow = 1;
             }
         }
+        this.hero.advance(delta, this.session.paused || this.selecting, this.engine.status, this.engine.specialTicks > 0);
         if (this.engine.status !== 'playing' && this.progress.state === 'playing') {
             this.progress.finish(this.engine.status, this.engine.state.score); writeSave(browserStorage(), this.progress.save, 'dedale'); sound.playEffect(this.engine.status);
         }
@@ -206,7 +219,7 @@ export class DedaleScene extends Phaser.Scene {
     private draw(): void {
         const g = this.graphics; if (!g) return;
         const s = this.engine.state, size = 18.4, left = 5.2, top = 64;
-        const signature = JSON.stringify([this.engine.level, this.engine.seed, this.engine.status, s.hero.x, s.hero.y, s.score, s.lives,
+        const signature = JSON.stringify([this.hero.snapshot(), Math.floor(this.hero.time / 50), this.engine.specialTicks, this.engine.level, this.engine.seed, this.engine.status, s.hero.x, s.hero.y, s.score, s.lives,
             s.seeds.length, s.suns.length, s.journey, s.mode, (s.vulnerable / 1000).toFixed(1), Math.round(this.glow * 10),
             s.grace > 0 && s.ticks % 8 < 4, s.wisps.map(w => [w.x, w.y, w.kind, w.returning, w.wait > 0])]);
         if (signature === this.drawSignature && this.drawnMaze === s.maze) return;
@@ -233,19 +246,25 @@ export class DedaleScene extends Phaser.Scene {
             if (w.wait > 0) { g.lineStyle(1, 0xffffff); g.strokeCircle(x, y, size * 0.49); }
         });
         const x = left + (s.hero.x + 0.5) * size, y = top + (s.hero.y + 0.5) * size;
-        g.fillStyle(0xb9fff0, 0.35); g.fillEllipse(x - 5, y - 3, 10, 7); g.fillEllipse(x + 5, y - 3, 10, 7);
-        g.fillStyle(0xb9fff0, 0.12); g.fillCircle(x, y + 3, 13);
-        g.fillStyle(s.grace > 0 && s.ticks % 8 < 4 ? 0xffffff : 0xffdf88); g.fillEllipse(x, y + 2, 8, 12);
-        g.fillStyle(0x173a3f); g.fillCircle(x, y - 4, 3); g.lineStyle(1, 0xb9fff0); g.lineBetween(x - 2, y - 5, x - 4, y - 9); g.lineBetween(x + 2, y - 5, x + 4, y - 9);
+        this.hero.draw(g, x - 14, y - 14, 28);
         if (s.journey?.dark.includes(index(s.hero))) {
             for (let at = 0; at < WIDTH * HEIGHT; at++) if (!visible(s.journey, index(s.hero), at)) {
                 g.fillStyle(0x080d19, 0.96); g.fillRect(left + at % WIDTH * size, top + Math.floor(at / WIDTH) * size, size, size);
             }
         }
+        // Draw the revealed cells above darkness, including remote portal exits.
+        if (this.engine.specialTicks > 0) {
+            g.lineStyle(3, 0xffdf88, .8);
+            for (const at of this.engine.lightPath) {
+                const px = left + (at % WIDTH + .5) * size, py = top + (Math.floor(at / WIDTH) + .5) * size;
+                g.strokeCircle(px, py, 4); this.hero.drawEffect(g, px - 10, py - 10, 20);
+            }
+        }
         const j = s.journey, shapes = { corridors: 'Couloirs', rooms: 'Salles reliées', ring: 'Anneau', spiral: 'Spirale', mirror: 'Miroir' };
-        const lesson = this.engine.level >= 24 ? 'Follets : poursuite / patrouille / fuite' : this.engine.level >= 21 ? 'Ombres : vision à 3 cases autour de vous' : this.engine.level >= 18 ? 'Flocon bleu : glisse jusqu’à un obstacle' : this.engine.level >= 15 ? 'Grille ▥ : deux temps fermée, deux ouverte' : this.engine.level >= 12 ? 'Bouton orange : ouvre / ferme les grilles' : this.engine.level >= 8 ? 'Anneaux violets : portails aller-retour' : this.engine.level >= 4 ? 'Flèches : passage dans un seul sens' : this.engine.level >= 3 ? 'Clé + porte dorées : ramasser puis ouvrir' : 'Quatre soleils et quatre graines à retrouver';
+        // Name what this board really holds (see lessons.ts).
+        const lesson = dedaleLesson(this.engine.level);
         this.title?.setText(`${j ? shapes[j.shape].toLocaleUpperCase('fr') : 'DÉDALE'} · ${['ÉVEIL', 'SENTIERS', 'PASSAGES', 'REFLETS', 'OMBRES', 'AURORE'][Math.floor(this.engine.level / 5)] ?? ''}`);
-        this.hud?.setText(`DÉDALE ${String(this.engine.level + 1)} · ${j ? shapes[j.shape] : ''} · VIES ${'◆'.repeat(s.lives)}\nSCORE ${String(s.score)} · LUMIÈRES ${String(s.seeds.length + s.suns.length)}\n${j?.remaining ? `DÉFI · ${String(Math.ceil(j.remaining / 1000))} s` : [5, 10, 16, 21, 26].includes(this.engine.level) ? 'RESPIRATION · soleils de 12 secondes' : s.vulnerable > 0 ? `SOLEIL ${(s.vulnerable / 1000).toFixed(1)} s` : 'Les follets vous cherchent'}\n${lesson}\n${this.engine.level === 29 ? 'FINAL · toutes les mécaniques réunies' : 'Flèches / ZQSD · glisser pour tourner'}`);
+        this.hud?.setText(`DÉDALE ${String(this.engine.level + 1)} · ${j ? shapes[j.shape] : ''} · VIES ${'◆'.repeat(s.lives)}\nLUEUR ${String(this.engine.specialUses)}/1 · ${(this.engine.specialTicks / 60).toFixed(1)} s\nSCORE ${String(s.score)} · LUMIÈRES ${String(s.seeds.length + s.suns.length)}\n${j?.remaining ? `DÉFI · ${String(Math.ceil(j.remaining / 1000))} s` : [5, 10, 16, 21, 26].includes(this.engine.level) ? 'RESPIRATION · soleils de 12 secondes' : s.vulnerable > 0 ? `SOLEIL ${(s.vulnerable / 1000).toFixed(1)} s` : 'Les follets vous cherchent'}\n${lesson}\n${this.engine.level === 29 ? 'FINAL · toutes les mécaniques réunies' : 'Flèches / ZQSD · glisser pour tourner'}`);
         const status = document.querySelector('#status');
         if (status) status.textContent = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'playing' ? 'En jeu' : this.engine.status === 'won' ? 'Victoire' : 'Défaite'}`;
     }

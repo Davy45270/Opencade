@@ -7,7 +7,7 @@
       "laps": 3,
       "longestStop": 0.16666666666666666,
       "off": 0,
-      "frames": 3623
+      "frames": 3684
     },
     {
       "level": 3,
@@ -15,7 +15,7 @@
       "laps": 3,
       "longestStop": 0.16666666666666666,
       "off": 0,
-      "frames": 4083
+      "frames": 4075
     },
     {
       "level": 15,
@@ -31,25 +31,25 @@
       "laps": 3,
       "longestStop": 0.16666666666666666,
       "off": 0,
-      "frames": 3431
+      "frames": 3404
     }
   ],
   "replayTimings": [
     {
       "name": "La Flèche des prés",
-      "ms": 633.9542199999996
+      "ms": 630.7729519999993
     },
     {
       "name": "Les Docks clairs",
-      "ms": 891.0105949999997
+      "ms": 814.0682489999999
     },
     {
       "name": "L’Anneau des vents",
-      "ms": 539.6423890000005
+      "ms": 501.1272740000022
     },
     {
       "name": "Le Rocher",
-      "ms": 586.1993160000056
+      "ms": 736.9383220000018
     }
   ],
   "mutations": [
@@ -57,21 +57,21 @@
       "name": "aide désactivée",
       "oracle": "Z36",
       "file": "src/engines/derapage/physics.ts",
-      "line": 76,
+      "line": 78,
       "rejected": true
     },
     {
       "name": "rail collant",
       "oracle": "Z38",
       "file": "src/engines/derapage/physics.ts",
-      "line": 175,
+      "line": 180,
       "rejected": true
     },
     {
       "name": "direction relative en mode fixe",
       "oracle": "Z37",
       "file": "src/engines/derapage/physics.ts",
-      "line": 75,
+      "line": 77,
       "rejected": true
     },
     {

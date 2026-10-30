@@ -53,6 +53,8 @@ export function landingScore(fuel: number, x: number, pad: Pad, ticks: number): 
     return Math.round((fuel + precision + Math.max(0, 300 - ticks / 6)) * pad.multiplier);
 }
 export class Engine {
+    specialUses = 2;
+    specialTicks = 0;
     level = 0; seed = 28; status: 'playing' | 'won' | 'lost' = 'playing';
     terrain = generate(0, 28);
     state = { x: 180, y: 85, vx: 0, vy: 0, angle: 0, fuel: 950, score: 0, ticks: 0 };
@@ -60,6 +62,7 @@ export class Engine {
     private remainder = 0;
     constructor() { this.loadLevel(0); }
     loadLevel(level: number, seed = 28): void {
+        this.specialUses = 2; this.specialTicks = 0;
         this.level = Math.max(0, Math.min(29, Math.floor(level))); this.seed = seed >>> 0;
         this.terrain = generate(this.level, this.seed); const p = required(this.terrain.pads[0]);
         const d = difficulty(this.level), direction = new Random(this.seed ^ 0x51a7).next() < 0.5 ? -1 : 1;
@@ -67,8 +70,15 @@ export class Engine {
         this.status = 'playing'; this.remainder = 0; this.input({ thrust: false, left: false, right: false });
     }
     input(controls: Controls): void { this.controls = { ...controls }; }
+    special(): boolean {
+        if (this.status !== 'playing' || this.specialUses === 0 || this.specialTicks > 0 || this.state.fuel < 30) return false;
+        this.specialUses--; this.specialTicks = 60;
+        this.state.fuel -= 30; this.state.angle = 0; this.state.vx *= 0.5;
+        return true;
+    }
+    advance(ms: number): void { this.step(ms); }
     loadState(state: Partial<Engine['state']>): void { Object.assign(this.state, state); }
-    snapshot() { return { ...this.state, level: this.level, seed: this.seed, status: this.status, remainder: this.remainder, controls: { ...this.controls }, terrain: { points: this.terrain.points.map(p => ({ ...p })), pads: this.terrain.pads.map(p => ({ ...p })) } }; }
+    snapshot() { return { specialUses: this.specialUses, specialTicks: this.specialTicks, ...this.state, level: this.level, seed: this.seed, status: this.status, remainder: Math.max(0, Math.round(this.remainder * 1e8) / 1e8), controls: { ...this.controls }, terrain: { points: this.terrain.points.map(p => ({ ...p })), pads: this.terrain.pads.map(p => ({ ...p })) } }; }
     step(dtMs: number): void {
         if (!Number.isFinite(dtMs) || dtMs < 0) throw new RangeError('Temps invalide');
         if (this.status !== 'playing') return;
@@ -78,7 +88,8 @@ export class Engine {
     private finished(): boolean { return this.status !== 'playing'; }
     private tick(): void {
         const s = this.state, d = difficulty(this.level);
-        s.angle += (Number(this.controls.right) - Number(this.controls.left)) * 0.025;
+        if (this.specialTicks > 0) { s.angle = 0; this.specialTicks--; }
+        else s.angle += (Number(this.controls.right) - Number(this.controls.left)) * 0.025;
         s.angle = Math.atan2(Math.sin(s.angle), Math.cos(s.angle));
         s.vx += windAt(this.level, this.seed, s.ticks); s.vy += d.gravity;
         if (this.controls.thrust && s.fuel > 0) {
@@ -97,6 +108,15 @@ export class Engine {
             if (p.x < 0 || p.x > 360 || p.y < 0) { contact = 0; this.status = 'lost'; }
             for (const time of times) if (time >= 0 && time <= contact) { contact = time; this.status = 'lost'; }
         }
+        // First landing: release rotation to recover a small touch overshoot.
+        // Nine rotation ticks during 150 ms already exceed the 10° landing limit.
+        // This only levels a nearby, aligned hull; it never brakes a fast descent.
+        const pad = this.terrain.pads[0];
+        if (!hit && this.status === 'playing' && this.level === 0 && pad && !this.controls.left && !this.controls.right
+            && pad.y - s.y < 60 && pad.y - s.y > 12
+            && s.x > pad.x + 12 && s.x < pad.x + pad.width - 12
+            && Math.abs(s.angle) > LIMITS.angle && Math.abs(s.angle) <= 0.35)
+            s.angle -= Math.sign(s.angle) * Math.min(0.025, Math.abs(s.angle));
         s.x += s.vx * contact; s.y += s.vy * contact; s.ticks++;
         if (hit && this.status === 'playing') {
             const shape = polygon(s.x, s.y, s.angle), min = Math.min(...shape.map(p => p.x)), max = Math.max(...shape.map(p => p.x));
@@ -108,7 +128,7 @@ export class Engine {
     }
 }
 /** Position/velocity controller: brake above the relief before final descent. */
-export function pilot(e: Engine): Controls {
+export function pilot(e: Engine, controlMs = STEP): Controls {
     const s = e.state, p = required(e.terrain.pads[0]), d = difficulty(e.level);
     const dx = p.x + p.width / 2 - s.x;
     const acceleration = dx * 0.0008 - s.vx * 0.065 - windAt(e.level, e.seed, s.ticks);
@@ -118,5 +138,5 @@ export function pilot(e: Engine): Controls {
     const approachY = Math.min(...e.terrain.points.map(v => v.y)) - 60;
     const destination = aligned ? p.y - 12 : Math.min(p.y - 80, approachY);
     const speed = Math.max(-1, Math.min(1, (destination - s.y) * 0.025));
-    return { thrust: s.vy > (aligned ? Math.max(0.35, speed) : speed), left: s.angle > target + 0.0125, right: s.angle < target - 0.0125 };
+    return { thrust: s.vy > (aligned ? Math.max(0.35, speed) : speed), left: s.angle > target + 0.025 * controlMs / STEP / 2, right: s.angle < target - 0.025 * controlMs / STEP / 2 };
 }

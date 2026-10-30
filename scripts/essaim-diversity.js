@@ -53,9 +53,9 @@ export function observeEssaim(engine, limit = 18000, control = pilot, witnessFra
     }
     return { elements:[...elements].sort(), layout, params:{ layoutCells:layout.length }, witnesses, frames:frame, status:engine.status };
 }
-export function essaimDiversity(Engine, difficulty) {
+export function essaimDiversity(Engine, difficulty, observe = observeEssaim) {
     return measureDiversity(Array.from({ length: 30 }, (_, level) => {
-        const f = observeEssaim(new Engine(level, 28));
+        const f = observe(new Engine(level, 28));
         return { level: level+1, parameters: { ...difficulty(level), ...f.params }, elements: f.elements.filter(name => !name.startsWith('weapon:')), layout: f.layout, observation:f };
     }));
 }

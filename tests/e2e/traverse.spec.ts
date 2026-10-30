@@ -54,3 +54,24 @@ test('R01 glisser tactile unique, pause et crochet de production absent', async 
     await page.goto('/#/traverse'); await expect(page.locator('#game canvas')).toBeVisible();
     expect(await page.evaluate(() => window.__TRAVERSE_TEST__)).toBeUndefined(); expect(await page.evaluate(() => window.__ARCADE_TEST__)).toBeUndefined();
 });
+
+// Pass 404: each introduction crossing names its rule in the HUD, and the HUD stays above the useful area.
+test('R11 traversées d\'introduction annoncées, HUD hors de la zone utile', async ({ page }, info) => {
+    const mobile = info.project.name === 'mobile-chromium';
+    await page.goto('/?test=1#/traverse');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__TRAVERSE_TEST__))).toBe(true);
+    if (mobile) await page.locator('#resume').tap(); else await page.locator('#resume').click();
+    for (const [level, tip] of [[3, /Feux/], [4, /une seule vie/], [6, /plongeurs/], [7, /Rapides/], [11, /Marée/], [15, /Rochers/], [20, /Naufragé/], [25, /Abris en file/]] as const) {
+        await page.evaluate(index => { window.__TRAVERSE_TEST__?.loadLevel(index, 28); window.__TRAVERSE_TEST__?.advance(0); }, level);
+        expect(await page.evaluate(() => window.__TRAVERSE_TEST__?.hudText() ?? '')).toMatch(tip);
+        const b = await page.evaluate(() => window.__TRAVERSE_TEST__?.bounds());
+        expect((b?.hud.y ?? 0) + (b?.hud.height ?? 0)).toBeLessThanOrEqual(64);
+        const m = await page.evaluate(() => window.__TRAVERSE_TEST__?.marks());
+        // Phase 0: a lit lane is red (0 % 6 < 2); rocks, castaway and shut shelters are drawn.
+        if (level === 3) expect([m?.red, m?.green]).toEqual([3, 0]);
+        if (level === 15) expect(m?.rocks).toBe(6);
+        if (level === 20) expect([m?.castaway, m?.closedShelters]).toEqual([true, 5]);
+        if (level === 25) expect(m?.closedShelters).toBe(4);
+        await page.screenshot({ path: `test-results/screenshots/traverse-intro-${String(level + 1)}-${info.project.name}.png` });
+    }
+});

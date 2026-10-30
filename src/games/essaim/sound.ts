@@ -1,5 +1,6 @@
 import type { SoundEffects } from '../../shell/sound';
 export const essaimEffects: SoundEffects = {
+    signature: () => ({ frequency: 1320, duration: 0.18, type: 'triangle' }),
     fire: () => ({ frequency: 880, duration: 0.045, type: 'triangle' }),
     dive: () => ({ frequency: 190, duration: 0.14, type: 'sine' }),
     enemy: () => ({ frequency: 510, duration: 0.09, type: 'triangle' }),

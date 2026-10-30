@@ -25,14 +25,44 @@ test('B-HEX-14 glisser-relâcher, guide et cellule scriptée', async ({ page }, 
     await page.screenshot({ path: `test-results/screenshots/bubble-aim-${info.project.name}.png` });
     await touch('touchend',end);
     expect((await read(page)).shots).toBe(1);
+    // A kept bubble is drawn on its glide from the impact, then on its socket (B-SNAP-05).
+    for (let i = 0; i < 80 && (await read(page)).inFlight; i++) await page.evaluate(() => window.__BUBBLE_TEST__?.advance(1000 / 60));
+    const kept = await page.evaluate(() => window.__BUBBLE_TEST__?.visuals());
+    expect(kept?.settling).not.toBeNull(); expect(kept?.drawn.attached).toEqual(kept?.settling);
+    expect(kept?.drawn.attached?.y ?? 0).toBeLessThan(54.64);
     await page.evaluate(() => window.__BUBBLE_TEST__?.advance(1000));
     expect((await read(page)).grid).toEqual([{ row: 0, col: 4, color: 0 }, { row: 1, col: 4, color: 0 }]);
 });
 });
+// B-SNAP-06: deterministic frame (advance), steep mouse aim with many bounces: every guide segment and the ghost are drawn.
+test('B-SNAP-06 guide complet et fantôme dessinés, rebonds compris', async ({ page }) => {
+    await ready(page); await load(page, [{ row: 0, col: 4, color: 0 }]);
+    await page.evaluate(() => { window.__BUBBLE_TEST__?.advance(0); });
+    const aim = await point(page, 180 + Math.sin(-1.2) * 150, 570 - Math.cos(-1.2) * 150);
+    await page.mouse.move(aim.x, aim.y);
+    await page.evaluate(() => { window.__BUBBLE_TEST__?.advance(0); });
+    const v = await page.evaluate(() => window.__BUBBLE_TEST__?.visuals());
+    expect(v?.guide.length ?? 0).toBeGreaterThanOrEqual(3);
+    expect(v?.drawn.guide).toBe(v?.guide.length);
+    expect(v?.ghost).toBeTruthy(); expect(v?.drawn.ghost).toEqual({ alpha: 0.35, ring: 0.85 });
+});
 test('B-HEX-15 chute animée et bonus', async ({ page }, info) => {
     await ready(page); await load(page, [{ row: 0, col: 4, color: 0 }, { row: 1, col: 4, color: 0 }, { row: 1, col: 5, color: 1 }, { row: 0, col: 0, color: 2 }]);
     await page.evaluate(() => window.__BUBBLE_TEST__?.advance(0));
-    await page.keyboard.press('Space'); await page.evaluate(() => window.__BUBBLE_TEST__?.advance(750));
+    await page.keyboard.press('Space');
+    // Popped on arrival: it still glides from its impact while bursting (B-SNAP-05).
+    for (let i = 0; i < 80 && (await read(page)).inFlight; i++) await page.evaluate(() => window.__BUBBLE_TEST__?.advance(1000 / 60));
+    const glide = await page.evaluate(() => window.__BUBBLE_TEST__?.visuals().settling);
+    expect(glide?.x).toBeCloseTo(180, 6); expect(glide?.y ?? 0).toBeGreaterThan(82); expect(glide?.y ?? 99).toBeLessThan(89.28);
+    // The bursting bubble is drawn on the glide, then on its socket.
+    expect(await page.evaluate(() => window.__BUBBLE_TEST__?.visuals().drawn.attached)).toEqual(glide);
+    await page.evaluate(() => window.__BUBBLE_TEST__?.advance(45));
+    const mid = await page.evaluate(() => window.__BUBBLE_TEST__?.visuals().drawn.attached);
+    expect(mid?.y ?? 0).toBeGreaterThan(glide?.y ?? 99); expect(mid?.y ?? 99).toBeLessThan(89.28);
+    await page.evaluate(() => window.__BUBBLE_TEST__?.advance(55));
+    expect(await page.evaluate(() => window.__BUBBLE_TEST__?.visuals().settling)).toBeNull();
+    const rest = await page.evaluate(() => window.__BUBBLE_TEST__?.visuals().drawn.attached);
+    expect(rest?.x).toBeCloseTo(180, 6); expect(rest?.y).toBeCloseTo(89.28203230275508, 6);
     expect((await read(page)).score).toBe(50);
     expect((await read(page)).grid).toEqual([{ row: 0, col: 0, color: 2 }]);
     expect(await page.evaluate(() => window.__BUBBLE_TEST__?.visuals().falling)).toBe(1);

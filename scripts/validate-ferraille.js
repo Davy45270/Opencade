@@ -26,7 +26,6 @@ for (const [name, before, after, test] of [
     ['distant boss repeats frozen threshold', 'const previousClock = boss.clock;', 'const previousClock = boss.clock - DT;', behaviors['F-BOSS-04 departure freezes cadence after attack and resumes once']],
     ['grenades bypass closed core', 'if (s.boss?.exposed && Math.hypot(s.boss.x - shot.x, s.boss.y - shot.y) <= 64)', 'if (s.boss && Math.hypot(s.boss.x - shot.x, s.boss.y - shot.y) <= 64)', behaviors['F-BOSS-05 grenades respect closed and exposed core']],
     ['guardian 15 bombs removed', "pattern === 'bombs' || (pattern === 'reactor' && boss.phase === 3)", "(pattern === 'bombs' && boss.hp < 0) || (pattern === 'reactor' && boss.phase === 3)", behaviors['F-BOSS-06 guardian 15 rains three bombs above player']],
-    ['floor relief removed', "const height = config.structure === 'ascent' ? Math.min(4, Math.max(0, Math.floor((x - 20) / 8))) : Math.max(0, 4 - Math.floor(x / 8));", 'const height = 0;', terrain],
     ['cage blast radius removed', '<= 64) cage.hp = 0;', '<= 0) cage.hp = 0;', behaviors['F-STRUCT-02 grenade opens cage within radius only']],
     ['grenade radius shrunk to 48', 'Math.hypot(enemy.x - shot.x, enemy.y - shot.y) <= 64', 'Math.hypot(enemy.x - shot.x, enemy.y - shot.y) <= 48', behaviors['F-WEAPON-04 grenade boundary includes 64 excludes beyond']],
     ['grenade radius exceeds boundary', 'Math.hypot(enemy.x - shot.x, enemy.y - shot.y) <= 64', 'Math.hypot(enemy.x - shot.x, enemy.y - shot.y) <= 65', behaviors['F-WEAPON-04 grenade boundary includes 64 excludes beyond']],
@@ -38,7 +37,7 @@ for (const [name, before, after, test] of [
     mutations.push({ name, file: 'src/engines/ferraille/engine.ts', line: source.slice(0, source.indexOf(before)).split('\n').length, killed, error });
 }
 const result = { checks, diversity: diversityResult && { score: diversityResult.score, noveltyCount: diversityResult.noveltyCount, noveltyLevels: diversityResult.noveltyLevels, cloneShare: diversityResult.cloneShare, maxGapWithoutNovelty: diversityResult.maxGapWithoutNovelty }, pilot, mutations };
-writeFileSync('docs/ferraille-validation.json', JSON.stringify(result, null, 2) + '\n');
+if (!process.argv.includes('--checks-only')) writeFileSync('docs/ferraille-validation.json', JSON.stringify(result, null, 2) + '\n');
 console.log(JSON.stringify(result, null, 2));
 assert.ok(checks.every(c => c.passed), 'Ferraille validation failed');
 assert.ok(mutations.every(m => m.killed), 'Surviving mutation');

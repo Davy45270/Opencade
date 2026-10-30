@@ -1,5 +1,6 @@
 import { setupCharacters } from '../src/characters/panel';
 import { Inputs } from '../src/shell/input';
+import { characters, ids } from '../src/characters/model';
 
 /** Small event/DOM port: exercises the real panel without a browser or raster assets. */
 export function panelLifecycle(setup = setupCharacters, legacyMedia = false): void {
@@ -57,6 +58,25 @@ export function panelLifecycle(setup = setupCharacters, legacyMedia = false): vo
         const dialog = body.children[0];
         const grid = dialog?.children.find(c => c.className === 'character-grid');
         check(!!dialog?.open && frames.size === 1, 'C07 opening starts exactly one frame loop');
+        check(grid?.children.length === 5, 'C08 all five character cards rendered');
+        for (const id of ids) {
+            const card = grid?.children.find(c => c.dataset.character === id);
+            check(card?.children.find(c => c.tag === 'h3')?.textContent === characters[id].fr, `C08 ${id} official name rendered`);
+            for (const text of [characters[id].subtitle, characters[id].motto]) {
+                check(card?.children.some(c => c.tag === 'p' && c.textContent === text) === true, `C08 ${id} subtitle/motto rendered`);
+            }
+            const equipment = card?.children.find(c => c.tag === 'details');
+            check(equipment?.children.length === 1, 'Galerie différée');
+            // One DOM lifecycle is enough here; the pure art checks cover every identity.
+            if (equipment && id === ids[0]) {
+                equipment.open = true; equipment.dispatchEvent(new Event('toggle'));
+                const figures = equipment.children.flatMap(sheet => sheet.children).filter(child => child.tag === 'figure');
+                check(figures.length === 10, `${id} : cinq vues de véhicule et cinq vues de lanceur`);
+                check(figures.every(figure => (figure.children[0]?.paints.length ?? 0) > 0), 'Vues réellement dessinées');
+                equipment.dispatchEvent(new Event('toggle'));
+                check(equipment.children.length === 3, 'Galerie créée une seule fois');
+            }
+        }
         for (const card of grid?.children ?? []) {
             const preview = card.children[0];
             check(!!preview, 'C07 preview exists');

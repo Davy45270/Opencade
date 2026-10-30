@@ -1,0 +1,1768 @@
+{
+  "pass": 82,
+  "timings": [
+    {
+      "name": "P-dedale-01",
+      "ms": 208
+    },
+    {
+      "name": "P-dedale-02/03",
+      "ms": 101
+    },
+    {
+      "name": "P-dedale-05",
+      "ms": 6
+    },
+    {
+      "name": "P-dedale-03 partition",
+      "ms": 3
+    },
+    {
+      "name": "P-orbite-01",
+      "ms": 25
+    },
+    {
+      "name": "P-orbite-02/03",
+      "ms": 61
+    },
+    {
+      "name": "P-orbite-05",
+      "ms": 5
+    },
+    {
+      "name": "P-orbite-03 partition",
+      "ms": 3
+    },
+    {
+      "name": "P-empilo-01",
+      "ms": 12
+    },
+    {
+      "name": "P-empilo-02/03",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-05",
+      "ms": 1
+    },
+    {
+      "name": "P-empilo-03 partition",
+      "ms": 0
+    },
+    {
+      "name": "P-dedale-02 keys and nearest portal",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-02 decisive reserve",
+      "ms": 1
+    },
+    {
+      "name": "P-dedale-04 L1",
+      "ms": 5
+    },
+    {
+      "name": "P-dedale-04 L2",
+      "ms": 2
+    },
+    {
+      "name": "P-dedale-04 L3",
+      "ms": 2
+    },
+    {
+      "name": "P-dedale-04 L4",
+      "ms": 8
+    },
+    {
+      "name": "P-dedale-04 L5",
+      "ms": 3
+    },
+    {
+      "name": "P-dedale-04 L6",
+      "ms": 3
+    },
+    {
+      "name": "P-dedale-04 L7",
+      "ms": 3
+    },
+    {
+      "name": "P-dedale-04 L8",
+      "ms": 2
+    },
+    {
+      "name": "P-dedale-04 L9",
+      "ms": 2
+    },
+    {
+      "name": "P-dedale-04 L10",
+      "ms": 3
+    },
+    {
+      "name": "P-dedale-04 L11",
+      "ms": 4
+    },
+    {
+      "name": "P-dedale-04 L12",
+      "ms": 3
+    },
+    {
+      "name": "P-dedale-04 L13",
+      "ms": 2
+    },
+    {
+      "name": "P-dedale-04 L14",
+      "ms": 3
+    },
+    {
+      "name": "P-dedale-04 L15",
+      "ms": 3
+    },
+    {
+      "name": "P-dedale-04 L16",
+      "ms": 4
+    },
+    {
+      "name": "P-dedale-04 L17",
+      "ms": 4
+    },
+    {
+      "name": "P-dedale-04 L18",
+      "ms": 2
+    },
+    {
+      "name": "P-dedale-04 L19",
+      "ms": 4
+    },
+    {
+      "name": "P-dedale-04 L20",
+      "ms": 4
+    },
+    {
+      "name": "P-dedale-04 L21",
+      "ms": 4
+    },
+    {
+      "name": "P-dedale-04 L22",
+      "ms": 5
+    },
+    {
+      "name": "P-dedale-04 L23",
+      "ms": 2
+    },
+    {
+      "name": "P-dedale-04 L24",
+      "ms": 3
+    },
+    {
+      "name": "P-dedale-04 L25",
+      "ms": 4
+    },
+    {
+      "name": "P-dedale-04 L26",
+      "ms": 87
+    },
+    {
+      "name": "P-dedale-04 L27",
+      "ms": 3
+    },
+    {
+      "name": "P-dedale-04 L28",
+      "ms": 6
+    },
+    {
+      "name": "P-dedale-04 L29",
+      "ms": 3
+    },
+    {
+      "name": "P-dedale-04 L30",
+      "ms": 7
+    },
+    {
+      "name": "P-orbite-04 L1 original hash",
+      "ms": 248
+    },
+    {
+      "name": "P-orbite-04 L1 burst",
+      "ms": 251
+    },
+    {
+      "name": "P-orbite-04 L2 original hash",
+      "ms": 149
+    },
+    {
+      "name": "P-orbite-04 L2 burst",
+      "ms": 158
+    },
+    {
+      "name": "P-orbite-04 L3 original hash",
+      "ms": 275
+    },
+    {
+      "name": "P-orbite-04 L3 burst",
+      "ms": 295
+    },
+    {
+      "name": "P-orbite-04 L4 original hash",
+      "ms": 404
+    },
+    {
+      "name": "P-orbite-04 L4 burst",
+      "ms": 237
+    },
+    {
+      "name": "P-orbite-04 L5 original hash",
+      "ms": 498
+    },
+    {
+      "name": "P-orbite-04 L5 burst",
+      "ms": 443
+    },
+    {
+      "name": "P-orbite-04 L6 original hash",
+      "ms": 199
+    },
+    {
+      "name": "P-orbite-04 L6 burst",
+      "ms": 89
+    },
+    {
+      "name": "P-orbite-04 L7 original hash",
+      "ms": 438
+    },
+    {
+      "name": "P-orbite-04 L7 burst",
+      "ms": 241
+    },
+    {
+      "name": "P-orbite-04 L8 original hash",
+      "ms": 250
+    },
+    {
+      "name": "P-orbite-04 L8 burst",
+      "ms": 223
+    },
+    {
+      "name": "P-orbite-04 L9 original hash",
+      "ms": 173
+    },
+    {
+      "name": "P-orbite-04 L9 burst",
+      "ms": 254
+    },
+    {
+      "name": "P-orbite-04 L10 original hash",
+      "ms": 491
+    },
+    {
+      "name": "P-orbite-04 L10 burst",
+      "ms": 366
+    },
+    {
+      "name": "P-orbite-04 L11 original hash",
+      "ms": 237
+    },
+    {
+      "name": "P-orbite-04 L11 burst",
+      "ms": 131
+    },
+    {
+      "name": "P-orbite-04 L12 original hash",
+      "ms": 410
+    },
+    {
+      "name": "P-orbite-04 L12 burst",
+      "ms": 397
+    },
+    {
+      "name": "P-orbite-04 L13 original hash",
+      "ms": 234
+    },
+    {
+      "name": "P-orbite-04 L13 burst",
+      "ms": 403
+    },
+    {
+      "name": "P-orbite-04 L14 original hash",
+      "ms": 381
+    },
+    {
+      "name": "P-orbite-04 L14 burst",
+      "ms": 276
+    },
+    {
+      "name": "P-orbite-04 L15 original hash",
+      "ms": 529
+    },
+    {
+      "name": "P-orbite-04 L15 burst",
+      "ms": 320
+    },
+    {
+      "name": "P-orbite-04 L16 original hash",
+      "ms": 315
+    },
+    {
+      "name": "P-orbite-04 L16 burst",
+      "ms": 300
+    },
+    {
+      "name": "P-orbite-04 L17 original hash",
+      "ms": 219
+    },
+    {
+      "name": "P-orbite-04 L17 burst",
+      "ms": 185
+    },
+    {
+      "name": "P-orbite-04 L18 original hash",
+      "ms": 383
+    },
+    {
+      "name": "P-orbite-04 L18 burst",
+      "ms": 207
+    },
+    {
+      "name": "P-orbite-04 L19 original hash",
+      "ms": 225
+    },
+    {
+      "name": "P-orbite-04 L19 burst",
+      "ms": 204
+    },
+    {
+      "name": "P-orbite-04 L20 original hash",
+      "ms": 462
+    },
+    {
+      "name": "P-orbite-04 L20 burst",
+      "ms": 264
+    },
+    {
+      "name": "P-orbite-04 L21 original hash",
+      "ms": 203
+    },
+    {
+      "name": "P-orbite-04 L21 burst",
+      "ms": 141
+    },
+    {
+      "name": "P-orbite-04 L22 original hash",
+      "ms": 517
+    },
+    {
+      "name": "P-orbite-04 L22 burst",
+      "ms": 516
+    },
+    {
+      "name": "P-orbite-04 L23 original hash",
+      "ms": 474
+    },
+    {
+      "name": "P-orbite-04 L23 burst",
+      "ms": 283
+    },
+    {
+      "name": "P-orbite-04 L24 original hash",
+      "ms": 365
+    },
+    {
+      "name": "P-orbite-04 L24 burst",
+      "ms": 390
+    },
+    {
+      "name": "P-orbite-04 L25 original hash",
+      "ms": 481
+    },
+    {
+      "name": "P-orbite-04 L25 burst",
+      "ms": 425
+    },
+    {
+      "name": "P-orbite-04 L26 original hash",
+      "ms": 115
+    },
+    {
+      "name": "P-orbite-04 L26 burst",
+      "ms": 203
+    },
+    {
+      "name": "P-orbite-04 L27 original hash",
+      "ms": 315
+    },
+    {
+      "name": "P-orbite-04 L27 burst",
+      "ms": 306
+    },
+    {
+      "name": "P-orbite-04 L28 original hash",
+      "ms": 282
+    },
+    {
+      "name": "P-orbite-04 L28 burst",
+      "ms": 329
+    },
+    {
+      "name": "P-orbite-04 L29 original hash",
+      "ms": 309
+    },
+    {
+      "name": "P-orbite-04 L29 burst",
+      "ms": 162
+    },
+    {
+      "name": "P-orbite-04 L30 original hash",
+      "ms": 1209
+    },
+    {
+      "name": "P-orbite-04 L30 burst",
+      "ms": 698
+    },
+    {
+      "name": "P-empilo-04 L1",
+      "ms": 3
+    },
+    {
+      "name": "P-empilo-04 L2",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L3",
+      "ms": 78
+    },
+    {
+      "name": "P-empilo-04 L4",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L5",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L6",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L7",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L8",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L9",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L10",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L11",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L12",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L13",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L14",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L15",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L16",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L17",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L18",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L19",
+      "ms": 2
+    },
+    {
+      "name": "P-empilo-04 L20",
+      "ms": 3
+    },
+    {
+      "name": "P-empilo-04 L21",
+      "ms": 3
+    },
+    {
+      "name": "P-empilo-04 L22",
+      "ms": 3
+    },
+    {
+      "name": "P-empilo-04 L23",
+      "ms": 3
+    },
+    {
+      "name": "P-empilo-04 L24",
+      "ms": 3
+    },
+    {
+      "name": "P-empilo-04 L25",
+      "ms": 3
+    },
+    {
+      "name": "P-empilo-04 L26",
+      "ms": 3
+    },
+    {
+      "name": "P-empilo-04 L27",
+      "ms": 3
+    },
+    {
+      "name": "P-empilo-04 L28",
+      "ms": 3
+    },
+    {
+      "name": "P-empilo-04 L29",
+      "ms": 4
+    },
+    {
+      "name": "P-empilo-04 L30",
+      "ms": 3
+    },
+    {
+      "name": "mutation dedale: this.lightPath = [initial.pos, ...legs.reverse().flat()];",
+      "ms": 3
+    },
+    {
+      "name": "mutation orbite: this.specialTicks = 90;",
+      "ms": 1
+    },
+    {
+      "name": "mutation empilo: this.state.active = this.piece(incoming);",
+      "ms": 33
+    },
+    {
+      "name": "mutation dedale: this.specialUses === 0",
+      "ms": 47
+    },
+    {
+      "name": "mutation orbite: this.specialUses === 0",
+      "ms": 3
+    },
+    {
+      "name": "mutation empilo: this.specialUses === 0",
+      "ms": 1
+    },
+    {
+      "name": "mutation default identity",
+      "ms": 4
+    }
+  ],
+  "mutations": [
+    {
+      "game": "dedale",
+      "file": "src/engines/dedale/engine.ts",
+      "line": 115,
+      "mutation": "this.lightPath = [initial.pos, ...legs.reverse().flat()];",
+      "killed": true
+    },
+    {
+      "game": "orbite",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 101,
+      "mutation": "this.specialTicks = 90;",
+      "killed": true
+    },
+    {
+      "game": "empilo",
+      "file": "src/engines/empilo/engine.ts",
+      "line": 71,
+      "mutation": "this.state.active = this.piece(incoming);",
+      "killed": true
+    },
+    {
+      "game": "dedale",
+      "file": "src/engines/dedale/engine.ts",
+      "line": 102,
+      "mutation": "this.specialUses === 0",
+      "killed": true
+    },
+    {
+      "game": "orbite",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 100,
+      "mutation": "this.specialUses === 0",
+      "killed": true
+    },
+    {
+      "game": "empilo",
+      "file": "src/engines/empilo/engine.ts",
+      "line": 67,
+      "mutation": "this.specialUses === 0",
+      "killed": true
+    },
+    {
+      "game": "all",
+      "file": "src/characters/game.ts",
+      "line": 8,
+      "mutation": "always panda",
+      "killed": true
+    }
+  ],
+  "records": {
+    "dedale": [
+      {
+        "level": 1,
+        "without": {
+          "score": 440,
+          "moves": 25,
+          "lives": 3
+        },
+        "with": {
+          "score": 440,
+          "moves": 25,
+          "lives": 3
+        }
+      },
+      {
+        "level": 2,
+        "without": {
+          "score": 240,
+          "moves": 25,
+          "lives": 3
+        },
+        "with": {
+          "score": 240,
+          "moves": 25,
+          "lives": 3
+        }
+      },
+      {
+        "level": 3,
+        "without": {
+          "score": 440,
+          "moves": 33,
+          "lives": 3
+        },
+        "with": {
+          "score": 440,
+          "moves": 33,
+          "lives": 3
+        }
+      },
+      {
+        "level": 4,
+        "without": {
+          "score": 460,
+          "moves": 144,
+          "lives": 3
+        },
+        "with": {
+          "score": 460,
+          "moves": 144,
+          "lives": 3
+        }
+      },
+      {
+        "level": 5,
+        "without": {
+          "score": 460,
+          "moves": 41,
+          "lives": 3
+        },
+        "with": {
+          "score": 460,
+          "moves": 41,
+          "lives": 3
+        }
+      },
+      {
+        "level": 6,
+        "without": {
+          "score": 460,
+          "moves": 45,
+          "lives": 3
+        },
+        "with": {
+          "score": 460,
+          "moves": 45,
+          "lives": 3
+        }
+      },
+      {
+        "level": 7,
+        "without": {
+          "score": 260,
+          "moves": 49,
+          "lives": 3
+        },
+        "with": {
+          "score": 260,
+          "moves": 49,
+          "lives": 3
+        }
+      },
+      {
+        "level": 8,
+        "without": {
+          "score": 260,
+          "moves": 47,
+          "lives": 3
+        },
+        "with": {
+          "score": 260,
+          "moves": 47,
+          "lives": 3
+        }
+      },
+      {
+        "level": 9,
+        "without": {
+          "score": 470,
+          "moves": 40,
+          "lives": 3
+        },
+        "with": {
+          "score": 470,
+          "moves": 40,
+          "lives": 3
+        }
+      },
+      {
+        "level": 10,
+        "without": {
+          "score": 270,
+          "moves": 44,
+          "lives": 3
+        },
+        "with": {
+          "score": 270,
+          "moves": 44,
+          "lives": 3
+        }
+      },
+      {
+        "level": 11,
+        "without": {
+          "score": 280,
+          "moves": 64,
+          "lives": 3
+        },
+        "with": {
+          "score": 280,
+          "moves": 64,
+          "lives": 3
+        }
+      },
+      {
+        "level": 12,
+        "without": {
+          "score": 280,
+          "moves": 67,
+          "lives": 3
+        },
+        "with": {
+          "score": 280,
+          "moves": 67,
+          "lives": 3
+        }
+      },
+      {
+        "level": 13,
+        "without": {
+          "score": 290,
+          "moves": 49,
+          "lives": 3
+        },
+        "with": {
+          "score": 290,
+          "moves": 49,
+          "lives": 3
+        }
+      },
+      {
+        "level": 14,
+        "without": {
+          "score": 500,
+          "moves": 59,
+          "lives": 3
+        },
+        "with": {
+          "score": 500,
+          "moves": 59,
+          "lives": 3
+        }
+      },
+      {
+        "level": 15,
+        "without": {
+          "score": 500,
+          "moves": 53,
+          "lives": 3
+        },
+        "with": {
+          "score": 500,
+          "moves": 53,
+          "lives": 3
+        }
+      },
+      {
+        "level": 16,
+        "without": {
+          "score": 510,
+          "moves": 80,
+          "lives": 3
+        },
+        "with": {
+          "score": 510,
+          "moves": 80,
+          "lives": 3
+        }
+      },
+      {
+        "level": 17,
+        "without": {
+          "score": 310,
+          "moves": 75,
+          "lives": 3
+        },
+        "with": {
+          "score": 310,
+          "moves": 75,
+          "lives": 3
+        }
+      },
+      {
+        "level": 18,
+        "without": {
+          "score": 510,
+          "moves": 62,
+          "lives": 3
+        },
+        "with": {
+          "score": 510,
+          "moves": 62,
+          "lives": 3
+        }
+      },
+      {
+        "level": 19,
+        "without": {
+          "score": 520,
+          "moves": 80,
+          "lives": 3
+        },
+        "with": {
+          "score": 520,
+          "moves": 80,
+          "lives": 3
+        }
+      },
+      {
+        "level": 20,
+        "without": {
+          "score": 520,
+          "moves": 57,
+          "lives": 3
+        },
+        "with": {
+          "score": 520,
+          "moves": 57,
+          "lives": 3
+        }
+      },
+      {
+        "level": 21,
+        "without": {
+          "score": 320,
+          "moves": 85,
+          "lives": 3
+        },
+        "with": {
+          "score": 320,
+          "moves": 85,
+          "lives": 3
+        }
+      },
+      {
+        "level": 22,
+        "without": {
+          "score": 540,
+          "moves": 93,
+          "lives": 3
+        },
+        "with": {
+          "score": 540,
+          "moves": 93,
+          "lives": 3
+        }
+      },
+      {
+        "level": 23,
+        "without": {
+          "score": 540,
+          "moves": 62,
+          "lives": 3
+        },
+        "with": {
+          "score": 540,
+          "moves": 62,
+          "lives": 3
+        }
+      },
+      {
+        "level": 24,
+        "without": {
+          "score": 540,
+          "moves": 107,
+          "lives": 3
+        },
+        "with": {
+          "score": 540,
+          "moves": 107,
+          "lives": 3
+        }
+      },
+      {
+        "level": 25,
+        "without": {
+          "score": 930,
+          "moves": 51,
+          "lives": 3
+        },
+        "with": {
+          "score": 930,
+          "moves": 51,
+          "lives": 3
+        }
+      },
+      {
+        "level": 26,
+        "without": {
+          "score": 540,
+          "moves": 72,
+          "lives": 3
+        },
+        "with": {
+          "score": 540,
+          "moves": 72,
+          "lives": 3
+        }
+      },
+      {
+        "level": 27,
+        "without": {
+          "score": 340,
+          "moves": 98,
+          "lives": 3
+        },
+        "with": {
+          "score": 340,
+          "moves": 98,
+          "lives": 3
+        }
+      },
+      {
+        "level": 28,
+        "without": {
+          "score": 340,
+          "moves": 106,
+          "lives": 1
+        },
+        "with": {
+          "score": 340,
+          "moves": 106,
+          "lives": 1
+        }
+      },
+      {
+        "level": 29,
+        "without": {
+          "score": 360,
+          "moves": 80,
+          "lives": 3
+        },
+        "with": {
+          "score": 360,
+          "moves": 80,
+          "lives": 3
+        }
+      },
+      {
+        "level": 30,
+        "without": {
+          "score": 540,
+          "moves": 104,
+          "lives": 1
+        },
+        "with": {
+          "score": 540,
+          "moves": 104,
+          "lives": 1
+        }
+      }
+    ],
+    "orbite": [
+      {
+        "level": 1,
+        "without": {
+          "score": 360,
+          "ticks": 1293
+        },
+        "with": {
+          "score": 360,
+          "ticks": 1307
+        }
+      },
+      {
+        "level": 2,
+        "without": {
+          "score": 720,
+          "ticks": 1263
+        },
+        "with": {
+          "score": 720,
+          "ticks": 1263
+        }
+      },
+      {
+        "level": 3,
+        "without": {
+          "score": 1530,
+          "ticks": 1746
+        },
+        "with": {
+          "score": 1080,
+          "ticks": 1430
+        }
+      },
+      {
+        "level": 4,
+        "without": {
+          "score": 1440,
+          "ticks": 1811
+        },
+        "with": {
+          "score": 1440,
+          "ticks": 1738
+        }
+      },
+      {
+        "level": 5,
+        "without": {
+          "score": 3700,
+          "ticks": 2388
+        },
+        "with": {
+          "score": 3700,
+          "ticks": 2388
+        }
+      },
+      {
+        "level": 6,
+        "without": {
+          "score": 1080,
+          "ticks": 1102
+        },
+        "with": {
+          "score": 1080,
+          "ticks": 1062
+        }
+      },
+      {
+        "level": 7,
+        "without": {
+          "score": 3920,
+          "ticks": 2304
+        },
+        "with": {
+          "score": 3920,
+          "ticks": 2136
+        }
+      },
+      {
+        "level": 8,
+        "without": {
+          "score": 3520,
+          "ticks": 1800
+        },
+        "with": {
+          "score": 3520,
+          "ticks": 1472
+        }
+      },
+      {
+        "level": 9,
+        "without": {
+          "score": 5040,
+          "ticks": 2136
+        },
+        "with": {
+          "score": 5040,
+          "ticks": 2312
+        }
+      },
+      {
+        "level": 10,
+        "without": {
+          "score": 8900,
+          "ticks": 2934
+        },
+        "with": {
+          "score": 7400,
+          "ticks": 2032
+        }
+      },
+      {
+        "level": 11,
+        "without": {
+          "score": 1980,
+          "ticks": 1406
+        },
+        "with": {
+          "score": 1980,
+          "ticks": 1119
+        }
+      },
+      {
+        "level": 12,
+        "without": {
+          "score": 6720,
+          "ticks": 2733
+        },
+        "with": {
+          "score": 6720,
+          "ticks": 2303
+        }
+      },
+      {
+        "level": 13,
+        "without": {
+          "score": 4680,
+          "ticks": 1294
+        },
+        "with": {
+          "score": 4680,
+          "ticks": 1826
+        }
+      },
+      {
+        "level": 14,
+        "without": {
+          "score": 7140,
+          "ticks": 1521
+        },
+        "with": {
+          "score": 5040,
+          "ticks": 1701
+        }
+      },
+      {
+        "level": 15,
+        "without": {
+          "score": 12900,
+          "ticks": 1865
+        },
+        "with": {
+          "score": 12900,
+          "ticks": 1601
+        }
+      },
+      {
+        "level": 16,
+        "without": {
+          "score": 8160,
+          "ticks": 1332
+        },
+        "with": {
+          "score": 5760,
+          "ticks": 1163
+        }
+      },
+      {
+        "level": 17,
+        "without": {
+          "score": 3060,
+          "ticks": 885
+        },
+        "with": {
+          "score": 3060,
+          "ticks": 916
+        }
+      },
+      {
+        "level": 18,
+        "without": {
+          "score": 6480,
+          "ticks": 1501
+        },
+        "with": {
+          "score": 6480,
+          "ticks": 1345
+        }
+      },
+      {
+        "level": 19,
+        "without": {
+          "score": 6840,
+          "ticks": 1217
+        },
+        "with": {
+          "score": 6840,
+          "ticks": 1078
+        }
+      },
+      {
+        "level": 20,
+        "without": {
+          "score": 14800,
+          "ticks": 1604
+        },
+        "with": {
+          "score": 14800,
+          "ticks": 1262
+        }
+      },
+      {
+        "level": 21,
+        "without": {
+          "score": 3780,
+          "ticks": 936
+        },
+        "with": {
+          "score": 3780,
+          "ticks": 718
+        }
+      },
+      {
+        "level": 22,
+        "without": {
+          "score": 18920,
+          "ticks": 2208
+        },
+        "with": {
+          "score": 21120,
+          "ticks": 1707
+        }
+      },
+      {
+        "level": 23,
+        "without": {
+          "score": 20930,
+          "ticks": 2025
+        },
+        "with": {
+          "score": 17480,
+          "ticks": 1560
+        }
+      },
+      {
+        "level": 24,
+        "without": {
+          "score": 21840,
+          "ticks": 1776
+        },
+        "with": {
+          "score": 18240,
+          "ticks": 1589
+        }
+      },
+      {
+        "level": 25,
+        "without": {
+          "score": 18500,
+          "ticks": 1256
+        },
+        "with": {
+          "score": 18500,
+          "ticks": 1141
+        }
+      },
+      {
+        "level": 26,
+        "without": {
+          "score": 4680,
+          "ticks": 848
+        },
+        "with": {
+          "score": 4680,
+          "ticks": 841
+        }
+      },
+      {
+        "level": 27,
+        "without": {
+          "score": 9720,
+          "ticks": 1064
+        },
+        "with": {
+          "score": 9720,
+          "ticks": 1150
+        }
+      },
+      {
+        "level": 28,
+        "without": {
+          "score": 21280,
+          "ticks": 1238
+        },
+        "with": {
+          "score": 21280,
+          "ticks": 1105
+        }
+      },
+      {
+        "level": 29,
+        "without": {
+          "score": 10440,
+          "ticks": 1393
+        },
+        "with": {
+          "score": 10440,
+          "ticks": 1221
+        }
+      },
+      {
+        "level": 30,
+        "without": {
+          "score": 33000,
+          "ticks": 3507
+        },
+        "with": {
+          "score": 33000,
+          "ticks": 3580
+        }
+      }
+    ],
+    "empilo": [
+      {
+        "level": 1,
+        "seed": 28,
+        "without": {
+          "score": 1142,
+          "lines": 6,
+          "inputs": 66
+        },
+        "with": {
+          "score": 1052,
+          "lines": 5,
+          "inputs": 55
+        }
+      },
+      {
+        "level": 2,
+        "seed": 28,
+        "without": {
+          "score": 1842,
+          "lines": 6,
+          "inputs": 66
+        },
+        "with": {
+          "score": 2066,
+          "lines": 6,
+          "inputs": 68
+        }
+      },
+      {
+        "level": 3,
+        "seed": 28,
+        "without": {
+          "score": 2952,
+          "lines": 7,
+          "inputs": 85
+        },
+        "with": {
+          "score": 3222,
+          "lines": 7,
+          "inputs": 78
+        }
+      },
+      {
+        "level": 4,
+        "seed": 28,
+        "without": {
+          "score": 4234,
+          "lines": 8,
+          "inputs": 97
+        },
+        "with": {
+          "score": 4606,
+          "lines": 8,
+          "inputs": 93
+        }
+      },
+      {
+        "level": 5,
+        "seed": 28,
+        "without": {
+          "score": 5106,
+          "lines": 9,
+          "inputs": 93
+        },
+        "with": {
+          "score": 5610,
+          "lines": 9,
+          "inputs": 86
+        }
+      },
+      {
+        "level": 6,
+        "seed": 28,
+        "without": {
+          "score": 7296,
+          "lines": 11,
+          "inputs": 108
+        },
+        "with": {
+          "score": 8524,
+          "lines": 12,
+          "inputs": 118
+        }
+      },
+      {
+        "level": 7,
+        "seed": 28,
+        "without": {
+          "score": 10602,
+          "lines": 13,
+          "inputs": 127
+        },
+        "with": {
+          "score": 9824,
+          "lines": 12,
+          "inputs": 118
+        }
+      },
+      {
+        "level": 8,
+        "seed": 28,
+        "without": {
+          "score": 12002,
+          "lines": 13,
+          "inputs": 127
+        },
+        "with": {
+          "score": 12010,
+          "lines": 13,
+          "inputs": 130
+        }
+      },
+      {
+        "level": 9,
+        "seed": 28,
+        "without": {
+          "score": 13400,
+          "lines": 14,
+          "inputs": 148
+        },
+        "with": {
+          "score": 15168,
+          "lines": 14,
+          "inputs": 146
+        }
+      },
+      {
+        "level": 10,
+        "seed": 28,
+        "without": {
+          "score": 15844,
+          "lines": 15,
+          "inputs": 156
+        },
+        "with": {
+          "score": 17814,
+          "lines": 15,
+          "inputs": 155
+        }
+      },
+      {
+        "level": 11,
+        "seed": 28,
+        "without": {
+          "score": 22918,
+          "lines": 17,
+          "inputs": 174
+        },
+        "with": {
+          "score": 21814,
+          "lines": 17,
+          "inputs": 176
+        }
+      },
+      {
+        "level": 12,
+        "seed": 28,
+        "without": {
+          "score": 29740,
+          "lines": 19,
+          "inputs": 198
+        },
+        "with": {
+          "score": 26130,
+          "lines": 18,
+          "inputs": 197
+        }
+      },
+      {
+        "level": 13,
+        "seed": 28,
+        "without": {
+          "score": 32140,
+          "lines": 19,
+          "inputs": 198
+        },
+        "with": {
+          "score": 29550,
+          "lines": 19,
+          "inputs": 204
+        }
+      },
+      {
+        "level": 14,
+        "seed": 28,
+        "without": {
+          "score": 35990,
+          "lines": 20,
+          "inputs": 210
+        },
+        "with": {
+          "score": 33212,
+          "lines": 20,
+          "inputs": 214
+        }
+      },
+      {
+        "level": 15,
+        "seed": 28,
+        "without": {
+          "score": 40008,
+          "lines": 21,
+          "inputs": 217
+        },
+        "with": {
+          "score": 37032,
+          "lines": 21,
+          "inputs": 218
+        }
+      },
+      {
+        "level": 16,
+        "seed": 28,
+        "without": {
+          "score": 42516,
+          "lines": 23,
+          "inputs": 230
+        },
+        "with": {
+          "score": 44092,
+          "lines": 23,
+          "inputs": 222
+        }
+      },
+      {
+        "level": 17,
+        "seed": 28,
+        "without": {
+          "score": 46834,
+          "lines": 24,
+          "inputs": 237
+        },
+        "with": {
+          "score": 48544,
+          "lines": 24,
+          "inputs": 237
+        }
+      },
+      {
+        "level": 18,
+        "seed": 28,
+        "without": {
+          "score": 51390,
+          "lines": 25,
+          "inputs": 251
+        },
+        "with": {
+          "score": 53192,
+          "lines": 25,
+          "inputs": 248
+        }
+      },
+      {
+        "level": 19,
+        "seed": 28,
+        "without": {
+          "score": 56128,
+          "lines": 26,
+          "inputs": 257
+        },
+        "with": {
+          "score": 58008,
+          "lines": 26,
+          "inputs": 253
+        }
+      },
+      {
+        "level": 20,
+        "seed": 31,
+        "without": {
+          "score": 66934,
+          "lines": 28,
+          "inputs": 274
+        },
+        "with": {
+          "score": 60970,
+          "lines": 27,
+          "inputs": 265
+        }
+      },
+      {
+        "level": 21,
+        "seed": 31,
+        "without": {
+          "score": 66086,
+          "lines": 29,
+          "inputs": 292
+        },
+        "with": {
+          "score": 74378,
+          "lines": 29,
+          "inputs": 276
+        }
+      },
+      {
+        "level": 22,
+        "seed": 31,
+        "without": {
+          "score": 75800,
+          "lines": 31,
+          "inputs": 298
+        },
+        "with": {
+          "score": 84530,
+          "lines": 31,
+          "inputs": 297
+        }
+      },
+      {
+        "level": 23,
+        "seed": 32,
+        "without": {
+          "score": 83688,
+          "lines": 31,
+          "inputs": 309
+        },
+        "with": {
+          "score": 86194,
+          "lines": 31,
+          "inputs": 263
+        }
+      },
+      {
+        "level": 24,
+        "seed": 32,
+        "without": {
+          "score": 94508,
+          "lines": 33,
+          "inputs": 320
+        },
+        "with": {
+          "score": 97196,
+          "lines": 33,
+          "inputs": 290
+        }
+      },
+      {
+        "level": 25,
+        "seed": 32,
+        "without": {
+          "score": 98408,
+          "lines": 33,
+          "inputs": 320
+        },
+        "with": {
+          "score": 101196,
+          "lines": 33,
+          "inputs": 290
+        }
+      },
+      {
+        "level": 26,
+        "seed": 32,
+        "without": {
+          "score": 107538,
+          "lines": 35,
+          "inputs": 333
+        },
+        "with": {
+          "score": 110530,
+          "lines": 35,
+          "inputs": 320
+        }
+      },
+      {
+        "level": 27,
+        "seed": 73,
+        "without": {
+          "score": 122642,
+          "lines": 36,
+          "inputs": 335
+        },
+        "with": {
+          "score": 117070,
+          "lines": 36,
+          "inputs": 332
+        }
+      },
+      {
+        "level": 28,
+        "seed": 73,
+        "without": {
+          "score": 129994,
+          "lines": 37,
+          "inputs": 349
+        },
+        "with": {
+          "score": 124186,
+          "lines": 37,
+          "inputs": 339
+        }
+      },
+      {
+        "level": 29,
+        "seed": 73,
+        "without": {
+          "score": 137546,
+          "lines": 38,
+          "inputs": 361
+        },
+        "with": {
+          "score": 131510,
+          "lines": 38,
+          "inputs": 349
+        }
+      },
+      {
+        "level": 30,
+        "seed": 211,
+        "without": {
+          "score": 136000,
+          "lines": 40,
+          "inputs": 353
+        },
+        "with": {
+          "score": 126984,
+          "lines": 40,
+          "inputs": 376
+        }
+      }
+    ]
+  }
+}

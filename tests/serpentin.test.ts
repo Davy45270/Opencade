@@ -1,5 +1,8 @@
 import { describe, it, expect } from 'vitest';
-import { Engine, difficulty, reachable, same, type Cell, type State } from '../src/engines/serpentin/engine';
+import * as serpentin from '../src/engines/serpentin/engine';
+import { Engine, difficulty, reachable, same, layout, mechanismCells, patrolAt, follow, LAYOUTS, type Cell, type State } from '../src/engines/serpentin/engine';
+import { serpentinDiversity } from '../scripts/serpentin-diversity.js';
+import { levelTip } from '../src/engines/serpentin/tips';
 function state(patch: Partial<State> = {}): State {
     return { segments: [{ x: 7, y: 10 }, { x: 6, y: 10 }, { x: 5, y: 10 }], direction: 'right', apple: { x: 2, y: 2 }, obstacles: [], eaten: 0, score: 0, crystal: null, crystalUntil: 0, ...patch };
 }
@@ -38,11 +41,11 @@ describe('Serpentin', () => {
         ] as const) { const e = engine({ segments: [head], direction }, 4); move(e); expect(e.state.segments[0]).toEqual(target); expect(e.status).toBe('playing'); }
     });
     it('N08 empreinte des 30 grilles et snapshots initiaux, graine 454', () => {
-        // FNV-1a calculé avant optimisation, obstacles ordonnés, pomme et PRNG inclus.
-        const data = JSON.stringify(Array.from({ length: 30 }, (_, level) => new Engine(level, 454).snapshot()));
+        // FNV-1a des 30 salles de la passe 401, obstacles ordonnés, pomme et PRNG inclus.
+        const data = JSON.stringify(Array.from({ length: 30 }, (_, level) => new Engine(level, 454).snapshot()), (key, value: unknown) => ['specialUses', 'specialArmed', 'specialMs'].includes(key) ? undefined : value);
         let hash = 2166136261;
         for (let i = 0; i < data.length; i++) hash = Math.imul(hash ^ data.charCodeAt(i), 16777619);
-        expect((hash >>> 0).toString(16)).toBe('7b2da581');
+        expect((hash >>> 0).toString(16)).toBe('262e7702');
     });
     it('N08 générations et pommes libres accessibles sur 30 niveaux et 12 graines', () => {
         for (let level = 0; level < 30; level++) for (let seed = 1; seed <= 12; seed++) {
@@ -115,9 +118,33 @@ describe('Serpentin', () => {
         e.loadState(state({ eaten: 7, apple: { x: 8, y: 10 } })); move(e); expect(e.status).toBe('won');
         const snapshot = e.snapshot(); e.step(0); expect(e.snapshot()).toEqual(snapshot);
     });
-    it('N10 difficulté monotone et strictement croissante aux extrêmes', () => {
-        for (let i = 1; i < 30; i++) for (const key of ['speed', 'goal', 'obstacles', 'pattern'] as const) expect(difficulty(i)[key]).toBeGreaterThanOrEqual(difficulty(i - 1)[key]);
-        expect(difficulty(0)).toMatchObject({ speed: 6, goal: 8, obstacles: 0 }); expect(difficulty(29)).toMatchObject({ speed: 16, goal: 30, obstacles: 40 });
+    it('N10 campagne : une règle neuve tous les 4 à 5 niveaux, défi chronométré tous les 5, respiration après chaque nouveauté', () => {
+        const first = (has: (i: number) => boolean) => Array.from({ length: 30 }, (_, i) => i).find(has);
+        expect(first(i => layout(i).portals.length > 0)).toBe(3);
+        expect(first(i => layout(i).gates.length > 0)).toBe(7);
+        expect(first(i => layout(i).prey > 0)).toBe(11);
+        expect(first(i => layout(i).currents.length > 0)).toBe(15);
+        expect(first(i => layout(i).scissors)).toBe(20);
+        expect(first(i => layout(i).patrols.length > 0)).toBe(25);
+        expect(Array.from({ length: 30 }, (_, i) => i).filter(i => layout(i).timeMs > 0)).toEqual([4, 9, 14, 19, 24]);
+        // Une salle d'introduction n'accélère jamais par rapport à la précédente.
+        for (const intro of [3, 7, 11, 15, 25]) expect(layout(intro).speed).toBeLessThanOrEqual(layout(intro - 1).speed);
+        // Respiration : la salle qui suit chaque défi est plus lente que lui.
+        for (const challenge of [4, 9, 14, 19, 24]) expect(layout(challenge + 1).speed).toBeLessThan(layout(challenge).speed);
+        const final = layout(29);
+        expect(final.portals.length > 0 && final.gates.length > 0 && final.currents.length > 0 && final.patrols.length > 0 && final.prey > 0 && final.scissors).toBe(true);
+        expect(difficulty(0)).toMatchObject({ speed: 6, goal: 8, obstacles: 0, walls: true });
+        expect(Math.max(...LAYOUTS.map(l => l.speed))).toBeLessThanOrEqual(13);
+        expect(new Set(LAYOUTS.map(l => l.name)).size).toBe(30);
+        for (let i = 0; i < 30; i++) expect(levelTip(i).length).toBeLessThanOrEqual(32);
+        expect(levelTip(3)).toMatch(/Portails/); expect(levelTip(25)).toMatch(/Sentinelles/); expect(levelTip(4)).toMatch(/chrono/);
+    });
+    it('N10 diversité mesurée : score <= 25, aucun clone, et des salles identiques seraient détectées', () => {
+        const r = serpentinDiversity(serpentin);
+        expect(r.score).toBeLessThanOrEqual(25); expect(r.cloneShare).toBe(0); expect(r.maxGapWithoutNovelty).toBeLessThanOrEqual(5);
+        expect(r.noveltyLevels).toEqual([2, 3, 4, 5, 8, 12, 16, 21, 26]);
+        const clones = serpentinDiversity(serpentin, Array<number>(30).fill(6));
+        expect(clones.cloneShare).toBe(1); expect(clones.score).toBeGreaterThan(90);
     });
     it('N11 déterminisme entrées horodatées et cadence de rendu indépendante', () => {
         const a = new Engine(4, 123), b = new Engine(4, 123);
@@ -134,5 +161,83 @@ describe('Serpentin', () => {
         e.step(5000); expect(e.state.crystal).toBeNull();
         const bonus = engine({ crystal: { x: 8, y: 10 }, crystalUntil: 300 }, 2); move(bonus);
         expect(bonus.state.score).toBe(150); expect(bonus.state.segments).toHaveLength(3); expect(bonus.state.eaten).toBe(0); expect(bonus.state.crystal).toBeNull();
+    });
+    it('N13 portail : la tête ressort à l\'autre bout dans le même sens ; sortie occupée = règles ordinaires', () => {
+        const e = engine({ segments: [{ x: 1, y: 3 }, { x: 0, y: 3 }] }, 3); move(e);
+        expect(e.state.segments[0]).toEqual({ x: 12, y: 17 }); expect(e.state.direction).toBe('right'); expect(e.events).toContain('portal');
+        move(e); expect(e.state.segments[0]).toEqual({ x: 13, y: 17 });
+        const back = engine({ segments: [{ x: 13, y: 17 }, { x: 14, y: 17 }], direction: 'left' }, 3); move(back); expect(back.state.segments[0]).toEqual({ x: 2, y: 3 });
+        const blocked = engine({ segments: [{ x: 1, y: 3 }, { x: 0, y: 3 }], obstacles: [{ x: 12, y: 17 }] }, 3); move(blocked);
+        expect(blocked.status).toBe('lost'); expect(blocked.reason).toBe('obstacle');
+        expect(follow(0, { x: 1, y: 3 }, 'right')).toEqual({ x: 2, y: 3 });
+    });
+    it('N14 écluse : fermée = défaite, ouverte = passage, elle peut se fermer sous le corps', () => {
+        // Salle 9, écluse (7,17) : période 240, ouverture 150, phase 120 → ouverte pour t < 30, fermée pour 30 ≤ t < 120.
+        const open = engine({ segments: [{ x: 6, y: 17 }, { x: 5, y: 17 }, { x: 4, y: 17 }] }, 8); move(open);
+        expect(open.status).toBe('playing'); expect(open.state.segments[0]).toEqual({ x: 7, y: 17 });
+        const closed = engine({ segments: [{ x: 2, y: 17 }, { x: 1, y: 17 }, { x: 0, y: 17 }] }, 8); for (let i = 0; i < 5; i++) move(closed);
+        expect(closed.status).toBe('lost'); expect(closed.reason).toBe('gate'); expect(closed.state.segments[0]).toEqual({ x: 6, y: 17 });
+        const under = engine({ segments: Array.from({ length: 8 }, (_, i) => ({ x: 9 - i, y: 17 })) }, 8); under.step(37 * 1000 / 60);
+        expect(under.gateClosedAt({ x: 7, y: 17 })).toBe(true); expect(under.state.segments).toContainEqual({ x: 7, y: 17 }); expect(under.status).toBe('playing');
+    });
+    it('N15 courant : le pas suivant est imposé, le virage en file sert après les flèches, un demi-tour en file est abandonné', () => {
+        const e = engine({ segments: [{ x: 1, y: 5 }, { x: 1, y: 6 }], direction: 'up', apple: { x: 9, y: 9 } }, 15);
+        move(e); expect(e.state.segments[0]).toEqual({ x: 1, y: 4 }); expect(e.events).toContain('current');
+        e.input('down'); expect(e.snapshot().queue).toEqual([]);
+        e.input('left'); move(e); expect(e.state.segments[0]).toEqual({ x: 2, y: 4 }); expect(e.state.direction).toBe('right');
+        // 'left' est devenu un demi-tour après la flèche : abandonné, le serpent continue.
+        move(e); expect(e.state.direction).toBe('right'); expect(e.status).toBe('playing');
+        // Tête sur la colonne montante x = 1 : le virage à droite attend la fin des six flèches.
+        const kept = engine({ segments: [{ x: 1, y: 15 }, { x: 1, y: 16 }], direction: 'up', apple: { x: 9, y: 2 } }, 15); move(kept); kept.input('right');
+        const trail: string[] = []; for (let i = 0; i < 7; i++) { move(kept); trail.push(`${String(kept.state.segments[0]?.x)},${String(kept.state.segments[0]?.y)}`); }
+        expect(trail).toEqual(['1,13', '1,12', '1,11', '1,10', '1,9', '1,8', '2,8']);
+        for (let i = 0; i < 30; i++) for (const k of layout(i).currents) {
+            const exit = follow(i, k.cell, k.direction); expect(exit).not.toBeNull();
+            if (exit) expect(new Engine(i).state.obstacles.some(o => same(o, exit))).toBe(false);
+        }
+    });
+    it('N16 luciole : fuit d\'une case strictement plus loin tous les N pas, reste si coincée', () => {
+        const e = engine({ apple: { x: 12, y: 10 } }, 11);
+        move(e); move(e); expect(e.state.apple).toEqual({ x: 12, y: 10 });
+        move(e); const head = e.state.segments[0] ?? { x: 0, y: 0 };
+        expect(Math.abs(e.state.apple.x - 12) + Math.abs(e.state.apple.y - 10)).toBe(1); expect(e.events).toContain('flee');
+        expect(Math.abs(e.state.apple.x - head.x) + Math.abs(e.state.apple.y - head.y)).toBe(3);
+        const corner = engine({ segments: [{ x: 0, y: 2 }, { x: 0, y: 1 }, { x: 0, y: 0 }], direction: 'down', apple: { x: 14, y: 20 } }, 11);
+        for (let i = 0; i < 3; i++) move(corner);
+        expect(corner.state.apple).toEqual({ x: 14, y: 20 });
+        const still = engine({ apple: { x: 12, y: 10 } }, 0); for (let i = 0; i < 2; i++) move(still); expect(still.state.apple).toEqual({ x: 12, y: 10 });
+    });
+    it('N17 ciseaux : apparaissent dès 10 segments, coupent le corps en deux (au moins 3), sans toucher au compte de pommes', () => {
+        const body = Array.from({ length: 10 }, (_, i) => ({ x: 12 - i, y: 15 }));
+        const e = engine({ segments: body, apple: { x: 2, y: 2 }, eaten: 4 }, 20); move(e);
+        expect(e.state.scissors).not.toBeNull();
+        const cut = engine({ segments: body, apple: { x: 2, y: 2 }, scissors: { x: 13, y: 15 }, eaten: 4 }, 20); move(cut);
+        expect(cut.state.segments).toHaveLength(5); expect(cut.state.eaten).toBe(4); expect(cut.state.score).toBe(105); expect(cut.events).toContain('scissors');
+        const short = engine({ segments: body.slice(0, 4), apple: { x: 2, y: 2 }, scissors: { x: 13, y: 15 } }, 20); move(short); expect(short.state.segments).toHaveLength(3);
+        const none = engine({ segments: body, apple: { x: 2, y: 2 } }, 0); move(none); expect(none.state.scissors).toBeNull();
+    });
+    it('N18 chrono : défaite exactement à zéro, rien sur une salle sans chrono', () => {
+        const e = new Engine(4); expect(e.state.timeLeft).toBe(35000);
+        e.loadState({ ...state({ segments: [{ x: 0, y: 0 }] }), timeLeft: 100 }); e.input('down');
+        e.step(5 * 1000 / 60); expect(e.status).toBe('playing'); e.step(1000 / 60); expect(e.status).toBe('lost'); expect(e.reason).toBe('time');
+        const free = engine({ segments: [{ x: 0, y: 0 }], direction: 'down' }, 3); free.step(200); expect(free.state.timeLeft).toBe(0); expect(free.status).toBe('playing');
+    });
+    it('N19 sentinelle : va-et-vient, toucher la sentinelle ou être touché est fatal', () => {
+        const p = layout(25).patrols[0]; if (!p) throw new Error('sentinelle');
+        expect([0, 2, 4, 12, 14].map(m => patrolAt(p, m))).toEqual([{ x: 2, y: 4 }, { x: 3, y: 4 }, { x: 4, y: 4 }, { x: 8, y: 4 }, { x: 7, y: 4 }]);
+        const head = engine({ segments: [{ x: 2, y: 5 }, { x: 2, y: 6 }], direction: 'up', apple: { x: 9, y: 9 } }, 25); move(head);
+        expect(head.status).toBe('lost'); expect(head.reason).toBe('patrol');
+        const hit = engine({ segments: [{ x: 4, y: 5 }, { x: 4, y: 4 }, { x: 4, y: 3 }], direction: 'down', apple: { x: 9, y: 9 }, moves: 3 }, 25); move(hit);
+        expect(hit.status).toBe('lost'); expect(hit.reason).toBe('patrol');
+        const safe = engine({ segments: [{ x: 4, y: 5 }, { x: 4, y: 4 }, { x: 4, y: 3 }], direction: 'down', apple: { x: 9, y: 9 }, moves: 7 }, 25); move(safe);
+        expect(safe.status).toBe('playing');
+    });
+    it('N20 cases de mécanisme jamais occupées par pomme, obstacle ou bonus ; salles connexes sur 12 graines', () => {
+        for (let level = 0; level < 30; level++) for (const seed of [1, 7, 454]) {
+            const e = new Engine(level, seed), cells = mechanismCells(level);
+            expect(cells.some(c => same(c, e.state.apple))).toBe(false);
+            expect(e.state.obstacles.some(o => cells.some(c => same(c, o)))).toBe(false);
+            for (const k of layout(level).portals) for (const c of [k.a, k.b]) expect(c.x >= 0 && c.x < 15 && c.y >= 0 && c.y < 21).toBe(true);
+        }
     });
 });

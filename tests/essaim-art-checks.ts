@@ -1,4 +1,6 @@
 import { ArtPool, ensureArtTextures } from '../src/games/essaim/art-pool';
+import { Engine, TICK } from '../src/engines/essaim/engine';
+import { pilotWithSignature } from '../src/engines/essaim/pilot';
 import { createDemo } from '../src/engines/essaim/demo';
 function check(ok: boolean, message: string): void { if (!ok) throw new Error(message); }
 export function checkArtPool(): void {
@@ -30,4 +32,17 @@ export function checkArtTextures(): void {
     }); };
     for (let i = 0; i < 2000; i++) ensure();
     check(calls === 2 && textures.size === 2, 'Deux textures, une génération chacune, même après réentrée');
+}
+
+/** Small Vitest case per character; the Node scene validator also renders every step. */
+export function checkSignaturePool(id: import('../src/engines/essaim/signature').SignatureCharacter): void {
+    const pool = new ArtPool(), slots = [...pool.particles], e = new Engine(); e.enableSignature(id);
+    for (let frame = 0; frame < 2000; frame++) {
+        if (e.status !== 'playing') { e.loadLevel(frame % 30); e.enableSignature(id); }
+        pilotWithSignature(e,frame); e.step(TICK);
+        pool.burst(180,240,false,frame%7===0); pool.step(TICK,false);
+        check(pool.active <= 96 && pool.particles.length === 96,'S-essaim-05 capacité');
+        check(pool.particles.every((p,index)=>p===slots[index]),'S-essaim-05 identités');
+        check((e.state.signature?.projectiles.length ?? 0)<=6,'S-essaim-05 projectiles');
+    }
 }

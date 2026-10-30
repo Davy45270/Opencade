@@ -95,3 +95,30 @@ test('N09 niveau 30 et mise en page', async ({ page }, info) => {
         }
     }
 });
+
+// Pass 401: each introduction room renders its rule and names it in the HUD.
+test('N10 salles d\'introduction : mécanisme visible et annoncé', async ({ page }, info) => {
+    const mobile = info.project.name === 'mobile-chromium'; await page.goto('/?test=1#/serpentin');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__SERPENTIN_TEST__))).toBe(true);
+    await tap(page, '#resume', mobile);
+    for (const [level, tip] of [[3, /Portails/], [4, /chrono/], [7, /Écluses/], [11, /Luciole/], [15, /Flèches/], [20, /Ciseaux/], [25, /Sentinelles/]] as const) {
+        await page.evaluate(index => { window.__SERPENTIN_TEST__?.loadLevel(index, 454); window.__SERPENTIN_TEST__?.advance(50); }, level);
+        const hud = await page.evaluate(() => window.__SERPENTIN_TEST__?.hudText() ?? '');
+        expect(hud).toContain(`NIVEAU ${String(level + 1)}`); expect(hud).toMatch(tip);
+        if (level === 4) expect(hud).toMatch(/⏱ 35 s/);
+        await page.screenshot({ path: `test-results/screenshots/serpentin-intro-${String(level + 1)}-${info.project.name}.png` });
+    }
+});
+
+test('N14 écluses : ouverte, clignotante la dernière demi-seconde, puis fermée', async ({ page }, info) => {
+    const mobile = info.project.name === 'mobile-chromium'; await page.goto('/?test=1#/serpentin');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__SERPENTIN_TEST__))).toBe(true);
+    await tap(page, '#resume', mobile);
+    // Salle 8 sur un plateau vidé de sa luciole : seules les écluses comptent (période 300, ouverture 180, phases 0/150/75).
+    await page.evaluate(() => { window.__SERPENTIN_TEST__?.loadLevel(7, 454); window.__SERPENTIN_TEST__?.advance(0); });
+    const at = async (ms: number) => { await page.evaluate(t => { window.__SERPENTIN_TEST__?.advance(t); }, ms); return page.evaluate(() => window.__SERPENTIN_TEST__?.marks()); };
+    // Tick 1 : (1, 151, 76) mod 300 → ouverte, clignotante (≥ 150), ouverte. Tick 31 : (31, 181, 106) → la deuxième est fermée.
+    expect(await at(1000 / 60)).toEqual({ open: 2, closing: 1, closed: 0 });
+    expect(await at(30 * 1000 / 60)).toEqual({ open: 2, closing: 0, closed: 1 });
+    await page.screenshot({ path: `test-results/screenshots/serpentin-ecluses-${info.project.name}.png` });
+});

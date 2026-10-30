@@ -1,6 +1,6 @@
-# Level diversity audit — pass 64 (Orbite)
+# Level diversity audit — pass 77 (action catalogue)
 
-Orbite is updated for pass 64; Briqueterie retains pass 61; Dédale retains pass 58; Essaim retains pass 54; Ferraille retains passes 51–52 and Bubble Lab its pass 49 correction. Other game implementations are unchanged. Run from the repository root:
+Pass 77 updates Ferraille, Briqueterie and Essaim with nine authored catalogue levels. Their scores remain 11.2, 18.1 and 16.4 respectively (0% adjacent clones); formulas and thresholds are unchanged. Geometry and two winning replays per catalogue level are checked by `validate-level-catalogue.js` and recorded in `level-catalogue-validation.json`. The added lift and conveyors are verified through actual collision and movement. Art, names and palettes do not count as diversity. Orbite retains pass 66, Dédale pass 58 and Bubble Lab pass 49. Other game implementations are unchanged. Run from the repository root:
 
 ```sh
 nice -n 19 ionice -c3 node scripts/diversity-report.js
@@ -10,7 +10,7 @@ The script prints one complete JSON object followed by a Markdown table. Level n
 
 ## Method and limits
 
-**Orbite pass 64 override:** full ordinary-input recordings replace midpoint sampling.
+**Orbite passes 64–66 override:** full ordinary-input recordings replace midpoint sampling.
 The validator first regenerates all 60 victories on seeds 457 (default) and 28,
 then verifies every recording, including each first effect witness, against a
 fresh engine. The report reads the 30 verified seed-28 inventories. Eight mechanic
@@ -160,7 +160,7 @@ Introduce switches at 4, paired portals at 8, moving gates at 12, poison fruit a
 
 ### Orbite
 
-Implemented in pass 64. The eight tactical mechanics first appear every three
+Implemented in pass 64, corrected in pass 66. The eight tactical mechanics first appear every three
 levels: rotating shields **4**, split probes **7**, asteroids **10**, gravity
 **13**, stealth **16**, repairers **19**, satellite defense **22**, coordinated
 swarms **25**. Actual first witnesses match these dates on seed 28. Six
@@ -176,9 +176,24 @@ mechanics; clearing its escort evacuates the ally before a two-phase core duel.
 their recorded replays, literal O-MEC-01…08 behavior checks, O-BOSS, O-SAVE and
 O-DIV-01. Every unit test is timed separately under an affinity of two CPUs
 (the host may enforce a lower CPU quota), with a literal 2000 ms bound.
+On a one-CPU quota, run `taskset -c 0,1 node --single-threaded scripts/validate-orbite.js`
+to avoid competition with V8 background work; runtime flags are recorded in the evidence.
 The long 400-seed comet audit stays in Node; eight fixed spawn recordings replace
-it in the short test. Eleven isolated source mutations are rejected, with
-file/line/oracle locations in [orbite-validation.json](orbite-validation.json).
+it in the short test. Twenty-three isolated source mutations are rejected, with
+file/oracle locations in [orbite-validation.json](orbite-validation.json).
+Pass 66 guarantees all four special probe kinds even with only twelve final
+escorts. The default-seed final victory alone must witness all eight effects,
+including neighbor healing. Both recorded final victories retain all four special
+probe kinds. Contacts use swept motion and a global time order; simultaneous
+contacts use canonical projectile geometry and stable target IDs. Tests cover both
+satellite/interception race outcomes, six projectile permutations and simultaneous
+probe targets. A headless graphics spy executes the real scene, checks all thirty
+HUD instructions against generated entities, and verifies stealth disappearance
+and reappearance through actual draw calls and `renderedProbeIds()` in the test
+hook. Independent counterexamples lock novelty count and intermediate/trailing
+cadence limits. Literal oracles also lock both gravity saturation signs, fragment
+height, phase-two aimed fire and 72-tick cadence, and the HP-scaled ally bonus.
+
 Four desktop/mobile capture scenarios are written for levels 04/12/20/30;
 neither a browser nor Vitest was executed. Progression keys remain compatible.
 

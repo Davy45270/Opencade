@@ -2,6 +2,8 @@ import { required } from './access';
 import { at, nearest, wrap, type Track, type Vec } from './track';
 export type Item = 'turbo' | 'ressort' | 'flaque' | 'bulle';
 export interface Kart extends Vec {
+    specialLap?: number;
+    specialMs?: number;
     id: number;
     angle: number;
     vx: number;
@@ -99,8 +101,9 @@ export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: 
     }
     k.stripActive = strip;
     const bermGrip = berm ? 1.4 : 1;
-    const max = grass ? targetSpeed * (snow ? .28 : Math.min(.5, grassGrip)) : k.boostMs > 0 ? 32 : targetSpeed + (slope > 0 ? 3 : 0) + (bermGrip - 1) * 3;
-    const f = Math.max(0, Math.min(max, (strip && k.boostMs > 0 ? 32 : forward) + (12 + gravity - forward * .12) * dt));
+    const impulse = (k.specialMs ?? 0) > 0 ? 4 : 0;
+    const max = (grass ? targetSpeed * (snow ? .28 : Math.min(.5, grassGrip)) : k.boostMs > 0 ? 32 : targetSpeed + (slope > 0 ? 3 : 0) + (bermGrip - 1) * 3) + (grass ? 0 : impulse);
+    const f = Math.max(0, Math.min(max, (strip && k.boostMs > 0 ? 32 : forward) + (12 + impulse * 2 + gravity - forward * .12) * dt));
     const grip = (snow ? .6 : 1) * bermGrip;
     const l = lateral * Math.exp(-(drifting || k.slipMs > 0 ? 1.4 : 10) * grip * dt);
     k.vx = c * f - s * l;
@@ -155,6 +158,8 @@ export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: 
             }
         }
     }
+    const remainingImpulse = (k.specialMs ?? 0) - dt * 1000;
+    k.specialMs = remainingImpulse < 0.00000001 ? 0 : remainingImpulse;
     for (const key of ['boostMs', 'jumpMs', 'slipMs'] as const)
         k[key] = Math.max(0, k[key] - dt * 1000);
     if (airborne && k.jumpMs === 0) k.landingMs = 280;

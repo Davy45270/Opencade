@@ -1,0 +1,1203 @@
+{
+  "pass": 80,
+  "browserRun": false,
+  "simulatedClock": "60 Hz engine steps",
+  "latencyMs": 150,
+  "noisePx": 12,
+  "seeds": {
+    "buttons": 70,
+    "canvas": 72,
+    "engines": 28,
+    "snake": 454
+  },
+  "results": [
+    {
+      "game": "serpentin",
+      "level": 1,
+      "before": {
+        "status": "lost",
+        "cause": "wall during capture",
+        "eaten": 0,
+        "captureMs": 1000
+      }
+    },
+    {
+      "game": "serpentin",
+      "level": 1,
+      "overheadMs": 0,
+      "status": "won",
+      "elapsedMs": 20100,
+      "deadlineMarginMs": 69900,
+      "eaten": 8
+    },
+    {
+      "game": "serpentin",
+      "level": 1,
+      "overheadMs": 10,
+      "status": "won",
+      "elapsedMs": 20150,
+      "deadlineMarginMs": 69850,
+      "eaten": 8
+    },
+    {
+      "game": "serpentin",
+      "level": 1,
+      "overheadMs": 20,
+      "status": "won",
+      "elapsedMs": 19190,
+      "deadlineMarginMs": 70810,
+      "eaten": 8
+    },
+    {
+      "game": "serpentin",
+      "level": 1,
+      "overheadMs": 30,
+      "status": "won",
+      "elapsedMs": 18510,
+      "deadlineMarginMs": 71490,
+      "eaten": 8
+    },
+    {
+      "game": "traverse-window",
+      "level": 1,
+      "reactionMs": 150,
+      "transportMs": 100,
+      "windowMs": 220,
+      "status": "won",
+      "lives": 3,
+      "shelters": 3,
+      "inputMarginMs": -30
+    },
+    {
+      "game": "traverse-window",
+      "level": 1,
+      "reactionMs": 150,
+      "transportMs": 100,
+      "windowMs": 300,
+      "status": "won",
+      "lives": 3,
+      "shelters": 3,
+      "inputMarginMs": 50
+    },
+    {
+      "game": "traverse",
+      "level": 1,
+      "status": "won",
+      "elapsedMs": 25000.00000000026,
+      "lives": 3,
+      "inputWindowMarginMs": 130,
+      "deadlineMarginMs": 64999.99999999974
+    },
+    {
+      "game": "alunir",
+      "level": 1,
+      "status": "won",
+      "elapsedMs": 16320,
+      "fuel": 564,
+      "vxMargin": 0.5988325101042907,
+      "vyMargin": 0.6631450376993095,
+      "angleMargin": 0.17453292519943295
+    },
+    {
+      "game": "derapage",
+      "level": 1,
+      "status": "won",
+      "elapsedMs": 63410,
+      "deadlineMarginMs": 56590,
+      "place": 1,
+      "laps": 3
+    },
+    {
+      "game": "bubble",
+      "level": 1,
+      "status": "won",
+      "shots": 6,
+      "attempts": 39,
+      "remainingBubbles": 0
+    },
+    {
+      "game": "serpentin",
+      "level": 10,
+      "before": {
+        "status": "lost",
+        "cause": "obstacle during capture",
+        "eaten": 1,
+        "captureMs": 1000
+      }
+    },
+    {
+      "game": "serpentin",
+      "level": 10,
+      "overheadMs": 0,
+      "status": "won",
+      "elapsedMs": 15000,
+      "deadlineMarginMs": 75000,
+      "eaten": 14
+    },
+    {
+      "game": "serpentin",
+      "level": 10,
+      "overheadMs": 10,
+      "status": "won",
+      "elapsedMs": 14390,
+      "deadlineMarginMs": 75610,
+      "eaten": 14
+    },
+    {
+      "game": "serpentin",
+      "level": 10,
+      "overheadMs": 20,
+      "status": "won",
+      "elapsedMs": 14770,
+      "deadlineMarginMs": 75230,
+      "eaten": 14
+    },
+    {
+      "game": "serpentin",
+      "level": 10,
+      "overheadMs": 30,
+      "status": "won",
+      "elapsedMs": 15630,
+      "deadlineMarginMs": 74370,
+      "eaten": 14
+    },
+    {
+      "game": "traverse-window",
+      "level": 10,
+      "reactionMs": 150,
+      "transportMs": 100,
+      "windowMs": 220,
+      "status": "won",
+      "lives": 3,
+      "shelters": 3,
+      "inputMarginMs": -30
+    },
+    {
+      "game": "traverse-window",
+      "level": 10,
+      "reactionMs": 150,
+      "transportMs": 100,
+      "windowMs": 300,
+      "status": "won",
+      "lives": 3,
+      "shelters": 3,
+      "inputMarginMs": 50
+    },
+    {
+      "game": "traverse",
+      "level": 10,
+      "status": "won",
+      "elapsedMs": 21253.333333333405,
+      "lives": 3,
+      "inputWindowMarginMs": 130,
+      "deadlineMarginMs": 68746.6666666666
+    },
+    {
+      "game": "alunir",
+      "level": 10,
+      "status": "won",
+      "elapsedMs": 10710,
+      "fuel": 623.9310344827586,
+      "vxMargin": 0.5484041909931309,
+      "vyMargin": 0.7394206936361746,
+      "angleMargin": 0.17453292519943295
+    },
+    {
+      "game": "derapage",
+      "level": 10,
+      "status": "won",
+      "elapsedMs": 62900,
+      "deadlineMarginMs": 57100,
+      "place": 1,
+      "laps": 3
+    },
+    {
+      "game": "bubble",
+      "level": 10,
+      "status": "won",
+      "shots": 56,
+      "attempts": 269,
+      "remainingBubbles": 0
+    },
+    {
+      "game": "bubble-special",
+      "special": false,
+      "status": "playing",
+      "shots": 1
+    },
+    {
+      "game": "bubble-special",
+      "special": true,
+      "status": "won",
+      "shots": 1
+    }
+  ],
+  "timings": [
+    {
+      "name": "seeded button hit margins",
+      "ms": 4.841286999999738
+    },
+    {
+      "name": "serpentin capture regression L1",
+      "ms": 2.5898330000004535
+    },
+    {
+      "name": "serpentin delayed L1/0 at 150ms",
+      "ms": 143.64719999999988
+    },
+    {
+      "name": "serpentin delayed L1/0 at 1650ms",
+      "ms": 458.9200569999998
+    },
+    {
+      "name": "serpentin delayed L1/0 at 3150ms",
+      "ms": 517.5762440000003
+    },
+    {
+      "name": "serpentin delayed L1/0 at 4650ms",
+      "ms": 99.61921499999971
+    },
+    {
+      "name": "serpentin delayed L1/0 at 6150ms",
+      "ms": 26.004759000000377
+    },
+    {
+      "name": "serpentin delayed L1/0 at 7650ms",
+      "ms": 39.23139700000047
+    },
+    {
+      "name": "serpentin delayed L1/0 at 9150ms",
+      "ms": 61.796642999999676
+    },
+    {
+      "name": "serpentin delayed L1/0 at 10650ms",
+      "ms": 24.591253999999935
+    },
+    {
+      "name": "serpentin delayed L1/0 at 12150ms",
+      "ms": 132.04680199999984
+    },
+    {
+      "name": "serpentin delayed L1/0 at 13650ms",
+      "ms": 27.232559000000037
+    },
+    {
+      "name": "serpentin delayed L1/0 at 15150ms",
+      "ms": 64.49633400000039
+    },
+    {
+      "name": "serpentin delayed L1/0 at 16650ms",
+      "ms": 119.92273900000055
+    },
+    {
+      "name": "serpentin delayed L1/0 at 18150ms",
+      "ms": 38.31362199999967
+    },
+    {
+      "name": "serpentin delayed L1/0 at 19650ms",
+      "ms": 12.92122500000005
+    },
+    {
+      "name": "serpentin delayed L1/10 at 150ms",
+      "ms": 28.22338799999943
+    },
+    {
+      "name": "serpentin delayed L1/10 at 1750ms",
+      "ms": 114.18616500000007
+    },
+    {
+      "name": "serpentin delayed L1/10 at 3350ms",
+      "ms": 50.66319999999996
+    },
+    {
+      "name": "serpentin delayed L1/10 at 4950ms",
+      "ms": 35.180497999999716
+    },
+    {
+      "name": "serpentin delayed L1/10 at 6550ms",
+      "ms": 24.10236900000018
+    },
+    {
+      "name": "serpentin delayed L1/10 at 8150ms",
+      "ms": 105.9353259999998
+    },
+    {
+      "name": "serpentin delayed L1/10 at 9750ms",
+      "ms": 36.217703000000256
+    },
+    {
+      "name": "serpentin delayed L1/10 at 11350ms",
+      "ms": 29.47500300000047
+    },
+    {
+      "name": "serpentin delayed L1/10 at 12950ms",
+      "ms": 17.938508999999613
+    },
+    {
+      "name": "serpentin delayed L1/10 at 14550ms",
+      "ms": 36.57835899999918
+    },
+    {
+      "name": "serpentin delayed L1/10 at 16150ms",
+      "ms": 32.41711200000009
+    },
+    {
+      "name": "serpentin delayed L1/10 at 17750ms",
+      "ms": 47.01556100000016
+    },
+    {
+      "name": "serpentin delayed L1/10 at 19350ms",
+      "ms": 17.077374000000418
+    },
+    {
+      "name": "serpentin delayed L1/20 at 150ms",
+      "ms": 25.769116999999824
+    },
+    {
+      "name": "serpentin delayed L1/20 at 1850ms",
+      "ms": 30.506341000000248
+    },
+    {
+      "name": "serpentin delayed L1/20 at 3550ms",
+      "ms": 21.31530599999951
+    },
+    {
+      "name": "serpentin delayed L1/20 at 5250ms",
+      "ms": 31.994226000000708
+    },
+    {
+      "name": "serpentin delayed L1/20 at 6950ms",
+      "ms": 30.056007999999565
+    },
+    {
+      "name": "serpentin delayed L1/20 at 8650ms",
+      "ms": 77.12751099999969
+    },
+    {
+      "name": "serpentin delayed L1/20 at 10350ms",
+      "ms": 46.513755999999375
+    },
+    {
+      "name": "serpentin delayed L1/20 at 12050ms",
+      "ms": 36.14807100000053
+    },
+    {
+      "name": "serpentin delayed L1/20 at 13750ms",
+      "ms": 35.07217599999967
+    },
+    {
+      "name": "serpentin delayed L1/20 at 15450ms",
+      "ms": 22.804519000000255
+    },
+    {
+      "name": "serpentin delayed L1/20 at 17150ms",
+      "ms": 39.105405000000246
+    },
+    {
+      "name": "serpentin delayed L1/20 at 18850ms",
+      "ms": 11.182332000000315
+    },
+    {
+      "name": "serpentin delayed L1/30 at 150ms",
+      "ms": 26.078999999999724
+    },
+    {
+      "name": "serpentin delayed L1/30 at 1950ms",
+      "ms": 29.19473299999936
+    },
+    {
+      "name": "serpentin delayed L1/30 at 3750ms",
+      "ms": 22.736704999999347
+    },
+    {
+      "name": "serpentin delayed L1/30 at 5550ms",
+      "ms": 24.327534999999443
+    },
+    {
+      "name": "serpentin delayed L1/30 at 7350ms",
+      "ms": 59.01747299999988
+    },
+    {
+      "name": "serpentin delayed L1/30 at 9150ms",
+      "ms": 24.481744000000617
+    },
+    {
+      "name": "serpentin delayed L1/30 at 10950ms",
+      "ms": 32.365499000000455
+    },
+    {
+      "name": "serpentin delayed L1/30 at 12750ms",
+      "ms": 31.525036
+    },
+    {
+      "name": "serpentin delayed L1/30 at 14550ms",
+      "ms": 34.40072700000019
+    },
+    {
+      "name": "serpentin delayed L1/30 at 16350ms",
+      "ms": 29.41661699999986
+    },
+    {
+      "name": "serpentin delayed L1/30 at 18150ms",
+      "ms": 2.8472649999994246
+    },
+    {
+      "name": "traverse transport window L1/220",
+      "ms": 932.4858469999999
+    },
+    {
+      "name": "traverse transport window L1/300",
+      "ms": 68.46670799999993
+    },
+    {
+      "name": "traverse delayed L1",
+      "ms": 92.5924729999997
+    },
+    {
+      "name": "alunir delayed L1",
+      "ms": 168.60385999999926
+    },
+    {
+      "name": "derapage L1 at 0ms",
+      "ms": 478.5647060000001
+    },
+    {
+      "name": "derapage L1 at 1700ms",
+      "ms": 23.08925999999974
+    },
+    {
+      "name": "derapage L1 at 3400ms",
+      "ms": 25.548909999999523
+    },
+    {
+      "name": "derapage L1 at 5100ms",
+      "ms": 231.7002390000007
+    },
+    {
+      "name": "derapage L1 at 6800ms",
+      "ms": 24.627222000000984
+    },
+    {
+      "name": "derapage L1 at 8500ms",
+      "ms": 25.594934999999168
+    },
+    {
+      "name": "derapage L1 at 10200ms",
+      "ms": 27.676534999998694
+    },
+    {
+      "name": "derapage L1 at 11900ms",
+      "ms": 313.0478729999995
+    },
+    {
+      "name": "derapage L1 at 13600ms",
+      "ms": 25.969489999999496
+    },
+    {
+      "name": "derapage L1 at 15300ms",
+      "ms": 25.17533100000037
+    },
+    {
+      "name": "derapage L1 at 17000ms",
+      "ms": 25.707029000001057
+    },
+    {
+      "name": "derapage L1 at 18700ms",
+      "ms": 228.77852299999904
+    },
+    {
+      "name": "derapage L1 at 20400ms",
+      "ms": 24.300296999999773
+    },
+    {
+      "name": "derapage L1 at 22100ms",
+      "ms": 24.564225999998598
+    },
+    {
+      "name": "derapage L1 at 23800ms",
+      "ms": 164.71254699999918
+    },
+    {
+      "name": "derapage L1 at 25500ms",
+      "ms": 22.676362000000154
+    },
+    {
+      "name": "derapage L1 at 27200ms",
+      "ms": 74.03252199999952
+    },
+    {
+      "name": "derapage L1 at 28900ms",
+      "ms": 23.55139599999893
+    },
+    {
+      "name": "derapage L1 at 30600ms",
+      "ms": 26.164834999999584
+    },
+    {
+      "name": "derapage L1 at 32300ms",
+      "ms": 24.958615999999893
+    },
+    {
+      "name": "derapage L1 at 34000ms",
+      "ms": 123.68833900000027
+    },
+    {
+      "name": "derapage L1 at 35700ms",
+      "ms": 24.257206000000224
+    },
+    {
+      "name": "derapage L1 at 37400ms",
+      "ms": 175.16783699999905
+    },
+    {
+      "name": "derapage L1 at 39100ms",
+      "ms": 23.860092000000805
+    },
+    {
+      "name": "derapage L1 at 40800ms",
+      "ms": 171.91989700000158
+    },
+    {
+      "name": "derapage L1 at 42500ms",
+      "ms": 23.71154099999876
+    },
+    {
+      "name": "derapage L1 at 44200ms",
+      "ms": 25.63662999999906
+    },
+    {
+      "name": "derapage L1 at 45900ms",
+      "ms": 24.679183000000194
+    },
+    {
+      "name": "derapage L1 at 47600ms",
+      "ms": 25.344764999999825
+    },
+    {
+      "name": "derapage L1 at 49300ms",
+      "ms": 113.28633699999955
+    },
+    {
+      "name": "derapage L1 at 51000ms",
+      "ms": 24.210972000000766
+    },
+    {
+      "name": "derapage L1 at 52700ms",
+      "ms": 23.326579000000493
+    },
+    {
+      "name": "derapage L1 at 54400ms",
+      "ms": 23.741431999998895
+    },
+    {
+      "name": "derapage L1 at 56100ms",
+      "ms": 22.57118199999968
+    },
+    {
+      "name": "derapage L1 at 57800ms",
+      "ms": 21.765849000001253
+    },
+    {
+      "name": "derapage L1 at 59500ms",
+      "ms": 22.44623700000011
+    },
+    {
+      "name": "derapage L1 at 61200ms",
+      "ms": 21.471260999998776
+    },
+    {
+      "name": "derapage L1 at 62900ms",
+      "ms": 5.588442000000214
+    },
+    {
+      "name": "bubble noisy drag L1 shot 1",
+      "ms": 8.431307000000743
+    },
+    {
+      "name": "bubble noisy drag L1 shot 2",
+      "ms": 4.698532000000341
+    },
+    {
+      "name": "bubble noisy drag L1 shot 3",
+      "ms": 6.3074520000009215
+    },
+    {
+      "name": "bubble noisy drag L1 shot 4",
+      "ms": 8.314464000000953
+    },
+    {
+      "name": "bubble noisy drag L1 shot 5",
+      "ms": 1.055222999999387
+    },
+    {
+      "name": "bubble noisy drag L1 shot 6",
+      "ms": 0.7725080000000162
+    },
+    {
+      "name": "serpentin capture regression L10",
+      "ms": 2.968229000000065
+    },
+    {
+      "name": "serpentin delayed L10/0 at 150ms",
+      "ms": 147.14251700000023
+    },
+    {
+      "name": "serpentin delayed L10/0 at 1650ms",
+      "ms": 119.49629100000129
+    },
+    {
+      "name": "serpentin delayed L10/0 at 3150ms",
+      "ms": 332.651315000001
+    },
+    {
+      "name": "serpentin delayed L10/0 at 4650ms",
+      "ms": 127.37851099999898
+    },
+    {
+      "name": "serpentin delayed L10/0 at 6150ms",
+      "ms": 285.24017599999934
+    },
+    {
+      "name": "serpentin delayed L10/0 at 7650ms",
+      "ms": 33.79059899999993
+    },
+    {
+      "name": "serpentin delayed L10/0 at 9150ms",
+      "ms": 46.55517100000179
+    },
+    {
+      "name": "serpentin delayed L10/0 at 10650ms",
+      "ms": 53.570458000000144
+    },
+    {
+      "name": "serpentin delayed L10/0 at 12150ms",
+      "ms": 58.52244200000132
+    },
+    {
+      "name": "serpentin delayed L10/0 at 13650ms",
+      "ms": 48.08908200000042
+    },
+    {
+      "name": "serpentin delayed L10/10 at 150ms",
+      "ms": 166.5625570000011
+    },
+    {
+      "name": "serpentin delayed L10/10 at 1750ms",
+      "ms": 168.49344200000087
+    },
+    {
+      "name": "serpentin delayed L10/10 at 3350ms",
+      "ms": 67.95163200000025
+    },
+    {
+      "name": "serpentin delayed L10/10 at 4950ms",
+      "ms": 56.86477299999933
+    },
+    {
+      "name": "serpentin delayed L10/10 at 6550ms",
+      "ms": 48.25900499999989
+    },
+    {
+      "name": "serpentin delayed L10/10 at 8150ms",
+      "ms": 71.0090479999999
+    },
+    {
+      "name": "serpentin delayed L10/10 at 9750ms",
+      "ms": 83.12878099999944
+    },
+    {
+      "name": "serpentin delayed L10/10 at 11350ms",
+      "ms": 90.88856999999916
+    },
+    {
+      "name": "serpentin delayed L10/10 at 12950ms",
+      "ms": 70.87725900000078
+    },
+    {
+      "name": "serpentin delayed L10/20 at 150ms",
+      "ms": 50.942073999998684
+    },
+    {
+      "name": "serpentin delayed L10/20 at 1850ms",
+      "ms": 65.13272300000062
+    },
+    {
+      "name": "serpentin delayed L10/20 at 3550ms",
+      "ms": 42.68592700000045
+    },
+    {
+      "name": "serpentin delayed L10/20 at 5250ms",
+      "ms": 73.04867600000034
+    },
+    {
+      "name": "serpentin delayed L10/20 at 6950ms",
+      "ms": 55.936869999999544
+    },
+    {
+      "name": "serpentin delayed L10/20 at 8650ms",
+      "ms": 61.11953800000083
+    },
+    {
+      "name": "serpentin delayed L10/20 at 10350ms",
+      "ms": 227.4973659999996
+    },
+    {
+      "name": "serpentin delayed L10/20 at 12050ms",
+      "ms": 95.28231699999924
+    },
+    {
+      "name": "serpentin delayed L10/20 at 13750ms",
+      "ms": 41.076938000000155
+    },
+    {
+      "name": "serpentin delayed L10/30 at 150ms",
+      "ms": 45.897760999998354
+    },
+    {
+      "name": "serpentin delayed L10/30 at 1950ms",
+      "ms": 966.3464960000001
+    },
+    {
+      "name": "serpentin delayed L10/30 at 3750ms",
+      "ms": 56.37637799999902
+    },
+    {
+      "name": "serpentin delayed L10/30 at 5550ms",
+      "ms": 43.62619300000006
+    },
+    {
+      "name": "serpentin delayed L10/30 at 7350ms",
+      "ms": 33.99893399999928
+    },
+    {
+      "name": "serpentin delayed L10/30 at 9150ms",
+      "ms": 53.12298899999951
+    },
+    {
+      "name": "serpentin delayed L10/30 at 10950ms",
+      "ms": 45.1781919999994
+    },
+    {
+      "name": "serpentin delayed L10/30 at 12750ms",
+      "ms": 47.195889000000534
+    },
+    {
+      "name": "serpentin delayed L10/30 at 14550ms",
+      "ms": 26.44000700000106
+    },
+    {
+      "name": "traverse transport window L10/220",
+      "ms": 370.1607210000002
+    },
+    {
+      "name": "traverse transport window L10/300",
+      "ms": 1193.260413
+    },
+    {
+      "name": "traverse delayed L10",
+      "ms": 102.53834499999903
+    },
+    {
+      "name": "alunir delayed L10",
+      "ms": 26.926656000001458
+    },
+    {
+      "name": "derapage L10 at 0ms",
+      "ms": 37.9091040000003
+    },
+    {
+      "name": "derapage L10 at 1700ms",
+      "ms": 37.064940000000206
+    },
+    {
+      "name": "derapage L10 at 3400ms",
+      "ms": 38.363836999998966
+    },
+    {
+      "name": "derapage L10 at 5100ms",
+      "ms": 38.624830999999176
+    },
+    {
+      "name": "derapage L10 at 6800ms",
+      "ms": 40.147007999999914
+    },
+    {
+      "name": "derapage L10 at 8500ms",
+      "ms": 25.452320000000327
+    },
+    {
+      "name": "derapage L10 at 10200ms",
+      "ms": 368.86692200000107
+    },
+    {
+      "name": "derapage L10 at 11900ms",
+      "ms": 25.513848999999027
+    },
+    {
+      "name": "derapage L10 at 13600ms",
+      "ms": 81.495766
+    },
+    {
+      "name": "derapage L10 at 15300ms",
+      "ms": 178.24634499999956
+    },
+    {
+      "name": "derapage L10 at 17000ms",
+      "ms": 26.52074200000061
+    },
+    {
+      "name": "derapage L10 at 18700ms",
+      "ms": 177.00150500000018
+    },
+    {
+      "name": "derapage L10 at 20400ms",
+      "ms": 103.83228400000007
+    },
+    {
+      "name": "derapage L10 at 22100ms",
+      "ms": 24.58601600000111
+    },
+    {
+      "name": "derapage L10 at 23800ms",
+      "ms": 28.11779000000024
+    },
+    {
+      "name": "derapage L10 at 25500ms",
+      "ms": 34.7256959999977
+    },
+    {
+      "name": "derapage L10 at 27200ms",
+      "ms": 26.456280000002153
+    },
+    {
+      "name": "derapage L10 at 28900ms",
+      "ms": 22.976816000002145
+    },
+    {
+      "name": "derapage L10 at 30600ms",
+      "ms": 24.405547999998817
+    },
+    {
+      "name": "derapage L10 at 32300ms",
+      "ms": 24.237301000001025
+    },
+    {
+      "name": "derapage L10 at 34000ms",
+      "ms": 26.059375000000728
+    },
+    {
+      "name": "derapage L10 at 35700ms",
+      "ms": 25.317806999999448
+    },
+    {
+      "name": "derapage L10 at 37400ms",
+      "ms": 25.669104999997217
+    },
+    {
+      "name": "derapage L10 at 39100ms",
+      "ms": 24.308469000003242
+    },
+    {
+      "name": "derapage L10 at 40800ms",
+      "ms": 24.80315100000007
+    },
+    {
+      "name": "derapage L10 at 42500ms",
+      "ms": 24.020166000002064
+    },
+    {
+      "name": "derapage L10 at 44200ms",
+      "ms": 24.515407000002597
+    },
+    {
+      "name": "derapage L10 at 45900ms",
+      "ms": 24.595164999998815
+    },
+    {
+      "name": "derapage L10 at 47600ms",
+      "ms": 23.564665999998397
+    },
+    {
+      "name": "derapage L10 at 49300ms",
+      "ms": 24.269148999999743
+    },
+    {
+      "name": "derapage L10 at 51000ms",
+      "ms": 23.631851999998617
+    },
+    {
+      "name": "derapage L10 at 52700ms",
+      "ms": 24.623798999997234
+    },
+    {
+      "name": "derapage L10 at 54400ms",
+      "ms": 23.590786000000662
+    },
+    {
+      "name": "derapage L10 at 56100ms",
+      "ms": 389.78343799999857
+    },
+    {
+      "name": "derapage L10 at 57800ms",
+      "ms": 104.07050999999774
+    },
+    {
+      "name": "derapage L10 at 59500ms",
+      "ms": 21.66381199999887
+    },
+    {
+      "name": "derapage L10 at 61200ms",
+      "ms": 22.625588000002608
+    },
+    {
+      "name": "bubble noisy drag L10 shot 1",
+      "ms": 0.7188010000027134
+    },
+    {
+      "name": "bubble noisy drag L10 shot 2",
+      "ms": 0.6991049999996903
+    },
+    {
+      "name": "bubble noisy drag L10 shot 3",
+      "ms": 0.6150170000000799
+    },
+    {
+      "name": "bubble noisy drag L10 shot 4",
+      "ms": 1.402750000001106
+    },
+    {
+      "name": "bubble noisy drag L10 shot 5",
+      "ms": 1.555421999997634
+    },
+    {
+      "name": "bubble noisy drag L10 shot 6",
+      "ms": 5.590328000002046
+    },
+    {
+      "name": "bubble noisy drag L10 shot 7",
+      "ms": 0.6930990000000747
+    },
+    {
+      "name": "bubble noisy drag L10 shot 8",
+      "ms": 1.006333999997878
+    },
+    {
+      "name": "bubble noisy drag L10 shot 9",
+      "ms": 0.6780830000025162
+    },
+    {
+      "name": "bubble noisy drag L10 shot 10",
+      "ms": 0.7169849999991129
+    },
+    {
+      "name": "bubble noisy drag L10 shot 11",
+      "ms": 1.4836250000007567
+    },
+    {
+      "name": "bubble noisy drag L10 shot 12",
+      "ms": 0.7505079999973532
+    },
+    {
+      "name": "bubble noisy drag L10 shot 13",
+      "ms": 0.7205469999971683
+    },
+    {
+      "name": "bubble noisy drag L10 shot 14",
+      "ms": 0.6861840000019583
+    },
+    {
+      "name": "bubble noisy drag L10 shot 15",
+      "ms": 3.5567770000016026
+    },
+    {
+      "name": "bubble noisy drag L10 shot 16",
+      "ms": 1.3549090000014985
+    },
+    {
+      "name": "bubble noisy drag L10 shot 17",
+      "ms": 0.5694810000022699
+    },
+    {
+      "name": "bubble noisy drag L10 shot 18",
+      "ms": 1.443396999999095
+    },
+    {
+      "name": "bubble noisy drag L10 shot 19",
+      "ms": 0.5914799999991374
+    },
+    {
+      "name": "bubble noisy drag L10 shot 20",
+      "ms": 0.6620899999979883
+    },
+    {
+      "name": "bubble noisy drag L10 shot 21",
+      "ms": 2.2540379999991274
+    },
+    {
+      "name": "bubble noisy drag L10 shot 22",
+      "ms": 0.980983000001288
+    },
+    {
+      "name": "bubble noisy drag L10 shot 23",
+      "ms": 0.49831300000005285
+    },
+    {
+      "name": "bubble noisy drag L10 shot 24",
+      "ms": 0.5256900000022142
+    },
+    {
+      "name": "bubble noisy drag L10 shot 25",
+      "ms": 0.5355390000004263
+    },
+    {
+      "name": "bubble noisy drag L10 shot 26",
+      "ms": 5.5151089999999385
+    },
+    {
+      "name": "bubble noisy drag L10 shot 27",
+      "ms": 0.5003380000016477
+    },
+    {
+      "name": "bubble noisy drag L10 shot 28",
+      "ms": 0.7123050000009243
+    },
+    {
+      "name": "bubble noisy drag L10 shot 29",
+      "ms": 1.4362039999978151
+    },
+    {
+      "name": "bubble noisy drag L10 shot 30",
+      "ms": 0.6962419999981648
+    },
+    {
+      "name": "bubble noisy drag L10 shot 31",
+      "ms": 0.5744400000003225
+    },
+    {
+      "name": "bubble noisy drag L10 shot 32",
+      "ms": 0.45298600000023725
+    },
+    {
+      "name": "bubble noisy drag L10 shot 33",
+      "ms": 0.44195200000103796
+    },
+    {
+      "name": "bubble noisy drag L10 shot 34",
+      "ms": 1.3644079999976384
+    },
+    {
+      "name": "bubble noisy drag L10 shot 35",
+      "ms": 0.7174730000006093
+    },
+    {
+      "name": "bubble noisy drag L10 shot 36",
+      "ms": 0.8625329999995301
+    },
+    {
+      "name": "bubble noisy drag L10 shot 37",
+      "ms": 1.48530099999698
+    },
+    {
+      "name": "bubble noisy drag L10 shot 38",
+      "ms": 3.425896000000648
+    },
+    {
+      "name": "bubble noisy drag L10 shot 39",
+      "ms": 3.6722929999996268
+    },
+    {
+      "name": "bubble noisy drag L10 shot 40",
+      "ms": 0.7271110000001499
+    },
+    {
+      "name": "bubble noisy drag L10 shot 41",
+      "ms": 0.5611690000005183
+    },
+    {
+      "name": "bubble noisy drag L10 shot 42",
+      "ms": 2.2454480000014883
+    },
+    {
+      "name": "bubble noisy drag L10 shot 43",
+      "ms": 1.182053000000451
+    },
+    {
+      "name": "bubble noisy drag L10 shot 44",
+      "ms": 0.36561599999913597
+    },
+    {
+      "name": "bubble noisy drag L10 shot 45",
+      "ms": 0.492167000000336
+    },
+    {
+      "name": "bubble noisy drag L10 shot 46",
+      "ms": 1.9867579999990994
+    },
+    {
+      "name": "bubble noisy drag L10 shot 47",
+      "ms": 0.6206740000015998
+    },
+    {
+      "name": "bubble noisy drag L10 shot 48",
+      "ms": 1.2304540000004636
+    },
+    {
+      "name": "bubble noisy drag L10 shot 49",
+      "ms": 0.8095929999981308
+    },
+    {
+      "name": "bubble noisy drag L10 shot 50",
+      "ms": 0.2911659999990661
+    },
+    {
+      "name": "bubble noisy drag L10 shot 51",
+      "ms": 0.3665240000009362
+    },
+    {
+      "name": "bubble noisy drag L10 shot 52",
+      "ms": 1.3461790000001201
+    },
+    {
+      "name": "bubble noisy drag L10 shot 53",
+      "ms": 0.35842200000115554
+    },
+    {
+      "name": "bubble noisy drag L10 shot 54",
+      "ms": 0.334047999996983
+    },
+    {
+      "name": "bubble noisy drag L10 shot 55",
+      "ms": 0.5433610000000044
+    },
+    {
+      "name": "bubble noisy drag L10 shot 56",
+      "ms": 0.33125400000062655
+    },
+    {
+      "name": "bubble tactical special pair",
+      "ms": 0.8975920000011683
+    },
+    {
+      "name": "first landing assistance preserves dangerous approaches",
+      "ms": 1.0631849999990663
+    },
+    {
+      "name": "capture and touch regression source guards",
+      "ms": 0.6386929999971471
+    }
+  ],
+  "verification": {
+    "lint": "passed",
+    "typecheck": "passed",
+    "build": "passed",
+    "testNode": {
+      "status": "passed",
+      "validators": 29,
+      "elapsedSeconds": 150.29,
+      "budgetSeconds": 180
+    },
+    "browserRun": false,
+    "vitestRun": false,
+    "commits": 0
+  }
+}

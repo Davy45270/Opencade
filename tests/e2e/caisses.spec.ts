@@ -1,6 +1,11 @@
 import { test, expect } from './fixture';
 import type { Page } from '@playwright/test';
 const read = (page: Page) => page.evaluate(() => window.__CAISSES_TEST__?.read());
+const gameState = (state: Awaited<ReturnType<typeof read>>) => {
+    if (!state) throw new Error('État Caisses absent');
+    const { character, ...game } = state;
+    return { character, game };
+};
 async function activate(page: Page, selector: string, mobile: boolean) {
     if (mobile) await page.locator(selector).tap(); else await page.locator(selector).click();
 }
@@ -32,7 +37,10 @@ test('C01 C04 C05 C06 C11 victoire, reprise, impasse sans défaite', async ({ pa
     // The requested lost capture records a recoverable impasse: this game has no defeat.
     await page.screenshot({ path: `test-results/screenshots/caisses-lost-${info.project.name}.png` });
     if (mobile) await activate(page,'#caisses-undo',true); else await page.keyboard.press('Backspace');
-    expect(await read(page)).toEqual(before);
+    const after = gameState(await read(page));
+    expect(after.game).toEqual(gameState(before).game);
+    expect(after.character.id).toBe(gameState(before).character.id);
+    expect(after.character.pose).toBe('profil');
     if (mobile) await activate(page,'#game-menu-toggle',true);
     await activate(page,'#restart',mobile); expect((await read(page))?.moves).toBe(0);
     await page.evaluate(() => { window.__CAISSES_TEST__?.loadLevel(29,28); });
@@ -59,4 +67,26 @@ test('C12 crochet absent sans paramètre test', async ({ page }) => {
     await expect(page.locator('#game canvas')).toBeVisible();
     expect(await page.evaluate(() => window.__CAISSES_TEST__)).toBeUndefined();
     expect(await page.evaluate(() => window.__ARCADE_TEST__)).toBeUndefined();
+});
+
+// Pass 403: each introduction workshop names its mechanism; the first challenge fails at its budget and undo resumes.
+test('C10 C19 ateliers d\'introduction annoncés, défi perdu au budget puis repris par annulation', async ({ page }, info) => {
+    const mobile = info.project.name === 'mobile-chromium';
+    await page.goto('/?test=1#/caisses');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__CAISSES_TEST__))).toBe(true);
+    for (const [level, tip] of [[3, /Glace/], [7, /Flèches/], [11, /Bouton/], [15, /Trou/], [20, /Plots/], [25, /Couleurs/], [29, /Grand final/]] as const) {
+        await page.evaluate(index => { window.__CAISSES_TEST__?.loadLevel(index, 28); }, level);
+        expect(await page.evaluate(() => window.__CAISSES_TEST__?.hudText() ?? '')).toMatch(tip);
+        await page.screenshot({ path: `test-results/screenshots/caisses-intro-${String(level + 1)}-${info.project.name}.png` });
+    }
+    await page.evaluate(() => { window.__CAISSES_TEST__?.loadLevel(4, 28); });
+    expect(await page.evaluate(() => window.__CAISSES_TEST__?.hudText() ?? '')).toMatch(/reste 13/);
+    for (let i = 0; i < 13; i++) {
+        if (mobile) await page.locator(i % 2 ? '#caisses-down' : '#caisses-up').tap();
+        else await page.keyboard.press(i % 2 ? 'ArrowDown' : 'ArrowUp');
+    }
+    expect((await read(page))?.status).toBe('lost'); await expect(page.locator('#retry-level')).toBeVisible();
+    await page.screenshot({ path: `test-results/screenshots/caisses-budget-${info.project.name}.png` });
+    await page.keyboard.press('Backspace');
+    expect((await read(page))?.status).toBe('playing');
 });

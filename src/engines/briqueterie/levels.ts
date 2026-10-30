@@ -1,6 +1,7 @@
+import { levelCatalogue } from '../../content/level-catalogue';
 /** Ten columns; dots are intentional empty aiming lanes. Symbols are playable tiles. */
 export const designs: { name: string; shape: string; rows: string[]; rest?: boolean }[] = [
-    { name: '01 · Ailes', shape: 'ailes', rows: ['x........x', '.xx....xx.', '..xx..xx..', '...xxxx...'] },
+    { name: '01 · Ailes', shape: 'bambous et bao', rows: ['.xx....xx.', '.xx....xx.', '.xx.xx.xx.', '.x.xxxx.x.', '.x..xx..x.'] },
     { name: '02 · Arche', shape: 'arche', rows: ['...xxxx...', '..x....x..', '.x......x.', 'x........x', 'x........x'] },
     { name: '03 · Damier troué', shape: 'damier', rows: ['x.x.x.x.x.', '.x.x.x.x.x', 'x.x...x.x.', '.x.....x.x'] },
     { name: '04 · Coulisse', shape: 'chevrons mobiles', rows: ['..x....x..', '.x.x..x.x.', 'm.m.mm.m.m', '...x..x...'] },
@@ -14,10 +15,10 @@ export const designs: { name: string; shape: string; rows: string[]; rest?: bool
     { name: '12 · Spirale', shape: 'spirale ouverte', rows: ['.xxxxxxx..', '.x.....x..', '.x.xxx.x..', '.x.x.r.x..', '.x.e...x..', '.xxxxxxx..'] },
     { name: '13 · Passage', shape: 'portes jumelles', rows: ['.xxx..xxx.', '.x......x.', '.p......p.', '.x..mm..x.'] },
     { name: '14 · Orbital', shape: 'satellites', rows: ['....xx....', '.px....xp.', '.xx....xx.', '....ee....', '....xx....'] },
-    { name: '15 · Défi relais', shape: 'enceinte ouverte', rows: ['xxxxxxxxxx', 'x........x', 'p..r..r..p', '..##..##..', '..e....e..'] },
+    { name: '15 · Défi relais', shape: 'constellations et portails', rows: ['.x..xx..x.', 'xxx.xx.xxx', 'px.r..r.xp', '..##..##..', '..e....e..'] },
     { name: '16 · Prismes', shape: 'éventail incliné', rows: ['....xx....', '...a..a...', '..a....a..', '.a..ee..a.', 'a........a'] },
     { name: '17 · Éclats', shape: 'constellation', rest: true, rows: ['..x....x..', '....a.....', '.a......a.', '....xx....'] },
-    { name: '18 · Zigzag', shape: 'zigzag évidé', rows: ['xxxxx.....', '...a......', '..a.......', '.a........', 'xxxxx.....', '.....pp...'] },
+    { name: '18 · Zigzag', shape: 'zigzag mobile et miroirs', rows: ['mmmmm.....', '...a......', '..a.......', '.a........', 'xxxxx.....', '.....pp...'] },
     { name: '19 · Clef de voûte', shape: 'coffre', rows: ['..LLLLLL..', '..L....L..', '..LLLLLL..', '...a..a...', '....kk....'] },
     { name: '20 · Défi citadelle', shape: 'citadelle', rows: ['LLL....LLL', 'L.L....L.L', 'LLL....LLL', '..#....#..', '..#....#..', '.p.ekke.p.'] },
     { name: '21 · Serrure', shape: 'serrure en sablier', rows: ['..LLLLLL..', '...LLLL...', '....LL....', '...a..a...', '..k....k..', '.m......m.'] },
@@ -31,3 +32,8 @@ export const designs: { name: string; shape: string; rows: string[]; rest?: bool
     { name: '29 · Rupture', shape: 'pont suspendu', rows: ['.t......t.', '.hhhhhhhh.', '.h......h.', '..p....p..', '...a..a...', '....bb....'] },
     { name: '30 · Forteresse finale', shape: 'forteresse suspendue', rows: ['...LLLL...', '..LhhhhL..', '.pLh..hLp.', '..LLttLL..', '.#......#.', '..r.gg.r..', '.a.ebbe.a.', '..mmkkmm..'] },
 ];
+
+for (const entry of levelCatalogue) if (entry.game === 'briqueterie') {
+    const level = designs[entry.index];
+    if (level) level.name = entry.name;
+}

@@ -8,11 +8,11 @@ export type Pose = typeof poses[number];
 export type Expression = typeof expressions[number];
 export type Animation = typeof animations[number];
 export const characters = {
-    panda: { fr: 'Panda glouton', en: 'Hungry panda', accent: '#35964c', coat: '#fff6e7' },
-    pandaroux: { fr: 'Panda roux joueur et câlin', en: 'Playful red panda', accent: '#ed8b25', coat: '#df7133' },
-    dragon: { fr: 'Dragon assidu', en: 'Studious dragon', accent: '#e83e42', coat: '#ed4d4c' },
-    singe: { fr: 'Singe en tutu', en: 'Tutu monkey', accent: '#ec79ac', coat: '#a36a49' },
-    licorne: { fr: 'Licorne joueuse', en: 'Playful unicorn', accent: '#9255d5', coat: '#fff9f2' },
+    panda: { fr: 'Boubou', subtitle: 'Panda glouton', motto: 'Manger, foncer, recommencer !', en: 'Boubou', accent: '#35964c', coat: '#fff6e7' },
+    pandaroux: { fr: 'CaliRoux', subtitle: 'Panda roux joueur et câlin', motto: 'Des câlins et des dérapages !', en: 'CaliRoux', accent: '#ed8b25', coat: '#df7133' },
+    dragon: { fr: 'Pestouille', subtitle: 'Dragon assidu', motto: 'Toujours plus loin, toujours plus fort !', en: 'Pestouille', accent: '#e83e42', coat: '#ed4d4c' },
+    singe: { fr: 'Tutu', subtitle: 'Singe en tutu', motto: 'Des pirouettes plein la piste !', en: 'Tutu', accent: '#ec79ac', coat: '#a36a49' },
+    licorne: { fr: 'Lumi', subtitle: 'Licorne joueuse', motto: 'La magie au service de la victoire !', en: 'Lumi', accent: '#9255d5', coat: '#fff9f2' },
 } as const;
 export type Point = readonly [number, number];
 export type Command = { op: 'M' | 'L'; p: Point } | { op: 'C'; a: Point; b: Point; p: Point };

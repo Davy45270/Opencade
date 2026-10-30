@@ -2,6 +2,7 @@ import { characters, drawList, ids, poses, expressions, type CharacterId, type P
 import { renderCharacter } from './canvas';
 import { selectedCharacter, selectCharacter } from './selection';
 import type { Inputs } from '../shell/input';
+import { arcadeArt, liveries, vehicleViews, launcherViews } from './arcade-art';
 
 /** Home-owned lifecycle: no animation survives leaving the home screen. */
 export function setupCharacters(inputs: Inputs, testing = false): void {
@@ -33,8 +34,32 @@ export function setupCharacters(inputs: Inputs, testing = false): void {
         card.style.setProperty('--character-accent', characters[id].accent);
         const preview = makePreview(id, 192); preview.dataset.characterPreview = id;
         const name = document.createElement('h3'); name.textContent = characters[id].fr;
+        const subtitle = document.createElement('p'); subtitle.textContent = characters[id].subtitle;
+        const motto = document.createElement('p'); motto.textContent = characters[id].motto;
         const button = document.createElement('button'); button.textContent = 'Choisir'; button.setAttribute('aria-label', `Choisir ${characters[id].fr}`);
-        buttons.set(id, button); card.append(preview, name, button); grid.append(card);
+        buttons.set(id, button); card.append(preview, name, subtitle, motto, button); grid.append(card);
+        const equipment = document.createElement('details');
+        const equipmentTitle = document.createElement('summary'); equipmentTitle.textContent = `${liveries[id].name} et lanceur`;
+        equipment.append(equipmentTitle); card.append(equipment);
+        let equipmentDrawn = false;
+        inputs.on(equipment, 'toggle', () => {
+            if (!equipment.open || equipmentDrawn) return;
+            equipmentDrawn = true;
+            for (const kind of ['vehicles', 'launchers'] as const) {
+                const sheet = document.createElement('section'); sheet.className = 'character-sheet'; sheet.dataset.sheet = `${id}-${kind}`;
+                for (const view of kind === 'vehicles' ? vehicleViews : launcherViews) {
+                    const figure = document.createElement('figure'), canvas = document.createElement('canvas');
+                    canvas.width = canvas.height = 320; canvas.style.width = canvas.style.height = '160px';
+                    canvas.setAttribute('role', 'img'); canvas.setAttribute('aria-label', `${kind === 'vehicles' ? liveries[id].name : liveries[id].launcher}, ${view}`);
+                    const context = canvas.getContext('2d');
+                    const drawing = kind === 'vehicles' ? arcadeArt[id].vehicles[view as typeof vehicleViews[number]] : arcadeArt[id].launchers[view as typeof launcherViews[number]];
+                    if (context) renderCharacter(context, drawing, 0, 0, 320);
+                    const caption = document.createElement('figcaption'); caption.textContent = view;
+                    figure.append(canvas, caption); sheet.append(figure);
+                }
+                equipment.append(sheet);
+            }
+        });
         const active = (value: boolean): void => { const item = previews.find(p => p.element === preview); if (item) item.special = value; paint(performance.now()); };
         for (const event of ['pointerenter', 'pointerdown', 'touchstart', 'click', 'focusin']) inputs.on(card, event, () => { active(true); });
         for (const event of ['pointerleave', 'pointercancel', 'focusout']) inputs.on(card, event, e => {

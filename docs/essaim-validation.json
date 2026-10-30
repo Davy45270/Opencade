@@ -2240,14 +2240,14 @@
           "spiral-approach"
         ],
         "layout": [
-          "205,90:sensor",
-          "155,90:spiral",
-          "228,118:burst",
-          "132,118:spiral",
-          "251,146:burst",
-          "109,146:spiral",
-          "274,174:burst",
-          "86,174:spiral"
+          "295,180:sensor",
+          "238.548441,220.729351:spiral",
+          "180,260:burst",
+          "121.451559,220.729351:spiral",
+          "65,180:burst",
+          "121.451559,139.270649:spiral",
+          "180,100:burst",
+          "238.548441,139.270649:spiral"
         ],
         "observation": {
           "elements": [
@@ -2259,14 +2259,14 @@
             "weapon:magnet"
           ],
           "layout": [
-            "205,90:sensor",
-            "155,90:spiral",
-            "228,118:burst",
-            "132,118:spiral",
-            "251,146:burst",
-            "109,146:spiral",
-            "274,174:burst",
-            "86,174:spiral"
+            "295,180:sensor",
+            "238.548441,220.729351:spiral",
+            "180,260:burst",
+            "121.451559,220.729351:spiral",
+            "65,180:burst",
+            "121.451559,139.270649:spiral",
+            "180,100:burst",
+            "238.548441,139.270649:spiral"
           ],
           "params": {
             "layoutCells": 8
@@ -2319,17 +2319,17 @@
               ]
             },
             "guardian:3": {
-              "frame": 524,
+              "frame": 599,
               "phase": 1,
               "velocities": [
                 [
-                  -2.490384123101691,
+                  -19.426427354985208,
                   160
                 ]
               ]
             }
           },
-          "frames": 3369,
+          "frames": 4121,
           "status": "won"
         },
         "normalizedParameters": {
@@ -3915,9 +3915,9 @@
         },
         {
           "level": 15,
-          "frames": 2282,
+          "frames": 2723,
           "lives": 3,
-          "score": 575
+          "score": 587
         },
         {
           "level": 16,
@@ -4100,9 +4100,9 @@
         },
         {
           "level": 15,
-          "frames": 3369,
+          "frames": 4121,
           "lives": 3,
-          "score": 557
+          "score": 550
         },
         {
           "level": 16,
