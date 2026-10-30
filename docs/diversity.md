@@ -1,6 +1,6 @@
-# Level diversity audit — pass 58 (Dédale)
+# Level diversity audit — pass 61 (Briqueterie)
 
-Dédale is updated for pass 58; Essaim retains pass 54; Ferraille retains passes 51–52 and Bubble Lab its pass 49 correction. Other game implementations are unchanged. Run from the repository root:
+Briqueterie is updated for pass 61; Dédale retains pass 58; Essaim retains pass 54; Ferraille retains passes 51–52 and Bubble Lab its pass 49 correction. Other game implementations are unchanged. Run from the repository root:
 
 ```sh
 nice -n 19 ionice -c3 node scripts/diversity-report.js
@@ -9,6 +9,12 @@ nice -n 19 ionice -c3 node scripts/diversity-report.js
 The script prints one complete JSON object followed by a Markdown table. Level numbers in this report are one-based. Seed is fixed at 28. The existing TypeScript loader and installed TypeScript compiler are reused; nothing is installed. The JSON includes each requested level, raw and normalized parameters, parameter ranges, initial and midpoint snapshots, element inventories and first appearances, layout signatures, all 29 adjacent comparisons where available, clone pairs, configuration plateaus and pilot outcomes.
 
 ## Method and limits
+
+**Briqueterie pass 61 override:** full deterministic campaign replays replace
+midpoint sampling. The adapter observes effect events at every fixed tick and
+retains first-witness ticks, terminal outcomes and original typed layouts.
+Its numeric descriptors use generated geometry (counts and spans), excluding
+the ordinal level/pattern index. Detailed evidence and limitations are below.
 
 **Essaim pass 54 override:** the adapter follows the ordinary pilot at every fixed tick until a terminal outcome, up to 18,000 ticks, on each of the 30 generated levels. Elements require observed motion, shot emissions, collisions, an actually present rescue ship, or measured guardian shot motifs and second-phase aimed fire. Each first witness records its frame and evidence. No declared formation or configured boss is counted; collected weapons are recorded separately and excluded from novelty counting. Initial typed home layouts and all metric thresholds are preserved. These Essaim rows contain full-attempt observations instead of initial/midpoint-only inventories. See [Essaim pass 54](essaim-pass54.md).
 
@@ -34,7 +40,6 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 
 | Game | Score | Novelties (count; levels) | Clone share | Longest flat plateau | What actually varies |
 | --- | ---: | --- | ---: | ---: | --- |
-| Briqueterie | 79.3 | 3; 8, 11, 14 | 86.2% | 3 | Brick masks, density, solid bricks, hit points, ball speed and paddle width. |
 | Orbite | 78.4 | 3; 6, 10, 15 | 86.2% | 3 | Formation dimensions, armor, movement tier, fire cadence and shot allowance. |
 | Serpentin | 62.1 | 3; 2, 5, 6 | 37.9% | 3 | Obstacle placement and patterns, boundary wrapping, speed and apple target. |
 | Empilo | 59.5 | 5; 6, 9, 11, 16, 21 | 62.1% | 3 | Piece vocabulary, initial rubble and sealed tiles, gravity and line target. |
@@ -44,6 +49,7 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Dérapage | 38.8 | 4; 3, 24, 29, 30 | 0.0% | 0 | Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning. |
 | Bulles | 25.9 | 7; 2, 11, 14, 17, 20, 23, 26 | 0.0% | 0 | Thirty seeded layouts with increasing density and pressure; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers. |
 | Dédale | 22.4 | 8; 4, 5, 9, 13, 16, 19, 22, 25 | 0.0% | 3 | Five seeded topologies; observed colored doors, one-way passages, paired portals, switches, cyclic walls, sliding ice, reduced sight and distinct wisp behaviors. |
+| Briqueterie | 18.1 | 10; 4, 5, 7, 10, 13, 16, 19, 22, 25, 28 | 0.0% | 0 | Thirty authored silhouettes; observed sliding rows, chicanes, neighbor explosions, regrowth, portals, inclined reflections, keys, brick multiball, inverse-gravity zones and falling suspensions. |
 | Essaim | 16.4 | 14; 2, 3, 4, 5, 7, 10, 13, 15, 16, 19, 20, 22, 25, 30 | 0.0% | 3 | Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship. |
 | Ferraille | 11.2 | 19; 2, 4, 5, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 20, 21, 24, 25, 26, 30 | 0.0% | 0 | Authored ascent/descent, wagon rides, hostage rescues, six enemy behaviors, three special weapons and five guardian patterns plus a three-phase reactor. |
 
@@ -56,7 +62,7 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Dédale | 30 | 0 | 0 |
 | Ferraille | 30 | 0 | 0 |
 | Essaim | 30 | 0 | 0 |
-| Briqueterie | 2 | 1 | 27 |
+| Briqueterie | 30 | 0 | 0 |
 | Orbite | 0 | 30 | 0 |
 | Serpentin | 12 | 10 | 8 |
 | Empilo | 0 | 30 | 0 |
@@ -66,11 +72,11 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Traverse | 1 | 29 | 0 |
 | Dérapage | 23 | 7 | 0 |
 
-For Orbite and Empilo no completion time is measured at any level. Briqueterie is mostly censored. Those curves require a stronger ordinary-input policy before completion-time comparisons become useful. Caisses times reflect the chosen replay cadence, not puzzle-solving time. Dédale moves from 100/100, zero novelties and 100% clones to 22.4/100, eight novelty-bearing levels and 0% clones. These remain descriptor measurements, not a claim about human difficulty.
+For Orbite and Empilo no completion time is measured at any level. Those curves require a stronger ordinary-input policy before completion-time comparisons become useful. Caisses times reflect the chosen replay cadence, not puzzle-solving time. Dédale moves from 100/100, zero novelties and 100% clones to 22.4/100, eight novelty-bearing levels and 0% clones. These remain descriptor measurements, not a claim about human difficulty.
 
 ## Campaign plans and implementations
 
-The remaining proposals introduce something every 3–5 levels, include recovery levels, a challenge or boss every five levels, and a distinctive final level. Bubble Lab, Dédale, Essaim and Ferraille below describe their implemented extensions; the other entries remain design suggestions.
+The remaining proposals introduce something every 3–5 levels, include recovery levels, a challenge or boss every five levels, and a distinctive final level. Bubble Lab, Briqueterie, Dédale, Essaim and Ferraille below describe their implemented extensions; the other entries remain design suggestions.
 
 ### Bulles
 
@@ -84,7 +90,49 @@ The review's eight surviving mutations are now rejected by shared Node/unit orac
 
 ### Briqueterie
 
-Introduce switch bricks at 4, moving rows at 8, split-path gates at 12, linked armor at 16, magnet bumpers at 20, regenerating barriers at 24 and synchronized switches at 28. Give wider paddles and safe catch lanes at 6/11/17/22/27. Put a target-core challenge at 5/10/15/20/25, then a transforming brick fortress at 30.
+Implemented in pass 61: **79.3 → 18.1**, **3 → 10** novelty-bearing levels
+(**4/5/7/10/13/16/19/22/25/28**), **86.2% → 0.0%** adjacent clones,
+no flat configuration plateau. Lower is better; metric and clone threshold
+**0.08** are unchanged.
+
+Thirty explicit ten-column drawings replace ranked filling: wings, arches,
+perforated checkerboards, an open spiral, twin rings, a crown, a locked chest,
+a citadel, braided paths and hanging bridges. Every drawing has a distinct
+geometric signature. Recovery stages 6/11/17/23/27 widen the paddle to 108 px;
+5/10/15/20/25 test compositions and 30 combines the mechanics in a suspended
+fortress. See the complete table in `GAME_SPEC.md`.
+
+`scripts/briqueterie-diversity.js` replays the entire seed-28 campaign through
+the real generator. Novelty requires an emitted effect after actual row motion,
+solid impact, neighbor blast, healing, teleportation, inclined reflection,
+unlocking, brick multiball, upward zone acceleration or suspended-brick fall.
+Each first witness has its fixed tick. Static symbols, names, pattern indices,
+colors, counts, PV and speed do not introduce mechanics. Initial signatures
+are typed brick coordinates plus solid status; parameters are actual destructible
+and solid counts and horizontal/vertical spans. No formula or threshold is
+changed. Literal mechanic oracles check the effects behind the event labels.
+
+The ordinary-input pilot wins all 30 levels on both default seed 455 and seed 28
+(60/60), without state injection. `tests/briqueterie-solutions.ts` records paddle
+inputs; replays check victory, score, lives and exact first-effect ticks.
+The long pilot search and the 8,000-destruction bonus statistics run only in
+`scripts/validate-briqueterie.js`; Vitest cases contain short replays. On two CPU,
+the 60 replays take approximately one second. The validator also runs all unit
+oracles through a Node assertion adapter, enforcing **2,000 ms per case**, and
+rejects six source mutations. Repeated level-1 walls measure **100% clones**
+under the same adapter before rejection. Full results, timings, witnesses and
+exact mutation file/lines are in `briqueterie-validation.json`.
+
+```sh
+nice -n 19 ionice -c3 taskset -c 0,1 node scripts/validate-briqueterie.js
+nice -n 19 ionice -c3 node scripts/diversity-report.js
+```
+
+Add `--record` to regenerate recordings. Saves keep their v1 progression schema;
+legacy literal engine states without brick kinds are accepted. The scene draws
+distinct mechanic symbols and inverse-gravity zones. E2E captures
+`briqueterie-level04`, `-level12`, `-level20` and `-level30` are written for desktop
+and mobile, but neither a browser nor Vitest was launched on this machine.
 
 ### Empilo
 

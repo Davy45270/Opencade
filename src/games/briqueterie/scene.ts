@@ -1,4 +1,5 @@
 import Phaser from 'phaser';
+import { designs } from '../../engines/briqueterie/levels';
 import { Engine, LEVELS } from '../../engines/briqueterie/engine';
 import { Inputs, horizontalDrag, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
@@ -47,7 +48,7 @@ export class BriqueterieScene extends Phaser.Scene {
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.graphics = this.add.graphics();
         this.hud = this.add.text(14, 14, '', { fontFamily: 'system-ui', fontSize: '15px', color: '#e5f3ff' });
-        this.prompt = this.add.text(180, 500, '', { fontFamily: 'system-ui', fontSize: '17px', color: '#ffe0b5', align: 'center' }).setOrigin(0.5);
+        this.prompt = this.add.text(180, 500, '', { fontFamily: 'system-ui', fontSize: '14px', wordWrap: { width: 330 }, color: '#ffe0b5', align: 'center' }).setOrigin(0.5);
         renderTouchControls(this.inputs, briqueterieButtons, (id, held) => { if (id.endsWith('launch')) { if (held) this.launch(); } else if (id.endsWith('left')) this.left = held; else this.right = held; });
         const area = this.game.canvas;
         const move = (x: number): void => { if (!this.session.paused && !this.selecting) { this.engine.move(x); this.draw(); } };
@@ -120,11 +121,28 @@ export class BriqueterieScene extends Phaser.Scene {
         g.clear(); g.fillStyle(0x132438); g.fillRoundedRect(0, 0, 360, 640, 16);
         g.lineStyle(1, 0x24415a); for (let y = 44; y < 640; y += 23) g.lineBetween(8, y, 352, y);
         g.lineStyle(2, 0x70cfff); g.strokeRoundedRect(2, 2, 356, 636, 14);
+        for (const b of s.bricks.filter(b => b.kind === 'gravity')) {
+            g.fillStyle(0x68d9ff, 0.12); g.fillRect(Math.max(6, b.x + b.w / 2 - 52), b.y + b.h, 104, 142);
+            g.lineStyle(1, 0x68d9ff, 0.5);
+            for (let y = b.y + 45; y < b.y + 150; y += 30) { const x = b.x + b.w / 2; g.lineBetween(x - 6, y + 6, x, y); g.lineBetween(x, y, x + 6, y + 6); }
+        }
+        const palette: Record<string, number> = { moving: 0x64e4cc, explosive: 0xff785c, regen: 0x8ae873, portal: 0xbfa2ff, angle: 0xffdf78, key: 0xffdf78, locked: 0x6977a8, multi: 0xf080cf, gravity: 0x68d9ff, anchor: 0xeedac0, hanging: 0xd6bc9a };
         for (const b of s.bricks) {
-            g.fillStyle(b.solid ? 0x617b96 : b.hp === 3 ? 0xbfa2ff : b.hp === 2 ? 0xf080ab : 0xffb867); g.fillRoundedRect(b.x, b.y, b.w, b.h, 4);
+            g.fillStyle(palette[b.kind ?? ''] ?? (b.solid ? 0x617b96 : b.hp === 2 ? 0xf080ab : 0xffb867)); g.fillRoundedRect(b.x, b.y, b.w, b.h, 4);
             g.lineStyle(1, 0xffffff, 0.5); g.lineBetween(b.x + 4, b.y + 3, b.x + b.w - 4, b.y + 3);
+            const cx = b.x + b.w / 2, cy = b.y + 10;
+            g.lineStyle(2, 0x132438);
+            if (b.kind === 'portal') { g.strokeEllipse(cx, cy, 14, 10); g.strokeEllipse(cx, cy, 5, 10); }
+            if (b.kind === 'angle') g.lineBetween(b.x + 5, b.y + 14, b.x + b.w - 5, b.y + 5);
+            if (b.kind === 'explosive') { g.strokeCircle(cx, cy, 4); g.lineBetween(cx - 7, cy, cx + 7, cy); g.lineBetween(cx, cy - 7, cx, cy + 7); }
+            if (b.kind === 'regen') { g.lineBetween(cx - 5, cy, cx + 5, cy); g.lineBetween(cx, cy - 5, cx, cy + 5); if (b.healAt) { g.lineStyle(2, 0xffffff); g.strokeRoundedRect(b.x, b.y, b.w, b.h, 4); } }
+            if (b.kind === 'key') { g.strokeCircle(cx - 4, cy, 4); g.lineBetween(cx, cy, cx + 7, cy); g.lineBetween(cx + 6, cy, cx + 6, cy + 4); }
+            if (b.kind === 'moving') { g.lineBetween(cx - 8, cy, cx + 8, cy); g.lineBetween(cx - 8, cy, cx - 4, cy - 4); g.lineBetween(cx + 8, cy, cx + 4, cy + 4); }
+            if (b.kind === 'multi') { for (const dx of [-7, 0, 7]) { g.fillStyle(0x132438); g.fillCircle(cx + dx, cy, 2); } }
+            if (b.kind === 'anchor' || b.kind === 'hanging') { g.lineBetween(cx, b.y - 8, cx, b.y + 6); g.strokeCircle(cx, cy, 3); }
+            if (b.kind === 'gravity') { g.lineBetween(cx, cy - 5, cx, cy + 5); g.lineBetween(cx - 4, cy - 1, cx, cy - 5); g.lineBetween(cx + 4, cy - 1, cx, cy - 5); }
             if (b.solid) { g.lineStyle(2, 0x132438); g.lineBetween(b.x + 8, b.y + 4, b.x + 24, b.y + 14); g.lineBetween(b.x + 24, b.y + 4, b.x + 8, b.y + 14); }
-            else for (let i = 0; i < b.hp; i++) { g.fillStyle(0x132438); g.fillCircle(b.x + b.w / 2 + (i - (b.hp - 1) / 2) * 6, b.y + 11, 1.5); }
+            else if (!b.kind || b.kind === 'plain' || b.kind === 'regen') for (let i = 0; i < b.hp; i++) { g.fillStyle(0x132438); g.fillCircle(b.x + b.w / 2 + (i - (b.hp - 1) / 2) * 6, b.y + 11, 1.5); }
         }
         for (const drop of s.bonuses) {
             g.fillStyle(drop.kind === 'life' ? 0xf080ab : drop.kind === 'wide' ? 0x64e4cc : 0xbfa2ff); g.fillRoundedRect(drop.x - 10, drop.y - 10, 20, 20, 5); g.lineStyle(2, 0x132438);
@@ -135,8 +153,8 @@ export class BriqueterieScene extends Phaser.Scene {
         g.fillStyle(0x64e4cc); g.fillRoundedRect(s.paddle - s.width / 2, 586, s.width, 12, 6);
         g.fillStyle(0xffffff); for (const ball of s.balls) { g.fillCircle(ball.x, ball.y, 6); g.lineStyle(2, 0x70cfff, 0.3); g.strokeCircle(ball.x, ball.y, 9); }
         if (this.glow) { g.lineStyle(4, 0xffe0b5, this.glow); g.strokeRoundedRect(3, 3, 354, 634, 14); }
-        this.hud?.setText(`N${String(this.engine.level + 1)}   VIES ${String(s.lives)}   SCORE ${String(s.score)}   ×${String(s.balls.length)}`);
-        this.prompt?.setText(s.ready && this.engine.status === 'playing' ? 'À vous de lancer !\nTap · Espace · Lancer' : '');
+        this.hud?.setText(`N${String(this.engine.level + 1)}   VIES ${String(s.lives)}   SCORE ${String(s.score)}   ×${String(s.balls.length)}\n${LEVELS[this.engine.level]?.name ?? ''}`);
+        this.prompt?.setText(s.ready && this.engine.status === 'playing' ? `${designs[this.engine.level]?.rest ? 'Respiration · ' : (this.engine.level + 1) % 5 === 0 ? 'Défi · ' : ''}À vous de lancer !\n${[...new Set(s.bricks.map(b => b.kind))].filter(k => k && k !== 'plain').map(k => ({ moving: '↔ coulisse', explosive: '✳ explosion', regen: '+ repousse rapide', portal: '◉ portail', angle: '/ déviation', key: '⚿ ouvre les verrous', locked: '× verrou', multi: '••• multi-balle', gravity: '↑ zone inversée', anchor: '○ attache', hanging: '│ suspension' } as Record<string, string>)[k ?? 'plain']).join(' · ')}\nTap · Espace · Lancer` : '');
         const status = document.querySelector('#status'); if (status) status.textContent = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'won' ? 'Victoire' : this.engine.status === 'lost' ? 'Défaite' : s.ready ? 'Prêt' : 'En jeu'}`;
     }
 }

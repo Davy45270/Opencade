@@ -1,0 +1,1058 @@
+{
+  "pass": 61,
+  "cpuCount": 1,
+  "victories": 60,
+  "replayMs": 390.85197199999993,
+  "testTimings": [
+    {
+      "name": "K01 réflexion sur mur et plafond",
+      "ms": 0.6256339999999909
+    },
+    {
+      "name": "K02 angle de raquette au centre et aux extrémités",
+      "ms": 0.47938800000065385
+    },
+    {
+      "name": "K03 faces et coin arrondi de brique",
+      "ms": 0.4131779999997889
+    },
+    {
+      "name": "K04 balayage continu au plafond de vitesse et au-delà",
+      "ms": 0.3111399999997957
+    },
+    {
+      "name": "K05 points de vie et score par impact puis destruction",
+      "ms": 0.22740200000043842
+    },
+    {
+      "name": "K06 indestructible rebondit et ne compte pas pour la victoire",
+      "ms": 0.15001800000027288
+    },
+    {
+      "name": "K07 trois pertes, attente de relance et défaite",
+      "ms": 0.31079199999931006
+    },
+    {
+      "name": "K08 victoire après dernier impact et non avant",
+      "ms": 0.14813200000025972
+    },
+    {
+      "name": "K09 bonus élargir temporaire, multi ×3 et vie plafonnée",
+      "ms": 0.8192330000001675
+    },
+    {
+      "name": "K09 apparition : positions interdites, brique, saturation et déterminisme des chutes",
+      "ms": 0.9471119999998336
+    },
+    {
+      "name": "K10 accélération tous les dix rebonds, plafond strict",
+      "ms": 3.0996750000003885
+    },
+    {
+      "name": "K11 trente silhouettes dessinées et respirations",
+      "ms": 2.3346390000006068
+    },
+    {
+      "name": "K12 déterminisme, découpage fixe, graine témoin et snapshot isolé",
+      "ms": 2.0539490000001024
+    },
+    {
+      "name": "K-MEC-01 rangée mobile",
+      "ms": 0.273497000000134
+    },
+    {
+      "name": "K-MEC-02 explosion de voisinage",
+      "ms": 0.14841100000012375
+    },
+    {
+      "name": "K-MEC-03 repousse et finition rapide",
+      "ms": 0.6516140000003361
+    },
+    {
+      "name": "K-MEC-04 portail téléporte réellement",
+      "ms": 0.10678600000028382
+    },
+    {
+      "name": "K-MEC-05 chicane indestructible",
+      "ms": 0.0896760000005088
+    },
+    {
+      "name": "K-MEC-06 normale inclinée",
+      "ms": 0.10504100000071048
+    },
+    {
+      "name": "K-MEC-07 clé libère le coffre",
+      "ms": 0.1932489999999234
+    },
+    {
+      "name": "K-MEC-08 multi-balle par brique",
+      "ms": 0.09882400000060443
+    },
+    {
+      "name": "K-MEC-09 zone de gravité inversée",
+      "ms": 0.09435500000017782
+    },
+    {
+      "name": "K-MEC-10 rupture de suspension",
+      "ms": 1.018488000000616
+    },
+    {
+      "name": "K-DIV-01 nouveautés observées, rythme et clones",
+      "ms": 261.94852400000036
+    },
+    {
+      "name": "K-PILOT campagne enregistrée 28",
+      "ms": 115.60624499999994
+    },
+    {
+      "name": "K-PILOT campagne enregistrée 455",
+      "ms": 184.03138600000057
+    }
+  ],
+  "diversity": {
+    "score": 18.1,
+    "noveltyLevels": [
+      4,
+      5,
+      7,
+      10,
+      13,
+      16,
+      19,
+      22,
+      25,
+      28
+    ],
+    "cloneShare": 0
+  },
+  "mutations": [
+    {
+      "name": "explosion sans voisinage",
+      "oracle": "K-MEC-02",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 154,
+      "rejected": true,
+      "reason": "explosion removes diagonal neighbor"
+    },
+    {
+      "name": "portail sans téléportation",
+      "oracle": "K-MEC-04",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 139,
+      "rejected": true,
+      "reason": "exit below paired tile"
+    },
+    {
+      "name": "angle ignoré",
+      "oracle": "K-MEC-06",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 125,
+      "rejected": true,
+      "reason": "inclined reflection vector"
+    },
+    {
+      "name": "repousse désactivée",
+      "oracle": "K-MEC-03",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 94,
+      "rejected": true,
+      "reason": "healing at tick 181"
+    },
+    {
+      "name": "clé sans effet",
+      "oracle": "K-MEC-07",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 157,
+      "rejected": true,
+      "reason": "key unlocks"
+    },
+    {
+      "name": "tous les niveaux égaux au premier",
+      "oracle": "K-DIV-01",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 22,
+      "rejected": true,
+      "reason": "seven observed introductions",
+      "cloneShare": 1
+    }
+  ],
+  "campaigns": [
+    {
+      "level": 1,
+      "seed": 28,
+      "frames": 4709,
+      "lives": 3,
+      "score": 420,
+      "witnesses": {
+        "bounce": 115,
+        "brick": 115,
+        "paddle": 231
+      }
+    },
+    {
+      "level": 2,
+      "seed": 28,
+      "frames": 2991,
+      "lives": 3,
+      "score": 360,
+      "witnesses": {
+        "bounce": 117,
+        "brick": 117,
+        "paddle": 235
+      }
+    },
+    {
+      "level": 3,
+      "seed": 28,
+      "frames": 1453,
+      "lives": 3,
+      "score": 510,
+      "witnesses": {
+        "bounce": 112,
+        "brick": 112,
+        "paddle": 226,
+        "bonus": 962
+      }
+    },
+    {
+      "level": 4,
+      "seed": 28,
+      "frames": 1186,
+      "lives": 3,
+      "score": 420,
+      "witnesses": {
+        "moving": 1,
+        "bounce": 90,
+        "brick": 90,
+        "paddle": 181,
+        "bonus": 739
+      }
+    },
+    {
+      "level": 5,
+      "seed": 28,
+      "frames": 2465,
+      "lives": 3,
+      "score": 360,
+      "witnesses": {
+        "moving": 1,
+        "bounce": 93,
+        "solid": 93,
+        "paddle": 186,
+        "brick": 296,
+        "bonus": 1409
+      }
+    },
+    {
+      "level": 6,
+      "seed": 28,
+      "frames": 3112,
+      "lives": 3,
+      "score": 300,
+      "witnesses": {
+        "moving": 1,
+        "bounce": 89,
+        "brick": 89,
+        "paddle": 179
+      }
+    },
+    {
+      "level": 7,
+      "seed": 28,
+      "frames": 772,
+      "lives": 3,
+      "score": 480,
+      "witnesses": {
+        "bounce": 86,
+        "brick": 86,
+        "explosive": 86,
+        "paddle": 173
+      }
+    },
+    {
+      "level": 8,
+      "seed": 28,
+      "frames": 830,
+      "lives": 3,
+      "score": 540,
+      "witnesses": {
+        "moving": 1,
+        "bounce": 78,
+        "brick": 78,
+        "paddle": 157,
+        "explosive": 246,
+        "bonus": 473
+      }
+    },
+    {
+      "level": 9,
+      "seed": 28,
+      "frames": 1870,
+      "lives": 3,
+      "score": 390,
+      "witnesses": {
+        "bounce": 76,
+        "brick": 76,
+        "paddle": 152,
+        "explosive": 573
+      }
+    },
+    {
+      "level": 10,
+      "seed": 28,
+      "frames": 8218,
+      "lives": 3,
+      "score": 870,
+      "witnesses": {
+        "bounce": 83,
+        "brick": 83,
+        "paddle": 167,
+        "regen": 1635,
+        "explosive": 2215,
+        "bonus": 3621
+      }
+    },
+    {
+      "level": 11,
+      "seed": 28,
+      "frames": 2267,
+      "lives": 3,
+      "score": 370,
+      "witnesses": {
+        "bounce": 67,
+        "brick": 67,
+        "paddle": 134,
+        "regen": 387,
+        "bonus": 1669
+      }
+    },
+    {
+      "level": 12,
+      "seed": 28,
+      "frames": 2058,
+      "lives": 3,
+      "score": 850,
+      "witnesses": {
+        "bounce": 60,
+        "brick": 60,
+        "paddle": 121,
+        "bonus": 674,
+        "explosive": 776
+      }
+    },
+    {
+      "level": 13,
+      "seed": 28,
+      "frames": 2426,
+      "lives": 3,
+      "score": 420,
+      "witnesses": {
+        "moving": 1,
+        "bounce": 67,
+        "brick": 67,
+        "paddle": 135,
+        "portal": 212
+      }
+    },
+    {
+      "level": 14,
+      "seed": 28,
+      "frames": 1877,
+      "lives": 3,
+      "score": 420,
+      "witnesses": {
+        "bounce": 61,
+        "brick": 61,
+        "paddle": 123,
+        "explosive": 188,
+        "portal": 365
+      }
+    },
+    {
+      "level": 15,
+      "seed": 28,
+      "frames": 3274,
+      "lives": 3,
+      "score": 560,
+      "witnesses": {
+        "bounce": 64,
+        "solid": 64,
+        "paddle": 128,
+        "brick": 188,
+        "explosive": 188,
+        "portal": 327
+      }
+    },
+    {
+      "level": 16,
+      "seed": 28,
+      "frames": 2894,
+      "lives": 3,
+      "score": 360,
+      "witnesses": {
+        "angle": 70,
+        "bounce": 70,
+        "brick": 70,
+        "paddle": 178,
+        "explosive": 240
+      }
+    },
+    {
+      "level": 17,
+      "seed": 28,
+      "frames": 977,
+      "lives": 3,
+      "score": 210,
+      "witnesses": {
+        "bounce": 60,
+        "brick": 60,
+        "paddle": 121,
+        "angle": 235
+      }
+    },
+    {
+      "level": 18,
+      "seed": 28,
+      "frames": 2177,
+      "lives": 3,
+      "score": 450,
+      "witnesses": {
+        "bounce": 55,
+        "brick": 55,
+        "paddle": 110,
+        "portal": 430,
+        "angle": 565
+      }
+    },
+    {
+      "level": 19,
+      "seed": 28,
+      "frames": 1846,
+      "lives": 3,
+      "score": 540,
+      "witnesses": {
+        "bounce": 54,
+        "brick": 54,
+        "key": 54,
+        "paddle": 108,
+        "angle": 281
+      }
+    },
+    {
+      "level": 20,
+      "seed": 28,
+      "frames": 3252,
+      "lives": 3,
+      "score": 660,
+      "witnesses": {
+        "bounce": 49,
+        "brick": 49,
+        "key": 49,
+        "paddle": 98,
+        "explosive": 319,
+        "portal": 430,
+        "solid": 630
+      }
+    },
+    {
+      "level": 21,
+      "seed": 28,
+      "frames": 2985,
+      "lives": 3,
+      "score": 540,
+      "witnesses": {
+        "moving": 1,
+        "bounce": 51,
+        "brick": 51,
+        "key": 51,
+        "paddle": 103,
+        "angle": 272
+      }
+    },
+    {
+      "level": 22,
+      "seed": 28,
+      "frames": 962,
+      "lives": 3,
+      "score": 600,
+      "witnesses": {
+        "bounce": 57,
+        "brick": 57,
+        "bonus": 57,
+        "multi": 57,
+        "paddle": 115,
+        "explosive": 410
+      }
+    },
+    {
+      "level": 23,
+      "seed": 28,
+      "frames": 915,
+      "lives": 3,
+      "score": 280,
+      "witnesses": {
+        "bounce": 52,
+        "brick": 52,
+        "paddle": 105,
+        "bonus": 166,
+        "multi": 166,
+        "regen": 546
+      }
+    },
+    {
+      "level": 24,
+      "seed": 28,
+      "frames": 510,
+      "lives": 3,
+      "score": 420,
+      "witnesses": {
+        "bounce": 48,
+        "portal": 48,
+        "brick": 48,
+        "paddle": 96,
+        "angle": 283,
+        "bonus": 334,
+        "multi": 334,
+        "explosive": 394
+      }
+    },
+    {
+      "level": 25,
+      "seed": 28,
+      "frames": 4942,
+      "lives": 3,
+      "score": 480,
+      "witnesses": {
+        "gravity": 38,
+        "bounce": 53,
+        "brick": 53,
+        "paddle": 102,
+        "bonus": 4319,
+        "multi": 4319,
+        "angle": 4399,
+        "solid": 4401
+      }
+    },
+    {
+      "level": 26,
+      "seed": 28,
+      "frames": 909,
+      "lives": 3,
+      "score": 420,
+      "witnesses": {
+        "bounce": 46,
+        "portal": 46,
+        "brick": 46,
+        "gravity": 47,
+        "paddle": 94,
+        "explosive": 231,
+        "bonus": 413
+      }
+    },
+    {
+      "level": 27,
+      "seed": 28,
+      "frames": 1010,
+      "lives": 3,
+      "score": 240,
+      "witnesses": {
+        "gravity": 36,
+        "bounce": 54,
+        "brick": 54,
+        "paddle": 108,
+        "bonus": 157,
+        "multi": 157
+      }
+    },
+    {
+      "level": 28,
+      "seed": 28,
+      "frames": 986,
+      "lives": 3,
+      "score": 450,
+      "witnesses": {
+        "gravity": 29,
+        "bounce": 44,
+        "brick": 44,
+        "paddle": 85,
+        "falling": 373,
+        "bonus": 727
+      }
+    },
+    {
+      "level": 29,
+      "seed": 28,
+      "frames": 769,
+      "lives": 3,
+      "score": 540,
+      "witnesses": {
+        "bounce": 49,
+        "brick": 49,
+        "paddle": 99,
+        "bonus": 143,
+        "multi": 143,
+        "angle": 237,
+        "portal": 262,
+        "falling": 355
+      }
+    },
+    {
+      "level": 30,
+      "seed": 28,
+      "frames": 1867,
+      "lives": 3,
+      "score": 1160,
+      "witnesses": {
+        "moving": 1,
+        "gravity": 25,
+        "bounce": 33,
+        "brick": 33,
+        "key": 33,
+        "paddle": 67,
+        "solid": 248,
+        "portal": 260,
+        "angle": 279,
+        "bonus": 483,
+        "explosive": 523,
+        "multi": 523,
+        "falling": 943
+      }
+    },
+    {
+      "level": 1,
+      "seed": 455,
+      "frames": 4709,
+      "lives": 3,
+      "score": 420,
+      "witnesses": {
+        "bounce": 115,
+        "brick": 115,
+        "paddle": 231
+      }
+    },
+    {
+      "level": 2,
+      "seed": 455,
+      "frames": 2991,
+      "lives": 3,
+      "score": 360,
+      "witnesses": {
+        "bounce": 117,
+        "brick": 117,
+        "paddle": 235
+      }
+    },
+    {
+      "level": 3,
+      "seed": 455,
+      "frames": 4946,
+      "lives": 4,
+      "score": 510,
+      "witnesses": {
+        "bounce": 112,
+        "brick": 112,
+        "paddle": 226,
+        "bonus": 2645
+      }
+    },
+    {
+      "level": 4,
+      "seed": 455,
+      "frames": 4869,
+      "lives": 3,
+      "score": 420,
+      "witnesses": {
+        "moving": 1,
+        "bounce": 90,
+        "brick": 90,
+        "paddle": 181
+      }
+    },
+    {
+      "level": 5,
+      "seed": 455,
+      "frames": 3558,
+      "lives": 3,
+      "score": 360,
+      "witnesses": {
+        "moving": 1,
+        "bounce": 93,
+        "solid": 93,
+        "paddle": 186,
+        "brick": 296
+      }
+    },
+    {
+      "level": 6,
+      "seed": 455,
+      "frames": 1311,
+      "lives": 3,
+      "score": 300,
+      "witnesses": {
+        "moving": 1,
+        "bounce": 89,
+        "brick": 89,
+        "paddle": 179
+      }
+    },
+    {
+      "level": 7,
+      "seed": 455,
+      "frames": 772,
+      "lives": 3,
+      "score": 480,
+      "witnesses": {
+        "bounce": 86,
+        "brick": 86,
+        "explosive": 86,
+        "paddle": 173
+      }
+    },
+    {
+      "level": 8,
+      "seed": 455,
+      "frames": 1757,
+      "lives": 3,
+      "score": 540,
+      "witnesses": {
+        "moving": 1,
+        "bounce": 78,
+        "brick": 78,
+        "paddle": 157,
+        "explosive": 246
+      }
+    },
+    {
+      "level": 9,
+      "seed": 455,
+      "frames": 1870,
+      "lives": 3,
+      "score": 390,
+      "witnesses": {
+        "bounce": 76,
+        "brick": 76,
+        "paddle": 152,
+        "explosive": 573
+      }
+    },
+    {
+      "level": 10,
+      "seed": 455,
+      "frames": 6925,
+      "lives": 4,
+      "score": 860,
+      "witnesses": {
+        "bounce": 83,
+        "brick": 83,
+        "paddle": 167,
+        "regen": 1635,
+        "explosive": 2215,
+        "bonus": 2980
+      }
+    },
+    {
+      "level": 11,
+      "seed": 455,
+      "frames": 4956,
+      "lives": 3,
+      "score": 400,
+      "witnesses": {
+        "bounce": 67,
+        "brick": 67,
+        "paddle": 134,
+        "regen": 387
+      }
+    },
+    {
+      "level": 12,
+      "seed": 455,
+      "frames": 3304,
+      "lives": 3,
+      "score": 850,
+      "witnesses": {
+        "bounce": 60,
+        "brick": 60,
+        "paddle": 121,
+        "explosive": 1788
+      }
+    },
+    {
+      "level": 13,
+      "seed": 455,
+      "frames": 2426,
+      "lives": 3,
+      "score": 420,
+      "witnesses": {
+        "moving": 1,
+        "bounce": 67,
+        "brick": 67,
+        "paddle": 135,
+        "portal": 212
+      }
+    },
+    {
+      "level": 14,
+      "seed": 455,
+      "frames": 1877,
+      "lives": 3,
+      "score": 420,
+      "witnesses": {
+        "bounce": 61,
+        "brick": 61,
+        "paddle": 123,
+        "explosive": 188,
+        "portal": 365
+      }
+    },
+    {
+      "level": 15,
+      "seed": 455,
+      "frames": 3274,
+      "lives": 3,
+      "score": 560,
+      "witnesses": {
+        "bounce": 64,
+        "solid": 64,
+        "paddle": 128,
+        "brick": 188,
+        "explosive": 188,
+        "portal": 327
+      }
+    },
+    {
+      "level": 16,
+      "seed": 455,
+      "frames": 2894,
+      "lives": 3,
+      "score": 360,
+      "witnesses": {
+        "angle": 70,
+        "bounce": 70,
+        "brick": 70,
+        "paddle": 178,
+        "explosive": 240
+      }
+    },
+    {
+      "level": 17,
+      "seed": 455,
+      "frames": 977,
+      "lives": 3,
+      "score": 210,
+      "witnesses": {
+        "bounce": 60,
+        "brick": 60,
+        "paddle": 121,
+        "angle": 235
+      }
+    },
+    {
+      "level": 18,
+      "seed": 455,
+      "frames": 2177,
+      "lives": 3,
+      "score": 450,
+      "witnesses": {
+        "bounce": 55,
+        "brick": 55,
+        "paddle": 110,
+        "portal": 430,
+        "angle": 565
+      }
+    },
+    {
+      "level": 19,
+      "seed": 455,
+      "frames": 1846,
+      "lives": 3,
+      "score": 540,
+      "witnesses": {
+        "bounce": 54,
+        "brick": 54,
+        "key": 54,
+        "paddle": 108,
+        "angle": 281
+      }
+    },
+    {
+      "level": 20,
+      "seed": 455,
+      "frames": 3252,
+      "lives": 3,
+      "score": 660,
+      "witnesses": {
+        "bounce": 49,
+        "brick": 49,
+        "key": 49,
+        "paddle": 98,
+        "explosive": 319,
+        "portal": 430,
+        "solid": 630
+      }
+    },
+    {
+      "level": 21,
+      "seed": 455,
+      "frames": 4881,
+      "lives": 3,
+      "score": 540,
+      "witnesses": {
+        "moving": 1,
+        "bounce": 51,
+        "brick": 51,
+        "key": 51,
+        "paddle": 103,
+        "angle": 272,
+        "bonus": 3294
+      }
+    },
+    {
+      "level": 22,
+      "seed": 455,
+      "frames": 944,
+      "lives": 5,
+      "score": 600,
+      "witnesses": {
+        "bounce": 57,
+        "brick": 57,
+        "bonus": 57,
+        "multi": 57,
+        "paddle": 115,
+        "explosive": 410
+      }
+    },
+    {
+      "level": 23,
+      "seed": 455,
+      "frames": 973,
+      "lives": 3,
+      "score": 280,
+      "witnesses": {
+        "bounce": 52,
+        "brick": 52,
+        "paddle": 105,
+        "bonus": 166,
+        "multi": 166,
+        "regen": 546
+      }
+    },
+    {
+      "level": 24,
+      "seed": 455,
+      "frames": 510,
+      "lives": 3,
+      "score": 420,
+      "witnesses": {
+        "bounce": 48,
+        "portal": 48,
+        "brick": 48,
+        "paddle": 96,
+        "angle": 283,
+        "bonus": 334,
+        "multi": 334,
+        "explosive": 394
+      }
+    },
+    {
+      "level": 25,
+      "seed": 455,
+      "frames": 4942,
+      "lives": 3,
+      "score": 480,
+      "witnesses": {
+        "gravity": 38,
+        "bounce": 53,
+        "brick": 53,
+        "paddle": 102,
+        "bonus": 4319,
+        "multi": 4319,
+        "angle": 4399,
+        "solid": 4401
+      }
+    },
+    {
+      "level": 26,
+      "seed": 455,
+      "frames": 1307,
+      "lives": 3,
+      "score": 420,
+      "witnesses": {
+        "bounce": 46,
+        "portal": 46,
+        "brick": 46,
+        "gravity": 47,
+        "paddle": 94,
+        "explosive": 231
+      }
+    },
+    {
+      "level": 27,
+      "seed": 455,
+      "frames": 1010,
+      "lives": 3,
+      "score": 240,
+      "witnesses": {
+        "gravity": 36,
+        "bounce": 54,
+        "brick": 54,
+        "paddle": 108,
+        "bonus": 157,
+        "multi": 157
+      }
+    },
+    {
+      "level": 28,
+      "seed": 455,
+      "frames": 1046,
+      "lives": 3,
+      "score": 450,
+      "witnesses": {
+        "gravity": 29,
+        "bounce": 44,
+        "brick": 44,
+        "paddle": 85,
+        "falling": 373
+      }
+    },
+    {
+      "level": 29,
+      "seed": 455,
+      "frames": 793,
+      "lives": 4,
+      "score": 540,
+      "witnesses": {
+        "bounce": 49,
+        "brick": 49,
+        "paddle": 99,
+        "bonus": 143,
+        "multi": 143,
+        "angle": 237,
+        "portal": 262,
+        "falling": 355
+      }
+    },
+    {
+      "level": 30,
+      "seed": 455,
+      "frames": 1433,
+      "lives": 4,
+      "score": 1180,
+      "witnesses": {
+        "moving": 1,
+        "gravity": 25,
+        "bounce": 33,
+        "brick": 33,
+        "key": 33,
+        "paddle": 67,
+        "solid": 248,
+        "portal": 260,
+        "angle": 279,
+        "regen": 772,
+        "bonus": 913,
+        "multi": 913,
+        "explosive": 999,
+        "falling": 1006
+      }
+    }
+  ]
+}

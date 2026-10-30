@@ -42,7 +42,7 @@ for (const record of records) {
 const replayMs = performance.now() - start;
 assert.ok(replayMs < 2000);
 if (process.argv.includes('--record')) writeFileSync('tests/dedale-solutions.ts', `// BFS recordings; regenerate with the Node validator --record.\nimport type { Direction } from '../src/engines/dedale/engine';\nexport const solutions: { level: number; seed: number; shape: string; inputs: Direction[]; witnesses: Record<string, number>; lives: number }[] = ${JSON.stringify(records.filter(r => r.seed === 28), null, 2)};\n`);
-writeFileSync('dedale-validation.json', JSON.stringify({ replayMs, records }, null, 2) + '\n');
+writeFileSync('docs/dedale-validation.json', JSON.stringify({ replayMs, records }, null, 2) + '\n');
 console.log(`D-SOLVE: ${records.length} victories; replay ${replayMs.toFixed(1)} ms`);
 console.log(records.filter(r => r.seed === 28).map(r => `${r.level} ${r.shape} ${r.inputs.length} moves ${r.lives} lives: ${Object.keys(r.witnesses).join(', ')}`).join('\n'));
 const { campaignCases } = await import('../tests/dedale-campaign.ts');
@@ -89,5 +89,5 @@ for (const [name, id, before, after] of [
     assert.throws(() => verifyDiversity(dedaleDiversity(mod.Engine, records.filter(r => r.seed === 28))));
     mutations.push({ name: 'tous les niveaux égaux au premier', file, line, rejectedBy: 'D-DIV-01' });
 }
-writeFileSync('dedale-validation.json', JSON.stringify({ replayMs, score: diversity.score, noveltyLevels: diversity.noveltyLevels, cloneShare: diversity.cloneShare, mutations, records }, null, 2) + '\n');
+writeFileSync('docs/dedale-validation.json', JSON.stringify({ replayMs, score: diversity.score, noveltyLevels: diversity.noveltyLevels, cloneShare: diversity.cloneShare, mutations, records }, null, 2) + '\n');
 console.log(`D-DIV-01: ${diversity.score}/100, ${diversity.cloneShare * 100}% clones; ${mutations.length} mutations rejected`);

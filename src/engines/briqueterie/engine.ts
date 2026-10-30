@@ -1,36 +1,37 @@
 import { Random } from '../shared/random';
+import { designs } from './levels';
 export const STEP = 1000 / 60;
 export const RADIUS = 6;
-export interface Brick { x: number; y: number; w: number; h: number; hp: number; solid: boolean }
-export interface Ball { x: number; y: number; vx: number; vy: number }
+export type BrickKind = 'plain' | 'moving' | 'explosive' | 'regen' | 'portal' | 'angle' | 'key' | 'locked' | 'multi' | 'gravity' | 'anchor' | 'hanging';
+export interface Brick { kind?: BrickKind; homeX?: number; phase?: number; healAt?: number; falling?: boolean; x: number; y: number; w: number; h: number; hp: number; solid: boolean }
+export interface Ball { x: number; y: number; vx: number; vy: number; portalUntil?: number }
 export type BonusKind = 'wide' | 'multi' | 'life';
 export interface Bonus { x: number; y: number; kind: BonusKind }
 export interface State { bricks: Brick[]; balls: Ball[]; bonuses: Bonus[]; paddle: number; width: number; lives: number; score: number; ready: boolean; bounces: number; speed: number; wideUntil: number }
 export function difficulty(level: number) {
     if (!Number.isInteger(level) || level < 0 || level >= 30) throw new RangeError('Niveau invalide');
-    return { speed: 4 + 5 * level / 29, cap: 7 + 6 * level / 29, density: 30 + level * 2, hp: 1 + Math.floor(level / 10), solids: level < 7 ? 0 : 1 + Math.floor((level - 7) / 4), narrowness: level, pattern: Math.floor(level / 6), width: 92 - level };
+    const design = designs[level];
+    if (!design) throw new RangeError('Niveau invalide');
+    const bricks = design.rows.join('').split('').filter(c => c !== '.');
+    return { speed: 4 + 5 * level / 29, cap: 7 + 6 * level / 29, density: bricks.filter(c => c !== '#').length, hp: 1, solids: bricks.filter(c => c === '#').length, narrowness: level, pattern: level, width: design.rest ? 108 : 92 - level };
 }
-const names = ['Éventail', 'Mosaïque', 'Marées', 'Remparts', 'Étincelles'];
-export const LEVELS = Array.from({ length: 30 }, (_, i) => ({ name: `${names[difficulty(i).pattern] ?? 'Étincelles'} ${String(i + 1)}` }));
+export const LEVELS = designs.map(d => ({ name: d.name }));
+const kinds: Record<string, BrickKind> = { m: 'moving', e: 'explosive', r: 'regen', p: 'portal', a: 'angle', k: 'key', L: 'locked', b: 'multi', g: 'gravity', t: 'anchor', h: 'hanging' };
 export function bricksFor(level: number, random: Random): Brick[] {
-    const d = difficulty(level);
-    const cells = Array.from({ length: 100 }, (_, i) => ({ col: i % 10, row: Math.floor(i / 10), tie: random.next() }));
-    const rank = (c: typeof cells[number]): number => {
-        const x = c.col, y = c.row;
-        switch (d.pattern) {
-            case 0: return y + Math.abs(x - 4.5);
-            case 1: return (x + y) % 2 * 10 + y;
-            case 2: return Math.abs(y - (3 + Math.sin(x * 0.8) * 2));
-            case 3: return Math.min(x, 9 - x, y, 9 - y);
-            default: return Math.min(Math.abs(x - y), Math.abs(9 - x - y));
-        }
-    };
-    cells.sort((a, b) => rank(a) - rank(b) || a.tie - b.tie);
-    return cells.slice(0, d.density + d.solids).map((c, i) => ({ x: 11 + c.col * 34, y: 54 + c.row * 23, w: 32, h: 18, hp: d.hp, solid: i >= d.density }));
+    difficulty(level);
+    const design = designs[level];
+    if (!design) return [];
+    const phase = random.next() * Math.PI * 2;
+    return design.rows.flatMap((row, y) => Array.from(row).flatMap((c, x): Brick[] => c === '.' ? [] : [{
+        x: 11 + x * 34, y: 64 + y * 27, w: 28, h: 18,
+        hp: c === 'r' ? 2 : 1, solid: c === '#' || c === 'L', kind: kinds[c] ?? 'plain',
+        ...(c === 'm' ? { homeX: 11 + x * 34, phase } : {}),
+    }]));
 }
 interface Hit { t: number; nx: number; ny: number; brick?: Brick; paddle?: boolean }
 /** Swept circle against rectangle: face segments and rounded corner quadratics. */
 export function contact(ball: Ball, box: { x: number; y: number; w: number; h: number }, limit: number): Hit | null {
+    if (Math.max(ball.x, ball.x + ball.vx * limit) + RADIUS < box.x || Math.min(ball.x, ball.x + ball.vx * limit) - RADIUS > box.x + box.w || Math.max(ball.y, ball.y + ball.vy * limit) + RADIUS < box.y || Math.min(ball.y, ball.y + ball.vy * limit) - RADIUS > box.y + box.h) return null;
     const hits: Hit[] = [];
     const face = (t: number, nx: number, ny: number, value: number, low: number, high: number): void => {
         if (t >= -1e-8 && t <= limit + 1e-8 && value >= low - 1e-8 && value <= high + 1e-8 && ball.vx * nx + ball.vy * ny < -1e-8) hits.push({ t: Math.max(0, t), nx, ny });
@@ -88,6 +89,14 @@ export class Engine {
         this.ticks++; const s = this.state;
         if (s.wideUntil && this.ticks >= s.wideUntil) { s.width = difficulty(this.level).width; s.wideUntil = 0; this.move(s.paddle); }
         if (!s.ready) {
+            for (const brick of s.bricks) {
+                if (brick.kind === 'moving') { brick.x = (brick.homeX ?? brick.x) + 8 * Math.sin(this.ticks / 45 + (brick.phase ?? 0)); this.events.push('moving'); }
+                if (brick.kind === 'regen' && brick.hp < 2 && brick.healAt !== undefined && this.ticks >= brick.healAt) { brick.hp = 2; delete brick.healAt; this.events.push('regen'); }
+                if (brick.falling && brick.y < 370) { brick.y = Math.min(370, brick.y + 1); this.events.push('falling'); }
+            }
+            for (const ball of s.balls) {
+                if (s.bricks.some(b => b.kind === 'gravity' && Math.abs(ball.x - b.x - b.w / 2) < 52 && ball.y > b.y && ball.y < b.y + 160)) { ball.vy -= 0.045; this.events.push('gravity'); }
+            }
             for (const ball of [...s.balls]) this.travel(ball);
             s.balls = s.balls.filter(b => b.y <= 646);
             if (!s.balls.length && this.status === 'playing') { s.lives--; s.bonuses = []; this.events.push('life'); if (s.lives === 0) this.status = 'lost'; else { s.ready = true; this.dock(); } }
@@ -97,7 +106,7 @@ export class Engine {
             if (drop.y >= 574 && drop.y <= 602 && Math.abs(drop.x - s.paddle) <= s.width / 2 + 10) { s.bonuses = s.bonuses.filter(b => b !== drop); this.bonus(drop.kind); }
             else if (drop.y > 650) s.bonuses = s.bonuses.filter(b => b !== drop);
         }
-        if (!s.bricks.some(b => !b.solid)) this.status = 'won';
+        if (!s.bricks.some(b => !b.solid || b.kind === 'locked')) this.status = 'won';
     }
     private travel(ball: Ball): void {
         const s = this.state; let remaining = 1;
@@ -113,14 +122,46 @@ export class Engine {
             const hit = hits.sort((a, b) => a.t - b.t)[0];
             if (!hit) { ball.x += ball.vx * remaining; ball.y += ball.vy * remaining; break; }
             ball.x += ball.vx * hit.t; ball.y += ball.vy * hit.t; remaining -= hit.t;
+            if (hit.brick?.kind === 'angle') {
+                const sign = hit.ny < 0 ? -1 : 1;
+                hit.nx = 0.5; hit.ny = sign * Math.sqrt(0.75); this.events.push('angle');
+            }
             if (hit.paddle) { const angle = Math.max(-1, Math.min(1, (ball.x - s.paddle) / (s.width / 2))) * Math.PI / 3; ball.vx = s.speed * Math.sin(angle); ball.vy = -s.speed * Math.cos(angle); }
             else { const dot = ball.vx * hit.nx + ball.vy * hit.ny; ball.vx -= 2 * dot * hit.nx; ball.vy -= 2 * dot * hit.ny; }
             ball.x += hit.nx * 1e-6; ball.y += hit.ny * 1e-6;
             s.bounces++; this.events.push(hit.paddle ? 'paddle' : 'bounce');
             if (s.bounces % 10 === 0) { s.speed = Math.min(difficulty(this.level).cap, s.speed + 0.2); for (const b of s.balls) { const length = Math.hypot(b.vx, b.vy); if (length) { b.vx *= s.speed / length; b.vy *= s.speed / length; } } }
             const brick = hit.brick;
-            if (brick && !brick.solid) { brick.hp--; s.score += 10; this.events.push('brick'); if (brick.hp === 0) { s.score += 20; s.bricks = s.bricks.filter(b => b !== brick); const roll = this.random.next(); if (roll < 0.24) this.spawnBonus(brick.x + brick.w / 2, brick.y + brick.h / 2, (['wide', 'multi', 'life'] as const)[Math.floor(this.random.next() * 3)] ?? 'wide'); } }
+            if (brick?.solid) this.events.push(brick.kind === 'locked' ? 'blocked' : 'solid');
+            if (brick && !brick.solid) {
+                if (brick.kind === 'portal' && this.ticks >= (ball.portalUntil ?? 0)) {
+                    const partner = s.bricks.find(b => b !== brick && b.kind === 'portal');
+                    if (partner) { ball.x = partner.x + partner.w / 2; ball.y = partner.y + partner.h + RADIUS + 1; ball.vy = Math.abs(ball.vy); ball.portalUntil = this.ticks + 20; this.events.push('portal'); }
+                }
+                this.damage(brick);
+            }
         }
+    }
+    private damage(brick: Brick): void {
+        const s = this.state;
+        if (!s.bricks.includes(brick) || brick.solid) return;
+        brick.hp--; s.score += 10; this.events.push('brick');
+        if (brick.kind === 'regen' && brick.hp > 0) brick.healAt = this.ticks + 180;
+        if (brick.hp > 0) return;
+        s.score += 20; s.bricks = s.bricks.filter(b => b !== brick);
+        if (brick.kind === 'explosive') {
+            this.events.push('explosive');
+            for (const neighbor of [...s.bricks]) if (Math.abs(neighbor.x - brick.x) <= 38 && Math.abs(neighbor.y - brick.y) <= 32) this.damage(neighbor);
+        }
+        if (brick.kind === 'key') {
+            for (const b of s.bricks) if (b.kind === 'locked') { b.solid = false; b.kind = 'plain'; this.events.push('key'); }
+        }
+        if (brick.kind === 'multi') { this.bonus('multi'); this.events.push('multi'); }
+        if (brick.kind === 'anchor') {
+            for (const b of s.bricks) if (b.kind === 'hanging') b.falling = true;
+        }
+        const roll = this.random.next();
+        if (roll < 0.24) this.spawnBonus(brick.x + brick.w / 2, brick.y + brick.h / 2, (['wide', 'multi', 'life'] as const)[Math.floor(this.random.next() * 3)] ?? 'wide');
     }
     snapshot() { return { ...structuredClone(this.state), level: this.level, seed: this.seed, status: this.status, ticks: this.ticks, remainder: Math.max(0, Math.round(this.remainder * 1e8) / 1e8), random: this.random.state }; }
 }

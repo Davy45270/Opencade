@@ -4,6 +4,7 @@ import './ts-loader.js';
 import { essaimFeatures, essaimDiversity } from './essaim-diversity.js';
 import { ferrailleFeatures } from './ferraille-diversity.js';
 import { dedaleDiversity } from './dedale-diversity.js';
+import { briqueterieDiversity } from './briqueterie-diversity.js';
 import { measureDiversity } from './diversity-metrics.js';
 import ts from 'typescript';
 import { readFileSync } from 'node:fs';
@@ -22,10 +23,6 @@ function extract(id, e, d) {
         for (const cell of s.grid) if (cell.kind) add(cell.kind);
         if (e.rainbow) add('rainbow'); if (e.bumpers.length) add('bumper');
         layout.push(...s.grid.map(c => `${c.row},${c.col}:${c.color}:${c.kind ?? 'color'}`)); break;
-    case 'briqueterie':
-        add('ball', 'paddle', 'breakable-brick'); if (s.bricks.some(b => b.solid)) add('solid-brick');
-        if (s.bricks.some(b => b.hp > 1 && !b.solid)) add('multi-hit-brick'); typed(s.bonuses, 'bonus');
-        layout.push(...s.bricks.map(b => `${b.x},${b.y}:${b.solid ? 'solid' : 'brick'}`)); break;
     case 'empilo':
         add('rotation', 'line-clear', 'hard-drop'); for (let i = 0; i < d.shapes; i++) add(`shape:${i}`);
         s.board.forEach((r, y) => r.forEach((v, x) => { if (v) { add(`tile:${v}`); layout.push(`${x},${y}:${v}`); } })); break;
@@ -88,7 +85,7 @@ async function policy(id, mod, level) {
 }
 const variations = [
     'Thirty seeded layouts with increasing density and pressure; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers.',
-    'Brick masks, density, solid bricks, hit points, ball speed and paddle width.',
+    'Thirty authored silhouettes; observed sliding rows, chicanes, neighbor explosions, regrowth, portals, inclined reflections, keys, brick multiball, inverse-gravity zones and falling suspensions.',
     'Piece vocabulary, initial rubble and sealed tiles, gravity and line target.',
     'Obstacle placement and patterns, boundary wrapping, speed and apple target.',
     'Formation dimensions, armor, movement tier, fire cadence and shot allowance.',
@@ -103,6 +100,7 @@ const variations = [
 const games = [];
 for (const [index, id] of ids.entries()) {
     const mod = await import(`../src/engines/${id}/engine.ts`);
+    if (id === 'briqueterie') { const { solutions } = await import('../tests/briqueterie-solutions.ts'); const { replay } = await import('../tests/briqueterie-replay.ts'); games.push({ id, game: names[index], ...briqueterieDiversity(mod.Engine, solutions, replay), varies: variations[index] }); continue; }
     if (id === 'dedale') { const { solutions } = await import('../tests/dedale-solutions.ts'); games.push({ id, game: names[index], ...dedaleDiversity(mod.Engine, solutions), varies: variations[index] }); continue; }
     if (id === 'essaim') { games.push({ id, game:names[index], ...essaimDiversity(mod.Engine, mod.difficulty), varies:variations[index] }); continue; }
     const levelsMod = id === 'bubble' ? await import('../src/engines/bubble/levels.ts') : mod;
@@ -136,5 +134,5 @@ for (const [index, id] of ids.entries()) {
 }
 games.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
 const table = ['| Game | Score | Novelties (count; levels) | Clone share | Longest flat plateau | What actually varies |', '| --- | ---: | --- | ---: | ---: | --- |', ...games.map(g => `| ${g.game}${g.partial ? ' *' : ''} | ${g.score} | ${g.noveltyCount}; ${g.noveltyLevels.join(', ') || 'none'} | ${(g.cloneShare * 100).toFixed(1)}% | ${g.longestPlateau} | ${g.varies} |`)].join('\n');
-console.log(JSON.stringify({ revision: 'pass-58', seed: SEED, thresholds: { clone: CLONE, flatParameterRange: FLAT, minPlateauLevels: 3, maxPolicySteps: CAP }, games }, null, 2));
+console.log(JSON.stringify({ revision: 'pass-61', seed: SEED, thresholds: { clone: CLONE, flatParameterRange: FLAT, minPlateauLevels: 3, maxPolicySteps: CAP }, games }, null, 2));
 console.log('\n' + table);

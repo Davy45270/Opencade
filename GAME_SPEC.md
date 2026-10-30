@@ -788,43 +788,88 @@ Les plafonds des balles, vies et bonus sont des choix de lisibilité et de stabi
 Les bonus pris pendant l'attente peuvent élargir ou ajouter une vie ; multi-balle
 n’a aucun effet pendant l’attente et ne duplique pas les balles immobiles.
 
-### Générateur des 30 niveaux
+### Trente silhouettes et progression (passe 61)
 
-Index `i=0…29` (numéro affiché i+1), graine par défaut 455. Grille de dix colonnes,
-dix rangées candidates ; rectangle `(11+34*x,54+23*y,32,18)`. Les candidats sont
-triés par rang du motif puis départagés par le PRNG partagé. Les `densité`
-premiers deviennent destructibles ; les `indestructibles` suivants sont marqués
-d'une croix. Leur nombre ne réduit donc jamais celui des destructibles. Aucune
-brique sous y=279 ; la zone de départ et le trajet du doigt restent dégagés.
+`src/engines/briqueterie/levels.ts` contient trente dessins de dix colonnes.
+Les points sont des trous intentionnels ; chaque autre symbole est une brique
+jouable `(11+34*x,64+27*y,28,18)`. Arches, damiers ajourés, spirale ouverte,
+îlots et structures suspendues remplacent le remplissage par densité. La graine
+(par défaut 455) fixe la phase commune des rangées mobiles et le PRNG des bonus.
+La signature du rapport conserve les coordonnées, le type et le caractère solide
+du vrai générateur ; les noms, numéros de motif et couleurs sont exclus.
 
-| Paramètre `difficulty(i)` | Formule |
-| --- | --- |
-| Vitesse initiale | `4 + 5*i/29` (4 → 9) |
-| Plafond | `7 + 6*i/29` (7 → 13) |
-| Densité destructible | `30 + 2*i` (30 → 88 briques) |
-| PV par brique | `1 + floor(i/10)` (1 → 3) |
-| Indestructibles | 0 avant i=7 ; `1 + floor((i-7)/4)` ensuite |
-| Rétrécissement mesuré | `narrowness=i` ; largeur `92-i` px |
-| Motif | `floor(i/6)` : cinq familles de six niveaux |
+Les vitesses initiales `4+5*i/29`, plafonds `7+6*i/29`, collisions balayées,
+trois vies et commandes sont conservés. Les briques ordinaires ont un PV,
+les régénérantes deux. `difficulty` expose les comptes réels du dessin ; ils
+ne sont plus monotones. La largeur est `92-i`, sauf les respirations
+6/11/17/23/27 à 108 pixels. Chaque multiple de cinq est une composition-défi ;
+le 30 combine coffre, portails, attaches, gravité et déviateurs.
 
-Les paramètres de difficulté (vitesse, plafond, densité, PV, indestructibles,
-rétrécissement, indice de motif) sont non décroissants. La largeur diminue comme
-souhaité ; elle est exprimée en rétrécissement pour la mesure monotone.
+| Introduction | Symbole | Effet déterministe observé |
+| ---: | --- | --- |
+| 4 | m | Rangée coulissante : déplacement horizontal commun de `8*sin(tick/45+phase)` px ; viser le futur passage |
+| 5 | # | Chicanes indestructibles ; ouvrir une trajectoire autour des écrans |
+| 7 | e | À la destruction, un dégât à chaque voisin avec `abs(dx)<=38`, `abs(dy)<=32` ; chaînes possibles, solides préservés |
+| 10 | r | Deux PV ; après un impact survivant, repousse au bout de 180 ticks, annulée si finie avant |
+| 13 | p | Au contact, sortie sous l'autre portail, vitesse verticale vers le bas ; délai de 20 ticks par balle ; le portail touché est cassable |
+| 16 | a | Réflexion selon une normale inclinée `(0.5, ±sqrt(0.75))`, norme de vitesse conservée |
+| 19 | k / L | La destruction d'une clé rend destructibles les verrous ; ils empêchent la victoire tant qu'ils restent fermés |
+| 22 | b | Deux balles immédiatement ajoutées à ±0,4 rad, maximum neuf ; aucun bonus à ramasser |
+| 25 | g | Zone à ±52 px du centre, entre y de la brique et y+160 : accélération verticale de −0,045 px/tick² tant que la source existe |
+| 28 | t / h | Casser une attache libère les briques suspendues ; elles descendent de 1 px/tick et se stabilisent à y=370 |
 
-Pour la colonne x et la rangée y, les rangs des cinq motifs originaux sont :
+| Niveau | Forme | Mécaniques | Rythme |
+| ---: | --- | --- | --- |
+| 1 | Ailes | visée libre | exploration |
+| 2 | Arche | visée libre | exploration |
+| 3 | Damier | visée libre | exploration |
+| 4 | Chevrons mobiles | coulisse | exploration |
+| 5 | Chicane | coulisse, chicane | défi |
+| 6 | Îlots | coulisse | respiration |
+| 7 | Croix creuse | explosion | exploration |
+| 8 | Anneaux jumeaux | coulisse, explosion | exploration |
+| 9 | Ruban diagonal | explosion | exploration |
+| 10 | Couronne | explosion, repousse | défi |
+| 11 | Losange ajouré | repousse | respiration |
+| 12 | Spirale ouverte | explosion, repousse | exploration |
+| 13 | Portes jumelles | coulisse, portails | exploration |
+| 14 | Satellites | explosion, portails | exploration |
+| 15 | Enceinte ouverte | explosion, repousse, portails, chicane | défi |
+| 16 | Éventail incliné | explosion, angles | exploration |
+| 17 | Constellation | angles | respiration |
+| 18 | Zigzag évidé | portails, angles | exploration |
+| 19 | Coffre | angles, clé, verrous | exploration |
+| 20 | Citadelle | explosion, portails, clé, verrous, chicane | défi |
+| 21 | Serrure en sablier | coulisse, angles, clé, verrous | exploration |
+| 22 | Bouquet triple | explosion, multi-balle | exploration |
+| 23 | Trois îles | repousse, multi-balle | respiration |
+| 24 | Tresse | explosion, portails, angles, multi-balle | exploration |
+| 25 | Puits inversés | angles, chicane, multi-balle, gravité inversée | défi |
+| 26 | Vague percée | explosion, portails, gravité inversée | exploration |
+| 27 | Balance | multi-balle, gravité inversée | respiration |
+| 28 | Lustre suspendu | gravité inversée, attache, suspension | exploration |
+| 29 | Pont suspendu | portails, angles, multi-balle, attache, suspension | exploration |
+| 30 | Forteresse suspendue | coulisse, explosion, repousse, portails, angles, clé, verrous, chicane, multi-balle, gravité inversée, attache, suspension | final |
 
-| Niveaux | Famille | Rang prioritaire croissant |
-| --- | --- | --- |
-| 1–6 | Éventail | `y + abs(x-4.5)` : pyramide |
-| 7–12 | Mosaïque | `((x+y)%2)*10+y` : damier |
-| 13–18 | Marées | `abs(y-(3+sin(0.8*x)*2))` : vagues |
-| 19–24 | Remparts | `min(x,9-x,y,9-y)` : enceinte |
-| 25–30 | Étincelles | `min(abs(x-y),abs(9-x-y))` : diagonales croisées |
+Le pilote Node n'utilise que `move` et `launch`, sans injection d'état. Il gagne
+les 60 parties (graines 455 et 28), budget 36 000 ticks par tentative ; une
+variation de visée déterministe peut être recherchée dans le script, jamais dans
+Vitest. Les enregistrements versionnés rejouent les positions de raquette et
+vérifient victoire, score, vies et premier tick de chaque effet. Les événements
+`moving`, `solid`, `explosive`, `regen`, `portal`, `angle`, `key`, `multi`,
+`gravity`, `falling` doivent survenir dans ces parties pour compter dans le
+rapport. Aucun symbole configuré seul ne vaut nouveauté.
+
+Mesure inchangée (seuil clone 0,08) : **79,3 → 18,1**, **10** introductions
+observées aux niveaux **4/5/7/10/13/16/19/22/25/28**, clones **86,2 % → 0 %**.
 
 ### Présentation et socle
 
 Route `#/briqueterie`, scène Phaser Graphics, briques avec points de PV et croix,
 bonus avec marques, halo de balle et flash sur brique cassée, bonus et perte.
+Les types disposent de couleurs et pictogrammes distincts ; les zones inversées
+sont translucides avec flèches montantes. Nom du dessin et légende avant lancement.
+Les verrous gardent leur croix, la repousse armée son contour clair.
 Effets synthétisés `launch`, `bounce`, `paddle`, `brick`, `bonus`, `life`, `won`,
 `lost`, via le bouton son global. Aucune ressource ni dépendance ajoutée.
 
@@ -858,16 +903,27 @@ moteur. Le crochet est retiré quand la scène est détruite.
 | K06 | Indestructible : rebond, PV et exclusion de la victoire | — |
 | K07 | Trois pertes, relance et zéro vie | Défaite par vraie entrée, Rejouer |
 | K08 | Dernière brique cassée par déplacement | Lancement, panneau suivant, cumul et sauvegarde |
-| K09 | Trois bonus, durée, dernière balle, plafond vie ; apparition saturée/interdite ; fréquence 22–26 % sur 8 000 destructions et 16 graines, trois sortes présentes | — |
+| K09 | Trois bonus, durée, dernière balle, plafond vie ; apparition saturée/interdite. Statistique longue (8 000 destructions, 16 graines, 22–26 %) déplacée dans le validateur Node | — |
 | K10 | Dixième rebond et 300 rebonds plafonnés | — |
-| K11 | Trente niveaux, compte exact, bornes, monotonie dans chaque sens et variation stricte aux extrêmes | Niveau 30 et capture |
+| K11 | Trente signatures géométriques distinctes, comptes exacts, bornes et respirations | Captures 04/12/20/30 |
 | K12 | Même graine/actions, deux découpages, graine témoin, snapshot isolé | Prêt/pause figés, crochet absent hors test et nettoyage |
 
 La fixture commune échoue sur toute erreur JS ou console.error. Les deux projets
 Chromium utilisent un seul worker ; mobile uniquement tap et contacts tactiles
 via Chromium (aucun clavier). Assertions de visibilité, absence de scroll,
-cibles de 56 px et absence de chevauchement Pause/canevas. Huit captures dans
-`test-results/screenshots/briqueterie-{play,level30,won,lost}-<projet>.png`.
+cibles de 56 px et absence de chevauchement Pause/canevas. Captures écrites dans
+`test-results/screenshots/briqueterie-{play,level04,level12,level20,level30,won,lost}-<projet>.png`.
+
+`K-MEC-01…10` : dix dispositions littérales dans `tests/briqueterie-mechanics.ts`.
+`K-DIV-01` : nouveautés observées, écarts de cinq niveaux maximum jusqu'au 25,
+clones <25 %. `K-PILOT` : deux campagnes enregistrées, sans recherche.
+`nice -n 19 ionice -c3 taskset -c 0,1 node scripts/validate-briqueterie.js`
+exécute les mêmes assertions via un adaptateur Node, les campagnes fraîches et
+six mutations en mémoire. `briqueterie-validation.json` donne leurs lignes exactes,
+les premiers témoins et les durées. Régénération : ajouter `--record`.
+Aucun navigateur ni Vitest n'est exécuté sur cette machine. Les sauvegardes de
+progression v1 restent compatibles et les anciens états sans type de brique
+restent acceptés.
 
 ## Empilo
 

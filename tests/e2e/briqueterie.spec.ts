@@ -47,15 +47,16 @@ test('K08 K12 victoire par lancement réel, progression et reprise', async ({ pa
     await tap(page, '#close-levels', mobile);
 });
 // Séparé du parcours précédent : sur une machine lente, l'ensemble dépassait le délai de 30 s.
-test('K11 K12 niveau 30 chargé, mise en page et capture', async ({ page }, info) => {
+for (const level of [4, 12, 20, 30]) test(`K-DIV-E2E niveau ${String(level)}`, async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium';
     await page.goto('/?test=1#/briqueterie');
     await expect.poll(() => page.evaluate(() => Boolean(window.__ARCADE_TEST__?.games.briqueterie))).toBe(true);
     await tap(page, '#resume', mobile);
-    await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.loadLevel(29, 455); });
-    await expect.poll(async () => (await read(page))?.level).toBe(29);
-    await layout(page); expect((await read(page))?.speed).toBe(9);
-    await page.screenshot({ path: `test-results/screenshots/briqueterie-level30-${info.project.name}.png` });
+    await page.evaluate(index => { window.__BRIQUETERIE_TEST__?.loadLevel(index, 455); }, level - 1);
+    await expect.poll(async () => (await read(page))?.level).toBe(level - 1);
+    await layout(page);
+    expect((await read(page))?.bricks.length).toBeGreaterThan(10);
+    await page.screenshot({ path: `test-results/screenshots/briqueterie-level${String(level).padStart(2, '0')}-${info.project.name}.png` });
 });
 test('K02 contrôles, glisser tactile et pause', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium';

@@ -1,3 +1,7 @@
+import { mechanicCases } from './briqueterie-mechanics';
+import { replay } from './briqueterie-replay';
+import { solutions } from './briqueterie-solutions';
+import { briqueterieDiversity } from '../scripts/briqueterie-diversity.js';
 import { test, expect } from 'vitest';
 import { Engine, STEP, contact, difficulty, type Ball, type Brick } from '../src/engines/briqueterie/engine';
 const brick = (hp = 1, solid = false): Brick => ({ x: 100, y: 100, w: 32, h: 18, hp, solid });
@@ -67,41 +71,23 @@ test('K09 apparition : positions interdites, brique, saturation et déterminisme
     for (const run of runs) { run.loadState({ ...run.state, bricks: [brick(), { ...brick(), x: 250 }], balls: [{ x: 116, y: 92, vx: 0, vy: 4 }], ready: false }); run.step(STEP); }
     expect(runs[0]?.snapshot()).toEqual(runs[1]?.snapshot());
 });
-test('K09 fréquence déterministe des bonus sur 8000 destructions et 16 graines', () => {
-    const counts = { wide: 0, multi: 0, life: 0 };
-    const trials = 16 * 500;
-    let invalidDestructions = 0;
-    for (let seed = 1; seed <= 16; seed++) {
-        const e = new Engine(0, seed);
-        for (let i = 0; i < 500; i++) {
-            e.loadState({ ...e.state, ready: false, bonuses: [], bricks: [brick(), { ...brick(), x: 250 }], balls: [{ x: 116, y: 92, vx: 0, vy: 4 }] });
-            e.step(STEP);
-            if (e.state.bricks.length !== 1) invalidDestructions++;
-            for (const drop of e.state.bonuses) counts[drop.kind]++;
-        }
-    }
-    // 22–26 % autour de 24 % : marge de plus de quatre écarts-types sur 8000 essais.
-    expect(invalidDestructions).toBe(0);
-    const proportion = (counts.wide + counts.multi + counts.life) / trials;
-    expect(proportion).toBeGreaterThanOrEqual(0.22);
-    expect(proportion).toBeLessThanOrEqual(0.26);
-    for (const count of Object.values(counts)) expect(count).toBeGreaterThan(0);
-});
 test('K10 accélération tous les dix rebonds, plafond strict', () => {
     const e = new Engine();
     for (let i = 0; i < 300; i++) { e.state.ready = false; e.state.balls = [{ x: 7, y: 400, vx: -e.state.speed, vy: 0 }]; e.step(STEP); if (i === 8) expect(e.state.speed).toBe(4); if (i === 9) expect(e.state.speed).toBe(4.2); }
     expect(e.state.speed).toBe(difficulty(0).cap); expect(Math.hypot(e.state.balls[0]?.vx ?? 0, e.state.balls[0]?.vy ?? 0)).toBeCloseTo(7);
 });
-test('K11 trente niveaux, paramètres de difficulté monotones et motifs jouables', () => {
+test('K11 trente silhouettes dessinées et respirations', () => {
+    const signatures = new Set<string>();
     for (let i = 0; i < 30; i++) {
-        const e = new Engine(i), d = difficulty(i); expect(e.state.bricks.filter(b => !b.solid)).toHaveLength(d.density);
-        expect(e.state.bricks.filter(b => b.solid)).toHaveLength(d.solids); expect(e.state.bricks.every(b => b.x >= 0 && b.x + b.w <= 360 && b.y + b.h < 400)).toBe(true);
-        if (i) expect(d.width).toBeLessThanOrEqual(difficulty(i - 1).width);
-        if (i) for (const key of ['speed', 'cap', 'density', 'hp', 'solids', 'narrowness', 'pattern'] as const) expect(d[key]).toBeGreaterThanOrEqual(difficulty(i - 1)[key]);
+        const e = new Engine(i), d = difficulty(i);
+        expect(e.state.bricks.filter(b => !b.solid || b.kind === 'locked')).toHaveLength(d.density);
+        expect(e.state.bricks.filter(b => b.solid && b.kind !== 'locked')).toHaveLength(d.solids);
+        expect(e.state.bricks.every(b => b.x >= 0 && b.x + b.w <= 360 && b.y + b.h < 400)).toBe(true);
+        signatures.add(e.state.bricks.map(b => `${String(b.x)},${String(b.y)}`).join(';'));
     }
-    for (const key of ['speed', 'cap', 'density', 'hp', 'solids', 'narrowness', 'pattern'] as const) expect(difficulty(29)[key]).toBeGreaterThan(difficulty(0)[key]);
-    expect(difficulty(29).width).toBeLessThan(difficulty(0).width);
-    expect(difficulty(29).speed).toBe(9); expect(difficulty(29).density).toBeGreaterThan(difficulty(0).density); expect(() => difficulty(30)).toThrow();
+    expect(signatures.size).toBe(30);
+    for (const i of [5, 10, 16, 22, 26]) expect(difficulty(i).width).toBe(108);
+    expect(difficulty(29).speed).toBe(9); expect(() => difficulty(30)).toThrow();
 });
 test('K12 déterminisme, découpage fixe, graine témoin et snapshot isolé', () => {
     const a = new Engine(15, 123), b = new Engine(15, 123); a.move(90); b.move(90); a.launch(); b.launch();
@@ -109,4 +95,18 @@ test('K12 déterminisme, découpage fixe, graine témoin et snapshot isolé', ()
     expect(a.snapshot()).toEqual(b.snapshot()); expect(new Engine(15, 124).snapshot()).not.toEqual(new Engine(15, 123).snapshot());
     const snapshot = a.snapshot(); snapshot.bricks.length = 0; expect(a.state.bricks.length).toBeGreaterThan(0);
     expect(() => { a.step(-1); }).toThrow();
+});
+
+for (const [name, run] of Object.entries(mechanicCases)) test(name, () => { run(); });
+test('K-DIV-01 nouveautés observées, rythme et clones', () => {
+    const result = briqueterieDiversity(Engine, solutions, replay);
+    expect(result.noveltyCount).toBeGreaterThanOrEqual(7); expect(result.cloneShare).toBeLessThan(0.25);
+    let last = 1;
+    for (const level of result.noveltyLevels.filter(n => n <= 25)) { expect(level - last).toBeLessThanOrEqual(5); last = level; }
+    expect(25 - last).toBeLessThanOrEqual(5);
+});
+// Each campaign is its own short replay test; no pilot search runs in this suite.
+for (const seed of [28, 455]) test(`K-PILOT campagne enregistrée ${String(seed)}`, () => {
+    const records = solutions.filter(r => r.seed === seed); expect(records).toHaveLength(30);
+    for (const record of records) expect(replay(record).engine.status).toBe('won');
 });

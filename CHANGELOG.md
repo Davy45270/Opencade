@@ -5,6 +5,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Briqueterie (pass 61): thirty authored silhouettes with holes, arches, a spiral and falling suspensions; progressively introduce sliding rows, neighboring blasts, regrowth, portals, solid chicanes, inclined normals, keys/locks, brick multiball and inverse-gravity zones.
+- Add recovery stages, five-level challenges, a combined fortress finale and distinct mechanic marks; preserve v1 progression saves and deterministic simulation.
+- Record 60 ordinary-input victories on seeds 455/28; add ten literal mechanic oracles, short campaign replays, six rejected source mutations and four written E2E captures. Repetition score improves from 79.3 to 18.1, with ten observed introductions and 0% adjacent clones. No browser or Vitest execution.
+
 - Pass 59: add five original recurring companions, deterministic vector pose/expression/animation lists, shared direct Canvas and Phaser Graphics adapters, and reduced-motion support.
 - Add the accessible home character picker with idle/special previews, persistent isolated selection and a stable companion API; game integration follows in a later pass.
 - Add C01–C06 checks, three rejected Node source mutations and desktop/mobile E2E review sheets; browser and Vitest execution is deferred to the test host.
