@@ -112,10 +112,18 @@ test('V12 crochet inerte sans test et nettoyage à la sortie', async ({ page }, 
     expect(await page.evaluate(() => [window.__ARCADE_TEST__, window.__ORBITE_TEST__])).toEqual([undefined, undefined]);
 });
 
-test('V11 V08 niveau 30 et mise en page', async ({ page }, info) => {
-    const mobile = info.project.name === 'mobile-chromium'; await open(page);
-    await tap(page, '#resume', mobile); await tap(page, '#pause', mobile);
-    await page.evaluate(() => { window.__ORBITE_TEST__?.loadLevel(29, 457); });
-    await tap(page, '#pause', mobile); await layout(page);
-    await page.screenshot({ path: `test-results/screenshots/orbite-level30-${info.project.name}.png` });
-});
+for (const [level, capture] of [[3, '04'], [11, '12'], [19, '20'], [29, '30']] as const) {
+    test(`O-E2E orbite-level${capture} mécanique et mise en page`, async ({ page }, info) => {
+        const mobile = info.project.name === 'mobile-chromium';
+        await open(page); await tap(page, '#resume', mobile); await tap(page, '#pause', mobile);
+        await page.evaluate(level => { window.__ORBITE_TEST__?.loadLevel(level, 28); window.__ORBITE_TEST__?.advance(0); }, level);
+        await tap(page, '#pause', mobile);
+        const state = await read(page); expect(state?.level).toBe(level);
+        if (level === 3) expect(state?.probes.some(p => p.kind === 'rotor')).toBe(true);
+        if (level === 11) { expect(state?.asteroids).toHaveLength(2); expect(state?.probes.some(p => p.kind === 'split')).toBe(true); }
+        if (level === 19) { expect(state?.wells).toHaveLength(1); expect(state?.boss?.motif).toBe(4); }
+        if (level === 29) { expect(state?.boss?.phase).toBe(1); expect(state?.satellite?.hp).toBe(4); expect(state?.swarm).toBe(true); }
+        await layout(page);
+        await page.screenshot({ path: `test-results/screenshots/orbite-level${capture}-${info.project.name}.png` });
+    });
+}

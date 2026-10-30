@@ -1,5 +1,6 @@
 import Phaser from 'phaser';
 import { Engine, LEVELS, SHIELD_Y, CANNON_Y } from '../../engines/orbite/engine';
+import { stage } from '../../engines/orbite/campaign';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
 import { Progression } from '../../shell/progression';
@@ -54,7 +55,7 @@ export class OrbiteScene extends Phaser.Scene {
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('orbite'); delete window.__ORBITE_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.graphics = this.add.graphics();
-        this.hud = this.add.text(16, 14, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 3 });
+        this.hud = this.add.text(16, 14, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 3 });
         renderTouchControls(this.inputs, orbiteButtons, (id, held) => {
             if (id === 'orbite-fire') this.fire(held);
             else if (id === 'orbite-left') this.left = held;
@@ -165,10 +166,38 @@ export class OrbiteScene extends Phaser.Scene {
         g.lineStyle(1, 0x244c61); g.strokeEllipse(180, 290, 320, 350); g.strokeEllipse(180, 290, 220, 350);
         g.lineStyle(1, 0x78ead5, 0.3); g.lineBetween(12, SHIELD_Y, 348, SHIELD_Y);
         for (const cell of s.shields) { g.fillStyle(0x78ead5); g.fillRect(cell.x, cell.y, 4, 4); g.fillStyle(0xc4fff0, 0.4); g.fillRect(cell.x, cell.y, 4, 1); }
+        for (const well of s.wells ?? []) {
+            for (const radius of [18, 30, 44]) { g.lineStyle(2, 0xbaadff, 0.6); g.strokeEllipse(well.x, well.y, radius * 2, radius); }
+            g.fillStyle(0x080b20); g.fillCircle(well.x, well.y, 10);
+        }
+        for (const rock of s.asteroids ?? []) {
+            g.fillStyle(0x937d70); g.fillCircle(rock.x, rock.y, 22);
+            g.lineStyle(2, 0xffdb89); g.strokeCircle(rock.x, rock.y, 23);
+            g.fillStyle(0x564957); g.fillCircle(rock.x - 7, rock.y - 5, 6); g.fillCircle(rock.x + 8, rock.y + 7, 4);
+        }
+        if (s.satellite) {
+            const a = s.satellite; g.fillStyle(0x78ead5); g.fillRoundedRect(a.x - 10, a.y - 7, 20, 14, 4);
+            g.fillStyle(0x87d8ff); g.fillRect(a.x - 24, a.y - 4, 11, 8); g.fillRect(a.x + 13, a.y - 4, 11, 8);
+            for (let i = 0; i < a.hp; i++) { g.fillStyle(0x78ead5); g.fillCircle(a.x - 12 + i * 8, a.y + 14, 2); }
+        }
+        if (s.boss) {
+            const b = s.boss, open = !s.probes.length && this.engine.bossOpen();
+            g.fillStyle(b.phase === 2 ? 0xff8da9 : 0xbaadff); g.fillRoundedRect(b.x - 28, b.y - 15, 56, 30, 9);
+            g.fillStyle(open ? 0x78ead5 : 0x564957); g.fillCircle(b.x, b.y + 3, 10);
+            g.lineStyle(2, open ? 0xffffff : 0xffdb89); g.strokeCircle(b.x, b.y + 3, 12);
+            g.fillStyle(0x312e52); g.fillRect(b.x - 26, b.y - 23, 52, 4);
+            g.fillStyle(0xff8da9); g.fillRect(b.x - 26, b.y - 23, 52 * b.hp / b.maxHp, 4);
+        }
         for (const p of s.probes) {
+            if (!this.engine.visible(p)) continue;
             const color = [0xffdb89, 0xbaadff, 0xff9ebb, 0x87d8ff, 0xa5f0ca][p.row] ?? 0xffffff;
             g.fillStyle(color); g.fillTriangle(p.x, p.y - 10, p.x - 11, p.y + 4, p.x + 11, p.y + 4); g.fillTriangle(p.x, p.y + 10, p.x - 7, p.y, p.x + 7, p.y);
             g.fillStyle(0x102339); g.fillCircle(p.x, p.y, 3); g.lineStyle(1, color); g.strokeCircle(p.x, p.y, 12 + Math.sin(s.ticks / 12 + p.column) * 1.5);
+            if (p.kind === 'rotor') { g.lineStyle(3, 0x87d8ff); g.beginPath(); const start = Math.PI / 2 - (s.ticks + p.id * 11) % 120 * Math.PI / 60; g.arc(p.x, p.y, 16, start, start + Math.PI * 0.75); g.strokePath(); }
+            if (p.kind === 'split') { g.lineStyle(2, 0xff8da9); g.lineBetween(p.x - 6, p.y - 5, p.x + 6, p.y + 5); g.lineBetween(p.x + 6, p.y - 5, p.x - 6, p.y + 5); }
+            if (p.kind === 'repair') { g.fillStyle(0x78ead5); g.fillRect(p.x - 7, p.y - 2, 14, 4); g.fillRect(p.x - 2, p.y - 7, 4, 14); }
+            if (p.kind === 'stealth') { g.lineStyle(2, 0xbaadff); g.strokeCircle(p.x, p.y, 16); }
+            if (p.kind === 'fragment') { g.lineStyle(1, 0xff8da9); g.strokeTriangle(p.x, p.y - 7, p.x - 5, p.y + 5, p.x + 5, p.y + 5); }
             if (p.hp > 1) { g.lineStyle(2, 0xffffff); g.strokeRoundedRect(p.x - 13, p.y - 13, 26, 26, 5); }
         }
         if (s.comet) {
@@ -183,7 +212,10 @@ export class OrbiteScene extends Phaser.Scene {
         }
         for (const spark of this.sparks) { g.lineStyle(2, 0xffdb89, 1 - spark.age / 350); for (let i = 0; i < 6; i++) { const angle = i * Math.PI / 3, radius = 8 + spark.age / 15; g.lineBetween(spark.x + Math.cos(angle) * radius, spark.y + Math.sin(angle) * radius, spark.x + Math.cos(angle) * (radius + 5), spark.y + Math.sin(angle) * (radius + 5)); } }
         g.lineStyle(2, this.glow ? this.glowColor : 0x42718b, this.glow ? this.glow : 0.7); g.strokeRoundedRect(2, 2, 356, 636, 14);
-        this.hud?.setText(`ORBITE ${String(this.engine.level + 1)}     VIES ${'◆'.repeat(s.lives)}\nSCORE ${String(s.score)}     SONDES ${String(s.probes.length)}`);
+        const c = stage(this.engine.level);
+        const names = { rotor: 'Rotors : attendre l’ouverture', split: 'Scindées : finir les fragments', asteroid: 'Astéroïdes : tirs déviés', gravity: 'Gravité : viser en avance', stealth: 'Furtives : guetter le retour', repair: 'Réparateurs : priorité', satellite: 'Protéger le satellite : intercepter', spiral: 'Essaim : suivre les courbes' };
+        const hint = s.boss ? s.probes.length ? 'GARDIEN : éliminer les escortes' : `CŒUR : viser au vert · PHASE ${String(s.boss.phase)}` : c.rest ? 'RESPIRATION · ' + (names[c.mechanics[0] ?? 'rotor']) : names[c.mechanics[0] ?? 'rotor'];
+        this.hud?.setText(`ORBITE ${String(this.engine.level + 1)}     VIES ${'◆'.repeat(s.lives)}\nSCORE ${String(s.score)}     SONDES ${String(s.probes.length)}\n${this.engine.level < 3 ? 'Défendre les quatre abris' : hint}`);
         const status = document.querySelector('#status'); if (status) status.textContent = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'won' ? 'Victoire' : this.engine.status === 'lost' ? 'Défaite' : 'En jeu'}`;
     }
 }

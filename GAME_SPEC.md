@@ -1073,9 +1073,9 @@ pendant cette fenêtre sont absorbés. La flotte avance en bloc entre x=12 et
 348 (en tenant compte du rayon de sonde 11). Au bord, elle termine son mouvement
 contre la limite, descend de 18 px et inverse son sens une seule fois. Sa
 vitesse vaut `speed × (1 + 2 × (1 - restantes/initiales))`, jusqu'à presque
-3× la vitesse initiale. Atteindre y=488 avec le bas d'une sonde fait perdre,
+3× la vitesse initiale ; la scission ne peut pas réduire cette vitesse sous sa base. Atteindre y=488 avec le bas d'une sonde fait perdre,
 indépendamment des vies et avant la résolution des projectiles du pas courant.
-Détruire la dernière sonde fait gagner, sauf défaite déjà survenue dans ce pas.
+Détruire la dernière sonde et le gardien éventuel fait gagner, sauf défaite déjà survenue dans ce pas.
 
 Un tir joueur actif, **deux dès le niveau 15 inclus** (index 14) ; délai de
 180 ms entre deux tirs. Espace/Tir maintenu répète les tentatives, sans jamais
@@ -1085,7 +1085,9 @@ qu'à sa destruction. Le score vaut `(rows - row) × 10 × numéro du niveau`,
 avec `row=0` en haut. Les tirs ennemis sont émis par la sonde géométriquement
 la plus basse de la colonne choisie uniformément parmi les colonnes occupées.
 Le délai de tir est `1000/fireRate × (0.75 + random.next() × 0.5)` ; au plus
-12 tirs ennemis actifs, aucune émission si toutes les colonnes sont vides.
+12 tirs ennemis actifs pour l'émission ordinaire, aucune émission si toutes les
+colonnes sont vides. Les motifs de gardien et la menace dédiée du satellite
+s'ajoutent à cette limite.
 
 Quatre boucliers sont générés à x=28, 108, 208, 288, chacun dans une matrice
 11×7 de cellules **4×4 px** à partir de y=488. Coins hauts arrondis par retrait
@@ -1101,50 +1103,86 @@ Toutes les 5 s, une tentative de comète a 22 % de chances de réussir. Une seul
 comète à la fois, aucune apparition si une sonde empiète sur la voie réservée
 (`probe.y - 11 < 78`). Apparition à x=-16 ou 376, y=56, deux sens équiprobables,
 vitesse 95 px/s ; retrait au-delà de x=-28 ou 388. Collision joueur :
-150×numéro du niveau, une seule fois, sans compter pour la victoire. V09 teste
-400 graines, entre 65 et 110 apparitions (16,25–27,5 %), les deux sens, les
-positions interdites, le cas déjà occupé, l'expiration et le score.
+150×numéro du niveau, une seule fois, sans compter pour la victoire. L'audit Node vérifie 400 graines, les deux sens, les positions interdites,
+l'expiration et le score ; le test court rejoue huit apparitions enregistrées.
 
-### Générateur des 30 niveaux
+### Campagne de 30 niveaux — passe 64
 
-Indices `i=0..29` ; aucun niveau ne dépend de l'URL ni du crochet. La fonction
-`difficulty(i)` expose **tous** les paramètres suivants, chacun testé monotone
-non décroissant, strict entre les deux extrêmes :
+Les six formes sont écrites dans `src/engines/orbite/campaign.ts` :
+rectangle, chevron, ailes séparées, arche, losange à largeur variable selon la
+rangée et couloirs alternés. Les types tactiques et leurs combinaisons sont
+fixés par niveau ; la graine conserve le blindage et les délais de tir.
+Une formation normale a trois rangées de six sondes ; les gardiens quatre
+colonnes. Les respirations 6/11/17/21/26 ont deux rangées et une cadence ennemie
+multipliée par 0,6. Elles conservent des abris frais et font travailler une
+mécanique isolée. Le nombre et les PV ne comptent jamais comme nouveauté.
 
-| Paramètre | Générateur | Niveau 1 → 30 |
-| --- | --- | --- |
-| speed (px/s) | `18 + 24*i/29` | 18 → 42 |
-| fireRate (tirs/s moyens) | `0.7 + 1.3*i/29` | 0,7 → 2 |
-| rows | `3 + floor(2*i/29)` | 3 → 5 |
-| columns | `6 + floor(3*i/29)` | 6 → 9 |
-| startY | `96 + 70*i/29` | 96 → 166 |
-| armor (probabilité) | 0 si i<9, sinon `0.15 + 0.25*(i-9)/20` | 0 → 0,4 |
-| patternTier | `min(3,floor(i/8))` | 0 → 3 |
-| enemySpeed (px/s) | `145 + 65*i/29` | 145 → 210 |
-| shotLimit | 1 si i<14, sinon 2 | 1 → 2 |
+La vitesse de base reste `18 + 24*i/29`, la cadence hors respiration
+`0.7 + 1.3*i/29`, la vitesse ennemie `145 + 65*i/29` ; le blindage apparaît
+au niveau 10 avec probabilité 0,15 puis augmente jusqu'à 0,4. Le second tir reste
+au niveau 15. `difficulty` expose les dimensions réellement générées ; les
+anciens paramètres de décalage aléatoire sont remplacés par les formes écrites.
 
-L'« altitude croissante » est interprétée comme une ordonnée initiale croissante :
-la flotte commence progressivement plus près des boucliers, réduisant la marge
-avant invasion. Le second tir est une aide au joueur dont le seuil est explicite,
-pas une mesure de difficulté isolée.
+| Première apparition | Mécanique et conséquence défensive |
+| --- | --- |
+| 4 | **Rotors** : arc tournant, bloque pendant 45 ticks sur 120, ouvre pendant 75 ; le projectile est absorbé sans perdre de PV. Attendre le passage de l'ouverture. |
+| 7 | **Scindées** : à la destruction, deux fragments à x−14/x+14 et y−8 ; identifiants distincts, un PV, toujours objectifs. Recentrer les tirs. |
+| 10 | **Astéroïdes** à (116,330)/(244,370) : rayon de rencontre 24, déviation horizontale −110/+110 px/s, une seule par projectile. Choisir une autre ligne de tir. |
+| 13 | **Puits de gravité** à (180,350) : dans la bande verticale ±100, accélération horizontale de `(180-x)*0.012` par tick, vitesse limitée à ±90 px/s. Compenser la courbe, dans les deux camps. |
+| 16 | **Furtives** : visibles et vulnérables 95 ticks sur 150, déphasage `id*13`. Attendre le retour plutôt que tirer dans le vide. |
+| 19 | **Réparateurs** : tous les 150 ticks, rendent un PV au premier voisin blessé à moins de 110 px, sans dépasser son maximum. Les éliminer en priorité. |
+| 22 | **Satellite allié** : quatre PV, y=550, x=`180+sin(ticks/100)*55`. Menace dédiée toutes les 360 ticks tant que des sondes restent ; sa perte termine le niveau. Les tirs du joueur interceptent les tirs ennemis. Après dégagement de la flotte, évacuation et bonus `PV*100*niveau`, avant le duel final éventuel. |
+| 25 | **Essaim coordonné** : au déplacement en bloc s'ajoutent `sin(ticks/32+row)*0.35` en x et `cos(ticks/32+column)*0.2` en y. Suivre les courbes de rangée/colonne. |
 
-Le PRNG partagé choisit d'abord un motif parmi `0..patternTier`, puis un tirage
-de blindage pour chaque sonde, en ordre rangée/colonne ; ensuite le premier délai
-de tir ennemi. Chaque formation conserve `rows × columns` sondes, évitant qu'un
-motif creux rende brusquement un niveau moins dense. Les motifs sont des
-**décalages de colonnes**, qui conservent la lisibilité des colonnes de tir :
-rectangle, chevron, damier décalé, cœur abstrait. Pour `c=(columns-1)/2`,
-`d=abs(column-c)`, le centre vaut `x=180+(column-c)*30` et
-`y=startY+row*30+offset`, où :
+Les champs modifient aussi les tirs ennemis. Un projectile déjà consommé ne
+peut plus intercepter un autre projectile. Les symboles et le HUD indiquent
+la règle active : arc de rotor, croix de scission, croix de réparation,
+halo furtif, rochers, anneaux de gravité et panneaux du satellite.
 
-- rectangle : offset=0 ;
-- chevron : offset=d*9 ;
-- damier : offset=(column%2)*14 ;
-- cœur abstrait : offset=(d<1 ? 18 : d>c-1 ? 22 : 0)+row*d*2.
+**Gardiens aux niveaux 5/10/15/20/25/30.** Ils oscillent à y=80, x=
+`180+sin(ticks/85)*110`. Les escortes verrouillent le cœur ; ensuite viser
+à ±12 px du centre pendant l'ouverture verte (ticks modulo 150 ≥55).
+Cinq PV, douze au final ; la coque extérieure absorbe le tir même au vert.
+Les motifs respectifs sont double diagonale, visée du canon, éventail triple,
+balayage alterné avec tir central, paire tournante, puis éventail de porteuse.
+Le boss 30 change à six PV : oscillation de période angulaire 48 au lieu de 85,
+émission tous les 72 ticks au lieu de 120, double diagonale et tir visé.
+Détruire le gardien rapporte `500*niveau`. L'évacuation alliée ménage une
+respiration avant le duel final ; les douze PV, le changement de phase et le
+cœur cyclique rendent ce dernier distinct d'une vague ordinaire.
 
-V11 contrôle les quatre motifs et les positions de départ sur 30×12 cas ;
-V10 contrôle l'absence de blindage avant le niveau 10 et la fréquence initiale
-sur 60 graines (12–18 % autour des 15 % annoncés).
+| Niveau | Forme | Mécaniques / rythme |
+| ---: | --- | --- |
+| 1 | Rectangle | Défense initiale |
+| 2 | Chevron | Angles |
+| 3 | Ailes | Deux fronts |
+| 4 | Arche | Rotors |
+| 5 | Losange | Rotors ; gardien double diagonale |
+| 6 | Couloirs | Respiration |
+| 7 | Chevron | Scindées |
+| 8 | Losange | Rotors + scindées |
+| 9 | Arche | Scindées |
+| 10 | Ailes | Astéroïdes + rotors ; gardien visé |
+| 11 | Couloirs | Astéroïdes ; respiration |
+| 12 | Rectangle | Astéroïdes + scindées |
+| 13 | Arche | Gravité |
+| 14 | Ailes | Gravité + rotors |
+| 15 | Losange | Gravité + scindées ; gardien éventail |
+| 16 | Couloirs | Furtives |
+| 17 | Rectangle | Furtives ; respiration |
+| 18 | Chevron | Furtives + astéroïdes |
+| 19 | Losange | Réparateurs + rotors |
+| 20 | Arche | Réparateurs + gravité ; gardien balayage |
+| 21 | Couloirs | Réparateurs ; respiration |
+| 22 | Ailes | Satellite + scindées |
+| 23 | Chevron | Satellite + furtives |
+| 24 | Rectangle | Satellite + réparateurs |
+| 25 | Couloirs | Essaim + gravité ; gardien tournant |
+| 26 | Losange | Essaim ; respiration |
+| 27 | Arche | Essaim + rotors |
+| 28 | Chevron | Essaim + satellite + astéroïdes |
+| 29 | Ailes | Essaim + réparateurs + furtives |
+| 30 | Losange | Huit mécaniques ; porteuse en deux phases |
 
 ### Contrôles, présentation et intégration
 
@@ -1168,7 +1206,7 @@ par le son global unique.
 
 Avec `?test=1` uniquement, `__ARCADE_TEST__.games.orbite` (alias
 `__ORBITE_TEST__`) expose `read()`, `loadLevel(index, seed?)` et
-`scenario('finish'|'danger'|'showcase')`. Les scénarios chargent une sonde restante ou un
+`scenario('finish'|'danger')`. Les scénarios chargent une sonde restante ou un
 projectile ennemi avec une vie restante, puis attendent un tir ou un déplacement
 réel. Ils ne changent aucune règle ni aucun statut final. `loadState` charge
 une position, sans restaurer le PRNG ; `snapshot()` copie l'état, les entrées
@@ -1183,23 +1221,45 @@ produisent les mêmes snapshots, même avec des découpages d'affichage différe
 | V01 | Deux bords, mouvement en bloc, descente unique, inversion, canon borné | Flèches/A, souris, glisser bas et exclusion du glisser haut |
 | V02 | Vitesse relative et déplacement effectif avec 3, 2 puis 1 sonde | Flotte visible |
 | V03 | Un puis deux tirs au niveau 15, délai, sortie écran | Tir réel et tir auto après reprise |
-| V04 | Collision, première sonde rencontrée, score pour cinq rangées | Tir final et score au panneau |
+| V04 | Collision, première sonde rencontrée, score pour les trois rangées | Tir final et score au panneau |
 | V05 | Émetteur bas dans les colonnes occupées, délai à graine, plafond 12 | Projectiles visibles |
 | V06 | Quatre boucliers, grille 4 px, première cellule érodée dans les deux sens | Boucliers visibles dans les captures |
 | V07 | Vies, invulnérabilité, arrêt à zéro, invasion prioritaire | Guidage vers un tir, défaite, Rejouer |
 | V08 | Dernière sonde et arrêt après victoire | Victoire, Niveau suivant, cumul et déblocage/record après reload |
 | V09 | Fréquence, sens, saturation, exclusion, traversée, bonus unique | Rendu de comète en jeu normal |
 | V10 | Deux impacts, score final, seuil et fréquence du blindage | Capture niveau 30 |
-| V11 | Toutes les clés de difficulty, monotonie et variation stricte, formations légales | 30 entrées dans le sélecteur |
+| V11 | Formes écrites légales, six géométries, cadence réduite des respirations | 30 entrées dans le sélecteur |
 | V12 | Entrées horodatées, découpages équivalents, témoin de graine, copie sérialisable | Prêt/pause figés, option persistée, crochet absent sans test et nettoyé à la sortie |
 
 Les E2E mobile utilisent exclusivement des taps et gestes tactiles Chromium,
 sans clavier. Assertions de géométrie pour Pause, Son, flèches, Tir, option,
 Niveaux et Recommencer : aucune intersection avec le canevas, cibles visibles
 dans le viewport, pas de scroll. La fixture commune échoue sur toute erreur JS
-ou console.error. Huit captures `orbite-{play,level30,won,lost}-<projet>.png`.
-Mutations V01 (inversion supprimée), V05 (émetteur haut) et V06 (cellule conservée)
-appliquées séparément : chacune fait échouer son oracle, puis code restauré.
+ou console.error. Captures écrites pour `orbite-level04`, `orbite-level12`,
+`orbite-level20`, `orbite-level30` sur les projets desktop/mobile, ainsi que
+les captures de victoire et défaite. Aucune exécution de navigateur pour la passe 64.
+
+**O-MEC-01…08** : un oracle littéral par mécanique dans
+`tests/orbite-behavior.ts`, exposé individuellement dans
+`tests/orbite-mechanics.test.ts`. **O-BOSS** vérifie verrou, coque, cœur et phases.
+**O-SAVE** charge une position ancienne sans aucun champ optionnel.
+**O-PILOT** : 60 tests indépendants, chacun rejoue un enregistrement de
+`tests/orbite-solutions.ts`, sans lancer le pilote ; formation, événements,
+premiers témoins, statut terminal et empreinte du snapshot doivent correspondre.
+**O-DIV-01** agrège les inventaires ainsi vérifiés : au moins sept nouveautés,
+écarts ≤5 jusqu'au 25 et clones <25 %. Les campagnes longues et la distribution
+des comètes restent exclusivement dans les scripts Node.
+
+Validation : `nice -n 19 ionice -c3 taskset -c 0,1 node scripts/validate-orbite.js`
+(ajouter `--record` pour régénérer les enregistrements).
+Le script gagne les 30 niveaux sur 457 et 28 par commandes publiques,
+compare les enregistrements aux parties fraîches, exécute les oracles avec un
+adaptateur d'assertions Node (sans charger Vitest) et exige moins de 2000 ms
+pour chaque test sur deux CPU. `docs/orbite-validation.json` conserve les temps,
+les témoins et onze mutations rejetées : huit mécaniques, phase/coeur du boss,
+puis tous les niveaux égaux au premier (100 % de clones, oracle rejeté).
+Les clés de progression et de tir auto sont inchangées ; les champs moteur
+ajoutés sont optionnels pour conserver les anciennes positions.
 
 ## Essaim
 

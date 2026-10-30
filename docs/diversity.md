@@ -1,6 +1,6 @@
-# Level diversity audit — pass 61 (Briqueterie)
+# Level diversity audit — pass 64 (Orbite)
 
-Briqueterie is updated for pass 61; Dédale retains pass 58; Essaim retains pass 54; Ferraille retains passes 51–52 and Bubble Lab its pass 49 correction. Other game implementations are unchanged. Run from the repository root:
+Orbite is updated for pass 64; Briqueterie retains pass 61; Dédale retains pass 58; Essaim retains pass 54; Ferraille retains passes 51–52 and Bubble Lab its pass 49 correction. Other game implementations are unchanged. Run from the repository root:
 
 ```sh
 nice -n 19 ionice -c3 node scripts/diversity-report.js
@@ -9,6 +9,22 @@ nice -n 19 ionice -c3 node scripts/diversity-report.js
 The script prints one complete JSON object followed by a Markdown table. Level numbers in this report are one-based. Seed is fixed at 28. The existing TypeScript loader and installed TypeScript compiler are reused; nothing is installed. The JSON includes each requested level, raw and normalized parameters, parameter ranges, initial and midpoint snapshots, element inventories and first appearances, layout signatures, all 29 adjacent comparisons where available, clone pairs, configuration plateaus and pilot outcomes.
 
 ## Method and limits
+
+**Orbite pass 64 override:** full ordinary-input recordings replace midpoint sampling.
+The validator first regenerates all 60 victories on seeds 457 (default) and 28,
+then verifies every recording, including each first effect witness, against a
+fresh engine. The report reads the 30 verified seed-28 inventories. Eight mechanic
+types require actual block/split/deflection/curve/hide/heal/threat/swarm events;
+guardian novelties require emitted shots, and phase two requires an observed
+transition. No mechanic is counted from the declared level kit. Layouts are actual
+initial (x,y,type) probe positions; numeric descriptors are generated probe count
+and actual guardian presence, with no ordinal pattern/level feature. Blindage PV,
+speed increases, colors and counts add no novelty. Replaying the degenerate
+all-levels-equal-to-one generator measures exactly 100% clones and is rejected.
+The script-only pilot integrates ordinary controls at 60 Hz, capped at 18,000
+ticks; unit tests replay one recording each, never run a campaign search.
+The unchanged shared thresholds and formula produce **18.1**, down from **78.4**,
+with **0% clones** instead of **86.2%**. See [validation evidence](orbite-validation.json).
 
 **Briqueterie pass 61 override:** full deterministic campaign replays replace
 midpoint sampling. The adapter observes effect events at every fixed tick and
@@ -22,7 +38,7 @@ For each game, use `difficulty(level)` and summaries of generated data: occupied
 
 For parameter k, normalize over existing levels: z(k,l) = (x(k,l) − min(k)) / (max(k) − min(k)); constant parameters become zero and are excluded from parameter distance. P is the mean absolute difference over varying parameters. Every game uses the same clone rule: D = (P + L) / 2, clone iff D < **0.08**. No threshold is tuned per game. These are near-clones under the chosen descriptors, not claims of identical play.
 
-L is Jaccard distance, 1 − |A ∩ B| / |A ∪ B| (zero for two empty signatures), except Dérapage. Signatures are colored bubble cells; typed brick positions; occupied Empilo cells with tile value; Serpentin obstacle cells; Orbite row/column formation cells; Essaim typed home formation cells; Dédale ordered played route positions and observed typed mechanism cells; typed walls/targets/boxes in Caisses; Ferraille solid terrain cells, platform and cage positions in world coordinates; and Traverse lane row/type/direction/phase/diver tuples. Alunir samples interpolated terrain every 12 screen pixels and quantizes height into fixed 12-pixel bins. Dérapage uses the existing `shapeSignature` and `signatureDistance` curvature histogram, divided by two to put its L1 distance in 0..1; the existing turn list is retained in JSON but is not part of that engine distance. Layouts are initial layouts, never pilot-damaged boards. Empty layouts are legitimate, not missing data. Jaccard can emphasize cell changes and ignore strategic equivalence; the curvature histogram can miss order differences.
+L is Jaccard distance, 1 − |A ∩ B| / |A ∪ B| (zero for two empty signatures), except Dérapage. Signatures are colored bubble cells; typed brick positions; occupied Empilo cells with tile value; Serpentin obstacle cells; Orbite typed initial probe coordinates; Essaim typed home formation cells; Dédale ordered played route positions and observed typed mechanism cells; typed walls/targets/boxes in Caisses; Ferraille solid terrain cells, platform and cage positions in world coordinates; and Traverse lane row/type/direction/phase/diver tuples. Alunir samples interpolated terrain every 12 screen pixels and quantizes height into fixed 12-pixel bins. Dérapage uses the existing `shapeSignature` and `signatureDistance` curvature histogram, divided by two to put its L1 distance in 0..1; the existing turn list is retained in JSON but is not part of that engine distance. Layouts are initial layouts, never pilot-damaged boards. Empty layouts are legitimate, not missing data. Jaccard can emphasize cell changes and ignore strategic equivalence; the curvature histogram can miss order differences.
 
 Essaim and Ferraille observe controls at every fixed simulation tick, including inside their six-tick demo advances. The script reuses demo policy source in memory, transpiled with the existing compiler, replacing only the shared wrapper so it can load each requested level and run without attract-mode resets. Dérapage uses the same ordinary controller directly. Caisses uses its existing exact solver and replays the inputs through the engine. No state is injected and no rule is bypassed. Stop at the first terminal outcome or 1,800 policy iterations. Most iterations advance 1/15 second; Essaim and Ferraille advance six fixed ticks (1/10 second), Alunir advances four 1/60 steps, Traverse one flow quantum, and Caisses one input per 1/15 second. Thus the cap is a policy-step budget, not a common time limit. The midpoint is halfway through the **observed attempt**, replayed deterministically; it is not a claim to represent half of a victorious game.
 
@@ -40,7 +56,6 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 
 | Game | Score | Novelties (count; levels) | Clone share | Longest flat plateau | What actually varies |
 | --- | ---: | --- | ---: | ---: | --- |
-| Orbite | 78.4 | 3; 6, 10, 15 | 86.2% | 3 | Formation dimensions, armor, movement tier, fire cadence and shot allowance. |
 | Serpentin | 62.1 | 3; 2, 5, 6 | 37.9% | 3 | Obstacle placement and patterns, boundary wrapping, speed and apple target. |
 | Empilo | 59.5 | 5; 6, 9, 11, 16, 21 | 62.1% | 3 | Piece vocabulary, initial rubble and sealed tiles, gravity and line target. |
 | Alunir | 56.9 | 2; 2, 15 | 41.4% | 3 | Terrain relief, landing width, wind, gusts, fuel and initial offset. |
@@ -50,6 +65,7 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Bulles | 25.9 | 7; 2, 11, 14, 17, 20, 23, 26 | 0.0% | 0 | Thirty seeded layouts with increasing density and pressure; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers. |
 | Dédale | 22.4 | 8; 4, 5, 9, 13, 16, 19, 22, 25 | 0.0% | 3 | Five seeded topologies; observed colored doors, one-way passages, paired portals, switches, cyclic walls, sliding ice, reduced sight and distinct wisp behaviors. |
 | Briqueterie | 18.1 | 10; 4, 5, 7, 10, 13, 16, 19, 22, 25, 28 | 0.0% | 0 | Thirty authored silhouettes; observed sliding rows, chicanes, neighbor explosions, regrowth, portals, inclined reflections, keys, brick multiball, inverse-gravity zones and falling suspensions. |
+| Orbite | 18.1 | 12; 4, 5, 7, 10, 13, 15, 16, 19, 20, 22, 25, 30 | 0.0% | 3 | Six authored formations; observed rotating shields, split fragments, asteroid deflections, gravity curves, stealth, local repair, satellite defense and coordinated swarms; six guardians and a two-phase finale. |
 | Essaim | 16.4 | 14; 2, 3, 4, 5, 7, 10, 13, 15, 16, 19, 20, 22, 25, 30 | 0.0% | 3 | Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship. |
 | Ferraille | 11.2 | 19; 2, 4, 5, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 20, 21, 24, 25, 26, 30 | 0.0% | 0 | Authored ascent/descent, wagon rides, hostage rescues, six enemy behaviors, three special weapons and five guardian patterns plus a three-phase reactor. |
 
@@ -63,7 +79,7 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Ferraille | 30 | 0 | 0 |
 | Essaim | 30 | 0 | 0 |
 | Briqueterie | 30 | 0 | 0 |
-| Orbite | 0 | 30 | 0 |
+| Orbite | 30 | 0 | 0 |
 | Serpentin | 12 | 10 | 8 |
 | Empilo | 0 | 30 | 0 |
 | Alunir | 30 | 0 | 0 |
@@ -72,11 +88,11 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Traverse | 1 | 29 | 0 |
 | Dérapage | 23 | 7 | 0 |
 
-For Orbite and Empilo no completion time is measured at any level. Those curves require a stronger ordinary-input policy before completion-time comparisons become useful. Caisses times reflect the chosen replay cadence, not puzzle-solving time. Dédale moves from 100/100, zero novelties and 100% clones to 22.4/100, eight novelty-bearing levels and 0% clones. These remain descriptor measurements, not a claim about human difficulty.
+For Empilo no completion time is measured at any level. Orbite now has 30 measured seed-28 wins; its separate validation also wins all 30 default-seed levels. These describe one deterministic pilot, not human difficulty. Caisses times reflect the chosen replay cadence, not puzzle-solving time. Dédale moves from 100/100, zero novelties and 100% clones to 22.4/100, eight novelty-bearing levels and 0% clones. These remain descriptor measurements, not a claim about human difficulty.
 
 ## Campaign plans and implementations
 
-The remaining proposals introduce something every 3–5 levels, include recovery levels, a challenge or boss every five levels, and a distinctive final level. Bubble Lab, Briqueterie, Dédale, Essaim and Ferraille below describe their implemented extensions; the other entries remain design suggestions.
+The remaining proposals introduce something every 3–5 levels, include recovery levels, a challenge or boss every five levels, and a distinctive final level. Bubble Lab, Briqueterie, Orbite, Dédale, Essaim and Ferraille below describe their implemented extensions; the other entries remain design suggestions.
 
 ### Bulles
 
@@ -144,7 +160,27 @@ Introduce switches at 4, paired portals at 8, moving gates at 12, poison fruit a
 
 ### Orbite
 
-Introduce shield-repair pickups at 4, shield-piercing scouts at 8, lateral laser warnings at 12, reflector probes at 16, orbiting escorts at 20, polarity shields at 24 and linked commanders at 28. At 6/11/17/22/27 restore shields and lower fire pressure. Add commander challenges at 5/10/15/20/25; at 30 fight a carrier whose exposed core changes the formation.
+Implemented in pass 64. The eight tactical mechanics first appear every three
+levels: rotating shields **4**, split probes **7**, asteroids **10**, gravity
+**13**, stealth **16**, repairers **19**, satellite defense **22**, coordinated
+swarms **25**. Actual first witnesses match these dates on seed 28. Six
+guardian shot patterns at 5/10/15/20/25/30 and the final phase transition produce
+twelve novelty-bearing levels in total. The longest trailing novelty gap is
+four levels, and adjacent clone share is zero. The six geometric formations,
+mixed kits and recovery levels 6/11/17/21/26 vary the defense without treating
+enemy count, PV or speed as novelties. The final carrier combines all eight
+mechanics; clearing its escort evacuates the ally before a two-phase core duel.
+[GAME_SPEC.md](../GAME_SPEC.md#orbite) contains the complete 30-level table.
+
+`scripts/validate-orbite.js` verifies 60 fresh ordinary-input victories and
+their recorded replays, literal O-MEC-01…08 behavior checks, O-BOSS, O-SAVE and
+O-DIV-01. Every unit test is timed separately under an affinity of two CPUs
+(the host may enforce a lower CPU quota), with a literal 2000 ms bound.
+The long 400-seed comet audit stays in Node; eight fixed spawn recordings replace
+it in the short test. Eleven isolated source mutations are rejected, with
+file/line/oracle locations in [orbite-validation.json](orbite-validation.json).
+Four desktop/mobile capture scenarios are written for levels 04/12/20/30;
+neither a browser nor Vitest was executed. Progression keys remain compatible.
 
 ### Essaim
 

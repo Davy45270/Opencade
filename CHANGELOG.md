@@ -5,6 +5,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Orbite (pass 64): six authored formations and eight progressively introduced mechanics — rotating shields, split probes, asteroid deflections, gravity curves, intermittent stealth, local repair, satellite defense and coordinated swarms.
+- Add five recovery stages, six guardians with exposed cores and distinct firing motifs, and a two-phase carrier finale; retain v1 progression saves and deterministic ordinary controls.
+- Record 60 victories on seeds 457/28; add eight literal mechanic oracles, boss/save checks, short per-level replays, eleven rejected mutations and four written desktop/mobile E2E captures. Repetition improves from 78.4 to 18.1, with twelve observed introduction levels and 0% adjacent clones. No browser or Vitest execution.
+
 - Briqueterie (pass 61): thirty authored silhouettes with holes, arches, a spiral and falling suspensions; progressively introduce sliding rows, neighboring blasts, regrowth, portals, solid chicanes, inclined normals, keys/locks, brick multiball and inverse-gravity zones.
 - Add recovery stages, five-level challenges, a combined fortress finale and distinct mechanic marks; preserve v1 progression saves and deterministic simulation.
 - Record 60 ordinary-input victories on seeds 455/28; add ten literal mechanic oracles, short campaign replays, six rejected source mutations and four written E2E captures. Repetition score improves from 79.3 to 18.1, with ten observed introductions and 0% adjacent clones. No browser or Vitest execution.

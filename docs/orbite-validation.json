@@ -1,0 +1,5034 @@
+{
+  "pass": 64,
+  "cometAudit": {
+    "seeds": 400,
+    "appearances": 92,
+    "directions": [
+      -1,
+      1
+    ]
+  },
+  "cpuCount": 1,
+  "cpuAffinity": "0-1",
+  "victories": 60,
+  "testTimings": [
+    {
+      "name": "V01 flotte en bloc, bord droit et gauche, descente unique et inversion",
+      "ms": 1.7224809999970603
+    },
+    {
+      "name": "V02 accélération mesurée suivant la proportion restante",
+      "ms": 0.25415000000066357
+    },
+    {
+      "name": "V03 limite un projectile puis deux dès le niveau 15, cadence et sortie écran",
+      "ms": 2.916339000003063
+    },
+    {
+      "name": "V04 collision balayée, première cible et score distinct pour chaque rangée",
+      "ms": 0.7409399999996822
+    },
+    {
+      "name": "V05 seules les sondes les plus basses tirent, colonnes vides et saturation",
+      "ms": 18.025261999999202
+    },
+    {
+      "name": "V06 boucliers quatre groupes, cellules 4 px et érosion exacte dans les deux sens",
+      "ms": 0.7336770000001707
+    },
+    {
+      "name": "V07 vies, invulnérabilité temporaire, défaite à zéro et invasion avant tirs",
+      "ms": 0.7528130000027886
+    },
+    {
+      "name": "V08 dernière sonde détruite gagne, aucune victoire anticipée",
+      "ms": 0.32580700000107754
+    },
+    {
+      "name": "V09 comète : fréquence déterministe, deux sens, zone interdite et saturation",
+      "ms": 2.0762250000007043
+    },
+    {
+      "name": "V09 comète : traversée, expiration, collision et bonus unique",
+      "ms": 0.3629620000028808
+    },
+    {
+      "name": "V10 blindage : deux impacts, score seulement à destruction, seuil niveau 10",
+      "ms": 4.97740899999917
+    },
+    {
+      "name": "V11 formations écrites légales et respirations",
+      "ms": 2.709401000000071
+    },
+    {
+      "name": "V12 entrées horodatées, pas indépendant de l’affichage, graine témoin, copie",
+      "ms": 171.38501600000018
+    },
+    {
+      "name": "O-SAVE anciennes positions sans champs optionnels et sérialisation",
+      "ms": 0.7063699999998789
+    },
+    {
+      "name": "O-MEC-01 rotor ferme puis ouvre sans perdre de PV",
+      "ms": 0.32699399999910383
+    },
+    {
+      "name": "O-MEC-02 scission en deux fragments distincts",
+      "ms": 0.1979989999999816
+    },
+    {
+      "name": "O-MEC-03 astéroïde dévie une fois les deux camps",
+      "ms": 0.24381399999765563
+    },
+    {
+      "name": "O-MEC-04 gravité courbe réellement un projectile",
+      "ms": 0.09414500000275439
+    },
+    {
+      "name": "O-MEC-05 furtive intangible puis vulnérable",
+      "ms": 0.1222909999996773
+    },
+    {
+      "name": "O-MEC-06 réparateur soigne voisin blessé seulement",
+      "ms": 0.15015800000037416
+    },
+    {
+      "name": "O-MEC-07 satellite perd et interception le protège",
+      "ms": 0.4460030000009283
+    },
+    {
+      "name": "O-MEC-08 essaim coordonné courbe les deux axes",
+      "ms": 0.1699220000009518
+    },
+    {
+      "name": "O-BOSS escorte, cœur cyclique, deux phases et motifs",
+      "ms": 0.9427099999993516
+    },
+    {
+      "name": "O-PILOT replay 1/457",
+      "ms": 117.28275999999823
+    },
+    {
+      "name": "O-PILOT replay 2/457",
+      "ms": 167.90687799999796
+    },
+    {
+      "name": "O-PILOT replay 3/457",
+      "ms": 82.09944700000051
+    },
+    {
+      "name": "O-PILOT replay 4/457",
+      "ms": 192.99848500000007
+    },
+    {
+      "name": "O-PILOT replay 5/457",
+      "ms": 280.57882300000347
+    },
+    {
+      "name": "O-PILOT replay 6/457",
+      "ms": 29.560574999999517
+    },
+    {
+      "name": "O-PILOT replay 7/457",
+      "ms": 85.09135400000014
+    },
+    {
+      "name": "O-PILOT replay 8/457",
+      "ms": 122.03095100000064
+    },
+    {
+      "name": "O-PILOT replay 9/457",
+      "ms": 124.04473900000085
+    },
+    {
+      "name": "O-PILOT replay 10/457",
+      "ms": 103.51806099999885
+    },
+    {
+      "name": "O-PILOT replay 11/457",
+      "ms": 54.823991000001115
+    },
+    {
+      "name": "O-PILOT replay 12/457",
+      "ms": 103.60291700000016
+    },
+    {
+      "name": "O-PILOT replay 13/457",
+      "ms": 121.36543899999742
+    },
+    {
+      "name": "O-PILOT replay 14/457",
+      "ms": 102.57569999999396
+    },
+    {
+      "name": "O-PILOT replay 15/457",
+      "ms": 209.36635699999897
+    },
+    {
+      "name": "O-PILOT replay 16/457",
+      "ms": 76.30601900000329
+    },
+    {
+      "name": "O-PILOT replay 17/457",
+      "ms": 87.1441829999967
+    },
+    {
+      "name": "O-PILOT replay 18/457",
+      "ms": 70.69047699999646
+    },
+    {
+      "name": "O-PILOT replay 19/457",
+      "ms": 148.58753699999943
+    },
+    {
+      "name": "O-PILOT replay 20/457",
+      "ms": 134.1854020000028
+    },
+    {
+      "name": "O-PILOT replay 21/457",
+      "ms": 138.7517979999975
+    },
+    {
+      "name": "O-PILOT replay 22/457",
+      "ms": 173.97771400000056
+    },
+    {
+      "name": "O-PILOT replay 23/457",
+      "ms": 96.16767399999662
+    },
+    {
+      "name": "O-PILOT replay 24/457",
+      "ms": 210.3171000000002
+    },
+    {
+      "name": "O-PILOT replay 25/457",
+      "ms": 179.23832699999912
+    },
+    {
+      "name": "O-PILOT replay 26/457",
+      "ms": 46.2020130000019
+    },
+    {
+      "name": "O-PILOT replay 27/457",
+      "ms": 135.00379599999724
+    },
+    {
+      "name": "O-PILOT replay 28/457",
+      "ms": 73.25949700000638
+    },
+    {
+      "name": "O-PILOT replay 29/457",
+      "ms": 186.06700300000375
+    },
+    {
+      "name": "O-PILOT replay 30/457",
+      "ms": 212.24260800000047
+    },
+    {
+      "name": "O-PILOT replay 1/28",
+      "ms": 52.97698300000047
+    },
+    {
+      "name": "O-PILOT replay 2/28",
+      "ms": 63.34323199999926
+    },
+    {
+      "name": "O-PILOT replay 3/28",
+      "ms": 67.3297409999941
+    },
+    {
+      "name": "O-PILOT replay 4/28",
+      "ms": 151.08846400000039
+    },
+    {
+      "name": "O-PILOT replay 5/28",
+      "ms": 205.5913969999965
+    },
+    {
+      "name": "O-PILOT replay 6/28",
+      "ms": 32.85279799999989
+    },
+    {
+      "name": "O-PILOT replay 7/28",
+      "ms": 126.92469100000017
+    },
+    {
+      "name": "O-PILOT replay 8/28",
+      "ms": 99.05307300000277
+    },
+    {
+      "name": "O-PILOT replay 9/28",
+      "ms": 149.9388850000032
+    },
+    {
+      "name": "O-PILOT replay 10/28",
+      "ms": 232.84890399999858
+    },
+    {
+      "name": "O-PILOT replay 11/28",
+      "ms": 103.61269499999617
+    },
+    {
+      "name": "O-PILOT replay 12/28",
+      "ms": 104.38345800000388
+    },
+    {
+      "name": "O-PILOT replay 13/28",
+      "ms": 70.60792400000355
+    },
+    {
+      "name": "O-PILOT replay 14/28",
+      "ms": 119.85066300000472
+    },
+    {
+      "name": "O-PILOT replay 15/28",
+      "ms": 197.6729950000008
+    },
+    {
+      "name": "O-PILOT replay 16/28",
+      "ms": 70.54457800000091
+    },
+    {
+      "name": "O-PILOT replay 17/28",
+      "ms": 37.89075800000137
+    },
+    {
+      "name": "O-PILOT replay 18/28",
+      "ms": 138.18008200000622
+    },
+    {
+      "name": "O-PILOT replay 19/28",
+      "ms": 94.12420399999974
+    },
+    {
+      "name": "O-PILOT replay 20/28",
+      "ms": 101.0174840000036
+    },
+    {
+      "name": "O-PILOT replay 21/28",
+      "ms": 40.12391500000376
+    },
+    {
+      "name": "O-PILOT replay 22/28",
+      "ms": 184.97679000000062
+    },
+    {
+      "name": "O-PILOT replay 23/28",
+      "ms": 98.56614399999671
+    },
+    {
+      "name": "O-PILOT replay 24/28",
+      "ms": 156.39077199999883
+    },
+    {
+      "name": "O-PILOT replay 25/28",
+      "ms": 114.28840900000068
+    },
+    {
+      "name": "O-PILOT replay 26/28",
+      "ms": 44.26910200000566
+    },
+    {
+      "name": "O-PILOT replay 27/28",
+      "ms": 68.156584999997
+    },
+    {
+      "name": "O-PILOT replay 28/28",
+      "ms": 194.83166499999788
+    },
+    {
+      "name": "O-PILOT replay 29/28",
+      "ms": 77.33267799999885
+    },
+    {
+      "name": "O-PILOT replay 30/28",
+      "ms": 247.95615199999884
+    },
+    {
+      "name": "O-DIV-01 observed inventories backed by the O-PILOT replays",
+      "ms": 25.571203999999852
+    }
+  ],
+  "diversity": {
+    "score": 18.1,
+    "noveltyLevels": [
+      4,
+      5,
+      7,
+      10,
+      13,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      30
+    ],
+    "cloneShare": 0
+  },
+  "mutations": [
+    {
+      "name": "rotor always open",
+      "oracle": "O-MEC-01",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 72,
+      "rejected": true
+    },
+    {
+      "name": "no split",
+      "oracle": "O-MEC-02",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 185,
+      "rejected": true
+    },
+    {
+      "name": "no asteroid deflection",
+      "oracle": "O-MEC-03",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 164,
+      "rejected": true
+    },
+    {
+      "name": "no gravity",
+      "oracle": "O-MEC-04",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 160,
+      "rejected": true
+    },
+    {
+      "name": "stealth always visible",
+      "oracle": "O-MEC-05",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 71,
+      "rejected": true
+    },
+    {
+      "name": "no healing",
+      "oracle": "O-MEC-06",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 131,
+      "rejected": true
+    },
+    {
+      "name": "ally invulnerable",
+      "oracle": "O-MEC-07",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 203,
+      "rejected": true
+    },
+    {
+      "name": "no swarm curves",
+      "oracle": "O-MEC-08",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 141,
+      "rejected": true
+    },
+    {
+      "name": "no second boss phase",
+      "oracle": "O-BOSS",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 195,
+      "rejected": true
+    },
+    {
+      "name": "core always vulnerable",
+      "oracle": "O-BOSS",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 193,
+      "rejected": true
+    },
+    {
+      "name": "all levels equal level one",
+      "oracle": "O-DIV-01",
+      "file": "src/engines/orbite/engine.ts",
+      "line": 47,
+      "rejected": true,
+      "cloneShare": 1
+    }
+  ],
+  "campaigns": [
+    {
+      "level": 1,
+      "seed": 457,
+      "frames": 1476,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 57,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 251,
+          "shots": [
+            [
+              0,
+              536.916666666668
+            ],
+            [
+              0,
+              343.5833333333337
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        }
+      }
+    },
+    {
+      "level": 2,
+      "seed": 457,
+      "frames": 1617,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 59,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 226,
+          "shots": [
+            [
+              0,
+              330.37931034482807
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        }
+      }
+    },
+    {
+      "level": 3,
+      "seed": 457,
+      "frames": 1508,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 194,
+          "shots": [
+            [
+              0,
+              421.5862068965515
+            ],
+            [
+              0,
+              253.6982758620689
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        },
+        "erodible-shield": {
+          "frame": 222,
+          "shots": [
+            [
+              0,
+              323.456896551724
+            ]
+          ],
+          "phase": 0,
+          "probes": 14
+        }
+      }
+    },
+    {
+      "level": 4,
+      "seed": 457,
+      "frames": 1982,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 45,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 101,
+          "shots": [
+            [
+              0,
+              225.48850574712623
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "formation-bounce": {
+          "frame": 206,
+          "shots": [
+            [
+              0,
+              491.00574712643527
+            ],
+            [
+              0,
+              338.58045977011426
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        },
+        "rotating-shield-block": {
+          "frame": 509,
+          "shots": [
+            [
+              0,
+              304.1781609195397
+            ]
+          ],
+          "phase": 0,
+          "probes": 11
+        }
+      }
+    },
+    {
+      "level": 5,
+      "seed": 457,
+      "frames": 2310,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 49,
+          "shots": [],
+          "phase": 1,
+          "probes": 11
+        },
+        "guardian-motif:1": {
+          "frame": 120,
+          "shots": [
+            [
+              0,
+              369.99425287356235
+            ],
+            [
+              0,
+              194.76436781609198
+            ],
+            [
+              -80,
+              98.566091954023
+            ],
+            [
+              80,
+              98.566091954023
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "rotating-shield-block": {
+          "frame": 152,
+          "shots": [
+            [
+              0,
+              452.10919540229725
+            ],
+            [
+              0,
+              276.87931034482756
+            ],
+            [
+              -80,
+              180.6810344827588
+            ],
+            [
+              80,
+              180.6810344827588
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "erodible-shield": {
+          "frame": 159,
+          "shots": [
+            [
+              0,
+              470.071839080458
+            ],
+            [
+              0,
+              294.8419540229883
+            ],
+            [
+              -80,
+              198.64367816091976
+            ],
+            [
+              80,
+              198.64367816091976
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "formation-bounce": {
+          "frame": 242,
+          "shots": [
+            [
+              -80,
+              411.62931034482654
+            ],
+            [
+              0,
+              276.8045977011495
+            ],
+            [
+              -80,
+              103.69827586206898
+            ],
+            [
+              80,
+              103.69827586206898
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        }
+      }
+    },
+    {
+      "level": 6,
+      "seed": 457,
+      "frames": 949,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 53,
+          "shots": [],
+          "phase": 0,
+          "probes": 11
+        },
+        "formation-bounce": {
+          "frame": 156,
+          "shots": [
+            [
+              0,
+              362.05172413793184
+            ]
+          ],
+          "phase": 0,
+          "probes": 9
+        },
+        "erodible-shield": {
+          "frame": 163,
+          "shots": [
+            [
+              0,
+              380.2758620689665
+            ]
+          ],
+          "phase": 0,
+          "probes": 9
+        }
+      }
+    },
+    {
+      "level": 7,
+      "seed": 457,
+      "frames": 2162,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 57,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "split-fragments": {
+          "frame": 129,
+          "shots": [
+            [
+              0,
+              356.02586206896626
+            ]
+          ],
+          "phase": 0,
+          "probes": 18
+        },
+        "formation-bounce": {
+          "frame": 197,
+          "shots": [
+            [
+              0,
+              535.6005747126453
+            ],
+            [
+              0,
+              374.4339080459779
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        }
+      }
+    },
+    {
+      "level": 8,
+      "seed": 457,
+      "frames": 1530,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 47,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "split-fragments": {
+          "frame": 93,
+          "shots": [
+            [
+              0,
+              270.7758620689656
+            ]
+          ],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 147,
+          "shots": [
+            [
+              0,
+              415.39655172413813
+            ],
+            [
+              0,
+              260.09770114942535
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 173,
+          "shots": [
+            [
+              0,
+              485.0287356321842
+            ],
+            [
+              0,
+              329.7298850574714
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        }
+      }
+    },
+    {
+      "level": 9,
+      "seed": 457,
+      "frames": 1949,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 45,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "split-fragments": {
+          "frame": 94,
+          "shots": [
+            [
+              0,
+              258.53448275862047
+            ]
+          ],
+          "phase": 0,
+          "probes": 18
+        },
+        "formation-bounce": {
+          "frame": 189,
+          "shots": [
+            [
+              0,
+              516.5086206896542
+            ],
+            [
+              0,
+              367.5862068965512
+            ],
+            [
+              0,
+              201.50862068965512
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "erodible-shield": {
+          "frame": 314,
+          "shots": [
+            [
+              0,
+              540.9482758620679
+            ],
+            [
+              0,
+              191.9310344827586
+            ]
+          ],
+          "phase": 0,
+          "probes": 14
+        }
+      }
+    },
+    {
+      "level": 10,
+      "seed": 457,
+      "frames": 2206,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [
+            [
+              0,
+              191.2758620689656
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "asteroid-deflection": {
+          "frame": 109,
+          "shots": [
+            [
+              110,
+              353.69540229885024
+            ],
+            [
+              0,
+              222.29885057471282
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "guardian-motif:2": {
+          "frame": 120,
+          "shots": [
+            [
+              110,
+              383.97701149425234
+            ],
+            [
+              0,
+              252.58045977011523
+            ],
+            [
+              1.8858276160846996,
+              98.75287356321839
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "erodible-shield": {
+          "frame": 132,
+          "shots": [
+            [
+              0,
+              285.61494252873575
+            ],
+            [
+              1.8858276160846996,
+              131.78735632183904
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "formation-bounce": {
+          "frame": 197,
+          "shots": [
+            [
+              1.8858276160846996,
+              310.72413793103453
+            ],
+            [
+              0,
+              241.37931034482799
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "rotating-shield-block": {
+          "frame": 759,
+          "shots": [
+            [
+              -110,
+              366.9425287356317
+            ],
+            [
+              -25.693383191515572,
+              206.11494252873587
+            ],
+            [
+              0,
+              203.7816091954024
+            ]
+          ],
+          "phase": 1,
+          "probes": 8
+        }
+      }
+    },
+    {
+      "level": 11,
+      "seed": 457,
+      "frames": 1164,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 53,
+          "shots": [],
+          "phase": 0,
+          "probes": 11
+        },
+        "erodible-shield": {
+          "frame": 60,
+          "shots": [],
+          "phase": 0,
+          "probes": 11
+        },
+        "formation-bounce": {
+          "frame": 136,
+          "shots": [
+            [
+              0,
+              364.5258620689666
+            ]
+          ],
+          "phase": 0,
+          "probes": 10
+        },
+        "asteroid-deflection": {
+          "frame": 207,
+          "shots": [
+            [
+              110,
+              354.6235632183918
+            ]
+          ],
+          "phase": 0,
+          "probes": 10
+        }
+      }
+    },
+    {
+      "level": 12,
+      "seed": 457,
+      "frames": 2413,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 56,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 63,
+          "shots": [
+            [
+              0,
+              186.1379310344827
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 179,
+          "shots": [
+            [
+              0,
+              514.137931034484
+            ],
+            [
+              0,
+              381.2413793103453
+            ],
+            [
+              0,
+              222.89655172413774
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "split-fragments": {
+          "frame": 246,
+          "shots": [
+            [
+              0,
+              570.6896551724143
+            ],
+            [
+              0,
+              412.34482758620754
+            ],
+            [
+              0,
+              214.82758620689623
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "asteroid-deflection": {
+          "frame": 376,
+          "shots": [
+            [
+              0,
+              582.4137931034485
+            ],
+            [
+              0,
+              412.7586206896557
+            ],
+            [
+              110,
+              317.7241379310346
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        }
+      }
+    },
+    {
+      "level": 13,
+      "seed": 457,
+      "frames": 1547,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "gravity-curve": {
+          "frame": 17,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 45,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 52,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 159,
+          "shots": [
+            [
+              -72.46781965723703,
+              477.58908045977086
+            ],
+            [
+              -43.404061504505734,
+              365.6666666666671
+            ],
+            [
+              0,
+              193.95977011494256
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        }
+      }
+    },
+    {
+      "level": 14,
+      "seed": 457,
+      "frames": 1898,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "gravity-curve": {
+          "frame": 17,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 111,
+          "shots": [
+            [
+              -32.35555984839783,
+              322.93103448275843
+            ],
+            [
+              0,
+              204.22988505747122
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "formation-bounce": {
+          "frame": 140,
+          "shots": [
+            [
+              -64.62819967477301,
+              407.097701149425
+            ],
+            [
+              -16.53062474911192,
+              288.3965517241378
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "rotating-shield-block": {
+          "frame": 842,
+          "shots": [
+            [
+              -12.083719969571868,
+              606.8448275862082
+            ],
+            [
+              90,
+              429.75862068965495
+            ],
+            [
+              0,
+              241.4252873563218
+            ]
+          ],
+          "phase": 0,
+          "probes": 11
+        }
+      }
+    },
+    {
+      "level": 15,
+      "seed": 457,
+      "frames": 1405,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "gravity-curve": {
+          "frame": 17,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 47,
+          "shots": [
+            [
+              0,
+              233.71551724137913
+            ]
+          ],
+          "phase": 1,
+          "probes": 13
+        },
+        "split-fragments": {
+          "frame": 47,
+          "shots": [
+            [
+              0,
+              233.71551724137913
+            ]
+          ],
+          "phase": 1,
+          "probes": 13
+        },
+        "erodible-shield": {
+          "frame": 102,
+          "shots": [
+            [
+              -28.05704345152884,
+              395.396551724137
+            ],
+            [
+              -1.780407880296823,
+              260.93103448275826
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "guardian-motif:3": {
+          "frame": 120,
+          "shots": [
+            [
+              -35.66181502623705,
+              448.310344827585
+            ],
+            [
+              -12.284139371062896,
+              313.8448275862063
+            ],
+            [
+              -65,
+              98.9396551724138
+            ],
+            [
+              0,
+              98.9396551724138
+            ],
+            [
+              65,
+              98.9396551724138
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "formation-bounce": {
+          "frame": 185,
+          "shots": [
+            [
+              -34.427322921385105,
+              504.92241379310195
+            ],
+            [
+              -71.93040925427117,
+              290.0172413793096
+            ],
+            [
+              -16.848732755182553,
+              290.0172413793096
+            ],
+            [
+              38.23294374390617,
+              290.0172413793096
+            ],
+            [
+              -22.810044457145718,
+              357.939655172413
+            ],
+            [
+              0,
+              177.13793103448268
+            ]
+          ],
+          "phase": 1,
+          "probes": 8
+        }
+      }
+    },
+    {
+      "level": 16,
+      "seed": 457,
+      "frames": 1558,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "intermittent-stealth": {
+          "frame": 37,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 49,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 106,
+          "shots": [
+            [
+              0,
+              370.73563218390717
+            ],
+            [
+              0,
+              223.6781609195403
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        },
+        "formation-bounce": {
+          "frame": 117,
+          "shots": [
+            [
+              0,
+              403.4827586206885
+            ],
+            [
+              0,
+              256.4252873563219
+            ]
+          ],
+          "phase": 0,
+          "probes": 14
+        }
+      }
+    },
+    {
+      "level": 17,
+      "seed": 457,
+      "frames": 971,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "erodible-shield": {
+          "frame": 18,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "intermittent-stealth": {
+          "frame": 43,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 54,
+          "shots": [],
+          "phase": 0,
+          "probes": 11
+        },
+        "formation-bounce": {
+          "frame": 143,
+          "shots": [
+            [
+              0,
+              410.2787356321848
+            ],
+            [
+              0,
+              211.3304597701148
+            ]
+          ],
+          "phase": 0,
+          "probes": 10
+        }
+      }
+    },
+    {
+      "level": 18,
+      "seed": 457,
+      "frames": 1422,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 18,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "intermittent-stealth": {
+          "frame": 37,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 56,
+          "shots": [
+            [
+              0,
+              232.96551724137942
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "asteroid-deflection": {
+          "frame": 129,
+          "shots": [
+            [
+              0,
+              455.7413793103458
+            ],
+            [
+              0,
+              324.77586206896603
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "formation-bounce": {
+          "frame": 137,
+          "shots": [
+            [
+              0,
+              480.15517241379416
+            ],
+            [
+              0,
+              349.1896551724144
+            ],
+            [
+              0,
+              223.81034482758628
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        }
+      }
+    },
+    {
+      "level": 19,
+      "seed": 457,
+      "frames": 1268,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 20,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 49,
+          "shots": [
+            [
+              0,
+              223.30172413793105
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 121,
+          "shots": [
+            [
+              0,
+              445.7155172413794
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "rotating-shield-block": {
+          "frame": 249,
+          "shots": [
+            [
+              0,
+              424.6264367816093
+            ],
+            [
+              0,
+              353.8649425287357
+            ],
+            [
+              0,
+              270.83620689655174
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        },
+        "neighbor-heal": {
+          "frame": 300,
+          "shots": [
+            [
+              0,
+              582.1695402298852
+            ],
+            [
+              0,
+              428.3793103448277
+            ],
+            [
+              0,
+              301.3505747126437
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        }
+      }
+    },
+    {
+      "level": 20,
+      "seed": 457,
+      "frames": 1259,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "gravity-curve": {
+          "frame": 17,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "erodible-shield": {
+          "frame": 105,
+          "shots": [
+            [
+              0,
+              252.64942528735617
+            ]
+          ],
+          "phase": 1,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 109,
+          "shots": [
+            [
+              -0.24103805584840562,
+              265.1551724137929
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "guardian-motif:4": {
+          "frame": 120,
+          "shots": [
+            [
+              -0.8976072937622126,
+              299.54597701149396
+            ],
+            [
+              100,
+              99.1264367816092
+            ],
+            [
+              0,
+              99.1264367816092
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "neighbor-heal": {
+          "frame": 150,
+          "shots": [
+            [
+              -2.5336590006805726,
+              393.33908045976955
+            ],
+            [
+              100,
+              192.91954022988492
+            ],
+            [
+              0,
+              192.91954022988492
+            ],
+            [
+              -3.795858072648842,
+              266.522988505747
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "formation-bounce": {
+          "frame": 187,
+          "shots": [
+            [
+              -3.3529849481425056,
+              509.01724137930944
+            ],
+            [
+              -23.208394143070365,
+              308.59770114942484
+            ],
+            [
+              -30.068174304162813,
+              382.20114942528687
+            ],
+            [
+              -2.868788954482792,
+              257.1436781609194
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        }
+      }
+    },
+    {
+      "level": 21,
+      "seed": 457,
+      "frames": 778,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "erodible-shield": {
+          "frame": 60,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 64,
+          "shots": [],
+          "phase": 0,
+          "probes": 11
+        },
+        "formation-bounce": {
+          "frame": 109,
+          "shots": [
+            [
+              0,
+              260.8965517241382
+            ]
+          ],
+          "phase": 0,
+          "probes": 11
+        }
+      }
+    },
+    {
+      "level": 22,
+      "seed": 457,
+      "frames": 2089,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [
+            [
+              0,
+              183.10919540229884
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 57,
+          "shots": [
+            [
+              0,
+              205.51724137931032
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "split-fragments": {
+          "frame": 65,
+          "shots": [
+            [
+              0,
+              231.12643678160916
+            ]
+          ],
+          "phase": 0,
+          "probes": 18
+        },
+        "formation-bounce": {
+          "frame": 123,
+          "shots": [
+            [
+              0,
+              416.7931034482772
+            ],
+            [
+              0,
+              288.954022988506
+            ],
+            [
+              0,
+              176.70689655172413
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "satellite-defense": {
+          "frame": 360,
+          "shots": [
+            [
+              0,
+              402.9885057471276
+            ],
+            [
+              0,
+              324.1436781609201
+            ],
+            [
+              0,
+              206.30459770114942
+            ],
+            [
+              0,
+              199.70114942528735
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        }
+      }
+    },
+    {
+      "level": 23,
+      "seed": 457,
+      "frames": 1748,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 18,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "intermittent-stealth": {
+          "frame": 37,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [
+            [
+              0,
+              234.64655172413782
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 121,
+          "shots": [
+            [
+              0,
+              464.5804597701158
+            ],
+            [
+              0,
+              342.7097701149427
+            ],
+            [
+              0,
+              228.16954022988497
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "satellite-defense": {
+          "frame": 360,
+          "shots": [
+            [
+              0,
+              342.4712643678163
+            ],
+            [
+              0,
+              283.6005747126438
+            ],
+            [
+              0,
+              247.73850574712642
+            ]
+          ],
+          "phase": 0,
+          "probes": 13
+        }
+      }
+    },
+    {
+      "level": 24,
+      "seed": 457,
+      "frames": 2315,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 18,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [
+            [
+              0,
+              201.4827586206897
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 129,
+          "shots": [
+            [
+              0,
+              342.3448275862072
+            ],
+            [
+              0,
+              240.79310344827599
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "satellite-defense": {
+          "frame": 360,
+          "shots": [
+            [
+              0,
+              366.89655172413825
+            ],
+            [
+              0,
+              263.6896551724139
+            ],
+            [
+              0,
+              154.27586206896552
+            ]
+          ],
+          "phase": 0,
+          "probes": 14
+        },
+        "neighbor-heal": {
+          "frame": 450,
+          "shots": [
+            [
+              0,
+              315.58620689655197
+            ],
+            [
+              0,
+              227.65517241379314
+            ]
+          ],
+          "phase": 0,
+          "probes": 14
+        }
+      }
+    },
+    {
+      "level": 25,
+      "seed": 457,
+      "frames": 1338,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "gravity-curve": {
+          "frame": 17,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 53,
+          "shots": [
+            [
+              -11.031739582465706,
+              291.44324879961647
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "coordinated-swarm": {
+          "frame": 60,
+          "shots": [
+            [
+              -17.340606227741098,
+              314.6357775352486
+            ],
+            [
+              0,
+              178.6394690823129
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "erodible-shield": {
+          "frame": 60,
+          "shots": [
+            [
+              -17.340606227741098,
+              314.6357775352486
+            ],
+            [
+              0,
+              178.6394690823129
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "formation-bounce": {
+          "frame": 111,
+          "shots": [
+            [
+              -49.008699999886986,
+              483.60991546628287
+            ],
+            [
+              -20.19526355772471,
+              347.6136070133472
+            ],
+            [
+              0,
+              211.2248277930994
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "guardian-motif:5": {
+          "frame": 120,
+          "shots": [
+            [
+              -25.928037413626623,
+              377.4325725305885
+            ],
+            [
+              0,
+              241.04379331034073
+            ],
+            [
+              100.02271695082499,
+              99.3132183908046
+            ],
+            [
+              -45.77615202018566,
+              99.3132183908046
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        }
+      }
+    },
+    {
+      "level": 26,
+      "seed": 457,
+      "frames": 945,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "erodible-shield": {
+          "frame": 18,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "coordinated-swarm": {
+          "frame": 60,
+          "shots": [
+            [
+              0,
+              237.4057567564693
+            ]
+          ],
+          "phase": 0,
+          "probes": 12
+        },
+        "formation-bounce": {
+          "frame": 89,
+          "shots": [
+            [
+              0,
+              334.57242342313566
+            ]
+          ],
+          "phase": 0,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 175,
+          "shots": [
+            [
+              0,
+              239.79104115212277
+            ]
+          ],
+          "phase": 0,
+          "probes": 11
+        }
+      }
+    },
+    {
+      "level": 27,
+      "seed": 457,
+      "frames": 1422,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 48,
+          "shots": [
+            [
+              0,
+              225.36363147139718
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "coordinated-swarm": {
+          "frame": 60,
+          "shots": [
+            [
+              0,
+              266.01880388519027
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 88,
+          "shots": [
+            [
+              0,
+              360.8808728507068
+            ],
+            [
+              0,
+              274.64572224684224
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "rotating-shield-block": {
+          "frame": 94,
+          "shots": [
+            [
+              0,
+              381.2084590576032
+            ],
+            [
+              0,
+              294.97330845373864
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 101,
+          "shots": [
+            [
+              0,
+              404.9239762989823
+            ],
+            [
+              0,
+              318.68882569511777
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        }
+      }
+    },
+    {
+      "level": 28,
+      "seed": 457,
+      "frames": 1348,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 18,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 48,
+          "shots": [
+            [
+              0,
+              252.00075323740927
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "coordinated-swarm": {
+          "frame": 60,
+          "shots": [
+            [
+              0,
+              293.10420151327156
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 84,
+          "shots": [
+            [
+              0,
+              375.3110980649962
+            ],
+            [
+              0,
+              255.95683998223757
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "asteroid-deflection": {
+          "frame": 103,
+          "shots": [
+            [
+              0,
+              440.39155783511154
+            ],
+            [
+              0,
+              321.0372997523529
+            ],
+            [
+              0,
+              229.8570001414837
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "satellite-defense": {
+          "frame": 360,
+          "shots": [
+            [
+              0,
+              627.6155865344807
+            ],
+            [
+              -110,
+              480.41297817349044
+            ],
+            [
+              0,
+              407.0995660591461
+            ],
+            [
+              0,
+              258.0518574202407
+            ],
+            [
+              0,
+              241.6066512821126
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        }
+      }
+    },
+    {
+      "level": 29,
+      "seed": 457,
+      "frames": 1700,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 20,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "intermittent-stealth": {
+          "frame": 43,
+          "shots": [
+            [
+              0,
+              210.25789184523225
+            ]
+          ],
+          "phase": 0,
+          "probes": 18
+        },
+        "coordinated-swarm": {
+          "frame": 60,
+          "shots": [
+            [
+              0,
+              269.12283437396803
+            ],
+            [
+              0,
+              177.3138614442302
+            ]
+          ],
+          "phase": 0,
+          "probes": 18
+        },
+        "formation-bounce": {
+          "frame": 79,
+          "shots": [
+            [
+              0,
+              334.9130642590257
+            ],
+            [
+              0,
+              243.10409132928788
+            ]
+          ],
+          "phase": 0,
+          "probes": 18
+        },
+        "neighbor-heal": {
+          "frame": 150,
+          "shots": [
+            [
+              0,
+              375.46564860056577
+            ],
+            [
+              0,
+              268.36418047578223
+            ]
+          ],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 250,
+          "shots": [
+            [
+              0,
+              421.4546563160367
+            ],
+            [
+              0,
+              242.2317967019452
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        }
+      }
+    },
+    {
+      "level": 30,
+      "seed": 457,
+      "frames": 3383,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "gravity-curve": {
+          "frame": 17,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "erodible-shield": {
+          "frame": 20,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 47,
+          "shots": [
+            [
+              -4.7718338485638085,
+              274.9561540166246
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "coordinated-swarm": {
+          "frame": 60,
+          "shots": [
+            [
+              -13.474747936391658,
+              320.4561540166246
+            ],
+            [
+              0,
+              207.15957296180844
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "asteroid-deflection": {
+          "frame": 70,
+          "shots": [
+            [
+              -110,
+              355.4561540166246
+            ],
+            [
+              0,
+              242.15957296180844
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "guardian-motif:6": {
+          "frame": 120,
+          "shots": [
+            [
+              -90,
+              530.4561540166246
+            ],
+            [
+              -90,
+              417.1595729618084
+            ],
+            [
+              -8.315025609928188,
+              301.8238896616263
+            ],
+            [
+              -65,
+              99.5
+            ],
+            [
+              0,
+              99.5
+            ],
+            [
+              65,
+              99.5
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "formation-bounce": {
+          "frame": 124,
+          "shots": [
+            [
+              -90,
+              544.4561540166246
+            ],
+            [
+              -90,
+              431.1595729618084
+            ],
+            [
+              -10.64507151354593,
+              315.8238896616263
+            ],
+            [
+              -65,
+              113.5
+            ],
+            [
+              0,
+              113.5
+            ],
+            [
+              65,
+              113.5
+            ],
+            [
+              0,
+              175.84095475488067
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "satellite-defense": {
+          "frame": 360,
+          "shots": [
+            [
+              -21.063547548628957,
+              519.5
+            ],
+            [
+              -43.87840249291796,
+              457.496158391055
+            ],
+            [
+              -82.6906126628675,
+              343.53907679471746
+            ],
+            [
+              3.7877223223410246,
+              262.26172126087283
+            ],
+            [
+              -65,
+              99.5
+            ],
+            [
+              0,
+              99.5
+            ],
+            [
+              65,
+              99.5
+            ],
+            [
+              0,
+              195.68136392579078
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "split-fragments": {
+          "frame": 558,
+          "shots": [
+            [
+              -25.10667819121442,
+              472.09561773647056
+            ],
+            [
+              -13.061371914027065,
+              372.5
+            ],
+            [
+              90,
+              372.5
+            ],
+            [
+              64.35686522861461,
+              372.5
+            ],
+            [
+              -15.506316711529097,
+              398.6309241809892
+            ],
+            [
+              -10.747804432878706,
+              279.9870257791058
+            ]
+          ],
+          "phase": 1,
+          "probes": 9
+        },
+        "rotating-shield-block": {
+          "frame": 1463,
+          "shots": [
+            [
+              -11.962414742837977,
+              600
+            ],
+            [
+              3.519315479372273,
+              600
+            ],
+            [
+              74.96022861407766,
+              534.2846724755834
+            ],
+            [
+              -65,
+              180
+            ],
+            [
+              0,
+              180
+            ],
+            [
+              65,
+              180
+            ],
+            [
+              -90,
+              359.7928071720046
+            ],
+            [
+              90,
+              362.38800416111724
+            ]
+          ],
+          "phase": 1,
+          "probes": 3
+        },
+        "boss-phase-two": {
+          "frame": 2661,
+          "shots": [
+            [
+              -65,
+              173
+            ],
+            [
+              0,
+              173
+            ],
+            [
+              65,
+              173
+            ]
+          ],
+          "phase": 2,
+          "probes": 0
+        }
+      }
+    },
+    {
+      "level": 1,
+      "seed": 28,
+      "frames": 1293,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 57,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 251,
+          "shots": [
+            [
+              0,
+              516.5833333333348
+            ],
+            [
+              0,
+              300.08333333333337
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        }
+      }
+    },
+    {
+      "level": 2,
+      "seed": 28,
+      "frames": 1263,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 59,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 226,
+          "shots": [
+            [
+              0,
+              481.24712643678276
+            ],
+            [
+              0,
+              288.6609195402302
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        }
+      }
+    },
+    {
+      "level": 3,
+      "seed": 28,
+      "frames": 1746,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 194,
+          "shots": [
+            [
+              0,
+              418.060344827586
+            ],
+            [
+              0,
+              211.34482758620686
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        },
+        "erodible-shield": {
+          "frame": 261,
+          "shots": [
+            [
+              0,
+              584.982758620691
+            ],
+            [
+              0,
+              378.2672413793102
+            ],
+            [
+              0,
+              236.81896551724134
+            ]
+          ],
+          "phase": 0,
+          "probes": 13
+        }
+      }
+    },
+    {
+      "level": 4,
+      "seed": 28,
+      "frames": 1811,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 45,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 97,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 216,
+          "shots": [
+            [
+              0,
+              325.9367816091948
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        },
+        "rotating-shield-block": {
+          "frame": 517,
+          "shots": [
+            [
+              0,
+              567.6379310344822
+            ],
+            [
+              0,
+              357.75287356321763
+            ]
+          ],
+          "phase": 0,
+          "probes": 11
+        }
+      }
+    },
+    {
+      "level": 5,
+      "seed": 28,
+      "frames": 2392,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 49,
+          "shots": [],
+          "phase": 1,
+          "probes": 11
+        },
+        "guardian-motif:1": {
+          "frame": 120,
+          "shots": [
+            [
+              0,
+              276.87931034482756
+            ],
+            [
+              -80,
+              98.566091954023
+            ],
+            [
+              80,
+              98.566091954023
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "rotating-shield-block": {
+          "frame": 152,
+          "shots": [
+            [
+              0,
+              358.99425287356246
+            ],
+            [
+              -80,
+              180.6810344827588
+            ],
+            [
+              80,
+              180.6810344827588
+            ],
+            [
+              0,
+              192.19827586206898
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "erodible-shield": {
+          "frame": 159,
+          "shots": [
+            [
+              0,
+              376.9568965517232
+            ],
+            [
+              -80,
+              198.64367816091976
+            ],
+            [
+              80,
+              198.64367816091976
+            ],
+            [
+              0,
+              210.16091954022994
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "formation-bounce": {
+          "frame": 242,
+          "shots": [
+            [
+              -80,
+              411.62931034482654
+            ],
+            [
+              0,
+              423.1465517241366
+            ],
+            [
+              0,
+              202.46264367816096
+            ],
+            [
+              -80,
+              103.69827586206898
+            ],
+            [
+              80,
+              103.69827586206898
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        }
+      }
+    },
+    {
+      "level": 6,
+      "seed": 28,
+      "frames": 1102,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 53,
+          "shots": [],
+          "phase": 0,
+          "probes": 11
+        },
+        "formation-bounce": {
+          "frame": 156,
+          "shots": [
+            [
+              0,
+              231.87931034482747
+            ]
+          ],
+          "phase": 0,
+          "probes": 9
+        },
+        "erodible-shield": {
+          "frame": 163,
+          "shots": [
+            [
+              0,
+              250.10344827586192
+            ]
+          ],
+          "phase": 0,
+          "probes": 9
+        }
+      }
+    },
+    {
+      "level": 7,
+      "seed": 28,
+      "frames": 2304,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 57,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "split-fragments": {
+          "frame": 129,
+          "shots": [
+            [
+              0,
+              305.94827586206975
+            ]
+          ],
+          "phase": 0,
+          "probes": 18
+        },
+        "formation-bounce": {
+          "frame": 197,
+          "shots": [
+            [
+              0,
+              485.5229885057488
+            ],
+            [
+              0,
+              290.1034482758628
+            ],
+            [
+              0,
+              195.78160919540232
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        }
+      }
+    },
+    {
+      "level": 8,
+      "seed": 28,
+      "frames": 1800,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 47,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "split-fragments": {
+          "frame": 93,
+          "shots": [
+            [
+              0,
+              256.8103448275863
+            ]
+          ],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 147,
+          "shots": [
+            [
+              0,
+              401.43103448275883
+            ],
+            [
+              0,
+              211.28160919540232
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 173,
+          "shots": [
+            [
+              0,
+              471.0632183908049
+            ],
+            [
+              0,
+              280.91379310344837
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        }
+      }
+    },
+    {
+      "level": 9,
+      "seed": 28,
+      "frames": 2137,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 45,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "split-fragments": {
+          "frame": 94,
+          "shots": [
+            [
+              0,
+              269.6810344827584
+            ]
+          ],
+          "phase": 0,
+          "probes": 18
+        },
+        "formation-bounce": {
+          "frame": 189,
+          "shots": [
+            [
+              0,
+              527.6551724137921
+            ],
+            [
+              0,
+              311.99999999999955
+            ],
+            [
+              0,
+              181.65517241379303
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "erodible-shield": {
+          "frame": 195,
+          "shots": [
+            [
+              0,
+              543.9482758620679
+            ],
+            [
+              0,
+              328.29310344827536
+            ],
+            [
+              0,
+              197.94827586206884
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        }
+      }
+    },
+    {
+      "level": 10,
+      "seed": 28,
+      "frames": 3098,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [],
+          "phase": 1,
+          "probes": 11
+        },
+        "guardian-motif:2": {
+          "frame": 120,
+          "shots": [
+            [
+              0,
+              321.4022988505746
+            ],
+            [
+              1.8858276160846996,
+              98.75287356321839
+            ],
+            [
+              0,
+              178.2528735632184
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "asteroid-deflection": {
+          "frame": 131,
+          "shots": [
+            [
+              -110,
+              351.6839080459767
+            ],
+            [
+              1.8858276160846996,
+              129.03448275862064
+            ],
+            [
+              0,
+              208.5344827586208
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "erodible-shield": {
+          "frame": 181,
+          "shots": [
+            [
+              0,
+              346.17816091953995
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "formation-bounce": {
+          "frame": 197,
+          "shots": [
+            [
+              110,
+              390.2241379310339
+            ],
+            [
+              0,
+              203.028735632184
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "rotating-shield-block": {
+          "frame": 519,
+          "shots": [
+            [
+              0,
+              454.28160919540124
+            ],
+            [
+              0,
+              333.15517241379285
+            ],
+            [
+              -30.67776454060094,
+              206.11494252873587
+            ],
+            [
+              0,
+              187.2528735632184
+            ]
+          ],
+          "phase": 1,
+          "probes": 9
+        }
+      }
+    },
+    {
+      "level": 11,
+      "seed": 28,
+      "frames": 1406,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 53,
+          "shots": [],
+          "phase": 0,
+          "probes": 11
+        },
+        "erodible-shield": {
+          "frame": 60,
+          "shots": [],
+          "phase": 0,
+          "probes": 11
+        },
+        "formation-bounce": {
+          "frame": 136,
+          "shots": [
+            [
+              0,
+              252.91666666666666
+            ]
+          ],
+          "phase": 0,
+          "probes": 10
+        },
+        "asteroid-deflection": {
+          "frame": 171,
+          "shots": [
+            [
+              110,
+              350.5747126436791
+            ]
+          ],
+          "phase": 0,
+          "probes": 10
+        }
+      }
+    },
+    {
+      "level": 12,
+      "seed": 28,
+      "frames": 2383,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 56,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 63,
+          "shots": [
+            [
+              0,
+              191.7931034482758
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 179,
+          "shots": [
+            [
+              0,
+              231.37931034482736
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "asteroid-deflection": {
+          "frame": 269,
+          "shots": [
+            [
+              110,
+              373.7931034482763
+            ],
+            [
+              0,
+              212.62068965517233
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "split-fragments": {
+          "frame": 353,
+          "shots": [
+            [
+              0,
+              450.1379310344837
+            ],
+            [
+              0,
+              334.20689655172436
+            ],
+            [
+              0,
+              201.31034482758616
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        }
+      }
+    },
+    {
+      "level": 13,
+      "seed": 28,
+      "frames": 1621,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "gravity-curve": {
+          "frame": 17,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 45,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 52,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 159,
+          "shots": [
+            [
+              -7.888901886736976,
+              486.31896551724213
+            ],
+            [
+              -3.780043589886086,
+              334.15229885057505
+            ],
+            [
+              0,
+              216.68965517241384
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        }
+      }
+    },
+    {
+      "level": 14,
+      "seed": 28,
+      "frames": 1521,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "gravity-curve": {
+          "frame": 17,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 111,
+          "shots": [
+            [
+              1.067528562923383,
+              317.73563218390785
+            ],
+            [
+              0,
+              175.20689655172413
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "formation-bounce": {
+          "frame": 140,
+          "shots": [
+            [
+              2.2411163443464757,
+              401.9022988505744
+            ],
+            [
+              0.030474630291521296,
+              259.3735632183907
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "rotating-shield-block": {
+          "frame": 685,
+          "shots": [
+            [
+              5.418859846130943,
+              507.8505747126433
+            ],
+            [
+              33.227392678643284,
+              368.2471264367814
+            ],
+            [
+              1.9960210675861956,
+              258.2528735632183
+            ]
+          ],
+          "phase": 0,
+          "probes": 10
+        }
+      }
+    },
+    {
+      "level": 15,
+      "seed": 28,
+      "frames": 1855,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "gravity-curve": {
+          "frame": 17,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 47,
+          "shots": [],
+          "phase": 1,
+          "probes": 13
+        },
+        "split-fragments": {
+          "frame": 47,
+          "shots": [],
+          "phase": 1,
+          "probes": 13
+        },
+        "erodible-shield": {
+          "frame": 102,
+          "shots": [
+            [
+              -20.329754478542803,
+              333.66379310344763
+            ],
+            [
+              0,
+              196.25862068965512
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "guardian-motif:3": {
+          "frame": 120,
+          "shots": [
+            [
+              -31.92013587290201,
+              386.57758620689566
+            ],
+            [
+              0,
+              249.17241379310315
+            ],
+            [
+              -65,
+              98.9396551724138
+            ],
+            [
+              0,
+              98.9396551724138
+            ],
+            [
+              65,
+              98.9396551724138
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "formation-bounce": {
+          "frame": 186,
+          "shots": [
+            [
+              -43.22733638525798,
+              580.5948275862064
+            ],
+            [
+              -40.919034461098,
+              443.1896551724126
+            ],
+            [
+              -72.36554960729299,
+              292.9568965517234
+            ],
+            [
+              -18.128426043861808,
+              292.9568965517234
+            ],
+            [
+              36.10869751956948,
+              292.9568965517234
+            ],
+            [
+              -9.31332298949101,
+              275.62931034482716
+            ]
+          ],
+          "phase": 1,
+          "probes": 9
+        }
+      }
+    },
+    {
+      "level": 16,
+      "seed": 28,
+      "frames": 1332,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "intermittent-stealth": {
+          "frame": 37,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 49,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "erodible-shield": {
+          "frame": 106,
+          "shots": [
+            [
+              0,
+              316.68965517241344
+            ],
+            [
+              0,
+              151.8850574712644
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        },
+        "formation-bounce": {
+          "frame": 117,
+          "shots": [
+            [
+              0,
+              349.4367816091948
+            ],
+            [
+              0,
+              184.63218390804604
+            ]
+          ],
+          "phase": 0,
+          "probes": 14
+        }
+      }
+    },
+    {
+      "level": 17,
+      "seed": 28,
+      "frames": 885,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "erodible-shield": {
+          "frame": 18,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "intermittent-stealth": {
+          "frame": 43,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 54,
+          "shots": [],
+          "phase": 0,
+          "probes": 11
+        },
+        "formation-bounce": {
+          "frame": 143,
+          "shots": [
+            [
+              0,
+              313.81896551724157
+            ]
+          ],
+          "phase": 0,
+          "probes": 10
+        }
+      }
+    },
+    {
+      "level": 18,
+      "seed": 28,
+      "frames": 1501,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 18,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "intermittent-stealth": {
+          "frame": 37,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 56,
+          "shots": [
+            [
+              0,
+              206.01724137931046
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "asteroid-deflection": {
+          "frame": 129,
+          "shots": [
+            [
+              0,
+              428.79310344827684
+            ],
+            [
+              0,
+              294.2586206896556
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "formation-bounce": {
+          "frame": 137,
+          "shots": [
+            [
+              0,
+              453.2068965517252
+            ],
+            [
+              0,
+              318.67241379310394
+            ],
+            [
+              0,
+              211.86206896551732
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        }
+      }
+    },
+    {
+      "level": 19,
+      "seed": 28,
+      "frames": 1217,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 20,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 49,
+          "shots": [
+            [
+              0,
+              231.21264367816093
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 124,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "neighbor-heal": {
+          "frame": 600,
+          "shots": [
+            [
+              0,
+              372.1120689655173
+            ],
+            [
+              0,
+              264.6580459770115
+            ]
+          ],
+          "phase": 0,
+          "probes": 9
+        },
+        "rotating-shield-block": {
+          "frame": 953,
+          "shots": [
+            [
+              0,
+              625.7040229885059
+            ],
+            [
+              0,
+              314.90517241379314
+            ]
+          ],
+          "phase": 0,
+          "probes": 3
+        }
+      }
+    },
+    {
+      "level": 20,
+      "seed": 28,
+      "frames": 1601,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "gravity-curve": {
+          "frame": 17,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 98,
+          "shots": [
+            [
+              -19.976427750818104,
+              422.8448275862063
+            ],
+            [
+              -2.1589564965517516,
+              258.90229885057454
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "erodible-shield": {
+          "frame": 105,
+          "shots": [
+            [
+              -21.883112175796036,
+              444.7298850574706
+            ],
+            [
+              -9.690385737017657,
+              280.78735632183884
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "guardian-motif:4": {
+          "frame": 120,
+          "shots": [
+            [
+              -22.389286589204605,
+              491.6264367816084
+            ],
+            [
+              -25.41629225985184,
+              327.68390804597664
+            ],
+            [
+              100,
+              99.1264367816092
+            ],
+            [
+              0,
+              99.1264367816092
+            ],
+            [
+              0,
+              219.6264367816092
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "formation-bounce": {
+          "frame": 176,
+          "shots": [
+            [
+              -9.108810497542141,
+              274.2068965517238
+            ],
+            [
+              -28.349137493591027,
+              394.7068965517236
+            ],
+            [
+              0,
+              252.64942528735617
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        }
+      }
+    },
+    {
+      "level": 21,
+      "seed": 28,
+      "frames": 936,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "erodible-shield": {
+          "frame": 60,
+          "shots": [
+            [
+              0,
+              197.31034482758628
+            ]
+          ],
+          "phase": 0,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 64,
+          "shots": [
+            [
+              0,
+              209.96551724137942
+            ]
+          ],
+          "phase": 0,
+          "probes": 11
+        },
+        "formation-bounce": {
+          "frame": 109,
+          "shots": [
+            [
+              0,
+              352.33620689655135
+            ]
+          ],
+          "phase": 0,
+          "probes": 11
+        },
+        "neighbor-heal": {
+          "frame": 150,
+          "shots": [
+            [
+              0,
+              482.05172413792985
+            ],
+            [
+              0,
+              259.6034482758622
+            ]
+          ],
+          "phase": 0,
+          "probes": 10
+        }
+      }
+    },
+    {
+      "level": 22,
+      "seed": 28,
+      "frames": 2208,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 54,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 61,
+          "shots": [],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 119,
+          "shots": [
+            [
+              0,
+              275.33908045977023
+            ],
+            [
+              0,
+              176.10344827586206
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "satellite-defense": {
+          "frame": 360,
+          "shots": [
+            [
+              0,
+              475.01149425287537
+            ],
+            [
+              0,
+              366.17241379310434
+            ],
+            [
+              0,
+              288.137931034483
+            ],
+            [
+              0,
+              199.9022988505747
+            ],
+            [
+              0,
+              199.70114942528735
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        },
+        "split-fragments": {
+          "frame": 877,
+          "shots": [
+            [
+              0,
+              430.5689655172428
+            ],
+            [
+              0,
+              303.7241379310349
+            ]
+          ],
+          "phase": 0,
+          "probes": 14
+        }
+      }
+    },
+    {
+      "level": 23,
+      "seed": 28,
+      "frames": 2025,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 18,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "intermittent-stealth": {
+          "frame": 37,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 50,
+          "shots": [
+            [
+              0,
+              211.12356321839067
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 121,
+          "shots": [
+            [
+              0,
+              441.0574712643685
+            ],
+            [
+              0,
+              288.8017241379309
+            ],
+            [
+              0,
+              191.64655172413782
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "satellite-defense": {
+          "frame": 360,
+          "shots": [
+            [
+              0,
+              423.4339080459776
+            ],
+            [
+              0,
+              329.51724137931046
+            ],
+            [
+              0,
+              277.12356321839087
+            ],
+            [
+              0,
+              247.73850574712642
+            ]
+          ],
+          "phase": 0,
+          "probes": 14
+        }
+      }
+    },
+    {
+      "level": 24,
+      "seed": 28,
+      "frames": 1776,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 18,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 100,
+          "shots": [
+            [
+              0,
+              267.00000000000017
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 137,
+          "shots": [
+            [
+              0,
+              388.2068965517245
+            ],
+            [
+              0,
+              260.4482758620691
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "neighbor-heal": {
+          "frame": 150,
+          "shots": [
+            [
+              0,
+              430.7931034482763
+            ],
+            [
+              0,
+              303.0344827586209
+            ],
+            [
+              0,
+              206.37931034482762
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "satellite-defense": {
+          "frame": 360,
+          "shots": [
+            [
+              0,
+              441.724137931035
+            ],
+            [
+              0,
+              360.3448275862072
+            ],
+            [
+              0,
+              255.51724137931046
+            ],
+            [
+              0,
+              166.27586206896552
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        }
+      }
+    },
+    {
+      "level": 25,
+      "seed": 28,
+      "frames": 1263,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "gravity-curve": {
+          "frame": 17,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "coordinated-swarm": {
+          "frame": 60,
+          "shots": [
+            [
+              0,
+              237.9867897798734
+            ]
+          ],
+          "phase": 1,
+          "probes": 12
+        },
+        "erodible-shield": {
+          "frame": 62,
+          "shots": [
+            [
+              0,
+              244.61322656148258
+            ]
+          ],
+          "phase": 1,
+          "probes": 12
+        },
+        "guardian-motif:5": {
+          "frame": 120,
+          "shots": [
+            [
+              -30.61388005588736,
+              436.779893228149
+            ],
+            [
+              -15.986923570195078,
+              322.6250426169903
+            ],
+            [
+              0,
+              182.6544211575432
+            ],
+            [
+              100.02271695082499,
+              99.3132183908046
+            ],
+            [
+              -45.77615202018566,
+              99.3132183908046
+            ]
+          ],
+          "phase": 1,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 127,
+          "shots": [
+            [
+              -32.27319478270007,
+              459.97242196378113
+            ],
+            [
+              -21.071578711593133,
+              345.81757135262245
+            ],
+            [
+              0,
+              205.84694989317535
+            ],
+            [
+              100.02271695082499,
+              122.50574712643675
+            ],
+            [
+              -45.77615202018566,
+              122.50574712643675
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "formation-bounce": {
+          "frame": 136,
+          "shots": [
+            [
+              -32.27319478270007,
+              489.79138748102247
+            ],
+            [
+              -27.299061209304117,
+              375.6365368698638
+            ],
+            [
+              0,
+              235.6659154104167
+            ],
+            [
+              100.02271695082499,
+              152.32471264367808
+            ],
+            [
+              -45.77615202018566,
+              152.32471264367808
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        }
+      }
+    },
+    {
+      "level": 26,
+      "seed": 28,
+      "frames": 848,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "erodible-shield": {
+          "frame": 18,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "coordinated-swarm": {
+          "frame": 60,
+          "shots": [],
+          "phase": 0,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 83,
+          "shots": [
+            [
+              0,
+              195.48278519686846
+            ]
+          ],
+          "phase": 0,
+          "probes": 11
+        },
+        "formation-bounce": {
+          "frame": 88,
+          "shots": [
+            [
+              0,
+              212.23565876008692
+            ]
+          ],
+          "phase": 0,
+          "probes": 11
+        }
+      }
+    },
+    {
+      "level": 27,
+      "seed": 28,
+      "frames": 1064,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 48,
+          "shots": [
+            [
+              0,
+              251.1839718832861
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "coordinated-swarm": {
+          "frame": 60,
+          "shots": [
+            [
+              0,
+              291.8391442970789
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "erodible-shield": {
+          "frame": 66,
+          "shots": [
+            [
+              0,
+              312.1667305039753
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "formation-bounce": {
+          "frame": 86,
+          "shots": [
+            [
+              0,
+              379.92535119363
+            ],
+            [
+              0,
+              198.75078679274168
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "rotating-shield-block": {
+          "frame": 93,
+          "shots": [
+            [
+              0,
+              403.6408684350091
+            ],
+            [
+              0,
+              222.466304034121
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        }
+      }
+    },
+    {
+      "level": 28,
+      "seed": 28,
+      "frames": 1634,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 18,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 48,
+          "shots": [
+            [
+              0,
+              214.257513618281
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "coordinated-swarm": {
+          "frame": 60,
+          "shots": [
+            [
+              0,
+              255.36096189414297
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 84,
+          "shots": [
+            [
+              0,
+              337.5678584458676
+            ],
+            [
+              0,
+              193.55221026195167
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        },
+        "asteroid-deflection": {
+          "frame": 103,
+          "shots": [
+            [
+              0,
+              402.64831821598295
+            ],
+            [
+              0,
+              258.63267003206647
+            ],
+            [
+              0,
+              179.8489889112162
+            ]
+          ],
+          "phase": 0,
+          "probes": 15
+        },
+        "satellite-defense": {
+          "frame": 360,
+          "shots": [
+            [
+              0,
+              548.0400912826569
+            ],
+            [
+              0,
+              363.6362438626236
+            ],
+            [
+              0,
+              262.7404126590108
+            ],
+            [
+              0,
+              185.6066512821126
+            ]
+          ],
+          "phase": 0,
+          "probes": 11
+        }
+      }
+    },
+    {
+      "level": 29,
+      "seed": 28,
+      "frames": 1393,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "erodible-shield": {
+          "frame": 20,
+          "shots": [],
+          "phase": 0,
+          "probes": 18
+        },
+        "intermittent-stealth": {
+          "frame": 43,
+          "shots": [
+            [
+              0,
+              203.46787720083933
+            ]
+          ],
+          "phase": 0,
+          "probes": 18
+        },
+        "probe-hit": {
+          "frame": 51,
+          "shots": [
+            [
+              0,
+              231.16902662612677
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "coordinated-swarm": {
+          "frame": 60,
+          "shots": [
+            [
+              0,
+              262.33281972957514
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "formation-bounce": {
+          "frame": 77,
+          "shots": [
+            [
+              0,
+              321.19776225831095
+            ],
+            [
+              0,
+              208.39074802821483
+            ]
+          ],
+          "phase": 0,
+          "probes": 17
+        },
+        "neighbor-heal": {
+          "frame": 150,
+          "shots": [
+            [
+              0,
+              371.36852171069916
+            ],
+            [
+              0,
+              259.4113911287368
+            ]
+          ],
+          "phase": 0,
+          "probes": 16
+        }
+      }
+    },
+    {
+      "level": 30,
+      "seed": 28,
+      "frames": 3086,
+      "witnesses": {
+        "shoot": {
+          "frame": 1,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "gravity-curve": {
+          "frame": 17,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "erodible-shield": {
+          "frame": 20,
+          "shots": [],
+          "phase": 1,
+          "probes": 12
+        },
+        "probe-hit": {
+          "frame": 47,
+          "shots": [
+            [
+              0,
+              217.02879946949295
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "coordinated-swarm": {
+          "frame": 60,
+          "shots": [
+            [
+              -1.5755059927649318,
+              262.5287994694929
+            ]
+          ],
+          "phase": 1,
+          "probes": 11
+        },
+        "asteroid-deflection": {
+          "frame": 116,
+          "shots": [
+            [
+              -26.804400262812695,
+              458.5287994694929
+            ],
+            [
+              -110,
+              352.0671233389872
+            ],
+            [
+              0,
+              218.77705991087936
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "guardian-motif:6": {
+          "frame": 120,
+          "shots": [
+            [
+              -26.804400262812695,
+              472.5287994694929
+            ],
+            [
+              -90,
+              366.0671233389872
+            ],
+            [
+              0,
+              232.77705991087936
+            ],
+            [
+              -65,
+              99.5
+            ],
+            [
+              0,
+              99.5
+            ],
+            [
+              65,
+              99.5
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "formation-bounce": {
+          "frame": 124,
+          "shots": [
+            [
+              -26.804400262812695,
+              486.5287994694929
+            ],
+            [
+              -90,
+              380.0671233389872
+            ],
+            [
+              0,
+              246.77705991087936
+            ],
+            [
+              -65,
+              113.5
+            ],
+            [
+              0,
+              113.5
+            ],
+            [
+              65,
+              113.5
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "satellite-defense": {
+          "frame": 360,
+          "shots": [
+            [
+              -21.063547548628957,
+              519.5
+            ],
+            [
+              90,
+              456.33458108253774
+            ],
+            [
+              29.332844065078042,
+              330.669153453532
+            ],
+            [
+              0,
+              231.017113489007
+            ],
+            [
+              -65,
+              99.5
+            ],
+            [
+              0,
+              99.5
+            ],
+            [
+              65,
+              99.5
+            ],
+            [
+              0,
+              195.68136392579078
+            ]
+          ],
+          "phase": 1,
+          "probes": 10
+        },
+        "split-fragments": {
+          "frame": 888,
+          "shots": [
+            [
+              -60.251783027311006,
+              267.5
+            ],
+            [
+              2.331399831773681,
+              267.5
+            ],
+            [
+              64.91458269085835,
+              267.5
+            ],
+            [
+              -110,
+              353.9290155397959
+            ],
+            [
+              0,
+              190.58311764073548
+            ]
+          ],
+          "phase": 1,
+          "probes": 8
+        },
+        "rotating-shield-block": {
+          "frame": 1119,
+          "shots": [
+            [
+              -27.571651683211464,
+              628.5948015111878
+            ],
+            [
+              -43.7135959185169,
+              473.38730616966956
+            ],
+            [
+              -65,
+              236
+            ],
+            [
+              0,
+              236
+            ],
+            [
+              65,
+              236
+            ],
+            [
+              90,
+              361.09322933312524
+            ],
+            [
+              4.8731748763501415,
+              281.3402253741882
+            ]
+          ],
+          "phase": 1,
+          "probes": 4
+        },
+        "boss-phase-two": {
+          "frame": 2079,
+          "shots": [
+            [
+              -65,
+              236
+            ],
+            [
+              0,
+              236
+            ]
+          ],
+          "phase": 2,
+          "probes": 0
+        }
+      }
+    }
+  ]
+}

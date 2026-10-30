@@ -38,7 +38,7 @@ while pausing play.
 | **Serpentin** | Grow a glowing trail by collecting sparks and crystals, avoiding walls or wrapping around the board. | Arrows, ZQSD or WASD; touch: swipe or direction pad. |
 | **Briqueterie** | 30 authored walls: sliding rows, blasts, regrowth, portals, chicanes, deflectors, keys, multiball, inverse gravity and hanging structures. | Mouse: guide the paddle; Left/Right or A/D: move; Space: launch; touch: drag along the bottom, tap or use Launch. |
 | **Empilo** | Fit crystal pieces into a 9 × 16 well and complete rows, including sealed ones. | Left/Right/Down: move; X/W/Up and Z/C: rotate; Space: drop; touch: drag, tap to rotate, swipe down quickly to drop. |
-| **Orbite** | Defend four erodible shields against an accelerating fleet of probes. | Mouse: guide; Left/Right or A/D: move; Space: fire; touch: drag along the bottom and hold Fire, or enable auto-fire. |
+| **Orbite** | Thirty formations with rotating shields, split probes, asteroids, gravity, stealth, repairers, satellite defense and coordinated swarms; six guardians and a two-phase finale. | Mouse: guide; Left/Right or A/D: move; Space: fire; touch: drag along the bottom and hold Fire, or enable auto-fire. |
 | **Essaim** | Thirty tactical stages, six collectible weapons, rescue ships and six bosses. | Mouse: guide and fire; Left/Right or A/D: move; hold Space or Fire, release for a charged shot; touch: drag below the line. |
 | **Dédale** | Gather maze seeds while evading four wisps, then turn the tables by collecting a sun. | Arrows or ZQSD; touch: swipe or direction pad. |
 | **Ferraille** | Run, jump and shoot through workshops, facing a multi-phase guardian every five levels. | Left/Right or A/D: run; Up/W and Down/S: aim or crouch; Space/Z: jump; X/J: fire; touch: joystick, hold Jump and Fire. |
@@ -170,3 +170,7 @@ Essaim validation (weapons, diversity, 60 campaign wins and mutations): `nice -n
 Dédale pass 57 adds colored keys/doors, one-way passages, portals, switches, cyclic walls, ice and darkness across five seeded maze shapes. Thirty recorded solver routes and six mutation checks run with `nice -n 19 ionice -c3 node scripts/validate-dedale.js`; diversity drops from 100 to 22.4 (0% adjacent clones). See [the level table](GAME_SPEC.md#dédale).
 
 Briqueterie (pass 61): recorded winning campaigns on seeds 455 and 28; browser-free validation with `nice -n 19 ionice -c3 node scripts/validate-briqueterie.js`. See `GAME_SPEC.md` for all thirty layouts and `docs/diversity.md` for measurements.
+
+Orbite (pass 64): regenerate/check the 60 ordinary-input victories with
+`nice -n 19 ionice -c3 taskset -c 0,1 node scripts/validate-orbite.js`
+(`--record` to regenerate). Each unit test replays one short recording; long campaigns run only in Node.

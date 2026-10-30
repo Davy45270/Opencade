@@ -2,7 +2,7 @@ import { test, expect } from 'vitest';
 import { Engine, difficulty, shields, TICK, SHIELD_Y, CANNON_Y, type Probe, type State } from '../src/engines/orbite/engine';
 const probe = (x = 180, y = 200, row = 0, column = 0, hp = 1): Probe => ({ id: column * 10 + row, x, y, row, column, hp });
 function position(e: Engine, probes = [probe()]): State {
-    return { ...e.state, probes, initialCount: probes.length, shots: [], shields: [], lives: 3, score: 0, invulnerable: 0, direction: 1, enemyTimer: 1e6, cometTimer: 1e6 };
+    return { ...e.state, swarm: false, asteroids: [], wells: [], satellite: null, boss: null, probes, initialCount: probes.length, shots: [], shields: [], lives: 3, score: 0, invulnerable: 0, direction: 1, enemyTimer: 1e6, cometTimer: 1e6 };
 }
 test('V01 flotte en bloc, bord droit et gauche, descente unique et inversion', () => {
     const e = new Engine(); e.loadState(position(e, [probe(336.9), probe(306.9, 230, 1)])); e.step(TICK);
@@ -27,10 +27,10 @@ test('V03 limite un projectile puis deux dès le niveau 15, cadence et sortie é
     }
 });
 test('V04 collision balayée, première cible et score distinct pour chaque rangée', () => {
-    for (let row = 0; row < 5; row++) {
+    for (let row = 0; row < 3; row++) {
         const e = new Engine(29), s = position(e, [probe(180, 200, row), probe(30, 100)]);
         s.shots = [{ x: 180, y: 220, owner: 'player' }]; e.loadState(s); e.step(TICK);
-        expect(e.state.probes).toHaveLength(1); expect(e.state.shots).toHaveLength(0); expect(e.state.score).toBe((5 - row) * 300);
+        expect(e.state.probes).toHaveLength(1); expect(e.state.shots).toHaveLength(0); expect(e.state.score).toBe((3 - row) * 300);
     }
     const e = new Engine(), s = position(e, [probe(180, 200), probe(180, 240, 1)]); s.shots = [{ x: 180, y: 260, owner: 'player' }]; e.loadState(s); e.step(TICK);
     expect(e.state.probes.map(p => p.row)).toEqual([0]);
@@ -71,14 +71,15 @@ test('V08 dernière sonde détruite gagne, aucune victoire anticipée', () => {
     const won = e.snapshot(); expect(e.fire()).toBe(false); e.step(500); expect(e.snapshot()).toEqual(won);
 });
 test('V09 comète : fréquence déterministe, deux sens, zone interdite et saturation', () => {
-    let appearances = 0; const directions = new Set<number>();
-    for (let seed = 0; seed < 400; seed++) {
-        const e = new Engine(0, seed * 7919), s = position(e); s.cometTimer = 0; e.loadState(s); e.step(TICK);
-        if (e.state.comet) { appearances++; directions.add(e.state.comet.direction); expect(e.state.comet.y).toBe(56); expect(e.state.comet.x < 0 || e.state.comet.x > 360).toBe(true); }
-        const occupied = position(new Engine(0, seed * 7919)); occupied.cometTimer = 0; occupied.comet = { x: 180, y: 56, direction: 1 }; e.loadLevel(0, seed * 7919); e.loadState(occupied); e.step(TICK); expect(e.state.comet?.x).toBeCloseTo(180 + 95 / 60);
-        e.loadLevel(0, seed * 7919); const forbidden = position(e, [probe(180, 56)]); forbidden.cometTimer = 0; e.loadState(forbidden); e.step(TICK); expect(e.state.comet).toBeNull();
+    // Short seeded spawn recordings; the 400-seed distribution audit lives in the script.
+    for (const [seed, expected] of [[0, 0], [7919, 1], [15838, 0], [47514, -1], [102947, -1], [142542, 1], [197975, 1], [237570, 1]]) {
+        const e = new Engine(0, seed), s = position(e); s.cometTimer = 0; e.loadState(s); e.step(TICK);
+        expect(e.state.comet?.direction ?? 0).toBe(expected);
+        if (e.state.comet) { expect(e.state.comet.y).toBe(56); expect(e.state.comet.x < 0 || e.state.comet.x > 360).toBe(true); }
+        const occupied = position(e); occupied.cometTimer = 0; occupied.comet = { x: 180, y: 56, direction: 1 };
+        e.loadLevel(0, seed); e.loadState(occupied); e.step(TICK); expect(e.state.comet?.x).toBeCloseTo(180 + 95 / 60);
+        e.loadLevel(0, seed); const forbidden = position(e, [probe(180, 56)]); forbidden.cometTimer = 0; e.loadState(forbidden); e.step(TICK); expect(e.state.comet).toBeNull();
     }
-    expect(appearances).toBeGreaterThan(65); expect(appearances).toBeLessThan(110); expect([...directions].sort()).toEqual([-1, 1]);
 });
 test('V09 comète : traversée, expiration, collision et bonus unique', () => {
     const e = new Engine(), s = position(e); s.comet = { x: 100, y: 56, direction: 1 }; s.shots = [{ x: 101, y: 72, owner: 'player' }]; e.loadState(s); e.step(TICK);
@@ -93,19 +94,18 @@ test('V10 blindage : deux impacts, score seulement à destruction, seuil niveau 
     for (let seed = 0; seed < 60; seed++) { expect(new Engine(8, seed).state.probes.every(p => p.hp === 1)).toBe(true); const probes = new Engine(9, seed * 7919).state.probes; armored += probes.filter(p => p.hp === 2).length; total += probes.length; }
     expect(armored / total).toBeGreaterThan(0.12); expect(armored / total).toBeLessThan(0.18);
 });
-test('V11 chaque paramètre est monotone et strict aux extrêmes, formations légales', () => {
-    const first = difficulty(0), last = difficulty(29);
-    const keys = ['speed', 'fireRate', 'rows', 'columns', 'startY', 'armor', 'patternTier', 'enemySpeed', 'shotLimit'] as const;
-    expect(Object.keys(first).sort()).toEqual([...keys].sort());
-    for (const key of keys) { for (let level = 1; level < 30; level++) expect(difficulty(level)[key], key).toBeGreaterThanOrEqual(difficulty(level - 1)[key]); expect(last[key], key).toBeGreaterThan(first[key]); }
-    const patterns = new Set<string>();
-    for (let level = 0; level < 30; level++) for (let seed = 0; seed < 12; seed++) {
-        const e = new Engine(level, seed * 7919), d = difficulty(level); expect(e.state.probes).toHaveLength(d.rows * d.columns);
-        expect(e.state.probes.every(p => p.x >= 23 && p.x <= 337 && p.y >= 90 && p.y + 11 < SHIELD_Y)).toBe(true);
+test('V11 formations écrites légales et respirations', () => {
+    const layouts = new Set<string>();
+    for (let level = 0; level < 30; level++) {
+        const e = new Engine(level), d = difficulty(level);
+        expect(e.state.probes).toHaveLength(d.rows * d.columns);
+        expect(e.state.probes.every(p => p.x >= 23 && p.x <= 337 && p.y >= 78 && p.y + 11 < SHIELD_Y)).toBe(true);
         expect(new Set(e.state.probes.map(p => `${String(p.x)},${String(p.y)}`)).size).toBe(e.state.probes.length);
-        if (level === 29) patterns.add(JSON.stringify(e.state.probes.filter(p => p.row === 0).map(p => p.y)));
+        layouts.add(JSON.stringify(e.state.probes.map(p => [p.x, p.y])));
     }
-    expect(patterns.size).toBe(4); expect(() => difficulty(30)).toThrow(); expect(() => difficulty(-1)).toThrow();
+    expect(layouts.size).toBeGreaterThanOrEqual(6);
+    expect(difficulty(5).fireRate).toBeLessThan(difficulty(4).fireRate);
+    expect(() => difficulty(30)).toThrow(); expect(() => difficulty(-1)).toThrow();
 });
 test('V12 entrées horodatées, pas indépendant de l’affichage, graine témoin, copie', () => {
     const a = new Engine(14, 42), b = new Engine(14, 42);
@@ -115,4 +115,15 @@ test('V12 entrées horodatées, pas indépendant de l’affichage, graine témoi
     }
     expect(new Engine(14, 43).snapshot()).not.toEqual(new Engine(14, 42).snapshot()); const copy = a.snapshot(); copy.probes.splice(0); expect(a.state.probes.length).toBeGreaterThan(0);
     expect(() => { a.step(-1); }).toThrow(); expect(() => { a.step(Infinity); }).toThrow(); expect(JSON.parse(JSON.stringify(a.snapshot()))).toEqual(a.snapshot());
+});
+
+test('O-SAVE anciennes positions sans champs optionnels et sérialisation', () => {
+    const e = new Engine();
+    e.loadState({
+        probes: [probe()], shots: [], shields: [], comet: null, cannon: 180, direction: 1,
+        initialCount: 1, lives: 3, score: 0, enemyTimer: 1000000, cometTimer: 1000000,
+        cooldown: 0, invulnerable: 0, move: 0, target: null, firing: false, ticks: 0,
+    });
+    e.step(TICK); expect(e.state.probes[0]?.x).toBeCloseTo(180.3);
+    expect(e.status).toBe('playing'); expect(JSON.parse(JSON.stringify(e.snapshot()))).toEqual(e.snapshot());
 });
