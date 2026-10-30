@@ -43,6 +43,18 @@ for (const [name, id, before, after] of [
     ['angle ignoré', 'K-MEC-06', "hit.brick?.kind === 'angle'", 'false'],
     ['repousse désactivée', 'K-MEC-03', 'brick.hp = 2; delete brick.healAt;', 'brick.hp = 1; delete brick.healAt;'],
     ['clé sans effet', 'K-MEC-07', "b.solid = false; b.kind = 'plain';", "b.solid = true; b.kind = 'plain';"],
+    ['gravité sans plafond', 'K-MEC-11', 'if (length > cap)', 'if (false)'],
+    ['portail sans délai', 'K-MEC-12', 'this.ticks >= (ball.portalUntil ?? 0)', 'true'],
+    ['dixième balle autorisée', 'K-MEC-13', 'if (s.balls.length < 9)', 'if (s.balls.length < 10)'],
+    ['explosion trop large', 'K-MEC-14', 'Math.abs(neighbor.x - brick.x) <= 38', 'Math.abs(neighbor.x - brick.x) <= 60'],
+    ['explosion trop haute', 'K-MEC-14', 'Math.abs(neighbor.y - brick.y) <= 32', 'Math.abs(neighbor.y - brick.y) <= 40'],
+    ['explosion exclut la borne horizontale', 'K-MEC-14', 'Math.abs(neighbor.x - brick.x) <= 38', 'Math.abs(neighbor.x - brick.x) < 38'],
+    ['explosion exclut la borne verticale', 'K-MEC-14', 'Math.abs(neighbor.y - brick.y) <= 32', 'Math.abs(neighbor.y - brick.y) < 32'],
+    ['gravité inclut les bords horizontaux', 'K-MEC-15', 'Math.abs(ball.x - b.x - b.w / 2) < 52', 'Math.abs(ball.x - b.x - b.w / 2) <= 52'],
+    ['gravité inclut le bord inférieur', 'K-MEC-15', 'ball.y > b.y && ball.y < b.y + 160', 'ball.y > b.y && ball.y <= b.y + 160'],
+    ['gravité inclut le bord supérieur', 'K-MEC-15', 'ball.y > b.y && ball.y < b.y + 160', 'ball.y >= b.y && ball.y < b.y + 160'],
+    ['angles multi-balle réduits', 'K-MEC-16', '[-0.4, 0.4]', '[-0.3, 0.3]'],
+    ['sortie du portail décalée', 'K-MEC-17', 'partner.y + partner.h + RADIUS + 1', 'partner.y + partner.h + RADIUS + 2'],
     ['tous les niveaux égaux au premier', 'K-DIV-01', 'const design = designs[level];', 'const design = designs[0];'],
 ]) {
     const file = 'src/engines/briqueterie/engine.ts', source = readFileSync(file, 'utf8');
@@ -70,5 +82,5 @@ const { module: suite } = await mutationModule('../tests/briqueterie.test.ts', "
 void suite;
 const testTimings = [];
 for (const [name, run] of cases) { const t = performance.now(); run(); const ms = performance.now() - t; assert.ok(ms < 2000, name); testTimings.push({ name, ms }); }
-writeFileSync('docs/briqueterie-validation.json', JSON.stringify({ pass: 61, cpuCount: availableParallelism(), victories: records.length, replayMs, testTimings, diversity: { score: diversity.score, noveltyLevels: diversity.noveltyLevels, cloneShare: diversity.cloneShare }, mutations, campaigns: records.map(r => ({ level: r.level, seed: r.seed, frames: r.frames, lives: r.lives, score: r.score, witnesses: r.witnesses })) }, null, 2) + '\n');
-console.log(`K-MEC-01…10, K-DIV-01, K-PILOT: ${records.length} victories; replay ${replayMs.toFixed(1)} ms; score ${diversity.score}; clones ${diversity.cloneShare}; ${mutations.length} mutations rejected`);
+writeFileSync('docs/briqueterie-validation.json', JSON.stringify({ pass: 63, cpuCount: availableParallelism(), victories: records.length, replayMs, testTimings, diversity: { score: diversity.score, noveltyLevels: diversity.noveltyLevels, cloneShare: diversity.cloneShare }, mutations, campaigns: records.map(r => ({ level: r.level, seed: r.seed, frames: r.frames, lives: r.lives, score: r.score, witnesses: r.witnesses })) }, null, 2) + '\n');
+console.log(`K-MEC-01…17, K-DIV-01, K-PILOT: ${records.length} victories; replay ${replayMs.toFixed(1)} ms; score ${diversity.score}; clones ${diversity.cloneShare}; ${mutations.length} mutations rejected`);

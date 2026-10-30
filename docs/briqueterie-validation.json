@@ -1,112 +1,140 @@
 {
-  "pass": 61,
+  "pass": 63,
   "cpuCount": 1,
   "victories": 60,
-  "replayMs": 390.85197199999993,
+  "replayMs": 553.0795839999996,
   "testTimings": [
     {
       "name": "K01 réflexion sur mur et plafond",
-      "ms": 0.6256339999999909
+      "ms": 0.645328999999947
     },
     {
       "name": "K02 angle de raquette au centre et aux extrémités",
-      "ms": 0.47938800000065385
+      "ms": 0.47631400000045687
     },
     {
       "name": "K03 faces et coin arrondi de brique",
-      "ms": 0.4131779999997889
+      "ms": 0.4088480000000345
     },
     {
       "name": "K04 balayage continu au plafond de vitesse et au-delà",
-      "ms": 0.3111399999997957
+      "ms": 0.3279720000000452
     },
     {
       "name": "K05 points de vie et score par impact puis destruction",
-      "ms": 0.22740200000043842
+      "ms": 0.2226520000003802
     },
     {
       "name": "K06 indestructible rebondit et ne compte pas pour la victoire",
-      "ms": 0.15001800000027288
+      "ms": 0.14464000000043598
     },
     {
       "name": "K07 trois pertes, attente de relance et défaite",
-      "ms": 0.31079199999931006
+      "ms": 0.28606800000034127
     },
     {
       "name": "K08 victoire après dernier impact et non avant",
-      "ms": 0.14813200000025972
+      "ms": 0.16140199999972538
     },
     {
       "name": "K09 bonus élargir temporaire, multi ×3 et vie plafonnée",
-      "ms": 0.8192330000001675
+      "ms": 0.8257970000004207
     },
     {
       "name": "K09 apparition : positions interdites, brique, saturation et déterminisme des chutes",
-      "ms": 0.9471119999998336
+      "ms": 0.9399160000002666
     },
     {
       "name": "K10 accélération tous les dix rebonds, plafond strict",
-      "ms": 3.0996750000003885
+      "ms": 3.407040999999481
     },
     {
       "name": "K11 trente silhouettes dessinées et respirations",
-      "ms": 2.3346390000006068
+      "ms": 2.140968000000612
     },
     {
       "name": "K12 déterminisme, découpage fixe, graine témoin et snapshot isolé",
-      "ms": 2.0539490000001024
+      "ms": 1.8465189999997165
     },
     {
       "name": "K-MEC-01 rangée mobile",
-      "ms": 0.273497000000134
+      "ms": 0.39418099999966216
     },
     {
       "name": "K-MEC-02 explosion de voisinage",
-      "ms": 0.14841100000012375
+      "ms": 0.12878600000021834
     },
     {
       "name": "K-MEC-03 repousse et finition rapide",
-      "ms": 0.6516140000003361
+      "ms": 0.7195689999998649
     },
     {
       "name": "K-MEC-04 portail téléporte réellement",
-      "ms": 0.10678600000028382
+      "ms": 0.10762500000055297
     },
     {
       "name": "K-MEC-05 chicane indestructible",
-      "ms": 0.0896760000005088
+      "ms": 0.09044300000005023
     },
     {
       "name": "K-MEC-06 normale inclinée",
-      "ms": 0.10504100000071048
+      "ms": 0.08890700000029028
     },
     {
       "name": "K-MEC-07 clé libère le coffre",
-      "ms": 0.1932489999999234
+      "ms": 0.24926199999936216
     },
     {
       "name": "K-MEC-08 multi-balle par brique",
-      "ms": 0.09882400000060443
+      "ms": 0.0985449999998309
     },
     {
       "name": "K-MEC-09 zone de gravité inversée",
-      "ms": 0.09435500000017782
+      "ms": 0.10217699999975594
     },
     {
       "name": "K-MEC-10 rupture de suspension",
-      "ms": 1.018488000000616
+      "ms": 1.4447250000002896
+    },
+    {
+      "name": "K-MEC-11 plafond à chaque tick sous gravité",
+      "ms": 7.8055410000006304
+    },
+    {
+      "name": "K-MEC-12 délai du portail et expiration exacte",
+      "ms": 0.1882210000003397
+    },
+    {
+      "name": "K-MEC-13 maximum neuf balles",
+      "ms": 0.18954799999937677
+    },
+    {
+      "name": "K-MEC-14 bornes exactes du voisinage explosif",
+      "ms": 0.7878729999993084
+    },
+    {
+      "name": "K-MEC-15 frontières exactes de gravité",
+      "ms": 0.6893279999994775
+    },
+    {
+      "name": "K-MEC-16 angles multi-balle à ±0,4 rad",
+      "ms": 0.33907600000020466
+    },
+    {
+      "name": "K-MEC-17 position exacte de sortie du portail",
+      "ms": 0.07375200000024051
     },
     {
       "name": "K-DIV-01 nouveautés observées, rythme et clones",
-      "ms": 261.94852400000036
+      "ms": 188.95629000000008
     },
     {
       "name": "K-PILOT campagne enregistrée 28",
-      "ms": 115.60624499999994
+      "ms": 112.91704400000071
     },
     {
       "name": "K-PILOT campagne enregistrée 455",
-      "ms": 184.03138600000057
+      "ms": 118.886751
     }
   ],
   "diversity": {
@@ -130,7 +158,7 @@
       "name": "explosion sans voisinage",
       "oracle": "K-MEC-02",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 154,
+      "line": 160,
       "rejected": true,
       "reason": "explosion removes diagonal neighbor"
     },
@@ -138,7 +166,7 @@
       "name": "portail sans téléportation",
       "oracle": "K-MEC-04",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 139,
+      "line": 145,
       "rejected": true,
       "reason": "exit below paired tile"
     },
@@ -146,7 +174,7 @@
       "name": "angle ignoré",
       "oracle": "K-MEC-06",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 125,
+      "line": 131,
       "rejected": true,
       "reason": "inclined reflection vector"
     },
@@ -162,9 +190,105 @@
       "name": "clé sans effet",
       "oracle": "K-MEC-07",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 157,
+      "line": 163,
       "rejected": true,
       "reason": "key unlocks"
+    },
+    {
+      "name": "gravité sans plafond",
+      "oracle": "K-MEC-11",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 102,
+      "rejected": true,
+      "reason": "speed never exceeds level cap at any tick"
+    },
+    {
+      "name": "portail sans délai",
+      "oracle": "K-MEC-12",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 143,
+      "rejected": true,
+      "reason": "contact reflects without teleportation during cooldown"
+    },
+    {
+      "name": "dixième balle autorisée",
+      "oracle": "K-MEC-13",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 77,
+      "rejected": true,
+      "reason": "ninth accepted, tenth refused"
+    },
+    {
+      "name": "explosion trop large",
+      "oracle": "K-MEC-14",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 160,
+      "rejected": true,
+      "reason": "x/-1/38.001: inclusive explosion boundary"
+    },
+    {
+      "name": "explosion trop haute",
+      "oracle": "K-MEC-14",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 160,
+      "rejected": true,
+      "reason": "y/-1/32.001: inclusive explosion boundary"
+    },
+    {
+      "name": "explosion exclut la borne horizontale",
+      "oracle": "K-MEC-14",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 160,
+      "rejected": true,
+      "reason": "x/-1/38: inclusive explosion boundary"
+    },
+    {
+      "name": "explosion exclut la borne verticale",
+      "oracle": "K-MEC-14",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 160,
+      "rejected": true,
+      "reason": "y/-1/32: inclusive explosion boundary"
+    },
+    {
+      "name": "gravité inclut les bords horizontaux",
+      "oracle": "K-MEC-15",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 98,
+      "rejected": true,
+      "reason": "gravity boundary at 62/150"
+    },
+    {
+      "name": "gravité inclut le bord inférieur",
+      "oracle": "K-MEC-15",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 98,
+      "rejected": true,
+      "reason": "gravity boundary at 114/260"
+    },
+    {
+      "name": "gravité inclut le bord supérieur",
+      "oracle": "K-MEC-15",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 98,
+      "rejected": true,
+      "reason": "gravity boundary at 150/100"
+    },
+    {
+      "name": "angles multi-balle réduits",
+      "oracle": "K-MEC-16",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 77,
+      "rejected": true,
+      "reason": "exact rotated vector and speed"
+    },
+    {
+      "name": "sortie du portail décalée",
+      "oracle": "K-MEC-17",
+      "file": "src/engines/briqueterie/engine.ts",
+      "line": 145,
+      "rejected": true,
+      "reason": "exit at partner center, one pixel below radius clearance"
     },
     {
       "name": "tous les niveaux égaux au premier",

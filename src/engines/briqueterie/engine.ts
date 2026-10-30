@@ -95,7 +95,13 @@ export class Engine {
                 if (brick.falling && brick.y < 370) { brick.y = Math.min(370, brick.y + 1); this.events.push('falling'); }
             }
             for (const ball of s.balls) {
-                if (s.bricks.some(b => b.kind === 'gravity' && Math.abs(ball.x - b.x - b.w / 2) < 52 && ball.y > b.y && ball.y < b.y + 160)) { ball.vy -= 0.045; this.events.push('gravity'); }
+                if (s.bricks.some(b => b.kind === 'gravity' && Math.abs(ball.x - b.x - b.w / 2) < 52 && ball.y > b.y && ball.y < b.y + 160)) {
+                    ball.vy -= 0.045;
+                    const length = Math.hypot(ball.vx, ball.vy), cap = difficulty(this.level).cap;
+                    // Leave one rounding margin so the computed norm also respects the strict cap.
+                    if (length > cap) { const scale = cap / length * (1 - Number.EPSILON); ball.vx *= scale; ball.vy *= scale; }
+                    this.events.push('gravity');
+                }
             }
             for (const ball of [...s.balls]) this.travel(ball);
             s.balls = s.balls.filter(b => b.y <= 646);
