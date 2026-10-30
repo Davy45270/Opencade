@@ -152,3 +152,83 @@ for (const [index, kind] of (['beam','bounce','drones','slow','magnet','charge']
         if (kind === 'charge') expect((await read(page))?.shots.some(p => (p.radius ?? 0) > 10)).toBe(true);
     });
 }
+
+for (const scene of ['play', 'boss', 'weapons'] as const) {
+    test(`E-ART capture essaim-art-${scene}`, async ({ page }, info) => {
+        await open(page); await tap(page, '#resume', info.project.name === 'mobile-chromium');
+        await page.evaluate(name => {
+            window.__ESSAIM_TEST__?.artScenario(name);
+            window.__ESSAIM_TEST__?.advance(0);
+        }, scene);
+        const stats = await page.evaluate(() => window.__ESSAIM_TEST__?.art());
+        expect(stats?.activeGraphics).toBe(5);
+        expect(stats?.particles).toBeLessThanOrEqual(96);
+        expect(stats?.textureGenerations).toBe(2);
+        if (scene === 'weapons') expect((await read(page))?.weapons.map(w => w.kind).sort()).toEqual(['bounce', 'drones']);
+        if (scene === 'boss') expect((await read(page))?.boss).toMatchObject({ phase: 2, exposed: true });
+        await page.screenshot({ path: `test-results/screenshots/essaim-art-${scene}-${info.project.name}.png` });
+    });
+}
+
+test('E-ART mouvement réduit, effets bornés et textures réutilisées', async ({ page }, info) => {
+    await page.emulateMedia({ reducedMotion: 'reduce' });
+    await open(page); const mobile = info.project.name === 'mobile-chromium';
+    await tap(page, '#resume', mobile);
+    await page.evaluate(() => { window.__ESSAIM_TEST__?.artScenario('play'); window.__ESSAIM_TEST__?.advance(0); });
+    const art = await page.evaluate(() => window.__ESSAIM_TEST__?.art());
+    expect(art?.reducedMotion).toBe(true); expect(art?.particles).toBeGreaterThan(0); expect(art?.particles).toBeLessThanOrEqual(4);
+    await page.screenshot({ path: `test-results/screenshots/essaim-art-reduced-${info.project.name}.png` });
+    await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(1000); });
+    expect((await page.evaluate(() => window.__ESSAIM_TEST__?.art()))?.particles).toBeLessThanOrEqual(4);
+    await page.evaluate(() => {
+        window.__ESSAIM_TEST__?.loadLevel(12, 458);
+        window.__ESSAIM_TEST__?.loadLevel(26, 458);
+    });
+    expect((await page.evaluate(() => window.__ESSAIM_TEST__?.art()))?.textureGenerations).toBe(2);
+    await tap(page, '#topbar [data-home]', mobile);
+    await page.goto('/?test=1#/essaim');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__ESSAIM_TEST__))).toBe(true);
+    expect((await page.evaluate(() => window.__ESSAIM_TEST__?.art()))?.textureGenerations).toBe(2); // New game, new texture manager.
+    expect((await page.evaluate(() => window.__ESSAIM_TEST__?.art()))?.activeGraphics).toBe(5);
+});
+
+test('E-ART mobile CPU ×4 : au moins 30 images/s sur 5 s de jeu', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'Profil mobile uniquement');
+    await open(page); await tap(page, '#resume', true);
+    // No advance(): rAF counts only frames with a new game drawing, with two real weapons.
+    await page.evaluate(() => { window.__ESSAIM_TEST__?.artScenario('weapons'); });
+    const client = await page.context().newCDPSession(page);
+    await client.send('Emulation.setCPUThrottlingRate', { rate: 4 });
+    try {
+        const result = await page.evaluate(async () => {
+            const before = window.__ESSAIM_TEST__?.read().ticks ?? 0;
+            const sample = await new Promise<{ frames: number; elapsed: number }>(resolve => {
+                let start = 0, frames = 0;
+                let lastRendered = window.__ESSAIM_TEST__?.art().renderedFrames ?? 0;
+                const frame = (time: number): void => {
+                    if (!start) start = time;
+                    else {
+                        const rendered = window.__ESSAIM_TEST__?.art().renderedFrames ?? 0;
+                        if (rendered > lastRendered) frames++;
+                        lastRendered = rendered;
+                    }
+                    if (time - start >= 5000) resolve({ frames, elapsed: time - start });
+                    else requestAnimationFrame(frame);
+                };
+                requestAnimationFrame(frame);
+            });
+            return { ...sample, fps: sample.frames * 1000 / sample.elapsed,
+                ticks: (window.__ESSAIM_TEST__?.read().ticks ?? 0) - before,
+                status: window.__ESSAIM_TEST__?.read().status, art: window.__ESSAIM_TEST__?.art() };
+        });
+        await info.attach('essaim-art-mobile-fps', { body: JSON.stringify(result, null, 2), contentType: 'application/json' });
+        expect(result.elapsed).toBeGreaterThanOrEqual(5000);
+        expect(result.fps).toBeGreaterThanOrEqual(30);
+        expect(result.ticks).toBeGreaterThanOrEqual(240);
+        expect(result.status).toBe('playing');
+        expect(result.art?.particles).toBeLessThanOrEqual(96);
+        expect(result.art?.activeGraphics).toBe(5);
+    } finally {
+        await client.send('Emulation.setCPUThrottlingRate', { rate: 1 }); await client.detach();
+    }
+});

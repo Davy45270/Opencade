@@ -5,6 +5,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Essaim (pass 55): rounded shaded ships, animated engines and distinct enemy silhouettes, directional shield arcs, white impact flashes and multipart bosses with a changed second phase; retain all engine rules and controls.
+- Draw six weapon signatures, pooled explosions (96 particles, at most 4 rings with reduced motion), subtle large-impact shake, three star layers, cached procedural nebula textures and six distant planet palettes. Expose rendering counters in the test hook.
+- Add pure particle/texture tests and a Node check; write four art capture scenarios and a mobile 5-second requestAnimationFrame check at CPU ×4 with a literal 30 fps threshold for execution by the test host.
+
 - Essaim: add six finite tactical pickups (overheating beam, side ricochets, intercepting drones, slow field, magnetic returns and release-to-fire charge), with two simultaneous weapons and visible gauges.
 - Author thirty Essaim stages with shield escorts, mines, splitting swarms, spiral kamikazes, carried guided turrets, rescues, movement mirrors, armored columns, five guardians and a two-phase command ship; retain progression saves and touch target sizes.
 - Add shared Node/unit weapon, formation, boss, diversity and deterministic replay checks, a normal-input two-seed campaign pilot and seven rejected source mutations. Write weapon and level-30 capture scenarios for execution on the test host.

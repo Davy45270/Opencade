@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Engine, LEVELS, CANNON_Y, WEAPONS, difficulty, type Weapon } from '../../engines/essaim/engine';
+import { Engine, LEVELS, CANNON_Y, difficulty, type Weapon } from '../../engines/essaim/engine';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
 import { Progression } from '../../shell/progression';
@@ -7,6 +7,7 @@ import { browserStorage, readSave, writeSave, readValue, writeValue } from '../.
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
+import { EssaimArt } from './art';
 export const essaimButtons: readonly TouchButton[] = [
     { id: 'essaim-left', label: '←', ariaLabel: 'Vaisseau à gauche', size: 56, placement: 'left', mode: 'hold' },
     { id: 'essaim-right', label: '→', ariaLabel: 'Vaisseau à droite', size: 56, placement: 'left', mode: 'hold' },
@@ -21,6 +22,8 @@ export interface EssaimHook {
     scenario(name: 'finish' | 'danger'): void;
     weapon(kind: Weapon): void;
     command(): void;
+    art(): ReturnType<EssaimArt['stats']>;
+    artScenario(name: 'play' | 'boss' | 'weapons'): void;
 }
 declare global { interface Window { __ESSAIM_TEST__?: EssaimHook } }
 const OPTIONS_KEY = 'arcade-lab:essaim:options:v1';
@@ -29,22 +32,25 @@ export class EssaimScene extends Phaser.Scene {
     private progress = new Progression(readSave(browserStorage(), 'essaim', 30), 30);
     private inputs = new Inputs();
     private selecting = false;
+    private panelKey = '';
     private testManual = false;
     private testAdvancing = false;
-    private graphics?: Phaser.GameObjects.Graphics;
+    private art?: EssaimArt;
     private hud?: Phaser.GameObjects.Text;
     private left = false;
     private right = false;
     private firing = false;
     private autoFire = readValue(browserStorage(), OPTIONS_KEY) === 'on';
-    private glow = 0;
-    private glowColor = 0x78ead5;
-    private sparks: { x: number; y: number; age: number }[] = [];
     constructor(private session = new PlaySession(true)) { super('essaim'); }
-    private panels(): void { renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.state.score, this.progress.total, this.selecting); }
+    private panels(): void {
+        const key = `${this.engine.status}:${this.progress.state}:${String(this.engine.level)}:${String(this.engine.state.score)}:${String(this.progress.total)}:${String(this.selecting)}`;
+        if (key === this.panelKey) return;
+        this.panelKey = key;
+        renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.state.score, this.progress.total, this.selecting);
+    }
     private start(index: number, seed?: number, fresh = false): void {
         this.testManual = false; this.progress.start(index, fresh); this.engine.loadLevel(index, seed); this.selecting = false;
-        this.left = this.right = this.firing = false; this.sparks = []; this.panels(); this.draw();
+        this.left = this.right = this.firing = false; this.art?.reset(); this.art?.update(this.engine.state, 0, []); this.panels(); this.draw();
     }
     private fire(held: boolean): void {
         if (held && this.session.state === 'ready') this.session.send('start');
@@ -54,9 +60,9 @@ export class EssaimScene extends Phaser.Scene {
     }
     create(): void {
         document.body.classList.add('essaim');
-        const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('essaim'); delete window.__ESSAIM_TEST__; sound.stop(); };
+        const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('essaim'); delete window.__ESSAIM_TEST__; sound.stop(); this.art?.destroy(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
-        this.graphics = this.add.graphics();
+        this.art = new EssaimArt(this);
         this.hud = this.add.text(12, 592, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 1 });
         renderTouchControls(this.inputs, essaimButtons, (id, held) => {
             if (id === 'essaim-fire') this.fire(held);
@@ -101,10 +107,29 @@ export class EssaimScene extends Phaser.Scene {
         const choose = (): void => { this.selecting = !this.selecting; release(); renderLevels(LEVELS, this.progress.save, index => { this.start(index, undefined, true); }); this.panels(); };
         for (const id of ['levels', 'result-levels', 'close-levels']) this.inputs.on(document.querySelector(`#${id}`), 'click', choose);
         this.inputs.on(document.querySelector('#next-level'), 'click', () => { if (this.progress.state === 'won') this.start(this.engine.level + 1); });
-        const retry = (): void => { this.progress.retry(); this.engine.loadLevel(this.engine.level, this.engine.seed); release(); this.panels(); this.draw(); };
+        const retry = (): void => { this.progress.retry(); this.engine.loadLevel(this.engine.level, this.engine.seed); this.art?.reset(); this.art?.update(this.engine.state, 0, []); release(); this.panels(); this.draw(); };
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         area.setAttribute('aria-label', 'Essaim : guider le vaisseau en bas et tirer');
         if (new URLSearchParams(location.search).get('test') === '1') window.__ESSAIM_TEST__ = {
+            art: () => { if (!this.art) throw new Error('Rendu absent'); return this.art.stats(); },
+            artScenario: name => {
+                this.start(name === 'boss' ? 29 : 26, 458, true);
+                this.engine.step(1600);
+                if (name === 'play') {
+                    const types = ['shield', 'miner', 'split', 'spiral', 'turret', 'mirror', 'armor'] as const;
+                    const template = this.engine.state.enemies[0];
+                    if (template) this.engine.state.enemies = types.map((type, i) => ({ ...template, id: i, type, x: 65 + i % 3 * 112, homeX: 65 + i % 3 * 112, y: 100 + Math.floor(i / 3) * 76, homeY: 100 + Math.floor(i / 3) * 76, phase: 'formation', hp: type === 'armor' ? 2 : 1, captured: false }));
+                    this.engine.state.shots.push({ x: 95, y: 350, owner: 'enemy' }, { x: 255, y: 410, owner: 'enemy', mine: 900 });
+                } else if (name === 'boss') {
+                    this.engine.state.boss = { x: 180, y: 70, hp: 12, maxHp: 24, phase: 2, clock: 1900, exposed: true, pattern: 6 };
+                } else {
+                    this.engine.state.pickups = []; this.engine.equip('drones'); this.engine.equip('bounce');
+                    this.engine.state.shots.push({ x: 100, y: 340, owner: 'player', vx: 420, vy: -350, bounces: 1 });
+                }
+                this.art?.reset(); this.art?.update(this.engine.state, 0, []);
+                if (name === 'play' && this.art) this.art.pool.burst(235, 320, this.art.reduced);
+                this.draw();
+            },
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
@@ -122,10 +147,10 @@ export class EssaimScene extends Phaser.Scene {
                 this.engine.loadState({ ...this.engine.state, enemies: [{ ...first, id: 0, x: name === 'finish' ? 180 : 70, y: 440, homeX: name === 'finish' ? 180 : 70, homeY: 440, phase: 'formation', type: 'scout', hp: 1, captured: false }], wave: 2,
                     lives: name === 'danger' ? 1 : 3, enemyTimer: 1e6, diveTimer: 1e6,
                     shots: name === 'danger' ? [{ x: 240, y: 490, owner: 'enemy' }] : [],
-                }); this.draw();
+                }); this.art?.reset(); this.art?.update(this.engine.state, 0, []); this.draw();
             },
         };
-        this.panels(); this.draw();
+        this.art.update(this.engine.state, 0, []); this.panels(); this.draw();
     }
     private advanceTest(ms: number): void {
         if (!Number.isFinite(ms) || ms < 0) throw new RangeError('Temps invalide');
@@ -152,60 +177,27 @@ export class EssaimScene extends Phaser.Scene {
             if (this.left || this.right) this.engine.move(this.left === this.right ? 0 : this.right ? 1 : -1);
             else if (this.engine.state.move) this.engine.move(0);
             this.engine.holdFire(this.firing || this.autoFire);
-            const before = this.engine.state.enemies;
             this.engine.step(delta);
             for (const event of new Set(this.engine.events)) {
                 sound.playEffect(event);
-                if (['life', 'enemy', 'armor', 'bonus'].includes(event)) { this.glow = 1; this.glowColor = event === 'life' ? 0xff8da9 : event === 'bonus' ? 0xffdb89 : 0x78ead5; }
             }
-            for (const probe of before) if (!this.engine.state.enemies.includes(probe)) this.sparks.push({ x: probe.x, y: probe.y, age: 0 });
+            this.art?.update(this.engine.state, delta, this.engine.events);
         }
         if (this.engine.status !== 'playing' && this.progress.state === 'playing') {
             this.progress.finish(this.engine.status, this.engine.state.score); writeSave(browserStorage(), this.progress.save, 'essaim'); sound.playEffect(this.engine.status);
         }
-        this.glow = Math.max(0, this.glow - delta / 250); for (const spark of this.sparks) spark.age += delta;
-        this.sparks = this.sparks.filter(s => s.age < 350);
         if (this.testAdvancing) return;
-        this.scale.refresh(); this.panels(); this.draw();
+        // FIT is refreshed by the shell ResizeObserver, not on every rendered frame.
+        this.panels(); this.draw();
     }
     private draw(): void {
-        const g = this.graphics; if (!g) return;
         const s = this.engine.state;
-        g.clear(); g.fillStyle(0x102339); g.fillRoundedRect(0, 0, 360, 640, 16);
-        for (let i = 0; i < 48; i++) { g.fillStyle(0x6e91b0, 0.25 + (i % 3) * 0.15); g.fillCircle(14 + (i * 97) % 332, 80 + (i * 61) % 540, i % 4 === 0 ? 1.5 : 0.7); }
-        g.lineStyle(1, 0x244c61, 0.35); for (let y = 210; y < 490; y += 40) { g.lineBetween(24, y, 336, y); }
-        g.lineStyle(1, 0x78ead5, 0.3); g.lineBetween(20, 590, 340, 590);
-        for (const p of s.enemies) {
-            const color = p.phase === 'dive' ? 0xff9ebb : p.type === 'armor' ? 0xbaadff : p.type === 'split' ? 0xffdb89 : 0x78ead5;
-            g.lineStyle(2, color); g.strokeEllipse(p.x, p.y, 26, 20);
-            g.fillStyle(color); g.fillTriangle(p.x, p.y - 12, p.x - 10, p.y + 7, p.x + 10, p.y + 7);
-            g.fillStyle(0x102339); g.fillCircle(p.x, p.y, 4);
-            if (p.hp > 1) { g.lineStyle(2, 0xffffff); g.strokeCircle(p.x, p.y, 15); }
-            if (p.type === 'turret') { g.lineStyle(2, 0xffdb89); g.strokeRect(p.x+12,p.y-5,12,10); }
-            if (p.captured) { g.lineStyle(1, 0xffdb89); g.lineBetween(p.x, p.y + 10, p.x, p.y + 22); g.strokeRoundedRect(p.x - 6, p.y + 18, 12, 10, 3); }
-        }
-        const colors = [0xc2fff2, 0xffdb89, 0xbaadff, 0x78ead5, 0xff9ebb, 0xffffff];
-        for (const p of s.pickups) { g.lineStyle(2, (colors[WEAPONS.indexOf(p.kind)] ?? 0xffffff)); g.strokeRect(p.x-9, p.y-9, 18, 18); }
-        if (s.beam) { g.lineStyle(5, 0xc2fff2, 0.8); g.lineBetween(s.cannon, CANNON_Y-20, s.cannon, 35); }
-        if (this.engine.has('slow')) { g.lineStyle(2, 0x78ead5, 0.6); g.strokeCircle(s.cannon, CANNON_Y-140, 125); }
-        if (this.engine.has('magnet')) { g.lineStyle(1, 0xff9ebb, 0.6); g.strokeCircle(s.cannon, CANNON_Y, 145); }
-        if (this.engine.has('drones')) for (const p of this.engine.dronePositions()) { g.fillStyle(0xbaadff); g.fillCircle(p.x, p.y, 7); }
-        if (s.charge > 0) { g.lineStyle(3, 0xffffff); g.strokeCircle(s.cannon, CANNON_Y-18, 4+s.charge/1500*14); }
-        if (s.rescue) { g.lineStyle(2, 0x78ead5); g.strokeRect(s.rescue.x-22, s.rescue.y-10, 44, 20); }
-        if (s.boss) { const b = s.boss; g.lineStyle(3, b.exposed ? 0xffdb89 : 0xbaadff); g.strokeEllipse(b.x, b.y, 60, 38); g.fillStyle(0xff9ebb); g.fillRect(b.x-30,b.y-30,60*b.hp/b.maxHp,4); }
-        for (const p of s.enemies) if (p.type === 'shield' && (p.clock ?? 0) % 6000 < 5500) { g.lineStyle(3, 0xbaadff); const a = p.facing ?? Math.PI / 2, x = p.x + Math.cos(a)*16, y = p.y + Math.sin(a)*16; g.lineBetween(x-Math.sin(a)*16,y+Math.cos(a)*16,x+Math.sin(a)*16,y-Math.cos(a)*16); }
-        for (const p of s.shots) if (p.radius) { g.lineStyle(2, 0xffffff); g.strokeCircle(p.x,p.y,p.radius); }
-        for (const shot of s.shots) { g.fillStyle(shot.owner === 'player' ? 0xc2fff2 : 0xff91ac); g.fillRoundedRect(shot.x - 1.5, shot.y - 5, 3, 10, 1.5); }
-        if (s.invulnerable === 0 || s.ticks % 8 < 4) {
-            g.fillStyle(0x78ead5); g.fillTriangle(s.cannon, CANNON_Y - 14, s.cannon - 15, CANNON_Y + 10, s.cannon + 15, CANNON_Y + 10);
-            g.fillStyle(0x102339); g.fillTriangle(s.cannon, CANNON_Y - 2, s.cannon - 6, CANNON_Y + 9, s.cannon + 6, CANNON_Y + 9);
-            g.lineStyle(2, 0xc2fff2); g.lineBetween(s.cannon, CANNON_Y - 17, s.cannon, CANNON_Y - 6);
-        }
-        for (const spark of this.sparks) { g.lineStyle(2, 0xffdb89, 1 - spark.age / 350); for (let i = 0; i < 6; i++) { const angle = i * Math.PI / 3, radius = 8 + spark.age / 15; g.lineBetween(spark.x + Math.cos(angle) * radius, spark.y + Math.sin(angle) * radius, spark.x + Math.cos(angle) * (radius + 5), spark.y + Math.sin(angle) * (radius + 5)); } }
-        g.lineStyle(2, this.glow ? this.glowColor : 0x42718b, this.glow ? this.glow : 0.7); g.strokeRoundedRect(2, 2, 356, 636, 14);
+        this.art?.draw(s, this.engine.level, this.engine.dronePositions());
         const labels: Record<Weapon, string> = { beam: 'Rayon', bounce: 'Rebond', drones: 'Drones', slow: 'Onde', magnet: 'Aimant', charge: 'Charge' };
         const weapons = s.weapons.map(w => `${labels[w.kind]} ${String(Math.ceil(w.remaining/1000))}s${w.kind === 'beam' ? ` ${String(Math.round(s.heat))}%${s.overheated ? ' BLOQUÉ' : ''}` : w.kind === 'charge' ? ` ${String(Math.round(s.charge/15))}%` : ''}`).join(' · ');
         this.hud?.setText(`${weapons}\n${s.double > 0 ? 'DOUBLE ' : ''}${this.engine.challenge ? 'DÉFI ' : ''}ESSAIM ${String(this.engine.level + 1)}     VIES ${'◆'.repeat(s.lives)}\nSCORE ${String(s.score)}     VAGUE ${String(s.wave)} · ${String(s.enemies.length)}`);
-        const status = document.querySelector('#status'); if (status) status.textContent = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'won' ? 'Victoire' : this.engine.status === 'lost' ? 'Défaite' : 'En jeu'}`;
+        const status = document.querySelector('#status');
+        const statusText = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'won' ? 'Victoire' : this.engine.status === 'lost' ? 'Défaite' : 'En jeu'}`;
+        if (status && status.textContent !== statusText) status.textContent = statusText;
     }
 }
