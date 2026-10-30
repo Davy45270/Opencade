@@ -1,3 +1,4 @@
+import { kartCatalogue } from './level-catalogue-kart-checks';
 import assert from 'node:assert/strict';
 import { Engine as Runner, DT } from '../src/engines/ferraille/engine';
 import { Engine as Bricks } from '../src/engines/briqueterie/engine';
@@ -10,7 +11,7 @@ import { replay as bricksReplay } from './briqueterie-replay';
 import { recordings } from './essaim-recordings';
 import { replay as swarmReplay } from './essaim-replay';
 
-export function catalogue(code: string): void {
+export function catalogue(code: string, kartCheck?: (name: string,check: ()=>void)=>void): void {
     const entry = levelCatalogue.find(e => e.code === code); assert(entry);
     if (entry.game === 'ferraille') {
         const e = new Runner(); e.loadLevel(entry.index, 28);
@@ -37,6 +38,8 @@ export function catalogue(code: string): void {
         if (code === 'A03') { assert(e.state.bricks.some(b => b.kind === 'portal')); assert(e.state.bricks.some(b => b.solid)); }
         const band = solutions.filter(r => r.level === entry.index + 1); assert.equal(band.length, 2);
         for (const record of band) assert.equal(bricksReplay(record).engine.status, 'won');
+    } else if (entry.game === 'derapage') {
+        kartCatalogue(code, entry.index, kartCheck);
     } else {
         const e = new Swarm(entry.index, 28), level = swarmLevels[entry.index]; assert(level);
         if (code === 'G01') assert(level.formations.includes('miner'));

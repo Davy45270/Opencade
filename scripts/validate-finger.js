@@ -143,11 +143,11 @@ check('bubble tactical special pair', () => {
         results.push({ game: 'bubble-special', special, status: e.status, shots: e.shots });
     }
 });
-check('first landing assistance preserves dangerous approaches', () => {
+check('Alunir visual alignment guide preserves engine angles and dangerous approaches', () => {
     for (const level of [0, 9]) {
         const e = new Lander(); e.loadLevel(level); const p = e.terrain.pads[0];
         e.loadState({ x: p.x + p.width / 2, y: p.y - 45, vx: 0, vy: .5, angle: .225 });
-        step(e, 150); assert.equal(e.state.angle < .225, level === 0);
+        step(e, 150); assert.equal(e.state.angle, .225);
         e.loadState({ y: p.y - 20, vy: 4, angle: 0 }); step(e, 150); assert.equal(e.status, 'lost');
     }
 });

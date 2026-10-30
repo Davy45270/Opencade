@@ -24,7 +24,7 @@ for (const game of games) test(`P-${game} doigt bruité : niveaux 1 et 10`, asyn
     let noiseSeed = 72;
     const noise = () => { noiseSeed = noiseSeed * 16807 % 2147483647; return noiseSeed % 25 - 12; };
     const canvasTouch = async (x: number, y: number, type: 'touchStart' | 'touchMove') => {
-        const b = await page.locator('canvas').boundingBox(); if (!b) throw new Error('canvas');
+        const b = await page.locator('#game canvas').boundingBox(); if (!b) throw new Error('canvas');
         const dx = noise(), dy = noise();
         const p = { id: 9, x: b.x + x * b.width / 360 + dx, y: b.y + y * b.height / 640 + dy };
         const missed = await page.evaluate(({ x, y }) => !document.elementFromPoint(x, y)?.closest('canvas'), p);
@@ -81,7 +81,11 @@ for (const game of games) test(`P-${game} doigt bruité : niveaux 1 et 10`, asyn
                 }
             } else {
                 let special = false, down = false;
+                const periods: number[] = []; let previousObservation: number | undefined;
                 while (clock.elapsed < 120000) {
+                    const observedAt = Date.now(); // informative loop period only, never an oracle
+                    if (previousObservation !== undefined) periods.push(observedAt - previousObservation);
+                    previousObservation = observedAt;
                     const state = await page.evaluate(() => window.__DERAPAGE_TEST__?.read()); if (!state) throw new Error('race');
                     expect(state.character.id).toBe(character); clock.observe(state); if (state.status !== 'playing') break;
                     const horizon = clock.horizon / 1000;
@@ -97,6 +101,10 @@ for (const game of games) test(`P-${game} doigt bruité : niveaux 1 et 10`, asyn
                     touches.push(await canvasTouch(180 + Math.cos(heading) * 80, 480 + Math.sin(heading) * 80, 'touchMove'));
                 }
                 await finger.release(); expect(special).toBe(true);
+                decisions.push({ loopPeriodMs: { mean: periods.reduce((sum, ms) => sum + ms, 0) / Math.max(1, periods.length), max: Math.max(0, ...periods), samples: periods.length } });
+                const race = await page.evaluate(() => window.__DERAPAGE_TEST__?.read());
+                expect(race?.karts[0]?.lap, 'la course doit finir trois tours').toBe(3);
+                if (level === 0) expect(race?.order[0], 'victoire au niveau 1').toBe(0);
             }
             const final = await page.evaluate(game => game === 'derapage' ? window.__DERAPAGE_TEST__?.read() : game === 'bubble' ? window.__BUBBLE_TEST__?.read() : window.__SERPENTIN_TEST__?.read(), game);
             const canvasErrors = (touches as { missed: boolean }[]).filter(t => t.missed).length;
@@ -129,7 +137,7 @@ for (const game of ['bubble', 'serpentin'] as const) test(`P-${game} le spécial
             if (special) await finger.press([`#${game}-special`]);
             if (game === 'bubble') {
                 // The broad target admits the same noisy finger drag in both trials.
-                const box = await page.locator('canvas').boundingBox(); if (!box) throw new Error('canvas');
+                const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('canvas');
                 const x = box.x + (180 + Math.sin(0.05) * 400) * box.width / 360 + 3;
                 const y = box.y + (ORIGIN.y - Math.cos(0.05) * 400) * box.height / 640 - 4;
                 await page.waitForTimeout(150);

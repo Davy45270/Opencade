@@ -2,6 +2,14 @@ import { CollierScene, collierButtons } from './collier/scene';
 import { collierEffects } from './collier/sound';
 import { createThumbnail as collierThumbnail, createDemo as collierDemo } from './collier/thumbnail';
 import { GAME_NAME as COLLIER_NAME } from '../engines/collier/levels';
+import { PepitesScene, pepitesButtons } from './pepites/scene';
+import { pepitesEffects } from './pepites/sound';
+import { createThumbnail as pepitesThumbnail, createDemo as pepitesDemo } from './pepites/thumbnail';
+import { GAME_NAME as PEPITES_NAME } from '../engines/pepites/levels';
+import { GourmandisesScene, gourmandisesButtons } from './gourmandises/scene';
+import { gourmandisesEffects } from './gourmandises/sound';
+import { createThumbnail as gourmandisesThumbnail, createDemo as gourmandisesDemo } from './gourmandises/thumbnail';
+import { GAME_NAME } from '../engines/gourmandises/levels';
 import { DerapageScene, derapageButtons } from './derapage/scene';
 import { derapageEffects } from './derapage/sound';
 import { createThumbnail as derapageThumbnail, createDemo as derapageDemo } from './derapage/thumbnail';
@@ -86,4 +94,19 @@ export const games: readonly GameDefinition[] = [
     { thumbnail: briqueterieThumbnail, demo: briqueterieDemo, id: 'briqueterie', name: 'Briqueterie', levelCount: 30, realtime: true, keyboardHelp: 'Souris : guider · ← → ou A/D : déplacer · Espace : lancer · P/Échap : pause', touchHelp: 'Glisser en bas : guider · Tap ou Lancer : départ · Pause en haut', createScene: session => new BriqueterieScene(session), effects: briqueterieEffects, testHook: () => window.__BRIQUETERIE_TEST__, touchControls: briqueterieButtons },
     { thumbnail: bubbleThumbnail, demo: bubbleDemo, id: 'bubble', realtime: false, name: 'Bubble Lab', keyboardHelp: 'Souris : viser et tirer · ← → : viser · Espace : tirer · X : échanger · C : joker', touchHelp: 'Glisser puis relâcher : tirer · Tap : tir au toucher · ⇄ ou X : échanger · C : joker', levelCount: LEVELS.length, createScene: session => new LabScene(session), effects: bubbleEffects, testHook: () => window.__BUBBLE_TEST__, touchControls: bubbleButtons },
     { thumbnail: serpentinThumbnail, demo: serpentinDemo, id: 'serpentin', name: 'Serpentin', levelCount: 30, realtime: true, keyboardHelp: 'Flèches · ZQSD/WASD · Espace : esquive · P ou Échap : pause', touchHelp: 'Glisser : tourner · Croix : guider · Pause en haut', createScene: session => new SerpentinScene(session), effects: serpentinEffects, testHook: () => window.__SERPENTIN_TEST__, touchControls: serpentinButtons },
+    { thumbnail: pepitesThumbnail, demo: pepitesDemo, id: 'pepites', name: PEPITES_NAME, levelCount: 30, realtime: true, keyboardHelp: 'Flèches ou ZQSD : creuser (maintenir pour avancer) · Espace : étai · P/Échap : pause', touchHelp: 'Glisser et maintenir : creuser · Flèches des deux côtés · Étai au milieu', createScene: session => new PepitesScene(session), effects: pepitesEffects, testHook: () => window.__PEPITES_TEST__, touchControls: pepitesButtons },
+    {
+        thumbnail: gourmandisesThumbnail,
+        demo: gourmandisesDemo,
+        id: 'gourmandises',
+        name: GAME_NAME,
+        levelCount: 120,
+        realtime: false,
+        keyboardHelp: 'Flèches : curseur · Espace : choisir puis flèche : permuter · 1/2/3 : outils · P/Échap : pause',
+        touchHelp: 'Glisser vers une voisine ou toucher deux pièces · Outil puis case · Indice après 5 s en Découverte',
+        createScene: session => new GourmandisesScene(session),
+        effects: gourmandisesEffects,
+        testHook: () => window.__GOURMANDISES_TEST__,
+        touchControls: gourmandisesButtons,
+    },
 ];

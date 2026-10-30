@@ -10,7 +10,7 @@ for(let level=0;level<30;level++) {
     const e=new Engine(level,28), digest=createHash('sha256');
     for(let frame=0;frame<600;frame++) {
         e.input(controller(e.karts[0],e.track)); e.step(1000/60);
-        digest.update(JSON.stringify(e.snapshot()));
+        digest.update(JSON.stringify(e.snapshot(false)));
     }
     digests.push(digest.digest('hex'));
 }

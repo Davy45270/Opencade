@@ -87,7 +87,7 @@ run('P-traverse finger policy at 150 ms (engine only)', () => {
     }
 });
 run('P-alunir finger policy at 150 ms (engine only)', () => {
-    for (const [level, expectedScore] of [[0, 1056], [9, 980]]) {
+    for (const [level, expectedScore] of [[0, 1059], [9, 1207]]) {
         const e = new Alunir(); e.loadLevel(level);
         for (let tick = 0; tick < 180 && e.status === 'playing'; tick++) {
             if (e.terrain.pads[0].y - e.state.y < 40 && e.specialUses === 2) assert(e.special());

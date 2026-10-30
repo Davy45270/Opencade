@@ -1,5 +1,5 @@
 import { required } from './access';
-import { at, nearest, wrap, type Track, type Vec } from './track';
+import { onBoost, at, inKartHole, kartFootprint, nearest, onShortcut, wrap, type Track, type Vec } from './track';
 export type Item = 'turbo' | 'ressort' | 'flaque' | 'bulle';
 export interface Kart extends Vec {
     specialLap?: number;
@@ -22,6 +22,9 @@ export interface Kart extends Vec {
     jumpHeight?: number;
     jumpDurationMs?: number;
     bumpActive?: boolean;
+    bypassIndex?: number;
+    bypassSide?: number;
+    bypassEntry?: Vec;
     penaltyMs?: number;
     missedGates?: number;
     noticeMs?: number;
@@ -32,6 +35,8 @@ export interface Kart extends Vec {
     treeHits?: number;
     stripActive?: boolean;
 }
+/** Optional diagnostic counters stay outside replayable kart state. */
+export const collisionCounts = new WeakMap<Kart, { kart: number; rail: number }>();
 export interface Input {
     steer: number;
     mode?: 'joystick';
@@ -40,14 +45,17 @@ export interface Input {
     drift: boolean;
     bonus: boolean;
 }
+export const ANALOG_DEAD_ZONE = 6;
+export const THUMB_DEAD_ZONE = 10;
+export const FULL_DEFLECTION = 40;
 /** Relative thumb displacement in CSS pixels; continuous outside the dead zone. */
 export function analogSteer(delta: number): number {
-    if (Math.abs(delta) <= 6) return 0;
-    return Math.sign(delta) * Math.min(1, Math.max(0, Math.abs(delta) - 6) / 54);
+    if (Math.abs(delta) <= ANALOG_DEAD_ZONE) return 0;
+    return Math.sign(delta) * Math.min(1, Math.max(0, Math.abs(delta) - ANALOG_DEAD_ZONE) / (FULL_DEFLECTION - ANALOG_DEAD_ZONE));
 }
 /** Screen axes equal world axes in the north-up view. */
 export function joystickHeading(dx: number, dy: number): number | undefined {
-    return Math.hypot(dx, dy) <= 10 ? undefined : Math.atan2(dy, dx);
+    return Math.hypot(dx, dy) <= THUMB_DEAD_ZONE ? undefined : Math.atan2(dy, dx);
 }
 /** Assistance only acts outside the road or when the projected motion threatens a rail. */
 export function assistedHeading(k: Kart, t: Track, heading: number): number {
@@ -59,11 +67,14 @@ export function assistedHeading(k: Kart, t: Track, heading: number): number {
     return heading + Math.max(-.3, Math.min(.3, error * .25));
 }
 export const jumpDuration = (speed: number): number => 220 + speed * 6;
-export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: number, targetSpeed = 24): void {
+export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: number, targetSpeed = 24, n = nearest(t, k)): void {
     k.railHitMs = Math.max(0, (k.railHitMs ?? 0) - dt * 1000);
     k.landingMs = Math.max(0, (k.landingMs ?? 0) - dt * 1000);
-    const n = nearest(t, k), snow = t.circuit.snow.includes(n.index), berm = t.circuit.berms.includes(n.index);
-    const bump = t.circuit.jumps.includes(n.index);
+    const snow = t.circuit.snow.includes(n.index), berm = t.circuit.berms.includes(n.index);
+    const rampTail = !t.circuit.gap || n.along >= required(t.distances[n.index]) + (required(t.distances[n.index+1])-required(t.distances[n.index]))*.8;
+    const bump = t.circuit.gap
+        ? t.circuit.jumps.some(i=>kartFootprint(t,i,'ramp').contains(k,.8))
+        : t.circuit.jumps.includes(n.index);
     const speed = Math.hypot(k.vx, k.vy), steer = Math.max(-1, Math.min(1, input.steer));
     const airborne = k.jumpMs > 0;
     const drifting = !airborne && input.drift && Math.abs(steer) > .15 && speed > 9;
@@ -82,18 +93,31 @@ export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: 
     k.angle += (input.mode === 'joystick' ? 0 : airborne ? 0 : steer) * 2.4 * Math.min(1, speed / 10) * (drifting ? 1.22 : 1) * dt;
     const c = Math.cos(k.angle), s = Math.sin(k.angle), forward = k.vx * c + k.vy * s, lateral = -k.vx * s + k.vy * c;
     const enteringBump = bump && !k.bumpActive;
-    if (enteringBump && !airborne) {
+    if (enteringBump && !airborne && k.bypassIndex === undefined) {
         if (speed >= 16) {
             k.jumpMs = jumpDuration(speed);
             k.jumpDurationMs = k.jumpMs;
         }
     }
     k.bumpActive = bump;
-    const grass = !t.circuit.theme.urban && n.distance > required(t.widths[n.index]) / 2 && k.jumpMs <= 0;
+    if (!airborne && k.jumpMs<=0 && t.circuit.gap && t.circuit.jumps.includes(n.index) && rampTail && !bump && k.bypassIndex===undefined) {
+        k.bypassIndex=n.index+1;
+        k.bypassSide=(k.x-n.x)*n.nx+(k.y-n.y)*n.ny<0 ? -1 : 1;
+    }
+    const shortcut = onShortcut(t,k);
+    const leaves = !airborne && !shortcut && t.circuit.leaves?.includes(n.index) && ((t.circuit.hazardWidthFraction ?? 1)===1 ? n.distance<=required(t.widths[n.index])/2 : kartFootprint(t,n.index,'leaves').contains(k));
+    const lava = !airborne && !shortcut && t.circuit.lava?.includes(n.index) && ((t.circuit.hazardWidthFraction ?? 1)===1 ? n.distance<=required(t.widths[n.index])/2 : kartFootprint(t,n.index,'lava').contains(k));
+    const gap = !airborne && k.jumpMs<=0 && (inKartHole(t,k) ||
+        t.circuit.gap?.includes(n.index) && kartFootprint(t,n.index,'gap').contains({x:n.x,y:n.y}));
+    if (gap && k.bypassIndex === undefined) {
+        k.bypassIndex = n.index+1;
+        k.bypassSide = (k.x-n.x)*n.nx+(k.y-n.y)*n.ny < 0 ? -1 : 1;
+    }
+    const grass = !shortcut && !t.circuit.theme.urban && n.distance > required(t.widths[n.index]) / 2 && k.jumpMs <= 0;
     const slope = t.circuit.family === 'slalom' || t.circuit.family === 'bmx'
         ? (required(t.heights[n.index]) - required(t.heights[(n.index + 1) % 96])) / Math.max(1, required(t.distances[n.index + 1]) - required(t.distances[n.index])) : 0;
     const gravity = slope * 9.8;
-    const strip = t.boosts.some(b => Math.hypot(k.x - b.x, k.y - b.y) <= b.radius + 1.2);
+    const strip = t.boosts.some(b => onBoost(t, b, k, n));
     if (strip && !k.stripActive) {
         k.boostMs = Math.max(k.boostMs, 900);
         k.vx = c * 32;
@@ -102,22 +126,53 @@ export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: 
     k.stripActive = strip;
     const bermGrip = berm ? 1.4 : 1;
     const impulse = (k.specialMs ?? 0) > 0 ? 4 : 0;
-    const max = (grass ? targetSpeed * (snow ? .28 : Math.min(.5, grassGrip)) : k.boostMs > 0 ? 32 : targetSpeed + (slope > 0 ? 3 : 0) + (bermGrip - 1) * 3) + (grass ? 0 : impulse);
+    if (lava) { k.boostMs = 0; k.specialMs = 0; k.driftMs = 0; k.item = null; }
+    const max = lava ? targetSpeed * .22 : gap ? 7 : (grass ? targetSpeed * (snow ? .28 : Math.min(.5, grassGrip)) : k.boostMs > 0 ? 32 : targetSpeed + (slope > 0 ? 3 : 0) + (bermGrip - 1) * 3) + (grass ? 0 : impulse);
     const f = Math.max(0, Math.min(max, (strip && k.boostMs > 0 ? 32 : forward) + (12 + impulse * 2 + gravity - forward * .12) * dt));
-    const grip = (snow ? .6 : 1) * bermGrip;
+    const grip = (leaves ? .12 : snow ? .6 : 1) * bermGrip;
     const l = lateral * Math.exp(-(drifting || k.slipMs > 0 ? 1.4 : 10) * grip * dt);
     k.vx = c * f - s * l;
     k.vy = s * f + c * l;
-    if (enteringBump && !airborne && speed < 16) { k.vx *= .75; k.vy *= .75; }
-    if (grass) {
+    if (enteringBump && !airborne && speed < 16 && k.bypassIndex === undefined) {
+        k.vx *= .75; k.vy *= .75;
+        if (t.circuit.gap) {
+            k.bypassIndex = n.index+1;
+            k.bypassSide = (k.x-n.x)*n.nx+(k.y-n.y)*n.ny < 0 ? -1 : 1;
+            const hole=kartFootprint(t,required(t.circuit.gap[0]),'gap');
+            const lateral=(k.x-hole.a.x)*hole.nx+(k.y-hole.a.y)*hole.ny;
+            const offset=required(t.widths[n.index])*.43*k.bypassSide-lateral;
+            const inset=t.circuit.bypassEntryInset;
+            k.bypassEntry=inset === undefined ? {x:k.x+hole.nx*offset,y:k.y+hole.ny*offset}
+                : {x:hole.a.x-hole.ny*inset+hole.nx*required(t.widths[n.index])*.43*k.bypassSide,
+                    y:hole.a.y+hole.nx*inset+hole.ny*required(t.widths[n.index])*.43*k.bypassSide};
+        }
+    }
+    if (grass || lava || gap) {
         const magnitude = Math.hypot(k.vx, k.vy);
         if (magnitude > max) { k.vx *= max / magnitude; k.vy *= max / magnitude; }
     }
     if (airborne) { k.vx = Math.cos(k.angle) * forward - Math.sin(k.angle) * lateral; k.vy = Math.sin(k.angle) * forward + Math.cos(k.angle) * lateral; }
+    // A missed launch takes the continuous outer deck at walking speed.
+    // Motion follows its planks; there is no reset, freeze or teleport over the hole.
+    if (k.bypassIndex !== undefined) {
+        const i = k.bypassIndex, end = required(t.circuit.gap?.[0]) + 2;
+        const p = required(t.points[i]), normal = kartFootprint(t,i,'ramp'), offset = i < end ? required(t.widths[i])*.43*(k.bypassSide ?? 1) : 0;
+        const target=k.bypassEntry ?? {x:p.x+normal.nx*offset,y:p.y+normal.ny*offset};
+        const x = target.x-k.x, y = target.y-k.y, length = Math.hypot(x,y);
+        if (length <= .15) {
+            if(k.bypassEntry) k.bypassEntry=undefined;
+            else k.bypassIndex = i >= end ? undefined : i+1;
+        }
+        const velocity = Math.min(7,length/Math.max(dt,.0001));
+        if (length > 0) { k.vx = x/length*velocity; k.vy = y/length*velocity; k.angle = Math.atan2(y,x); }
+    }
     const start = { x: k.x, y: k.y }, dx = k.vx * dt, dy = k.vy * dt;
     let hit: { time: number; tree: Track['trees'][number] } | undefined;
+    const minX=Math.min(start.x,start.x+dx),maxX=Math.max(start.x,start.x+dx),minY=Math.min(start.y,start.y+dy),maxY=Math.max(start.y,start.y+dy);
     for (const tree of t.circuit.theme.urban ? [] : t.trees) {
-        const ox = start.x - tree.x, oy = start.y - tree.y, radius = tree.radius + 1.2;
+        const radius = tree.radius + 1.2;
+        if (tree.x+radius<minX || tree.x-radius>maxX || tree.y+radius<minY || tree.y-radius>maxY) continue;
+        const ox = start.x - tree.x, oy = start.y - tree.y;
         const a = dx * dx + dy * dy, b = ox * dx + oy * dy, c0 = ox * ox + oy * oy - radius * radius;
         const disc = b * b - a * c0;
         const time = c0 < 0 ? 0 : a > 0 && disc >= 0 ? (-b - Math.sqrt(disc)) / a : Infinity;
@@ -136,7 +191,9 @@ export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: 
         k.hits++;
         k.treeHits = (k.treeHits ?? 0) + 1;
     }
-    resolveRail(k, t);
+    // Distance to the road is 1-Lipschitz: this bound proves the moved kart
+    // is still inside every local road width, avoiding a redundant full scan.
+    if (!shortcut && n.distance + Math.hypot(k.x-start.x,k.y-start.y) > Math.min(...t.widths)/2) resolveRail(k, t);
     k.noticeMs = Math.max(0, (k.noticeMs ?? 0) - dt * 1000);
     k.slalomPassed ??= [];
     for (const [i, gate] of t.slalom.entries()) {
@@ -167,6 +224,7 @@ export function physics(k: Kart, input: Input, t: Track, dt: number, grassGrip: 
 }
 /** Resolve the continuous boundary after motion or kart separation. */
 export function resolveRail(k: Kart, t: Track): void {
+    if (onShortcut(t,k)) return;
     const edge = nearest(t, k);
     if (edge.distance <= required(t.widths[edge.index]) / 2 + (t.circuit.theme.urban ? 1.8 : 3) || !t.walls[edge.index]) return;
     const sign = (k.x - edge.x) * edge.nx + (k.y - edge.y) * edge.ny > 0 ? 1 : -1;
@@ -176,7 +234,8 @@ export function resolveRail(k: Kart, t: Track): void {
     k.x = edge.x + nx * half;
     k.y = edge.y + ny * half;
     const tx = edge.ny, ty = -edge.nx;
-    const direction = Math.cos(k.angle) * tx + Math.sin(k.angle) * ty >= 0 ? 1 : -1;
+    // The one-way jump approach must never rebound towards the missing deck.
+    const direction = t.circuit.forwardRails || Math.cos(k.angle) * tx + Math.sin(k.angle) * ty >= 0 ? 1 : -1;
     const speed = Math.max(8, Math.min(20, Math.hypot(k.vx, k.vy) * .7));
     const angle = Math.atan2(ty * direction - ny * .3, tx * direction - nx * .3);
     k.angle = angle;
@@ -184,9 +243,15 @@ export function resolveRail(k: Kart, t: Track): void {
     k.vy = Math.sin(angle) * speed;
     k.railHitMs = 180;
     if (k.shield) k.shield = false;
-    else k.hits++;
+    else {
+        k.hits++;
+        const counts = collisionCounts.get(k);
+        if (counts) counts.rail++;
+    }
 }
 export function collide(a: Kart, b: Kart): void {
+    // The managed narrow deck must not deadlock when several missed jumps queue.
+    if (a.bypassIndex !== undefined || b.bypassIndex !== undefined) return;
     const dx = b.x - a.x, dy = b.y - a.y, dist = Math.hypot(dx, dy);
     if (dist >= 2.4)
         return;
@@ -204,6 +269,8 @@ export function collide(a: Kart, b: Kart): void {
                 k.vx += sign * impulse * nx * .85;
                 k.vy += sign * impulse * ny * .85;
                 k.hits++;
+                const counts = collisionCounts.get(k);
+                if (counts) counts.kart++;
             }
         }
     }

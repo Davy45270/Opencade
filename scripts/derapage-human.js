@@ -4,11 +4,11 @@ const { Engine } = await import('../src/engines/derapage/engine.ts');
 const { nearest } = await import('../src/engines/derapage/track.ts');
 const { Random } = await import('../src/engines/shared/random.ts');
 const { circuits } = await import('../src/engines/derapage/circuits.ts');
-export function humanRun(level, assist = true, recording) {
-    const e = new Engine(level, 28), k = e.karts[0], t = e.track, random = new Random(67);
+export function humanRun(level, assist = true, recording, EngineType = Engine, frameLimit=18000) {
+    const e = new EngineType(level, 28), k = e.karts[0], t = e.track, random = new Random(67);
     let off = 0, stopped = 0, longest = 0, frame = 0, heading = k.angle, pending = k.angle;
     const events = [];
-    for (; frame < 18000 && k.lap < 3; frame++) {
+    for (; frame < frameLimit && k.lap < 3; frame++) {
         if (frame % 9 === 0) {
             if (recording) heading = recording[frame / 9];
             else {

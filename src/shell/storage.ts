@@ -1,6 +1,6 @@
-import { circuitKey, legacyCircuits } from '../engines/derapage/circuits';
+import { circuitKey, circuits, legacyCircuits } from '../engines/derapage/circuits';
 export interface StoragePort { getItem(key: string): string | null; setItem(key: string, value: string): void }
-export interface Save { unlocked: number; best: number; circuitRecords?: Record<string, number> }
+export interface Save { unlocked: number; best: number; view?: 'top' | '3d'; circuitRecords?: Record<string, number> }
 export const SAVE_KEY = 'arcade-lab:bubble:v1';
 export const SOUND_KEY = 'arcade-lab:sound:v1';
 export function browserStorage(): StoragePort | undefined {
@@ -30,10 +30,11 @@ export function readSave(storage?: StoragePort, id = 'bubble', count = 10): Save
                     for (const [key, time] of Object.entries(records))
                         if ((id === 'derapage' || /^(?:[0-9]|[12][0-9])$/.test(key)) && typeof time === 'number' && Number.isFinite(time) && time > 0) {
                             const name = id === 'derapage' && /^(?:[0-9]|[12][0-9])$/.test(key) ? legacyCircuits[Number(key)]?.name : key;
-                            if (name && (id !== 'derapage' || legacyCircuits.some(c => c.name === name)))
+                            if (name && (id !== 'derapage' || (legacyCircuits.some(c => c.name === name) || circuits.some(c => c.name === name))))
                                 circuitRecords[name] = Math.min(circuitRecords[name] ?? Infinity, time);
                         }
-                return records === undefined ? { unlocked, best } : { unlocked, best, circuitRecords };
+                const view = id === 'derapage' && (value as Record<string, unknown>).view === '3d' ? { view: '3d' as const } : {};
+                return records === undefined ? { unlocked, best, ...view } : { unlocked, best, circuitRecords, ...view };
             }
         }
     } catch { /* Invalid JSON. */ }

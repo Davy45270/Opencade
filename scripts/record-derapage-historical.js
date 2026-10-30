@@ -1,25 +1,26 @@
 /* global console, process, URL */
 import ts from 'typescript';
-import { execFileSync } from 'node:child_process';
-import { writeFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { pathToFileURL } from 'node:url';
+import { readFileSync, writeFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 if (!process.argv.includes('--record')) throw new Error('Explicit --record required to replace the historical oracle');
-// Remaining dependencies were unchanged at pass 73; refuse a mixed-version oracle.
-execFileSync('git', ['diff', '--exit-code', '038a0c1', '--',
-    ...['ai', 'track', 'race', 'items', 'circuits', 'access'].map(name => `src/engines/derapage/${name}.ts`),
-    'src/engines/shared/random.ts']);
+// Supply the complete historical source tree explicitly; no repository history is required.
+const argument = process.argv.indexOf('--source-root');
+if (argument < 0 || !process.argv[argument + 1]) throw new Error('--source-root <historical source tree> required');
 const root = process.cwd();
+const sourceRoot = pathToFileURL(resolve(process.argv[argument + 1]) + '/');
 await import(root + '/scripts/ts-loader.js');
 async function historical(path, imports = {}) {
-    const text = execFileSync('git', ['show', '038a0c1:' + path], { encoding: 'utf8' })
-        .replace(/from '([^']+)'/g, (_, name) => `from ${JSON.stringify(imports[name] ?? new URL(name + '.ts', 'file://' + root + '/' + path).href)}`);
+    const text = readFileSync(new URL(path, sourceRoot), 'utf8')
+        .replace(/from '([^']+)'/g, (_, name) => `from ${JSON.stringify(imports[name] ?? new URL(name + '.ts', new URL(path, sourceRoot)).href)}`);
     const url = 'data:text/javascript,' + encodeURIComponent(ts.transpile(text, { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext }));
     return { url, module: await import(url) };
 }
 const physics = await historical('src/engines/derapage/physics.ts');
 const { module: { Engine } } = await historical('src/engines/derapage/engine.ts', { './physics': physics.url });
-const { ranking } = await import(root + '/src/engines/derapage/race.ts');
-const { controller } = await import(root + '/src/engines/derapage/ai.ts');
+const { ranking } = await import(new URL('src/engines/derapage/race.ts', sourceRoot).href);
+const { controller } = await import(new URL('src/engines/derapage/ai.ts', sourceRoot).href);
 const { recordings } = await import(root + '/tests/derapage-recordings-038a0c1.ts');
 const data = { commit: '038a0c1', tapes: [], campaign: [] };
 function dynamic(engine) {

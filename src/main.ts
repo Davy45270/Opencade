@@ -7,6 +7,7 @@ import { games, type GameTestHook } from './games/registry';
 import { readSave, browserStorage } from './shell/storage';
 import { setupSound, sound, device } from './shell/services';
 import './style.css';
+import './games/gourmandises/style.css';
 import { Inputs } from './shell/input';
 import { PlaySession, setupPause } from './shell/pause';
 import { setupGameMenu } from './shell/menu';

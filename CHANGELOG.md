@@ -5,9 +5,61 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0-beta.2] — 2026-10-31
+
+Preview build: Dérapage is now playable on phones (all six reference circuits finish under a noisy thumb), the Kart catalogue circuits and an optional 3D view; new games Gourmandises (match-3, 120 levels) and Pépites (mine digger, 30 mines); Alunir rewritten. Known gaps: the noisy-finger end-to-end checks of a few games are still being rebuilt on a stepped clock; new art for Ferraille, Briqueterie and Alunir is still in progress.
+
+### Dérapage — jouable au doigt
+
+- Route continue (plus de dents dans les virages), bandes d'accélération sur toute la largeur, grand chrono du tour et meilleur tour, portique d'arrivée, état du pouce et poussière dans l'herbe.
+- Rendu mis en cache : chaque circuit reste sous 520 appels de dessin par image (800 en 3D), et la course suit le temps réel même quand l'image ralentit (jusqu'à 4 images/s).
+- Trois circuits du catalogue Kart : Bambou Express (raccourci derrière la cascade), Feuilles Folles (feuilles glissantes, tunnel) et Volcan Turbo (lave, tremplin au-dessus d'un pont effondré).
+- Vue pseudo-3D en option, sur le même moteur, avec repli automatique en vue de dessus sous 30 images/s.
+- Volcan Turbo : tremplin déplacé sur la ligne droite, réception élargie, contournement pris dans le sens de course et karts IA écartés autour du saut ; il n'y a plus de kart retourné à contresens.
+- Partie au doigt bruitée en navigateur mobile : les six circuits mesurés se terminent (1, 5, 10, Bambou Express, Feuilles Folles, Volcan Turbo), de 0 à 7 % hors piste, sans arrêt.
+
 ## [0.4.0-beta.1] — 2026-10-30
 
 Preview build so the new art and levels can be played on a phone tonight. Known gaps: some noisy-finger end-to-end checks are still being rebuilt on a stepped clock; Ferraille, Briqueterie and Alunir art passes are still in progress.
+### Alunir et Essaim — passe 110
+
+- Migration explicite des snapshots de passe 107 avec mission : catalogue historique, objectifs, amplitude mobile et issue conservés. Témoin Node produit directement depuis les deux modules de `eecddb7`, continuations des trente niveaux et cas adverse gagnant.
+- Secours imposé latéralement : |vx|≥0,1 et |vx|>|vy|, consigne cohérente et pilote avec approche latérale ; 180 vols gagnants régénérés. Commandes : 0/435 paires >50 %, maximum 46,3077 % (7/22), maximum global 50 %, douze mécaniques.
+- Prérequis des cercles testés négativement ; vrai dessin Graphics contrôlé pour rayon, croix, couleurs et coordonnées. Les douze mutations historiques et les huit de relecture sont exécutées et rejetées ; correspondance détaillée dans GAME_SPEC.
+- Essaim : bouton « Écu », nom accessible « Bouclier », toujours 16 px et 56 px. Le logement paysage exclut 72 px ; contrôle Node du budget de texte, de la rangée ≤64 px, des marges et du desktop, sans navigateur.
+
+- Validation passe 110 : lint, typecheck et build verts via le verrou commun ; `npm run test:node` : **40/40 validateurs verts**, un seul à la fois, 146,27 s. Aucun commit, navigateur ni Vitest.
+
+### Alunir — passe 108
+
+- Trente géométries écrites : départs et vitesses variés, quais suspendus, pleins aux extrémités, cargo à remonter depuis le fond de la grotte, secours latéraux et balises décentrées. Cercles de transit visibles, ordonnés et sauvegardés ; passage du geyser pendant son repos. Navettes sur 48 px avec quais de 46 px (64 sur glace).
+- Pilote corrigé pour le dégagement au décollage, les remontées, le suivi de phase et les météores à la montée. Contrôleur tactile initial conservé ; 180 vols gagnants réenregistrés, trois graines et deux modes.
+- Mesure inchangée : 64 → 0 paires de commandes au-dessus de 50 % ; maximum 95,1168 % (4/5) → 46,3077 % (7/22). Maximum global 50 %, douze mécaniques rencontrées et vedettes distinctes des deux précédentes.
+- A-niv-05 : témoins de départs, remontées cargo, ordre/rayon/phase des passages, arrivée directe refusée et reprise sérialisée. Douze mutations de passe 107 toujours rejetées ; migrations historiques et U06/U07 conservés. Aucun commit, navigateur ni Vitest.
+
+- Validation passe 108 : lint, typecheck et build verts sous verrou commun ; `npm run test:node` : **40/40 validateurs verts**, un seul à la fois, 166,26 s.
+
+### Alunir — passe 107
+
+- Migration : activation du catalogue avant le placement en grotte ; une sauvegarde historique remplace la mission courante après amarrage et élimine les indices de plateforme invalides.
+- Mesure corrigée : commandes réelles comparées pas à pas, indépendamment des étiquettes ; suppression des pseudo-actions automatiques du moteur. Même campagne : 50 % annoncés → 95,1168 % réellement mesurés (niveaux 4/5), donc porte de diversité rouge, conservée explicitement dans les tests et le rapport.
+- Bornes hautes et rayons exacts, secours absent, nom et idée aux pas 0/1/119 puis retrait aux pas 120/121 ; restauration après service, grotte suivante et véritable témoin historique avec rafales. Douze mutations exécutées par les corps de test sous Node.
+- Guide initial décrit comme une référence verticale sans effet physique ; pilote tactile simulé gagnant au niveau 1 avec 150 ms de latence, sans puis avec spécial. U06/U07 inchangés. Aucun navigateur ni Vitest exécuté.
+- Validation passe 107 : lint, typecheck et build verts ; `test:node` termine avec 39/40 validateurs verts, seul Alunir échoue sur les 64 paires dépassant 50 %, après ses douze mutations rejetées et ses 180 vols gagnants.
+
+### Alunir — passe 106
+
+- Trente situations nommées et écrites, douze mécaniques présentées puis combinées : quais à score, grotte, navette, plein, cargo, météores, gravité locale, tunnel de vent, geyser, balise, secours en vol et glace.
+- Nom et idée affichés deux secondes de jeu ; décors et objectifs visibles. Pilote multi-étapes, 180 vols enregistrés aux graines 28, 1, 2026 avec/sans stabilisation.
+- Similarité maximale de mission 100 % → 50 %, douze règles effectivement rencontrées et aucune vedette répétée parmi les deux précédentes ; négatifs et quatre mutations.
+- Reprise d’un véritable état de HEAD et formats de progression/records préservés ; seuils U06/U07 inchangés, aide initiale uniquement visuelle, cinq personnages et spécial inchangés.
+- E2E mobile écrit (sept captures, doigt bruité aux niveaux 1 et 10), exécution réservée à l’orchestrateur.
+### Gourmandises
+
+- Pictogrammes et compteurs contenus dans les trois boutons tactiles, avec police commune de 16 px.
+- Objets livrés animés jusqu’à la sortie malgré le remplissage de leur destination.
+- Pilote glouton donnant strictement priorité à l’objectif ; monde de la rivière recalibré sur cinq graines.
+- Oracles Node renforcés pour les silhouettes, les couches de glace, les sorties et les éléments des décors ; mutations vérifiées en mémoire.
 
 ### Corrections E2E — passe 105
 
@@ -54,6 +106,13 @@ Preview build so the new art and levels can be played on a phone tonight. Known 
 - Validation par événement clavier C des trois jeux, HUD prêt/utilisé/recharge
   et durée réelle des effets ; compteur E2E fondé sur l'activation moteur.
 - Délais E2E de l'habillage portés à 15 s pour le démarrage mobile.
+- Gourmandises : 120 niveaux, objets dorés à faire sortir, glace double et trois nouveaux décors ; finales à deux objectifs, équilibre mesuré sur cinq graines, empreinte inchangée des 60 premiers niveaux et 26 mutations vérifiées en mémoire. Parcours de sortie et captures du palais écrits pour bureau et mobile.
+
+- Gourmandises : trois décors dessinés, plateau agrandi, HUD illustré, outils avec compteurs et raccourcis synchronisés pendant les chutes ; cinq mutations visuelles supplémentaires.
+
+- Gourmandises : campagne recalibrée sur cinq graines, combinaisons et glace corrigées, compartiments reliés, difficulté physique et 16 mutations tuées en mémoire.
+
+- Gourmandises : 60 niveaux, modes Découverte/Arcade, cascades, spéciaux, obstacles, outils et compagnon choisi ; moteur et mutations validés sous Node, parcours tactiles écrits pour l’hôte.
 
 ### Personnages dans les jeux, partie 4 — passe 84
 

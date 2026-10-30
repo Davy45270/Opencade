@@ -11,7 +11,7 @@ export interface Track {
     heights: number[];
     bermEdges: { a: Vec; b: Vec }[];
     finishLine: { a: Vec; b: Vec };
-    boosts: (Vec & { radius: number; index: number })[];
+    boosts: (Vec & { radius: number; index: number; length?: number })[];
     trees: (Vec & { radius: number })[];
     points: Vec[];
     racingLine: Vec[];
@@ -26,8 +26,8 @@ export function difficulty(level: number) {
     return { width: 20 - n * .27, aiSpeed: 15 + n * .23, error: .18 - n * .005, brakeDelay: .45 - n * .012, bend: .015 + n * .0015, wallFraction: .12 + n * .02, grassGrip: .45 - n * .001 };
 }
 export const LEVELS = circuits.map(c => ({ name: c.name }));
-export function createTrack(level: number, seed = 28): Track {
-    const r = new Random(seed + level * 997), d = difficulty(level), circuit = required(circuits[level]);
+export function createTrack(level: number, seed = 28, source?: Circuit): Track {
+    const r = new Random(seed + level * 997), d = difficulty(level), circuit = source ?? required(circuits[level]);
     const dense: Vec[] = [], denseWidths: number[] = [];
     const controls = circuit.controls, size = controls.length;
     for (let i = 0; i < size; i++) {
@@ -79,7 +79,7 @@ export function createTrack(level: number, seed = 28): Track {
     const count = level < 2 ? 0 : 1 + Math.floor((level - 2) / 4);
     for (let j = 0; j < count; j++) {
         const index = required(candidates[Math.floor((j + .5) * candidates.length / count)]);
-        track.boosts.push({ ...required(points[index]), radius: 2.5, index });
+        track.boosts.push({ ...required(points[index]), radius: 2.5, index, length: Math.min(5, distance(required(points[index]), required(points[(index + 1) % 96]))) });
     }
     for (let i = 0; i < 96; i += circuit.family === 'nature' ? 1 : 2 + level % 3) {
         const p = required(points[i]), n = nearest(track, p), radius = 1.5 + r.next();
@@ -87,7 +87,7 @@ export function createTrack(level: number, seed = 28): Track {
         const offset = required(track.widths[i]) / 2 + radius * 2 + 2 + r.next() * 4;
         const tree = { x: p.x + n.nx * offset * side, y: p.y + n.ny * offset * side, radius };
         const edge = nearest(track, tree);
-        if (edge.distance >= required(track.widths[edge.index]) / 2 + 2 * radius)
+        if (edge.distance >= required(track.widths[edge.index]) / 2 + 2 * radius && (shortcutAt(track,tree)?.distance ?? Infinity) > (circuit.shortcut?.width ?? 0)/2 + 2*radius)
             track.trees.push(tree);
     }
     return track;
@@ -101,32 +101,31 @@ export const wrap = (a: number): number => Math.atan2(Math.sin(a), Math.cos(a));
 const nearestHints = new WeakMap<Vec, { points: Vec[]; index: number }>();
 export function nearest(t: Track, p: Vec) {
     let best = { index: 0, distance: Infinity, x: 0, y: 0, along: 0, nx: 0, ny: 0 };
-    const visit = (i: number): void => {
-        const a = required(t.points[i]), b = required(t.points[(i + 1) % t.points.length]);
-        // A segment outside the current distance box cannot improve the result.
-        // Keep a margin for rounding and visit ties in the original index order.
-        const reach = best.distance + 1e-9;
-        if ((p.x < a.x - reach && p.x < b.x - reach) || (p.x > a.x + reach && p.x > b.x + reach)
-            || (p.y < a.y - reach && p.y < b.y - reach) || (p.y > a.y + reach && p.y > b.y + reach)) return;
-        const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
-        const u = Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / (len * len)));
-        const x = a.x + dx * u, y = a.y + dy * u, dist = Math.hypot(p.x - x, p.y - y);
-        if (dist < best.distance || (dist === best.distance && i < best.index))
-            best = { index: i, distance: dist, x, y, along: required(t.distances[i]) + len * u, nx: -dy / len, ny: dx / len };
-    };
-    // Seed the bound with the previous section, then prove it against every segment.
-    // Teleports, edited points and nearby parallel sections still use the global minimum.
+    const points = t.points, count = points.length, px = p.x, py = p.y;
     const hint = nearestHints.get(p);
-    if (hint?.points === t.points && hint.index < t.points.length) visit(hint.index);
-    for (let i = 0; i < t.points.length; i++) visit(i);
+    const first = hint?.points === points && hint.index < count ? hint.index : 0;
+    let reach = Infinity;
+    for (let cursor = -1; cursor < count; cursor++) {
+        const i = cursor < 0 ? first : cursor;
+        const a = required(points[i]), b = required(points[(i + 1) % count]);
+        if ((px < a.x - reach && px < b.x - reach) || (px > a.x + reach && px > b.x + reach)
+            || (py < a.y - reach && py < b.y - reach) || (py > a.y + reach && py > b.y + reach)) continue;
+        const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy);
+        const u = Math.max(0, Math.min(1, ((px - a.x) * dx + (py - a.y) * dy) / (len * len)));
+        const x = a.x + dx * u, y = a.y + dy * u, dist = Math.hypot(px - x, py - y);
+        if (dist < best.distance || (dist === best.distance && i < best.index)) {
+            best = { index: i, distance: dist, x, y, along: required(t.distances[i]) + len * u, nx: -dy / len, ny: dx / len };
+            reach = best.distance + 1e-9;
+        }
+    }
     nearestHints.set(p, { points: t.points, index: best.index });
     return best;
 }
 export function at(t: Track, along: number, ideal = false): Vec {
     const s = ((along % t.length) + t.length) % t.length;
-    let i = 0;
-    while (i < 95 && required(t.distances[i + 1]) < s)
-        i++;
+    let low=1,high=96;
+    while(low<high) {const middle=(low+high)>>>1;if(required(t.distances[middle])<s) low=middle+1;else high=middle;}
+    const i=low-1;
     const line = ideal ? t.racingLine : t.points;
     const a = required(line[i]), b = required(line[(i + 1) % 96]), u = (s - required(t.distances[i])) / (required(t.distances[i + 1]) - required(t.distances[i]));
     return { x: a.x + (b.x - a.x) * u, y: a.y + (b.y - a.y) * u };
@@ -195,4 +194,66 @@ export function shapeSignature(t: Track) {
 }
 export function signatureDistance(a: ReturnType<typeof shapeSignature>, b: ReturnType<typeof shapeSignature>): number {
     return a.histogram.reduce((sum, v, i) => sum+Math.abs(v-required(b.histogram[i])),0);
+}
+
+/** Optional narrow road, independent of the main spline and its grass boundary. */
+export function shortcutAt(t: Track, p: Vec) {
+    const route = t.circuit.shortcut;
+    if (!route) return undefined;
+    const a = required(t.points[route.from]), b = required(t.points[route.to]);
+    const dx = b.x-a.x, dy = b.y-a.y, length = Math.hypot(dx,dy);
+    const u = Math.max(0, Math.min(1, ((p.x-a.x)*dx+(p.y-a.y)*dy)/(length*length)));
+    const x = a.x+dx*u, y = a.y+dy*u;
+    return { x, y, u, length, distance: Math.hypot(p.x-x,p.y-y), width: route.width };
+}
+export function onShortcut(t: Track, p: Vec): boolean {
+    const route = shortcutAt(t,p);
+    return !!route && route.distance <= route.width/2;
+}
+
+/** Shared longitudinal and lateral footprints for simulation and Graphics. */
+export function kartFootprint(t: Track, index: number, kind: 'gap' | 'ramp' | 'leaves' | 'lava') {
+    const a = required(t.points[index]), next = required(t.points[(index+1)%96]);
+    const dx=next.x-a.x, dy=next.y-a.y, length=Math.hypot(dx,dy);
+    const nx=-dy/length, ny=dx/length;
+    const surface=kind==='leaves' || kind==='lava';
+    const side=surface ? ((t.circuit[kind]?.indexOf(index) ?? 0)%2 ? -1 : 1) : 0;
+    const roadHalf=required(t.widths[index])/2;
+    const fraction=surface ? t.circuit.hazardWidthFraction ?? 1 : 1;
+    const offset=side*roadHalf*(1-fraction);
+    const origin={x:a.x+nx*offset,y:a.y+ny*offset};
+    const half=roadHalf*(kind==='gap' ? .575 : fraction);
+    const end=kind==='gap' ? t.circuit.gapEnd ?? 1 : 1;
+    const b={x:origin.x+dx*end,y:origin.y+dy*end};
+    return { a:origin,b,nx,ny,half,end, contains(p: Vec, from=0): boolean {
+        const u=((p.x-a.x)*dx+(p.y-a.y)*dy)/(length*length);
+        return u>=from && u<end && Math.abs((p.x-origin.x)*nx+(p.y-origin.y)*ny)<half;
+    } };
+}
+export function inKartHole(t: Track, p: Vec): boolean {
+    return (t.circuit.gap ?? []).some(i=>kartFootprint(t,i,'gap').contains(p));
+}
+
+/** Strip occupies one straight road segment, with the same lateral limits as grass. */
+export function boostStrip(t: Track, b: Track['boosts'][number]) {
+    const a = required(t.points[b.index]), next = required(t.points[(b.index + 1) % t.points.length]);
+    const len = distance(a, next), tx = (next.x-a.x)/len, ty = (next.y-a.y)/len;
+    const half = required(t.widths[b.index])/2, length = b.length ?? 5;
+    const point = (u: number, v: number): Vec => ({ x:a.x+tx*u-ty*v, y:a.y+ty*u+tx*v });
+    return { half, length, point, corners: [point(0,-half),point(length,-half),point(length,half),point(0,half)],
+        contains(p: Vec): boolean { const x=p.x-a.x,y=p.y-a.y, u=x*tx+y*ty; return u>=0 && u<=length && onBoost(t,b,p); } };
+}
+
+/** Hot-path equivalent of the rendered strip, without allocating its polygon. */
+export function onBoost(t: Track, b: Track['boosts'][number], p: Vec, section?: ReturnType<typeof nearest>): boolean {
+    if (b.length === undefined) return Math.hypot(p.x-b.x,p.y-b.y)<=b.radius+1.2;
+    const a=required(t.points[b.index]), next=required(t.points[(b.index+1)%t.points.length]);
+    const dx=next.x-a.x,dy=next.y-a.y,len=Math.hypot(dx,dy),x=p.x-a.x,y=p.y-a.y;
+    const u=(x*dx+y*dy)/len;
+    if(u<0 || u>b.length) return false;
+    const n=section ?? nearest(t,p);
+    // The slab belongs to this part of the road, never another distant bend
+    // that happens to share its longitudinal projection.
+    const sections=(n.index-b.index+t.points.length)%t.points.length;
+    return (sections<=1 || sections===t.points.length-1) && n.distance<=required(t.widths[n.index])/2;
 }

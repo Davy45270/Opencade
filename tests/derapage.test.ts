@@ -214,13 +214,11 @@ test('Z12 trente circuits fermés, portes ordonnées, largeur au moins 12 et san
 
         }
 });
-test('Z13 pilote simulé trois tours sur chacun des trente circuits en moins de 90 s', () => {
-    for (let i = 0; i < 30; i++) {
-        const p = pilot(i);
-        expect(p.laps, String(i)).toBe(3);
-        expect(p.seconds).toBeLessThan(90);
-    }
-}, 30000);
+for (let level = 0; level < 30; level++) test(`Z13 pilote : trois tours en moins de 90 s, circuit ${String(level + 1)}`, () => {
+    const p = pilot(level);
+    expect(p.laps, String(level)).toBe(3);
+    expect(p.seconds).toBeLessThan(90);
+}, 15000);
 test('Z14 tous paramètres monotones et extrêmes stricts', () => {
     const signs = { width: -1, aiSpeed: 1, error: -1, brakeDelay: -1, bend: 1, wallFraction: 1, grassGrip: -1 } as const;
     expect(difficulty(0)).toEqual({ width: 20, aiSpeed: 15, error: .18, brakeDelay: .45, bend: .015, wallFraction: .12, grassGrip: .45 });
@@ -230,26 +228,10 @@ test('Z14 tous paramètres monotones et extrêmes stricts', () => {
         expect((difficulty(29)[key] - difficulty(0)[key]) * signs[key]).toBeGreaterThan(0);
     }
 });
-test('Z15 rejeu complet horodaté et cadences regroupées, copies et temps invalides', () => {
-    const a = new Engine(), b = new Engine();
-    for (let frame = 0; frame < 6000 && a.status === 'playing'; frame++) {
-        const input = controller(required(a.karts[0]), a.track);
-        a.input(input);
-        b.input(input);
-        a.step(1000 / 60);
-        b.step(1000 / 120);
-        b.step(1000 / 120);
-        expect(b.snapshot()).toEqual(a.snapshot());
-    }
-    expect(required(a.karts[0]).lap).toBe(3);
-    expect(a.status).toBe('won');
-    expect(JSON.parse(JSON.stringify(a.snapshot()))).toEqual(a.snapshot());
-    const copy = a.snapshot();
-    required(copy.karts[0]).x = 999;
-    expect(required(a.karts[0]).x).not.toBe(999);
-    for (const ms of [-1, NaN, Infinity])
-        expect(() => { a.step(ms); }).toThrow(RangeError);
-}, 30000);
+import { sameReplayStep, checkReplayComparison } from './derapage-replay';
+import { completeReplay } from './derapage-complete-replay';
+// Union of the former complete Z15/Z28 assertions; no duplicate Node replay.
+test('Z15 Z28 rejeu complet, horodatage et contrats des snapshots', completeReplay, 15000);
 test('Z16 contrat monde sérialisable sans notion de vue', () => {
     const s = new Engine().snapshot();
     expect(Object.keys(s).sort()).toEqual(['controls', 'crates', 'cup', 'frames', 'karts', 'level', 'order', 'puddles', 'random', 'remainder', 'score', 'seed', 'status', 'time', 'timing', 'track']);
@@ -352,18 +334,18 @@ test('Z22 choc cercle balayé, rebond et aucune traversée à 24 ou 32', () => {
 });
 test('Z23 zone morte, saturation et rejeu analogique pas à pas', () => {
     for (const x of [-6, 0, 6]) expect(analogSteer(x)).toBe(0);
-    expect(analogSteer(33)).toBe(.5); expect(analogSteer(-33)).toBe(-.5);
-    expect(analogSteer(60)).toBe(1); expect(analogSteer(-90)).toBe(-1);
+    expect(analogSteer(23)).toBe(.5); expect(analogSteer(-23)).toBe(-.5);
+    expect(analogSteer(40)).toBe(1); expect(analogSteer(-40)).toBe(-1);
     const a = new Engine(14), b = new Engine(14);
     for (let i = 0; i < 300; i++) {
         const input = { ...neutral, steer: Math.sin(i / 30) * .37 };
         a.input(input); b.input(input); a.step(1000 / 60); b.step(1000 / 120); b.step(1000 / 120);
         expect(a.snapshot()).toEqual(b.snapshot());
     }
-});
-test('Z24 IA au plus 5 % hors piste sur les 30 circuits', () => {
-    for (let level = 0; level < 30; level++) { const p = pilot(level, true); expect(p.laps).toBe(3); expect(p.grass).toBeLessThanOrEqual(.05); }
-}, 30000);
+}, 15000);
+for (let level = 0; level < 30; level++) test(`Z24 IA : au plus 5 % hors piste, circuit ${String(level + 1)}`, () => {
+    const p = pilot(level, true); expect(p.laps).toBe(3); expect(p.grass).toBeLessThanOrEqual(.05);
+}, 15000);
 
 test('Z26 signatures géométriques distinctes et invariantes', () => {
     const tracks = Array.from({ length: 30 }, (_, i) => createTrack(i));
@@ -396,23 +378,6 @@ test('Z27 arrivée exactement sur la porte zéro et largeur locale', () => {
         checkpoint(k,{ x:p.x-dx*.01,y:p.y-dy*.01 },t,100);
         expect(k.lap).toBe(1);
     }
-});
-
-test('Z28 rejeux horodatés : tours et meilleur exactement identiques', () => {
-    const first = new Engine(0, 28), replay = new Engine(0, 28);
-    const events: { ms: number; input: ReturnType<typeof controller> }[] = [];
-    while (first.status === 'playing' && first.frames < 6000) {
-        const input = controller(required(first.karts[0]), first.track);
-        events.push({ ms: first.time, input });
-        first.input(input); first.step(1000 / 60);
-    }
-    for (const event of events) {
-        expect(replay.time).toBe(event.ms);
-        replay.input(event.input); replay.step(1000 / 120); replay.step(1000 / 120);
-    }
-    expect(first.lapTimesMs).toHaveLength(3);
-    expect(replay.snapshot().timing).toEqual(first.snapshot().timing);
-    expect(first.bestLapMs).toBe(Math.min(...first.lapTimesMs));
 });
 
 test('Z28 temps construits : nombre de pas entre franchissements et minimum', () => {
@@ -456,27 +421,29 @@ test('Z29 records stricts par circuit, ancienne sauvegarde et stockage défailla
 
 // Shared scenarios also run through the permitted Node validator.
 import { mechanics } from './derapage-cases';
-for (const scenario of mechanics) test(scenario.name, () => { scenario.run((ok, message) => { expect(ok, message).toBe(true); }); }, 30000);
+for (const scenario of mechanics) test(scenario.name, () => { scenario.run((ok, message) => { expect(ok, message).toBe(true); }); }, 15000);
 
-test('Z15 slalom et BMX : snapshot identique à chaque pas', () => {
+test('Z15 slalom et BMX : échantillon, campagnes complètes dans test:node', () => {
     for (const level of [28,29]) {
         const a = new Engine(level), b = new Engine(level);
-        for (let frame=0;frame<600;frame++) {
+        for (let frame=0;frame<60;frame++) {
             const input = controller(required(a.karts[0]),a.track);
             a.input(input); b.input(input); a.step(1000/60); b.step(1000/120); b.step(1000/120);
-            expect(b.snapshot()).toEqual(a.snapshot());
+            expect(sameReplayStep(a, b, frame, frame === 59)).toBe(true);
         }
     }
-});
+}, 15000);
 
 import { exactNearest } from './derapage-nearest';
-test('Z15 nearest exact : téléportations, égalités et pistes éditées', exactNearest);
+test('Z15 nearest exact : téléportations, égalités et pistes éditées', exactNearest, 15000);
 
-import { recordings } from './derapage-recordings';
-import { replayHuman, joystickCases } from './derapage-joystick';
-for (const tape of recordings) test(`Z36 humain bruité : ${tape.name}`, () => {
-    replayHuman(tape, (ok, message) => { expect(ok, message).toBe(true); });
-}, 2000);
-for (const scenario of joystickCases) test(scenario.name, () => {
+import { joystickCases } from './derapage-joystick';
+// Complete Z36 tapes, with exhaustive nearest verification, belong to test:node.
+// Negative Z36 metadata cases use the Node replay witness instead of replaying here.
+for (const scenario of joystickCases.filter(c => !c.name.startsWith('Z36 rejeu :'))) test(scenario.name, () => {
     scenario.run((ok, message) => { expect(ok, message).toBe(true); });
-}, 2000);
+}, scenario.name.startsWith('Z36') || scenario.name.includes('rejeu') ? 15000 : 2000);
+
+test('Z15 comparaison compacte : dérive dynamique et snapshots complets', () => {
+    checkReplayComparison((ok, message) => { expect(ok, message).toBe(true); });
+}, 15000);

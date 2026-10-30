@@ -1,10 +1,11 @@
 import { test, expect } from './fixture';
+import { ANALOG_DEAD_ZONE, FULL_DEFLECTION } from '../../src/engines/derapage/physics';
 test('Z08 Z09 podium, défaite, progression, commandes réelles et HUD séparé', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium';
     const activate = async (selector: string) => { if (mobile) await page.locator(selector).tap(); else await page.locator(selector).click(); };
     const driveGate = async () => {
         if (mobile) {
-            const b = await page.locator('canvas').boundingBox(); if (!b) throw new Error('Canevas absent');
+            const b = await page.locator('#game canvas').boundingBox(); if (!b) throw new Error('Canevas absent');
             const cdp = await page.context().newCDPSession(page);
             await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: b.x + 32, y: b.y + 32 }] });
             await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: b.x + 92, y: b.y + 32 }] });
@@ -21,7 +22,7 @@ test('Z08 Z09 podium, défaite, progression, commandes réelles et HUD séparé'
     const bounds = await page.evaluate(() => window.__DERAPAGE_TEST__?.bounds()); if (!bounds) throw new Error('Boîtes absentes');
     expect(bounds.hud.height).toBeGreaterThan(40);
     expect(bounds.hud.y + bounds.hud.height).toBeLessThanOrEqual(bounds.forward.y);
-    const canvas = await page.locator('canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
+    const canvas = await page.locator('#game canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
     for (const button of await page.locator('#touch-controls button').all()) {
         const b = await button.boundingBox(); if (b) { expect(b.width).toBeGreaterThanOrEqual(56); expect(b.height).toBeGreaterThanOrEqual(56); expect(b.y >= canvas.y + canvas.height || b.y + b.height <= canvas.y).toBe(true); }
     }
@@ -50,7 +51,7 @@ test('Z02 Z03 maintien tactile ou clavier et absence de crochet en production', 
     await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(2000));
     const before = await page.evaluate(() => window.__DERAPAGE_TEST__?.read().karts[0]?.angle);
     if (info.project.name === 'mobile-chromium') {
-        const right = await page.locator('canvas').boundingBox(), drift = await page.locator('#derapage-drift').boundingBox(); if (!right || !drift) throw new Error('Boutons absents');
+        const right = await page.locator('#game canvas').boundingBox(), drift = await page.locator('#derapage-drift').boundingBox(); if (!right || !drift) throw new Error('Boutons absents');
         const cdp = await page.context().newCDPSession(page);
         await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: right.x + 32, y: right.y + 32, id: 1 }, { x: drift.x + 32, y: drift.y + 32, id: 2 }] });
         await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: right.x + 65, y: right.y + 32, id: 1 }, { x: drift.x + 32, y: drift.y + 32, id: 2 }] });
@@ -63,7 +64,7 @@ test('Z02 Z03 maintien tactile ou clavier et absence de crochet en production', 
         await page.keyboard.down('ArrowRight'); await page.keyboard.down('Space'); await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(700)); await page.keyboard.up('Space'); await page.keyboard.up('ArrowRight');
     }
     expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().karts[0]?.angle)).not.toBe(before);
-    await page.goto('/#/derapage'); await expect(page.locator('canvas')).toBeVisible(); expect(await page.evaluate(() => window.__DERAPAGE_TEST__)).toBeUndefined();
+    await page.goto('/#/derapage'); await expect(page.locator('#game canvas')).toBeVisible(); expect(await page.evaluate(() => window.__DERAPAGE_TEST__)).toBeUndefined();
 });
 
 test('Z25 commandes analogiques mobiles, tailles et captures', async ({ page }, info) => {
@@ -71,7 +72,7 @@ test('Z25 commandes analogiques mobiles, tailles et captures', async ({ page }, 
     await page.addInitScript(() => { localStorage.setItem('arcade-lab:derapage:controls:v1', JSON.stringify({ camera: 'rotating', assist: true })); });
     await page.goto('/?test=1#/derapage'); await page.locator('#resume').tap();
     await page.evaluate(() => { window.__DERAPAGE_TEST__?.loadLevel(14, 28); window.__DERAPAGE_TEST__?.advance(2000); });
-    const canvas = await page.locator('canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
+    const canvas = await page.locator('#game canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
     const drift = await page.locator('#derapage-drift').boundingBox(), bonus = await page.locator('#derapage-bonus').boundingBox();
     if (!drift || !bonus) throw new Error('Commandes absentes');
     expect(drift.width).toBeGreaterThanOrEqual(88); expect(drift.height).toBeGreaterThanOrEqual(88);
@@ -82,10 +83,11 @@ test('Z25 commandes analogiques mobiles, tailles et captures', async ({ page }, 
     const cdp = await page.context().newCDPSession(page);
     const x = canvas.x + canvas.width * .25, y = canvas.y + canvas.height * .6;
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] });
-    for (const delta of [4, -33, 33]) {
+    for (const delta of [ANALOG_DEAD_ZONE - 1, ANALOG_DEAD_ZONE + 1, -33, 33, -FULL_DEFLECTION, FULL_DEFLECTION]) {
         await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + delta, y, id: 1 }] });
         await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(0));
-        expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().controls.steer)).toBe(delta === 4 ? 0 : delta / 66);
+        const expected = Math.sign(delta) * Math.min(1, Math.max(0, Math.abs(delta) - ANALOG_DEAD_ZONE) / (FULL_DEFLECTION - ANALOG_DEAD_ZONE));
+        expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().controls.steer)).toBeCloseTo(expected, 6);
     }
     await page.screenshot({ path: 'test-results/screenshots/derapage-mobile-controls.png' });
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await cdp.detach();
@@ -125,7 +127,7 @@ test('Z28 Z29 chronos mobiles réservés, franchissement piloté et record persi
     if (!bounds) throw new Error('Boîtes absentes');
     expect(bounds.hud.y + bounds.hud.height).toBeLessThanOrEqual(bounds.forward.y);
     await page.evaluate(() => window.__DERAPAGE_TEST__?.scenario('lap'));
-    const canvas = await page.locator('canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
+    const canvas = await page.locator('#game canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
     const cdp = await page.context().newCDPSession(page);
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: canvas.x + 32, y: canvas.y + 32 }] });
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: canvas.x + 92, y: canvas.y + 32 }] });
@@ -170,7 +172,7 @@ test('Z37 mobile : joystick nord en haut, indicateurs et préférence caméra', 
     await page.locator('#game-menu-toggle').tap();
     await expect(page.locator('#derapage-assist')).toHaveText('Aide : oui');
     await page.locator('#derapage-assist').tap(); await page.locator('#game-menu-toggle').tap();
-    const canvas = await page.locator('canvas').boundingBox();
+    const canvas = await page.locator('#game canvas').boundingBox();
     if (!canvas) throw new Error('Canevas absent');
     const x = canvas.x + canvas.width * .75, y = canvas.y + canvas.height * .55;
     const cdp = await page.context().newCDPSession(page);

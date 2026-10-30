@@ -1,6 +1,6 @@
 import { required } from './access';
 import { Random } from '../shared/random';
-import { at, createTrack, difficulty, type Track } from './track';
+import { at, createTrack, difficulty, nearest, type Track } from './track';
 import { physics, collide, resolveRail, type Input, type Kart } from './physics';
 import { aiInput, aiSpeed } from './ai';
 import { checkpoint, ranking, Cup, POINTS } from './race';
@@ -84,12 +84,15 @@ export class Engine {
             this.time = this.frames * FIXED_MS;
             const previous = this.karts.map(k => ({ x: k.x, y: k.y }));
             for (const k of this.karts) {
-                const input = k.id === 0 ? this.controls : aiInput(k, this.track, this.level, this.random.next() * 2 - 1);
+                // Controls, target speed and physics inspect the same position.
+                // Items change timers only; collisions/movement occur afterwards.
+                const section = nearest(this.track, k);
+                const input = k.id === 0 ? this.controls : aiInput(k, this.track, this.level, this.random.next() * 2 - 1, section);
                 // Deterministic straight-line policy, no extra random draw.
                 if (k.id > 0 && k.passed + 2 < (this.karts[0]?.passed ?? 0) && Math.abs(input.steer) < 0.12 && Math.hypot(k.vx, k.vy) > 16) this.special(k.id);
                 if (input.bonus)
                     useItem(k, this.puddles);
-                physics(k, input, this.track, FIXED_MS / 1000, difficulty(this.level).grassGrip, k.id === 0 ? 24 : aiSpeed(k, this.track, this.level));
+                physics(k, input, this.track, FIXED_MS / 1000, difficulty(this.level).grassGrip, k.id === 0 ? 24 : aiSpeed(k, this.track, this.level, section), section);
             }
             this.controls.bonus = false;
             for (let i = 0; i < 6; i++)

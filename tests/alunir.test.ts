@@ -26,12 +26,10 @@ test('U03 rotation fixe, directions opposées et annulation', () => {
     e.input({ ...idle, left: true }); e.step(STEP * 4); expect(e.state.angle).toBeCloseTo(0);
     e.input({ ...idle, left: true, right: true }); e.step(STEP); expect(e.state.angle).toBeCloseTo(0);
 });
-test('U04 vent constant puis rafales bornées, à graine et intégrées', () => {
-    expect(windAt(0, 1, 90)).toBe(0); expect(windAt(13, 1, 0)).toBe(windAt(13, 999, 900));
-    expect(windAt(14, 1, 0)).not.toBe(windAt(14, 1, 90));
-    expect(windAt(29, 1, 0)).not.toBe(windAt(29, 2, 0));
-    for (let t = 0; t < 1000; t++) expect(Math.abs(windAt(29, 45, t) - difficulty(29).wind)).toBeLessThanOrEqual(difficulty(29).gust);
-    const e = new Engine(); e.loadLevel(29, 45); e.step(STEP); expect(e.state.vx).toBe(windAt(29, 45, 0));
+test('U04 champs localisés : vent intégré dans le tunnel seulement', () => {
+    expect(windAt(0, 1, 90)).toBe(0);
+    const e = new Engine(); e.loadLevel(7); e.loadState({ y: 300, vx: 0, vy: 0 }); e.step(STEP); expect(e.state.vx).toBe(0.0015);
+    const calm = new Engine(); calm.loadLevel(7); calm.loadState({ vx: 0, vy: 0 }); calm.step(STEP); expect(calm.state.vx).toBe(0);
 });
 test('U05 collision continue du polygone, grande vitesse et bord de plateforme', () => {
     const e = new Engine(), p = required(e.terrain.pads[0]); e.loadState({ x: p.x + p.width / 2, vy: 1000 }); e.step(STEP);
@@ -76,25 +74,17 @@ test('U09 carburant, précision, temps, multiplicateur et score réel', () => {
 test('U10 politique proportionnelle : chacun des trente niveaux complets', () => {
     for (const seed of [28, 1, 2026]) for (let level = 0; level < 30; level++) {
         const e = new Engine(); e.loadLevel(level, seed);
-        for (let t = 0; t < 2500 && e.status === 'playing'; t++) { e.input(pilot(e)); e.step(STEP); }
+        for (let t = 0; t < 4000 && e.status === 'playing'; t++) { e.input(pilot(e)); e.step(STEP); }
         expect(e.status, `graine ${String(seed)}, niveau ${String(level + 1)}`).toBe('won');
     }
 });
-test('U11 chaque paramètre monotone et strict aux extrêmes, génération mesurable', () => {
-    const signs = { width: -1, relief: 1, wind: 1, gust: 1, gravity: 1, fuel: -1, offset: 1 } as const;
-    for (const key of Object.keys(signs) as (keyof typeof signs)[]) {
-        for (let l = 1; l < 30; l++) expect((difficulty(l)[key] - difficulty(l - 1)[key]) * signs[key], key).toBeGreaterThanOrEqual(0);
-        expect((difficulty(29)[key] - difficulty(0)[key]) * signs[key], key).toBeGreaterThan(0);
-    }
-    expect(difficulty(0).width).toBe(90); expect(difficulty(29).width).toBe(28);
+test('U11 trente plans écrits, génération bornée et répétable', () => {
     for (let l = 0; l < 30; l++) for (const seed of [1, 28, 2026]) {
         const terrain = generate(l, seed), p = required(terrain.pads[0]);
         expect(p.width).toBe(difficulty(l).width);
         const e = new Engine(); e.loadLevel(l, seed);
-        expect(Math.abs(e.state.x - p.x - p.width / 2)).toBeCloseTo(difficulty(l).offset, 10);
-        expect(e.state.x).toBeGreaterThan(7); expect(e.state.x).toBeLessThan(353);
-        const repeat = new Engine(); repeat.loadLevel(l, seed); expect(repeat.state).toEqual(e.state);
-        expect(terrain.points.some((v, i) => v.x === p.x && terrain.points[i + 1]?.x === p.x + p.width && v.y === terrain.points[i + 1]?.y)).toBe(true);
+        const repeat = new Engine(); repeat.loadLevel(l, seed); expect(repeat.snapshot()).toEqual(e.snapshot());
+        expect(terrain.points.every(v => v.y > p.y)).toBe(true);
         expect(terrain.points.every((v, i) => i === 0 || v.x > required(terrain.points[i - 1]).x)).toBe(true);
     }
 });

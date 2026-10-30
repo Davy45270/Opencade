@@ -36,3 +36,11 @@ export function exactNearest(): void {
     assert.deepEqual(nearest(t, p), exhaustive(t, p));
     assert.equal(nearest(t, p).index, 0);
 }
+
+// Used inside each complete Z36 replay: prove the optimized engine query against
+// the independent exhaustive reference at every recorded frame, including ties.
+export function verifiedNearest(t: Track, p: Vec): ReturnType<typeof nearest> {
+    const result = nearest(t, p);
+    assert.deepEqual(result, exhaustive(t, p));
+    return result;
+}

@@ -1,0 +1,3472 @@
+{
+  "standard": {
+    "before": {
+      "diagnostics": [
+        {
+          "kart": 94,
+          "rail": 0,
+          "tree": 0,
+          "holeEdge": 0,
+          "launches": [
+            {
+              "index": 40,
+              "speed": 24.03332756619642
+            }
+          ],
+          "landings": 1,
+          "missed": 0,
+          "bypasses": [],
+          "reverseMs": 0,
+          "maxReverseMs": 0,
+          "off": 56,
+          "steps": 1356,
+          "hitSections": {
+            "0": 1,
+            "1": 2,
+            "2": 15,
+            "3": 14,
+            "28": 1,
+            "31": 17,
+            "32": 20,
+            "33": 21,
+            "34": 3
+          },
+          "lavaBeforeRamp": 0
+        },
+        {
+          "kart": 0,
+          "rail": 0,
+          "tree": 0,
+          "holeEdge": 0,
+          "launches": [
+            {
+              "index": 40,
+              "speed": 24.04072394891496
+            }
+          ],
+          "landings": 1,
+          "missed": 0,
+          "bypasses": [],
+          "reverseMs": 0,
+          "maxReverseMs": 0,
+          "off": 171,
+          "steps": 1434,
+          "hitSections": {},
+          "lavaBeforeRamp": 0
+        },
+        {
+          "kart": 0,
+          "rail": 0,
+          "tree": 0,
+          "holeEdge": 0,
+          "launches": [
+            {
+              "index": 40,
+              "speed": 24.145333556632963
+            }
+          ],
+          "landings": 1,
+          "missed": 0,
+          "bypasses": [],
+          "reverseMs": 0,
+          "maxReverseMs": 0,
+          "off": 81,
+          "steps": 1405,
+          "hitSections": {},
+          "lavaBeforeRamp": 0
+        }
+      ],
+      "maxReverseMs": 0,
+      "level": 27,
+      "mode": "play",
+      "period": 150,
+      "fps": 11,
+      "graphicsCalls": 400,
+      "observations": [
+        0,
+        272.72727272727275,
+        545.4545454545454
+      ],
+      "applied": [
+        363.6363636363636,
+        636.3636363636363,
+        909.0909090909089
+      ],
+      "hits": 94,
+      "lapTimesMs": [
+        22600,
+        23900,
+        23416.666666666668
+      ],
+      "frames": 771,
+      "raceMs": 69916.66666666667,
+      "laps": 3,
+      "place": 1,
+      "status": "won",
+      "moves": 256,
+      "special": false,
+      "off": 0.07263294422827497,
+      "maxStopMs": 272.72727272727275,
+      "noiseSeed": 1669581833
+    },
+    "after": {
+      "diagnostics": [
+        {
+          "kart": 29,
+          "rail": 0,
+          "tree": 0,
+          "holeEdge": 0,
+          "backwardRailRebounds": 0,
+          "launches": [
+            {
+              "index": 48,
+              "speed": 24.000062050246115
+            }
+          ],
+          "landings": 1,
+          "missed": 0,
+          "bypasses": [],
+          "reverseMs": 0,
+          "maxReverseMs": 0,
+          "off": 0,
+          "steps": 1355,
+          "hitSections": {
+            "0": 1,
+            "1": 14,
+            "2": 7,
+            "3": 2,
+            "13": 1,
+            "19": 4
+          },
+          "reverseSections": {},
+          "rivalRampHits": 0,
+          "rivalLaunches": 5,
+          "rivalLandings": 5,
+          "skippedFinish": 0,
+          "lavaBeforeRamp": 0
+        },
+        {
+          "kart": 0,
+          "rail": 0,
+          "tree": 0,
+          "holeEdge": 0,
+          "backwardRailRebounds": 0,
+          "launches": [
+            {
+              "index": 48,
+              "speed": 24.04203034215723
+            }
+          ],
+          "landings": 1,
+          "missed": 0,
+          "bypasses": [],
+          "reverseMs": 0,
+          "maxReverseMs": 0,
+          "off": 0,
+          "steps": 1362,
+          "hitSections": {},
+          "reverseSections": {},
+          "rivalRampHits": 40,
+          "rivalLaunches": 5,
+          "rivalLandings": 5,
+          "skippedFinish": 0,
+          "lavaBeforeRamp": 0
+        },
+        {
+          "kart": 0,
+          "rail": 0,
+          "tree": 0,
+          "holeEdge": 0,
+          "backwardRailRebounds": 0,
+          "launches": [
+            {
+              "index": 48,
+              "speed": 24.003594554552862
+            }
+          ],
+          "landings": 1,
+          "missed": 0,
+          "bypasses": [],
+          "reverseMs": 0,
+          "maxReverseMs": 0,
+          "off": 0,
+          "steps": 1284,
+          "hitSections": {},
+          "reverseSections": {},
+          "rivalRampHits": 0,
+          "rivalLaunches": 5,
+          "rivalLandings": 5,
+          "skippedFinish": 0,
+          "lavaBeforeRamp": 0
+        }
+      ],
+      "collisionInjected": false,
+      "maxReverseMs": 0,
+      "level": 27,
+      "mode": "play",
+      "period": 150,
+      "fps": 11.48,
+      "graphicsCalls": 376,
+      "observations": [
+        0,
+        261.32404181184666,
+        522.6480836236933
+      ],
+      "applied": [
+        348.4320557491289,
+        609.7560975609755,
+        871.080139372822
+      ],
+      "hits": 29,
+      "lapTimesMs": [
+        22583.333333333336,
+        22700,
+        21400
+      ],
+      "frames": 767,
+      "raceMs": 66683.33333333334,
+      "laps": 3,
+      "place": 1,
+      "status": "won",
+      "moves": 255,
+      "special": false,
+      "off": 0,
+      "maxStopMs": 261.32404181184666,
+      "noiseSeed": 1984416649
+    }
+  },
+  "otherCircuits": [
+    {
+      "unchanged": true,
+      "level": 1,
+      "fps": 11,
+      "graphicsCalls": 400,
+      "raceMs": 63050.00000000001,
+      "lapTimesMs": [
+        21583.333333333336,
+        20616.666666666668,
+        20850
+      ],
+      "hits": 35,
+      "laps": 3,
+      "place": 1,
+      "status": "won",
+      "off": 0,
+      "maxStopMs": 272.72727272727275
+    },
+    {
+      "unchanged": true,
+      "level": 5,
+      "fps": 11.3,
+      "graphicsCalls": 385,
+      "raceMs": 62950.00000000001,
+      "lapTimesMs": [
+        21333.333333333336,
+        20650,
+        20966.666666666668
+      ],
+      "hits": 40,
+      "laps": 3,
+      "place": 1,
+      "status": "won",
+      "off": 0.02244039270687237,
+      "maxStopMs": 265.4867256637168
+    },
+    {
+      "unchanged": true,
+      "level": 10,
+      "fps": 11.2,
+      "graphicsCalls": 390,
+      "raceMs": 63516.66666666667,
+      "lapTimesMs": [
+        21666.666666666668,
+        20966.666666666668,
+        20883.333333333336
+      ],
+      "hits": 94,
+      "laps": 3,
+      "place": 1,
+      "status": "won",
+      "off": 0.016830294530154277,
+      "maxStopMs": 267.8571428571429
+    },
+    {
+      "unchanged": true,
+      "level": 18,
+      "fps": 12.44,
+      "graphicsCalls": 328,
+      "raceMs": 59316.66666666667,
+      "lapTimesMs": [
+        20650,
+        19233.333333333336,
+        19433.333333333336
+      ],
+      "hits": 263,
+      "laps": 3,
+      "place": 1,
+      "status": "won",
+      "off": 0,
+      "maxStopMs": 241.15755627009648
+    },
+    {
+      "unchanged": true,
+      "level": 20,
+      "fps": 10.730508474576272,
+      "graphicsCalls": 453,
+      "raceMs": 61100.00000000001,
+      "lapTimesMs": [
+        21166.666666666668,
+        20016.666666666668,
+        19916.666666666668
+      ],
+      "hits": 172,
+      "laps": 3,
+      "place": 1,
+      "status": "won",
+      "off": 0,
+      "maxStopMs": 186.38445743168535
+    }
+  ],
+  "cadences": {
+    "before": [
+      {
+        "diagnostics": [
+          {
+            "kart": 94,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.03332756619642
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 56,
+            "steps": 1356,
+            "hitSections": {
+              "0": 1,
+              "1": 2,
+              "2": 15,
+              "3": 14,
+              "28": 1,
+              "31": 17,
+              "32": 20,
+              "33": 21,
+              "34": 3
+            },
+            "reverseSections": {},
+            "rivalRampHits": 229,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.04072394891496
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 171,
+            "steps": 1434,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 29,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.145333556632963
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 81,
+            "steps": 1405,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 10,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          }
+        ],
+        "collisionInjected": false,
+        "maxReverseMs": 0,
+        "level": 27,
+        "mode": "play",
+        "period": 150,
+        "fps": 11,
+        "graphicsCalls": 400,
+        "observations": [
+          0,
+          272.72727272727275,
+          545.4545454545454
+        ],
+        "applied": [
+          363.6363636363636,
+          636.3636363636363,
+          909.0909090909089
+        ],
+        "hits": 94,
+        "lapTimesMs": [
+          22600,
+          23900,
+          23416.666666666668
+        ],
+        "frames": 771,
+        "raceMs": 69916.66666666667,
+        "laps": 3,
+        "place": 1,
+        "status": "won",
+        "moves": 256,
+        "special": false,
+        "off": 0.07263294422827497,
+        "maxStopMs": 272.72727272727275,
+        "noiseSeed": 1669581833
+      },
+      {
+        "diagnostics": [
+          {
+            "kart": 35,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.213768532385554
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 36,
+            "steps": 1299,
+            "hitSections": {
+              "0": 1,
+              "1": 10,
+              "2": 10,
+              "3": 12,
+              "14": 1,
+              "15": 1
+            },
+            "reverseSections": {},
+            "rivalRampHits": 747,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.01164810890596
+              },
+              {
+                "index": 40,
+                "speed": 24.111366336992894
+              },
+              {
+                "index": 40,
+                "speed": 24.021193946199784
+              }
+            ],
+            "landings": 3,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 370,
+            "steps": 3995,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 25,
+            "rivalLaunches": 15,
+            "rivalLandings": 15,
+            "skippedFinish": 2,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.000318844306772
+              },
+              {
+                "index": 40,
+                "speed": 24.007051934121627
+              },
+              {
+                "index": 40,
+                "speed": 24.077252040144945
+              }
+            ],
+            "landings": 3,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 143,
+            "steps": 3702,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 11,
+            "rivalLandings": 11,
+            "skippedFinish": 2,
+            "lavaBeforeRamp": 0
+          }
+        ],
+        "collisionInjected": false,
+        "maxReverseMs": 0,
+        "level": 27,
+        "mode": "play",
+        "period": 150,
+        "fps": 12,
+        "graphicsCalls": 400,
+        "observations": [
+          0,
+          250,
+          499.99999999999994
+        ],
+        "applied": [
+          333.3333333333333,
+          583.3333333333333,
+          833.3333333333334
+        ],
+        "hits": 35,
+        "lapTimesMs": [
+          21650,
+          66583.33333333334,
+          61700.00000000001
+        ],
+        "frames": 1801,
+        "raceMs": 149933.33333333334,
+        "laps": 3,
+        "place": 6,
+        "status": "lost",
+        "moves": 599,
+        "special": false,
+        "off": 0.06107717934480844,
+        "maxStopMs": 250,
+        "noiseSeed": 681579129
+      },
+      {
+        "diagnostics": [
+          {
+            "kart": 66,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.088873887421705
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1251,
+            "hitSections": {
+              "0": 1,
+              "1": 14,
+              "2": 1,
+              "3": 16,
+              "4": 1,
+              "12": 1,
+              "13": 7,
+              "14": 10,
+              "15": 11,
+              "16": 4
+            },
+            "reverseSections": {},
+            "rivalRampHits": 340,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.057974970853984
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 10,
+            "steps": 1296,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.000004409651844
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 112,
+            "steps": 1301,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          }
+        ],
+        "collisionInjected": false,
+        "maxReverseMs": 0,
+        "level": 27,
+        "mode": "play",
+        "period": 150,
+        "fps": 13,
+        "graphicsCalls": 400,
+        "observations": [
+          0,
+          230.76923076923077,
+          461.5384615384615
+        ],
+        "applied": [
+          307.6923076923077,
+          538.4615384615385,
+          769.2307692307692
+        ],
+        "hits": 66,
+        "lapTimesMs": [
+          20850,
+          21600,
+          21683.333333333336
+        ],
+        "frames": 835,
+        "raceMs": 64133.333333333336,
+        "laps": 3,
+        "place": 1,
+        "status": "won",
+        "moves": 277,
+        "special": false,
+        "off": 0.031137724550898204,
+        "maxStopMs": 230.76923076923077,
+        "noiseSeed": 2055611556
+      },
+      {
+        "diagnostics": [
+          {
+            "kart": 85,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.02870120292149
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 52,
+            "steps": 1337,
+            "hitSections": {
+              "0": 1,
+              "1": 6,
+              "2": 17,
+              "3": 13,
+              "15": 1,
+              "31": 9,
+              "32": 20,
+              "33": 16,
+              "34": 2
+            },
+            "reverseSections": {},
+            "rivalRampHits": 231,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.006307271357723
+              },
+              {
+                "index": 40,
+                "speed": 24.116379568715995
+              }
+            ],
+            "landings": 2,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 140,
+            "steps": 2643,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 10,
+            "rivalLandings": 10,
+            "skippedFinish": 1,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.00183172626967
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 50,
+            "steps": 1404,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          }
+        ],
+        "collisionInjected": false,
+        "maxReverseMs": 0,
+        "level": 27,
+        "mode": "play",
+        "period": 150,
+        "fps": 15,
+        "graphicsCalls": 400,
+        "observations": [
+          0,
+          266.6666666666667,
+          533.3333333333334
+        ],
+        "applied": [
+          333.33333333333337,
+          600,
+          866.6666666666665
+        ],
+        "hits": 85,
+        "lapTimesMs": [
+          22283.333333333336,
+          44050,
+          23400
+        ],
+        "frames": 1347,
+        "raceMs": 89733.33333333334,
+        "laps": 3,
+        "place": 5,
+        "status": "lost",
+        "moves": 336,
+        "special": false,
+        "off": 0.04528582034149963,
+        "maxStopMs": 200,
+        "noiseSeed": 2050957131
+      },
+      {
+        "diagnostics": [
+          {
+            "kart": 80,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.13899832122412
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 38,
+            "steps": 1256,
+            "hitSections": {
+              "0": 2,
+              "1": 10,
+              "2": 7,
+              "3": 21,
+              "10": 1,
+              "13": 6,
+              "14": 11,
+              "15": 8,
+              "29": 1,
+              "30": 5,
+              "31": 8
+            },
+            "reverseSections": {},
+            "rivalRampHits": 245,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.204228510758245
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1183,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 84,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 40,
+                "speed": 24.293643330567885
+              },
+              {
+                "index": 40,
+                "speed": 24.242586727447197
+              }
+            ],
+            "landings": 2,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 209,
+            "steps": 2503,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 6,
+            "rivalLandings": 6,
+            "skippedFinish": 1,
+            "lavaBeforeRamp": 0
+          }
+        ],
+        "collisionInjected": false,
+        "maxReverseMs": 0,
+        "level": 27,
+        "mode": "play",
+        "period": 150,
+        "fps": 20,
+        "graphicsCalls": 400,
+        "observations": [
+          0,
+          200,
+          400
+        ],
+        "applied": [
+          250,
+          450,
+          650
+        ],
+        "hits": 80,
+        "lapTimesMs": [
+          20933.333333333336,
+          19716.666666666668,
+          41716.66666666667
+        ],
+        "frames": 1649,
+        "raceMs": 82366.66666666667,
+        "laps": 3,
+        "place": 5,
+        "status": "lost",
+        "moves": 411,
+        "special": false,
+        "off": 0.05033353547604609,
+        "maxStopMs": 200,
+        "noiseSeed": 1388821662
+      }
+    ],
+    "after": [
+      {
+        "diagnostics": [
+          {
+            "kart": 32,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.004680797069025
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1355,
+            "hitSections": {
+              "0": 1,
+              "1": 10,
+              "2": 8,
+              "3": 8,
+              "19": 5
+            },
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.03671571815678
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1299,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 2,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.00209018136216
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 27,
+            "steps": 1373,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 2,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          }
+        ],
+        "collisionInjected": false,
+        "maxReverseMs": 0,
+        "level": 27,
+        "mode": "play",
+        "period": 150,
+        "fps": 11,
+        "graphicsCalls": 400,
+        "observations": [
+          0,
+          272.72727272727275,
+          545.4545454545454
+        ],
+        "applied": [
+          363.6363636363636,
+          636.3636363636363,
+          909.0909090909089
+        ],
+        "hits": 32,
+        "lapTimesMs": [
+          22583.333333333336,
+          21650,
+          22883.333333333336
+        ],
+        "frames": 740,
+        "raceMs": 67116.66666666667,
+        "laps": 3,
+        "place": 1,
+        "status": "won",
+        "moves": 246,
+        "special": false,
+        "off": 0.006756756756756757,
+        "maxStopMs": 272.72727272727275,
+        "noiseSeed": 2134204850
+      },
+      {
+        "diagnostics": [
+          {
+            "kart": 36,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.02304487280311
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1352,
+            "hitSections": {
+              "1": 18,
+              "2": 7,
+              "3": 6,
+              "13": 1,
+              "19": 4
+            },
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.008757169807758
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1422,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.053981794853367
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1298,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          }
+        ],
+        "collisionInjected": false,
+        "maxReverseMs": 0,
+        "level": 27,
+        "mode": "play",
+        "period": 150,
+        "fps": 12,
+        "graphicsCalls": 400,
+        "observations": [
+          0,
+          250,
+          499.99999999999994
+        ],
+        "applied": [
+          333.3333333333333,
+          583.3333333333333,
+          833.3333333333334
+        ],
+        "hits": 36,
+        "lapTimesMs": [
+          22533.333333333336,
+          23700,
+          21633.333333333336
+        ],
+        "frames": 816,
+        "raceMs": 67866.66666666667,
+        "laps": 3,
+        "place": 1,
+        "status": "won",
+        "moves": 271,
+        "special": false,
+        "off": 0,
+        "maxStopMs": 250,
+        "noiseSeed": 1358960793
+      },
+      {
+        "diagnostics": [
+          {
+            "kart": 57,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.000780203701762
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1350,
+            "hitSections": {
+              "1": 20,
+              "2": 1,
+              "3": 10,
+              "11": 1,
+              "12": 1,
+              "14": 1,
+              "15": 7,
+              "16": 6,
+              "18": 5,
+              "19": 5
+            },
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.014117234226635
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1275,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.04183541983823
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1286,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          }
+        ],
+        "collisionInjected": false,
+        "maxReverseMs": 0,
+        "level": 27,
+        "mode": "play",
+        "period": 150,
+        "fps": 13,
+        "graphicsCalls": 400,
+        "observations": [
+          0,
+          230.76923076923077,
+          461.5384615384615
+        ],
+        "applied": [
+          307.6923076923077,
+          538.4615384615385,
+          769.2307692307692
+        ],
+        "hits": 57,
+        "lapTimesMs": [
+          22500,
+          21250,
+          21433.333333333336
+        ],
+        "frames": 849,
+        "raceMs": 65183.333333333336,
+        "laps": 3,
+        "place": 1,
+        "status": "won",
+        "moves": 282,
+        "special": false,
+        "off": 0,
+        "maxStopMs": 230.76923076923077,
+        "noiseSeed": 736086231
+      },
+      {
+        "diagnostics": [
+          {
+            "kart": 31,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.0077300641458
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1351,
+            "hitSections": {
+              "0": 1,
+              "1": 11,
+              "2": 9,
+              "3": 5,
+              "19": 5
+            },
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.016200486357416
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1358,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 83,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.018407042973873
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1308,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 4,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          }
+        ],
+        "collisionInjected": false,
+        "maxReverseMs": 0,
+        "level": 27,
+        "mode": "play",
+        "period": 150,
+        "fps": 15,
+        "graphicsCalls": 400,
+        "observations": [
+          0,
+          266.6666666666667,
+          533.3333333333334
+        ],
+        "applied": [
+          333.33333333333337,
+          600,
+          866.6666666666665
+        ],
+        "hits": 31,
+        "lapTimesMs": [
+          22516.666666666668,
+          22633.333333333336,
+          21800
+        ],
+        "frames": 1006,
+        "raceMs": 66950,
+        "laps": 3,
+        "place": 1,
+        "status": "won",
+        "moves": 251,
+        "special": false,
+        "off": 0,
+        "maxStopMs": 200,
+        "noiseSeed": 13213466
+      },
+      {
+        "diagnostics": [
+          {
+            "kart": 95,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.000004072893905
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1333,
+            "hitSections": {
+              "0": 1,
+              "1": 18,
+              "2": 12,
+              "3": 19,
+              "10": 9,
+              "11": 15,
+              "12": 14,
+              "13": 7
+            },
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.019766057794346
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1251,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          },
+          {
+            "kart": 0,
+            "rail": 0,
+            "tree": 0,
+            "holeEdge": 0,
+            "backwardRailRebounds": 0,
+            "launches": [
+              {
+                "index": 48,
+                "speed": 24.012028704696444
+              }
+            ],
+            "landings": 1,
+            "missed": 0,
+            "bypasses": [],
+            "reverseMs": 0,
+            "maxReverseMs": 0,
+            "off": 0,
+            "steps": 1261,
+            "hitSections": {},
+            "reverseSections": {},
+            "rivalRampHits": 0,
+            "rivalLaunches": 5,
+            "rivalLandings": 5,
+            "skippedFinish": 0,
+            "lavaBeforeRamp": 0
+          }
+        ],
+        "collisionInjected": false,
+        "maxReverseMs": 0,
+        "level": 27,
+        "mode": "play",
+        "period": 150,
+        "fps": 20,
+        "graphicsCalls": 400,
+        "observations": [
+          0,
+          200,
+          400
+        ],
+        "applied": [
+          250,
+          450,
+          650
+        ],
+        "hits": 95,
+        "lapTimesMs": [
+          22216.666666666668,
+          20850,
+          21016.666666666668
+        ],
+        "frames": 1283,
+        "raceMs": 64083.333333333336,
+        "laps": 3,
+        "place": 1,
+        "status": "won",
+        "moves": 320,
+        "special": false,
+        "off": 0,
+        "maxStopMs": 200,
+        "noiseSeed": 1487905498
+      }
+    ]
+  },
+  "bypassProbes": {
+    "before": [
+      {
+        "speed": 0,
+        "side": -1,
+        "index": 40,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 19,
+            "target": 41,
+            "entry": {
+              "x": 79.99553116381459,
+              "y": 15.024214970403586
+            },
+            "section": 40
+          },
+          {
+            "frame": 47,
+            "target": 42,
+            "section": 40
+          },
+          {
+            "frame": 104,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 173,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 174
+      },
+      {
+        "speed": 0,
+        "side": -1,
+        "index": 41,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 42,
+            "section": 41
+          },
+          {
+            "frame": 42,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 111,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 112
+      },
+      {
+        "speed": 0,
+        "side": 0,
+        "index": 40,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 18,
+            "target": 41,
+            "entry": {
+              "x": 76.8076522147163,
+              "y": 3.455999743672315
+            },
+            "section": 40
+          },
+          {
+            "frame": 74,
+            "target": 42,
+            "section": 40
+          },
+          {
+            "frame": 110,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 179,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 799.9999999999995,
+        "maxReverseMs": 799.9999999999995,
+        "groundHoleFrames": 0,
+        "steps": 180
+      },
+      {
+        "speed": 0,
+        "side": 1,
+        "index": 40,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 18,
+            "target": 41,
+            "section": 40
+          },
+          {
+            "frame": 23,
+            "target": 42,
+            "section": 40
+          },
+          {
+            "frame": 59,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 128,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 100.00000000000001,
+        "maxReverseMs": 100.00000000000001,
+        "groundHoleFrames": 0,
+        "steps": 129
+      },
+      {
+        "speed": 0,
+        "side": 1,
+        "index": 41,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 42,
+            "section": 41
+          },
+          {
+            "frame": 21,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 90,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 91
+      },
+      {
+        "speed": 6,
+        "side": -1,
+        "index": 40,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 5,
+            "target": 41,
+            "entry": {
+              "x": 80.07005713637432,
+              "y": 15.014007571487276
+            },
+            "section": 40
+          },
+          {
+            "frame": 32,
+            "target": 42,
+            "section": 40
+          },
+          {
+            "frame": 89,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 158,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 159
+      },
+      {
+        "speed": 6,
+        "side": -1,
+        "index": 41,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 42,
+            "section": 41
+          },
+          {
+            "frame": 42,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 111,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 112
+      },
+      {
+        "speed": 6,
+        "side": 0,
+        "index": 40,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 5,
+            "target": 41,
+            "entry": {
+              "x": 76.83544897374621,
+              "y": 3.452192579562226
+            },
+            "section": 40
+          },
+          {
+            "frame": 62,
+            "target": 42,
+            "section": 40
+          },
+          {
+            "frame": 98,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 167,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 816.6666666666662,
+        "maxReverseMs": 816.6666666666662,
+        "groundHoleFrames": 0,
+        "steps": 168
+      },
+      {
+        "speed": 6,
+        "side": 1,
+        "index": 40,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 5,
+            "target": 41,
+            "section": 40
+          },
+          {
+            "frame": 10,
+            "target": 42,
+            "section": 40
+          },
+          {
+            "frame": 46,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 115,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 83.33333333333334,
+        "maxReverseMs": 83.33333333333334,
+        "groundHoleFrames": 0,
+        "steps": 116
+      },
+      {
+        "speed": 6,
+        "side": 1,
+        "index": 41,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 42,
+            "section": 41
+          },
+          {
+            "frame": 21,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 90,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 91
+      },
+      {
+        "speed": 12,
+        "side": -1,
+        "index": 40,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 3,
+            "target": 41,
+            "entry": {
+              "x": 80.00401819702876,
+              "y": 15.023052549697656
+            },
+            "section": 40
+          },
+          {
+            "frame": 29,
+            "target": 42,
+            "section": 40
+          },
+          {
+            "frame": 86,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 155,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 156
+      },
+      {
+        "speed": 12,
+        "side": -1,
+        "index": 41,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 42,
+            "section": 41
+          },
+          {
+            "frame": 42,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 111,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 112
+      },
+      {
+        "speed": 12,
+        "side": 0,
+        "index": 40,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 3,
+            "target": 41,
+            "entry": {
+              "x": 76.7691554380892,
+              "y": 3.4612724283824665
+            },
+            "section": 40
+          },
+          {
+            "frame": 59,
+            "target": 42,
+            "section": 40
+          },
+          {
+            "frame": 95,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 164,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 816.6666666666662,
+        "maxReverseMs": 816.6666666666662,
+        "groundHoleFrames": 0,
+        "steps": 165
+      },
+      {
+        "speed": 12,
+        "side": 1,
+        "index": 40,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 3,
+            "target": 41,
+            "section": 40
+          },
+          {
+            "frame": 9,
+            "target": 42,
+            "section": 40
+          },
+          {
+            "frame": 45,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 114,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 100.00000000000001,
+        "maxReverseMs": 100.00000000000001,
+        "groundHoleFrames": 0,
+        "steps": 115
+      },
+      {
+        "speed": 12,
+        "side": 1,
+        "index": 41,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 42,
+            "section": 41
+          },
+          {
+            "frame": 21,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 90,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 91
+      },
+      {
+        "speed": 15,
+        "side": -1,
+        "index": 40,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 3,
+            "target": 41,
+            "entry": {
+              "x": 79.86107991162378,
+              "y": 15.042629994304262
+            },
+            "section": 40
+          },
+          {
+            "frame": 27,
+            "target": 42,
+            "section": 40
+          },
+          {
+            "frame": 84,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 153,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 154
+      },
+      {
+        "speed": 15,
+        "side": -1,
+        "index": 41,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 42,
+            "section": 41
+          },
+          {
+            "frame": 42,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 111,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 112
+      },
+      {
+        "speed": 15,
+        "side": 0,
+        "index": 40,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 3,
+            "target": 41,
+            "entry": {
+              "x": 76.62651543844086,
+              "y": 3.4808090184842015
+            },
+            "section": 40
+          },
+          {
+            "frame": 58,
+            "target": 42,
+            "section": 40
+          },
+          {
+            "frame": 94,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 163,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 816.6666666666662,
+        "maxReverseMs": 816.6666666666662,
+        "groundHoleFrames": 0,
+        "steps": 164
+      },
+      {
+        "speed": 15,
+        "side": 1,
+        "index": 40,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 3,
+            "target": 41,
+            "section": 40
+          },
+          {
+            "frame": 10,
+            "target": 42,
+            "section": 40
+          },
+          {
+            "frame": 46,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 115,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 133.33333333333334,
+        "maxReverseMs": 133.33333333333334,
+        "groundHoleFrames": 0,
+        "steps": 116
+      },
+      {
+        "speed": 15,
+        "side": 1,
+        "index": 41,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 42,
+            "section": 41
+          },
+          {
+            "frame": 21,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 90,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 91
+      },
+      {
+        "speed": 24,
+        "side": -1,
+        "index": 40,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 30
+      },
+      {
+        "speed": 24,
+        "side": -1,
+        "index": 41,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 42,
+            "section": 41
+          },
+          {
+            "frame": 42,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 111,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 112
+      },
+      {
+        "speed": 24,
+        "side": 0,
+        "index": 40,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 19
+      },
+      {
+        "speed": 24,
+        "side": 1,
+        "index": 40,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 13
+      },
+      {
+        "speed": 24,
+        "side": 1,
+        "index": 41,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 8
+      },
+      {
+        "speed": 32,
+        "side": -1,
+        "index": 40,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 30
+      },
+      {
+        "speed": 32,
+        "side": -1,
+        "index": 41,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 42,
+            "section": 41
+          },
+          {
+            "frame": 42,
+            "target": 43,
+            "section": 41
+          },
+          {
+            "frame": 111,
+            "target": null,
+            "section": 42
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 112
+      },
+      {
+        "speed": 32,
+        "side": 0,
+        "index": 40,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 19
+      },
+      {
+        "speed": 32,
+        "side": 1,
+        "index": 40,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 13
+      },
+      {
+        "speed": 32,
+        "side": 1,
+        "index": 41,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 8
+      }
+    ],
+    "after": [
+      {
+        "speed": 0,
+        "side": -1,
+        "index": 48,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 20,
+            "target": 49,
+            "entry": {
+              "x": 55.38035507860114,
+              "y": 45.78262824875197
+            },
+            "section": 48
+          },
+          {
+            "frame": 26,
+            "target": 50,
+            "section": 48
+          },
+          {
+            "frame": 68,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 160,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 161
+      },
+      {
+        "speed": 0,
+        "side": -1,
+        "index": 49,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 50,
+            "section": 49
+          },
+          {
+            "frame": 27,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 119,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 120
+      },
+      {
+        "speed": 0,
+        "side": 0,
+        "index": 48,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 19,
+            "target": 49,
+            "entry": {
+              "x": 55.38035507860114,
+              "y": 45.78262824875197
+            },
+            "section": 48
+          },
+          {
+            "frame": 97,
+            "target": 50,
+            "section": 48
+          },
+          {
+            "frame": 139,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 231,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 232
+      },
+      {
+        "speed": 0,
+        "side": 1,
+        "index": 48,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 20,
+            "target": 49,
+            "entry": {
+              "x": 51.444937223618965,
+              "y": 28.174246206477683
+            },
+            "section": 48
+          },
+          {
+            "frame": 33,
+            "target": 50,
+            "section": 48
+          },
+          {
+            "frame": 90,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 182,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 183
+      },
+      {
+        "speed": 0,
+        "side": 1,
+        "index": 49,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 50,
+            "section": 49
+          },
+          {
+            "frame": 41,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 133,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 134
+      },
+      {
+        "speed": 6,
+        "side": -1,
+        "index": 48,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 6,
+            "target": 49,
+            "entry": {
+              "x": 55.38035507860114,
+              "y": 45.78262824875197
+            },
+            "section": 48
+          },
+          {
+            "frame": 11,
+            "target": 50,
+            "section": 48
+          },
+          {
+            "frame": 53,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 145,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 146
+      },
+      {
+        "speed": 6,
+        "side": -1,
+        "index": 49,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 50,
+            "section": 49
+          },
+          {
+            "frame": 27,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 119,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 120
+      },
+      {
+        "speed": 6,
+        "side": 0,
+        "index": 48,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 6,
+            "target": 49,
+            "entry": {
+              "x": 55.38035507860114,
+              "y": 45.78262824875197
+            },
+            "section": 48
+          },
+          {
+            "frame": 84,
+            "target": 50,
+            "section": 48
+          },
+          {
+            "frame": 126,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 218,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 219
+      },
+      {
+        "speed": 6,
+        "side": 1,
+        "index": 48,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 6,
+            "target": 49,
+            "entry": {
+              "x": 51.444937223618965,
+              "y": 28.174246206477683
+            },
+            "section": 48
+          },
+          {
+            "frame": 18,
+            "target": 50,
+            "section": 48
+          },
+          {
+            "frame": 75,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 167,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 168
+      },
+      {
+        "speed": 6,
+        "side": 1,
+        "index": 49,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 50,
+            "section": 49
+          },
+          {
+            "frame": 41,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 133,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 134
+      },
+      {
+        "speed": 12,
+        "side": -1,
+        "index": 48,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 3,
+            "target": 49,
+            "entry": {
+              "x": 55.38035507860114,
+              "y": 45.78262824875197
+            },
+            "section": 48
+          },
+          {
+            "frame": 8,
+            "target": 50,
+            "section": 48
+          },
+          {
+            "frame": 51,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 143,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 144
+      },
+      {
+        "speed": 12,
+        "side": -1,
+        "index": 49,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 50,
+            "section": 49
+          },
+          {
+            "frame": 27,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 119,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 120
+      },
+      {
+        "speed": 12,
+        "side": 0,
+        "index": 48,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 3,
+            "target": 49,
+            "entry": {
+              "x": 55.38035507860114,
+              "y": 45.78262824875197
+            },
+            "section": 48
+          },
+          {
+            "frame": 81,
+            "target": 50,
+            "section": 48
+          },
+          {
+            "frame": 123,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 215,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 216
+      },
+      {
+        "speed": 12,
+        "side": 1,
+        "index": 48,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 3,
+            "target": 49,
+            "entry": {
+              "x": 51.444937223618965,
+              "y": 28.174246206477683
+            },
+            "section": 48
+          },
+          {
+            "frame": 16,
+            "target": 50,
+            "section": 48
+          },
+          {
+            "frame": 73,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 165,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 166
+      },
+      {
+        "speed": 12,
+        "side": 1,
+        "index": 49,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 50,
+            "section": 49
+          },
+          {
+            "frame": 41,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 133,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 134
+      },
+      {
+        "speed": 15,
+        "side": -1,
+        "index": 48,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 3,
+            "target": 49,
+            "entry": {
+              "x": 55.38035507860114,
+              "y": 45.78262824875197
+            },
+            "section": 48
+          },
+          {
+            "frame": 7,
+            "target": 50,
+            "section": 48
+          },
+          {
+            "frame": 49,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 141,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 142
+      },
+      {
+        "speed": 15,
+        "side": -1,
+        "index": 49,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 50,
+            "section": 49
+          },
+          {
+            "frame": 27,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 119,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 120
+      },
+      {
+        "speed": 15,
+        "side": 0,
+        "index": 48,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 3,
+            "target": 49,
+            "entry": {
+              "x": 55.38035507860114,
+              "y": 45.78262824875197
+            },
+            "section": 48
+          },
+          {
+            "frame": 81,
+            "target": 50,
+            "section": 48
+          },
+          {
+            "frame": 123,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 215,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 216
+      },
+      {
+        "speed": 15,
+        "side": 1,
+        "index": 48,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 3,
+            "target": 49,
+            "entry": {
+              "x": 51.444937223618965,
+              "y": 28.174246206477683
+            },
+            "section": 48
+          },
+          {
+            "frame": 14,
+            "target": 50,
+            "section": 48
+          },
+          {
+            "frame": 71,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 163,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 164
+      },
+      {
+        "speed": 15,
+        "side": 1,
+        "index": 49,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 50,
+            "section": 49
+          },
+          {
+            "frame": 41,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 133,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 134
+      },
+      {
+        "speed": 24,
+        "side": -1,
+        "index": 48,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 17
+      },
+      {
+        "speed": 24,
+        "side": -1,
+        "index": 49,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 50,
+            "section": 49
+          },
+          {
+            "frame": 27,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 119,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 120
+      },
+      {
+        "speed": 24,
+        "side": 0,
+        "index": 48,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 19
+      },
+      {
+        "speed": 24,
+        "side": 1,
+        "index": 48,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 22
+      },
+      {
+        "speed": 24,
+        "side": 1,
+        "index": 49,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 50,
+            "section": 49
+          },
+          {
+            "frame": 41,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 133,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 134
+      },
+      {
+        "speed": 32,
+        "side": -1,
+        "index": 48,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 17
+      },
+      {
+        "speed": 32,
+        "side": -1,
+        "index": 49,
+        "launches": 0,
+        "bypassSide": -1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 50,
+            "section": 49
+          },
+          {
+            "frame": 27,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 119,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 120
+      },
+      {
+        "speed": 32,
+        "side": 0,
+        "index": 48,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 19
+      },
+      {
+        "speed": 32,
+        "side": 1,
+        "index": 48,
+        "launches": 1,
+        "route": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 22
+      },
+      {
+        "speed": 32,
+        "side": 1,
+        "index": 49,
+        "launches": 0,
+        "bypassSide": 1,
+        "route": [
+          {
+            "frame": 0,
+            "target": 50,
+            "section": 49
+          },
+          {
+            "frame": 41,
+            "target": 51,
+            "section": 49
+          },
+          {
+            "frame": 133,
+            "target": null,
+            "section": 50
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "groundHoleFrames": 0,
+        "steps": 134
+      }
+    ]
+  },
+  "forcedCollision": {
+    "diagnostics": [
+      {
+        "kart": 36,
+        "rail": 1,
+        "tree": 0,
+        "holeEdge": 0,
+        "backwardRailRebounds": 0,
+        "launches": [],
+        "landings": 0,
+        "missed": 0,
+        "failedLaunches": 1,
+        "bypassExits": 1,
+        "bypasses": [
+          {
+            "index": 48,
+            "side": 1,
+            "speed": 12.595889799615211,
+            "entry": {
+              "x": 51.444937223618965,
+              "y": 28.174246206477683
+            }
+          }
+        ],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "off": 0,
+        "steps": 1547,
+        "hitSections": {
+          "1": 18,
+          "2": 7,
+          "3": 6,
+          "13": 1,
+          "19": 4,
+          "48": 1
+        },
+        "reverseSections": {},
+        "rivalRampHits": 0,
+        "rivalLaunches": 5,
+        "rivalLandings": 5,
+        "skippedFinish": 0,
+        "lavaBeforeRamp": 0
+      },
+      {
+        "kart": 155,
+        "rail": 0,
+        "tree": 0,
+        "holeEdge": 0,
+        "backwardRailRebounds": 0,
+        "launches": [
+          {
+            "index": 48,
+            "speed": 24.000984289121323
+          }
+        ],
+        "landings": 1,
+        "missed": 0,
+        "failedLaunches": 0,
+        "bypassExits": 0,
+        "bypasses": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "off": 0,
+        "steps": 1311,
+        "hitSections": {
+          "1": 5,
+          "2": 31,
+          "11": 7,
+          "12": 17,
+          "13": 12,
+          "18": 1,
+          "20": 1,
+          "21": 13,
+          "22": 13,
+          "23": 6,
+          "24": 7,
+          "25": 7,
+          "26": 11,
+          "27": 11,
+          "28": 11,
+          "29": 2
+        },
+        "reverseSections": {},
+        "rivalRampHits": 2,
+        "rivalLaunches": 5,
+        "rivalLandings": 5,
+        "skippedFinish": 0,
+        "lavaBeforeRamp": 0
+      },
+      {
+        "kart": 0,
+        "rail": 0,
+        "tree": 0,
+        "holeEdge": 0,
+        "backwardRailRebounds": 0,
+        "launches": [
+          {
+            "index": 48,
+            "speed": 24.02724182651388
+          }
+        ],
+        "landings": 1,
+        "missed": 0,
+        "failedLaunches": 0,
+        "bypassExits": 0,
+        "bypasses": [],
+        "reverseMs": 0,
+        "maxReverseMs": 0,
+        "off": 0,
+        "steps": 1369,
+        "hitSections": {},
+        "reverseSections": {},
+        "rivalRampHits": 0,
+        "rivalLaunches": 5,
+        "rivalLandings": 5,
+        "skippedFinish": 0,
+        "lavaBeforeRamp": 0
+      }
+    ],
+    "collisionInjected": true,
+    "maxReverseMs": 0,
+    "level": 27,
+    "mode": "play",
+    "period": 150,
+    "fps": 12,
+    "graphicsCalls": 400,
+    "observations": [
+      0,
+      250,
+      499.99999999999994
+    ],
+    "applied": [
+      333.3333333333333,
+      583.3333333333333,
+      833.3333333333334
+    ],
+    "hits": 192,
+    "lapTimesMs": [
+      25783.333333333336,
+      21850,
+      22816.666666666668
+    ],
+    "frames": 847,
+    "raceMs": 70450,
+    "laps": 3,
+    "place": 1,
+    "status": "won",
+    "moves": 281,
+    "special": false,
+    "off": 0,
+    "maxStopMs": 250,
+    "noiseSeed": 736086231
+  },
+  "collisionPhasesAtContact": {
+    "before": {
+      "rows": [
+        {
+          "approach": 722,
+          "air": 25,
+          "landing": 2
+        },
+        {
+          "approach": 24,
+          "air": 0,
+          "landing": 0
+        },
+        {
+          "approach": 0,
+          "air": 0,
+          "landing": 0
+        }
+      ],
+      "raceMs": 149933.33333333334
+    },
+    "after": {
+      "rows": [
+        {
+          "approach": 0,
+          "air": 0,
+          "landing": 0
+        },
+        {
+          "approach": 0,
+          "air": 0,
+          "landing": 0
+        },
+        {
+          "approach": 0,
+          "air": 0,
+          "landing": 0
+        }
+      ],
+      "raceMs": 67866.66666666667
+    },
+    "samplePosition": "At the contact; the main counter samples zone membership before the physics step."
+  }
+}

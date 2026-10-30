@@ -53,14 +53,14 @@ async function mount(game, id) {
     const scene = new Scene(session), calls = [];
     const g = new Proxy({}, { get: (_, method) => (...args) => { calls.push([method, ...args]); return g; } });
     const textures = new Set();
-    scene.textures = { exists: key => textures.has(key) };
+    scene.textures = { exists: key => textures.has(key), remove: key => textures.delete(key) };
     scene.make = { graphics: () => new Proxy({}, { get: (_, method) => (...args) => {
         if (method === 'generateTexture') textures.add(args[0]);
         return g;
     } }) };
     const image = () => {
         const sprite = { texture: { key: '' } };
-        for (const method of ['setTexture', 'setPosition', 'setDisplaySize', 'setRotation', 'setAlpha', 'setDepth', 'setVisible', 'destroy']) sprite[method] = (...args) => {
+        for (const method of ['setTexture', 'setPosition', 'setDisplaySize', 'setRotation', 'setAlpha', 'setDepth', 'setVisible', 'setOrigin', 'setScale', 'destroy']) sprite[method] = (...args) => {
             if (method === 'setTexture') sprite.texture.key = args[0];
             return sprite;
         };
@@ -89,8 +89,10 @@ async function mount(game, id) {
             assert.deepEqual(actual, expected, 'Scene submits each actor own geometry');
         };
     }
-    const frame = (ms = 0) => { calls.length = 0; draws.length = 0; actors.length = 0; drawOffsets.length = 0; scene.update(0, ms); };
-    const cleanup = () => { scene.paint?.destroy(); scene.inputs.dispose(); inputs.dispose(); };
+    let timestamp = 0;
+    scene.update(0, 0);
+    const frame = (ms = 0) => { if (game === 'derapage' && scene.previousFrame === undefined) scene.update(timestamp, 0); timestamp += ms; calls.length = 0; draws.length = 0; actors.length = 0; drawOffsets.length = 0; scene.update(timestamp, ms); };
+    const cleanup = () => { scene.road?.destroy(); scene.paint?.destroy(); scene.inputs.dispose(); inputs.dispose(); };
     return { scene, session: scene.session, frame, draws, actors, drawOffsets, calls, cleanup, engine: scene.engine, hero: scene.hero };
 }
 setMaxListeners(0);

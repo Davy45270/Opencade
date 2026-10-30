@@ -1,0 +1,57 @@
+body.gourmandises #touch-controls {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+}
+body.gourmandises #touch-controls .touch-slot:empty {
+    display: none;
+}
+body.gourmandises #touch-controls .touch-slot.center {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 8px;
+}
+body.gourmandises #touch-controls button {
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    font-size: 16px;
+}
+body.gourmandises #touch-controls button[aria-pressed="true"] {
+    outline: 3px solid #fff1a5;
+    background: #626337;
+}
+body.gourmandises #touch-controls button {
+    position: relative;
+    width: 64px;
+    height: 64px;
+    border-radius: 50%;
+    border: 3px solid #d7fbff;
+    background: linear-gradient(#60e9ff, #167cce);
+    box-shadow: 0 4px 0 #194987, 0 5px 12px #162b4c66;
+}
+body.gourmandises #touch-controls button canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+body.gourmandises .tool-count {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    min-width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: #fa4598;
+    border: 2px solid white;
+    color: white;
+    font: bold 16px/20px system-ui;
+}
+body.gourmandises #touch-controls button:disabled {
+    filter: grayscale(1);
+    opacity: 0.55;
+}
+body.gourmandises #touch-controls button[aria-pressed="true"] {
+    background: linear-gradient(#fff6a0, #ffbc42);
+    box-shadow: 0 0 18px #fff99d;
+}

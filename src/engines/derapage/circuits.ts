@@ -1,9 +1,15 @@
 import { required } from './access';
 /** Hand-drawn world coordinates; width belongs to the outgoing section. */
 export interface Circuit {
-    name: string; family: string; theme: { ground: number; border: number; decor: number; urban: boolean };
+    name: string; family: string; theme: { ground: number; border: number; decor: number; urban: boolean; kart?: 'bamboo' | 'autumn' | 'volcano'; road?: number };
     controls: readonly (readonly [number, number, number])[];
     tunnel: number[]; port: number[]; elevation: number[];
+    shortcut?: { from: number; to: number; width: number };
+    hazardWidthFraction?: number;
+    leaves?: number[]; lava?: number[]; gap?: number[]; gapEnd?: number;
+    forwardRails?: boolean;
+    jumpLanes?: boolean;
+    bypassEntryInset?: number;
     plaza: boolean;
     gates: number[]; snow: number[]; berms: number[]; jumps: number[];
 }
@@ -59,6 +65,13 @@ export const circuits: readonly Circuit[] = legacyCircuits.map((c, i) => {
         const easy = required(legacyCircuits[4]);
         return { ...easy, controls: easy.controls.map(([x, y]) => [x, y, 28] as const) };
     }
+    // Broad approaches leave room for a thumb command arriving several images late.
+    // Preserve the separate shortcut and all terrain mechanics.
+    if (i === 17) return { ...c, controls: [[-80,-60,26],[5,-65,27],[75,-35,26],[95,25,27],[45,65,26],[0,55,27],[-55,70,26],[-90,20,27],[-65,-15,26]], name: 'Bambou Express', theme: { ground: 0x164e38, border: 0xe7c48a, decor: 0x77bb36, urban: false, kart: 'bamboo', road: 0xb9864c }, shortcut: { from: 65, to: 79, width: 4 } };
+    if (i === 19) return { ...c, controls: [[-90,-50,26],[-10,-60,27],[45,-37.5,26],[95,-45,27],[105,20,26],[50,47.5,27],[10,30,26],[-20,67.5,27],[-85,50,26],[-72.5,0,27]], name: 'Feuilles Folles', theme: { ground: 0x6d382e, border: 0xffcf73, decor: 0xf0782c, urban: false, kart: 'autumn', road: 0xc8783e }, hazardWidthFraction: .2, leaves: [19,20,21,43,44,45,67,68], tunnel: [3] };
+    // Keep the launch on the straight after the broad right bend, with room
+    // for a delayed thumb correction both before take-off and after landing.
+    if (i === 26) return { ...c, forwardRails: true, jumpLanes: true, bypassEntryInset: .15, controls: [[-100,-55,26],[60,-65,27],[110,-20,28],[95,35,28],[40,35,28],[10,65,26],[-45,75,26],[-100,35,26],[-115,-10,26]], name: 'Volcan Turbo', theme: { ground: 0x281f32, border: 0x9b7383, decor: 0x635064, urban: false, kart: 'volcano', road: 0x484252 }, hazardWidthFraction: .2, lava: [20,21,22,60,61], jumps: [48], gap: [49], gapEnd: .65 };
     return i === 4 ? required(legacyCircuits[0]) : c;
 });
 export const circuitKey = (level: number): string => required(circuits[level]).name;

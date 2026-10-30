@@ -304,3 +304,6 @@ body.essaim .touch-slot { flex-direction: row; flex-wrap: nowrap; }
 
 /* Keep card artwork aligned when a title wraps onto its second line. */
 .card-content strong { min-height: 2.4em; max-height: 2.4em; overflow: hidden; }
+/* Pépites: two thumbs, directions on both sides, Étai in the middle. */
+body.pepites #touch-controls { justify-content: space-between; gap: 4px; }
+body.pepites #touch-controls button { width: 56px; height: 56px; padding: 0; font-size: 16px; }

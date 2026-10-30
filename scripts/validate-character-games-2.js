@@ -6,6 +6,7 @@ import { mutationModule } from './mutation-module.js';
 const checks = await import('../tests/character-games-2-checks.ts');
 const { rendered } = await import('../tests/character-games-checks.ts');
 const { Engine: Race } = await import('../src/engines/derapage/engine.ts');
+const { HistoricalBoostEngine: HistoricalRace } = await import('../tests/derapage-historical-boosts.ts');
 const { Engine: Snake, difficulty } = await import('../src/engines/serpentin/engine.ts');
 const { Engine: Bubble } = await import('../src/engines/bubble/engine.ts');
 const { solutions } = await import('../tests/bubble-solutions.ts');
@@ -34,7 +35,8 @@ for (let level = 0; level < 30; level++) {
         // on every other track. The 30 complete ordinary historical races remain
         // hashed at every step in validate-derapage. Full audit runs both modes.
         if (process.argv.includes('--checks-only') && mode === 0 && level !== 0 && level !== 29) continue;
-        const e = new Race(level), active = new Set(proof.activations);
+        // Frozen special-campaign evidence predates the full-width strips.
+        const e = new HistoricalRace(level), active = new Set(proof.activations);
         const shortReplay = process.argv.includes('--checks-only') && ![0, 9, 29].includes(level);
         // Keep the full historical witness, with independently timed bounded batches.
         for (let first = 0; first < proof.inputs.length; first += 100) {
@@ -120,7 +122,7 @@ for (const [game, before, after] of [
     ['derapage', 'k.specialLap === k.lap', 'false'],
     ['bubble', 'trajectory.target.color = struck.color', 'trajectory.target.color = this.next'],
     ['bubble', 'this.specialUses === 0', 'this.specialUses < 0'],
-    ['bubble', "struck.kind !== 'star')", "struck.kind !== 'star' && struck.kind !== 'bomb')"],
+    ['bubble', 'if (this.specialArmed && struck && matchable(struck)) {', "if (this.specialArmed && struck && matchable(struck) && struck.kind !== 'bomb') {"],
     ['serpentin', 'if (!this.specialArmed)', 'if (true)'],
     ['serpentin', 'this.specialUses === 0', 'this.specialUses < 0'],
 ]) {

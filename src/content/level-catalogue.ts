@@ -9,4 +9,7 @@ export const levelCatalogue = [
     { code: 'G01', game: 'essaim', index: 6, name: 'Ceinture de bambou', feature: 'Astéroïdes verts, formation en pince et mines' },
     { code: 'G02', game: 'essaim', index: 8, name: 'Nébuleuse écarlate', feature: 'Chasseurs rapides, météores et tirs en éventail' },
     { code: 'G03', game: 'essaim', index: 14, name: 'Royaume des étoiles', feature: 'Anneaux concentriques et gardien à deux phases' },
+    { code: 'K01', game: 'derapage', index: 17, name: 'Bambou Express', feature: 'Raccourci étroit derrière la cascade et ponts de bois' },
+    { code: 'K02', game: 'derapage', index: 19, name: 'Feuilles Folles', feature: 'Feuilles glissantes et tunnel dans la forêt orange' },
+    { code: 'K03', game: 'derapage', index: 26, name: 'Volcan Turbo', feature: 'Lave, tremplin et pont effondré avec contournement lent' },
 ] as const;

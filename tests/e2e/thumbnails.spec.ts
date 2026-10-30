@@ -7,12 +7,21 @@ async function pixels(page: Page, id: string) {
         return Array.from(c.getImageData(0, 0, canvas.width, canvas.height).data);
     });
 }
-test('V04–V05 treize vignettes non vides et animées', async ({ page }) => {
+test('V04–V05 quinze vignettes non vides et animées', async ({ page }) => {
     await page.goto('/?test=1#/');
     const canvases = page.locator('.game-thumbnail');
-    await expect(canvases).toHaveCount(13);
+    await expect(canvases).toHaveCount(15);
     for (const canvas of await canvases.all()) {
         await canvas.scrollIntoViewIfNeeded();
+        await canvas.evaluate(element => new Promise<void>(resolve => {
+            const observer = new IntersectionObserver(entries => {
+                if (entries.some(entry => entry.isIntersecting && entry.intersectionRatio === 1)) {
+                    observer.disconnect();
+                    resolve();
+                }
+            }, { threshold: 1 });
+            observer.observe(element);
+        }));
         const id = await canvas.getAttribute('data-game');
         if (!id) throw new Error('Identifiant absent');
         await expect.poll(() => page.evaluate(id => window.__ARCADE_TEST__?.thumbnails()[id] ?? 0, id)).toBeGreaterThan(0);
@@ -27,6 +36,7 @@ test('V04–V05 treize vignettes non vides et animées', async ({ page }) => {
 test('V06 reduce : une seule image fixe', async ({ page }) => {
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.goto('/?test=1#/');
+    await page.locator('canvas[data-game="ferraille"]').scrollIntoViewIfNeeded();
     await expect.poll(() => page.evaluate(() => window.__ARCADE_TEST__?.thumbnails().ferraille ?? 0)).toBe(1);
     const before = await pixels(page, 'ferraille');
     await page.waitForTimeout(600);
@@ -35,6 +45,8 @@ test('V06 reduce : une seule image fixe', async ({ page }) => {
 });
 test('V07 sortie et retour arrêtent puis relancent les compteurs', async ({ page }) => {
     await page.goto('/?test=1#/');
+    const thumbnail = page.locator('canvas[data-game="ferraille"]');
+    await thumbnail.scrollIntoViewIfNeeded();
     await expect.poll(() => page.evaluate(() => window.__ARCADE_TEST__?.thumbnails().ferraille ?? 0)).toBeGreaterThan(1);
     await page.locator('.game-card').first().click();
     await expect(page.locator('#home')).toBeHidden();
@@ -42,6 +54,7 @@ test('V07 sortie et retour arrêtent puis relancent les compteurs', async ({ pag
     await page.waitForTimeout(600);
     expect(await page.evaluate(() => window.__ARCADE_TEST__?.thumbnails())).toEqual(before);
     await page.evaluate(() => { location.hash = '/'; });
+    await thumbnail.scrollIntoViewIfNeeded();
     await expect.poll(() => page.evaluate(() => window.__ARCADE_TEST__?.thumbnails().ferraille ?? 0)).toBeGreaterThan(before?.ferraille ?? 0);
 });
 test('V08 deux colonnes à 390 pixels sans débordement', async ({ page }) => {

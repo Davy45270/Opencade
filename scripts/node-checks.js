@@ -4,10 +4,14 @@ export const nodeChecks = [
     ...['derapage', 'character-games-2', 'orbite', 'essaim', 'ferraille',
         'caisses', 'briqueterie', 'character-scenes-2', 'characters',
         'character-finger-4', 'character-games-4', 'character-games', 'character-scenes', 'character-games-3', 'character-scenes-3', 'character-finger-3', 'empilo', 'alunir', 'arcade-art', 'bubble',
-        'character-snake-policy', 'finger', 'action-art', 'action-scenes', 'level-catalogue', 'dedale', 'pass76', 'regressions', 'serpentin', 'traverse']
+        'character-snake-policy', 'finger', 'action-art', 'action-scenes', 'level-catalogue', 'dedale', 'pass76', 'regressions', 'serpentin', 'traverse', 'pepites']
         .map(name => [`validate-${name}.js`, '--checks-only']),
     ['validate-ferraille-levels.js', '--checks-only'],
     ['validate-collier.js'],
+    ['validate-gourmandises.js'],
+    ['check-derapage-3d.js'],
+    ['check-derapage-cadence.js'],
+    ['check-level-catalogue-kart.js'],
     ['check-essaim-art.js'],
     ['check-essaim-signature-art.js'],
     ['check-essaim-geometry.js'],
@@ -17,6 +21,6 @@ export const nodeChecks = [
     ['test-dedale.js'],
     ['test-pwa.js'],
     ['measure-thumbnails.js'],
-    // bubble-input-check, check-derapage-joystick-mutations and
-    // validate-derapage-historical are already imported by the validators above.
+    // bubble-input-check and validate-derapage-historical are imported above.
+    // Dérapage mutation audits are explicit offline commands.
 ];

@@ -10,7 +10,7 @@ import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { EssaimArt } from './art';
 export const essaimButtons: readonly TouchButton[] = [
-    { id: 'essaim-special', label: 'Bouclier', ariaLabel: 'Bouclier', size: 56, placement: 'right', mode: 'tap' },
+    { id: 'essaim-special', label: 'Écu', ariaLabel: 'Bouclier', size: 56, placement: 'right', mode: 'tap' },
     { id: 'essaim-left', label: '←', ariaLabel: 'Vaisseau à gauche', size: 56, placement: 'left', mode: 'hold' },
     { id: 'essaim-right', label: '→', ariaLabel: 'Vaisseau à droite', size: 56, placement: 'left', mode: 'hold' },
     { id: 'essaim-fire', label: 'Tir', ariaLabel: 'Tir', size: 64, placement: 'right', mode: 'hold' },

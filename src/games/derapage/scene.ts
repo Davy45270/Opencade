@@ -1,3 +1,7 @@
+import { Cadence, draw3d, screenHeading, type RenderCost } from './view3d';
+import { beginThumb, moveThumb, thumbDirection, thumbIntensity, acceptsThumb, type Thumb } from './joystick';
+import { RoadLayer, inView } from './road';
+import { kartLandscape, kartRoadArt, kartTree } from './kart-art';
 import { others } from '../../characters/selection';
 import { GameCharacter } from '../../characters/game';
 import { arcadeArt, bonusEmblem, emblems, liveries, vehicleDrawing, type Emblem } from '../../characters/arcade-art';
@@ -7,9 +11,9 @@ import { renderCharacter } from '../../characters/canvas';
 import { required } from '../../engines/derapage/access';
 import Phaser from 'phaser';
 import { Engine, LEVELS } from '../../engines/derapage/engine';
-import { analogSteer, joystickHeading } from '../../engines/derapage/physics';
+import { analogSteer } from '../../engines/derapage/physics';
 import { circuitKey } from '../../engines/derapage/circuits';
-import { nearest, at } from '../../engines/derapage/track';
+import { nearest, at, boostStrip } from '../../engines/derapage/track';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
 import { Progression } from '../../shell/progression';
@@ -28,6 +32,7 @@ export const derapageButtons: readonly TouchButton[] = [
     { id: 'derapage-bonus', label: 'Bonus', ariaLabel: 'Bonus', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface DerapageHook {
+    view(): { preferred: string; active: string; fallback: boolean; fps: number; elapsed: number; cost: RenderCost };
     art(): string[];
     overview(enabled: boolean): void;
     read(): ReturnType<Engine['snapshot']> & { character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
@@ -62,7 +67,12 @@ declare global {
     }
 }
 export class DerapageScene extends Phaser.Scene {
+    private view3d = false;
+    private cadence = new Cadence();
+    private renderCost: RenderCost = { lines: 0, samples: 0, segmentChecks: 0, boostChecks: 0, sprites: 0 };
+    private get active3d(): boolean { return this.view3d && !this.cadence.fallback; }
     private recordedLaps = 0;
+    private lapCrossedAt = -Infinity;
     private newRecord = false;
     private hero = new GameCharacter();
     private rivals = others(this.hero.id).map(id => new GameCharacter(id));
@@ -73,14 +83,31 @@ export class DerapageScene extends Phaser.Scene {
     private manual = false;
     private overviewMode = false;
     private graphics?: Phaser.GameObjects.Graphics;
+    private background?: Phaser.GameObjects.Graphics;
+    private road?: RoadLayer;
+    private previousFrame?: number;
+    private hudContent = '';
+    private normalTrack?: Engine['track'];
+    private normals: ReturnType<typeof nearest>[] = [];
+    private normalAt(t: Engine['track'], index: number): ReturnType<typeof nearest> {
+        if (this.normalTrack !== t) {
+            this.normalTrack = t;
+            this.normals = t.points.map(p => nearest(t, p));
+        }
+        return required(this.normals[index]);
+    }
     private paint?: ArcadePaint;
+    private hud3d?: Phaser.GameObjects.Graphics;
+    private propCount = 0;
+    private props3d: Phaser.GameObjects.Graphics[] = [];
+    private rearTextures = new Map<string, string>();
     private kartTextures = new Map<string, string>();
     private emblemTextures = new Map<Emblem, string>();
     private resultArt?: HTMLCanvasElement;
     private hud?: HTMLElement;
     private held = new Set<string>();
     private pointer = 0;
-    private thumb: { id: number; x: number; y: number; dx: number; dy: number } | null = null;
+    private thumb: Thumb | null = null;
     private cameraFixed = true;
     private assistance = true;
     private heading: number | undefined;
@@ -92,6 +119,7 @@ export class DerapageScene extends Phaser.Scene {
     private mouseEnabled = false;
     private pendingBonus = false;
     private soundFrame = 0;
+    private sceneTime = 0;
     private traces: {
         x: number;
         y: number;
@@ -118,6 +146,7 @@ export class DerapageScene extends Phaser.Scene {
     }
     private start(i: number, seed?: number, fresh = false): void {
         this.recordedLaps = 0;
+        this.lapCrossedAt = -Infinity;
         this.newRecord = false;
         this.manual = false;
         this.held.clear();
@@ -132,7 +161,21 @@ export class DerapageScene extends Phaser.Scene {
         this.panels();
     }
     create(): void {
+        this.previousFrame = undefined;
+        this.hudContent = '';
         document.body.classList.add('derapage');
+        this.view3d = this.progress.save.view === '3d';
+        const view = document.createElement('button');
+        view.id = 'derapage-view'; view.style.minHeight = view.style.minWidth = '44px';
+        const refreshView = (): void => { view.textContent = `Vue : ${this.view3d ? '3D' : 'dessus'}`; };
+        refreshView(); document.querySelector('#game-menu')?.append(view);
+        this.inputs.on(view, 'click', () => {
+            this.view3d = this.cadence.fallback || !this.view3d; this.cadence = new Cadence();
+            this.progress.save.view = this.view3d ? '3d' : 'top';
+            writeSave(browserStorage(), this.progress.save, 'derapage');
+            this.thumb = null; this.heading = undefined; this.pointer = 0; refreshView(); this.draw();
+        });
+        this.inputs.cleanup(() => { view.remove(); });
         try {
             const saved = JSON.parse(readValue(browserStorage(), 'arcade-lab:derapage:controls:v1') ?? 'null') as { camera?: string; assist?: boolean } | null;
             this.cameraFixed = saved?.camera !== 'rotating';
@@ -151,17 +194,20 @@ export class DerapageScene extends Phaser.Scene {
             });
             this.inputs.cleanup(() => { button.remove(); });
         }
-        const cleanup = (): void => { this.inputs.dispose(); this.paint?.destroy(); this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
+        const cleanup = (): void => { this.inputs.dispose(); this.road?.destroy(); this.paint?.destroy(); for (const prop of this.props3d) prop.destroy(); this.props3d = []; this.propCount = 0; this.hud3d?.destroy(); this.hud3d = undefined; this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
-        this.graphics = this.add.graphics();
+        this.background = this.add.graphics().setDepth(-1);
+        this.road = new RoadLayer(this);
+        this.graphics = this.add.graphics().setDepth(1);
         this.paint = new ArcadePaint(this, 96);
         for (const id of ids) for (const expression of expressions) this.kartTextures.set(`${id}-${expression}`, this.paint.texture(`kart-${id}-${expression}`, vehicleDrawing(id, 'dessus', expression)));
+        for (const id of ids) for (const expression of expressions) this.rearTextures.set(`${id}-${expression}`, this.paint.texture(`rear-${id}-${expression}`, vehicleDrawing(id, 'arriere', expression)));
         for (const kind of Object.keys(emblems) as Emblem[]) this.emblemTextures.set(kind, this.paint.texture(`emblem-${kind}`, emblems[kind], 80));
         this.hud = document.createElement('div');
         this.hud.setAttribute('aria-live', 'off');
         this.hud.dataset.derapageHud = 'true';
-        this.hud.style.cssText = 'position:fixed;pointer-events:none;white-space:pre;color:#effaff;font-family:system-ui;line-height:1.3;z-index:1';
+        this.hud.style.cssText = 'position:fixed;pointer-events:none;white-space:pre;color:#effaff;font-family:system-ui;line-height:1.1;z-index:1';
         document.querySelector('#game')?.append(this.hud);
         const action = (id: string, held: boolean): void => {
             if (!held) { this.held.delete(id); return; }
@@ -185,19 +231,19 @@ export class DerapageScene extends Phaser.Scene {
         this.inputs.on(window, 'blur', () => { this.held.clear(); this.pointer = 0; this.thumb = null; });
         const area = document.querySelector<HTMLElement>('#game');
         if (area) {
-            this.inputs.on(area, 'pointerdown', event => { const e = event as PointerEvent; if (e.pointerType !== 'mouse' && !this.thumb && e.target === this.game.canvas && (!this.cameraFixed || (e.clientY - this.game.canvas.getBoundingClientRect().top) * 640 / this.game.canvas.getBoundingClientRect().height >= 96)) {
+            this.inputs.on(area, 'pointerdown', event => { const e = event as PointerEvent; if (e.pointerType !== 'mouse' && !this.thumb && acceptsThumb(e.target === this.game.canvas, e.clientY, this.game.canvas.getBoundingClientRect().top, this.game.canvas.getBoundingClientRect().height, this.active3d || this.cameraFixed)) {
                 e.preventDefault();
                 area.setPointerCapture(e.pointerId);
-                this.thumb = { id: e.pointerId, x: e.clientX, y: e.clientY, dx: 0, dy: 0 };
+                this.thumb = beginThumb(e.pointerId,e.clientX,e.clientY);
                 this.pointer = 0;
                 action('steering', true);
             } });
-            this.inputs.on(area, 'pointermove', event => { const e = event as PointerEvent; if (e.pointerId === this.thumb?.id) { this.thumb.dx = e.clientX - this.thumb.x; this.thumb.dy = e.clientY - this.thumb.y; this.pointer = analogSteer(this.thumb.dx); } if (e.pointerType === 'mouse' && this.mouseEnabled) {
+            this.inputs.on(area, 'pointermove', event => { const e = event as PointerEvent; if (e.pointerId === this.thumb?.id) { moveThumb(this.thumb,e.clientX,e.clientY); this.pointer = analogSteer(this.thumb.dx); } if (e.pointerType === 'mouse' && this.mouseEnabled) {
                 const r = area.getBoundingClientRect();
                 this.pointer = Math.max(-1, Math.min(1, 2 * (e.clientX - r.left) / r.width - 1));
             } });
             for (const type of ['pointerup', 'pointercancel', 'lostpointercapture'])
-                this.inputs.on(area, type, event => { if ((event as PointerEvent).pointerType === 'mouse') this.pointer = 0; if ((event as PointerEvent).pointerId === this.thumb?.id) { this.thumb = null; this.pointer = 0; this.heading = undefined; this.engine.input({ steer: 0, mode: this.cameraFixed ? 'joystick' : undefined, drift: this.held.has('drift'), bonus: false }); } });
+                this.inputs.on(area, type, event => { if ((event as PointerEvent).pointerType === 'mouse') this.pointer = 0; if ((event as PointerEvent).pointerId === this.thumb?.id) { this.thumb = null; this.pointer = 0; this.heading = undefined; this.engine.input({ steer: 0, mode: this.active3d || this.cameraFixed ? 'joystick' : undefined, drift: this.held.has('drift'), bonus: false }); } });
         }
         // Optional sensors are enabled by an explicit user gesture; failures are silent.
         const help = document.querySelector('#game-help');
@@ -224,6 +270,7 @@ export class DerapageScene extends Phaser.Scene {
         this.game.canvas.setAttribute('aria-label', 'Dérapage : course de karts, vue de dessus');
         if (new URLSearchParams(location.search).get('test') === '1')
             window.__DERAPAGE_TEST__ = {
+                view: () => ({ preferred: this.view3d ? '3d' : 'top', active: this.active3d ? '3d' : 'top', fallback: this.cadence.fallback, fps: this.cadence.fps, elapsed: this.cadence.elapsed, cost: this.renderCost }),
                 art: () => this.paint?.keys() ?? [],
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
                 read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); },
@@ -284,16 +331,29 @@ export class DerapageScene extends Phaser.Scene {
             this.tiltEnabled = false;
         }
     }
-    updatePaused(): void { this.tick(0); }
-    update(_time: number, delta: number): void { this.tick(this.manual ? 0 : delta); }
+    updatePaused(): void { this.previousFrame = undefined; this.tick(0); }
+    update(time: number): void {
+        // Phaser's smoothed delta discards long frames. Use its raw timestamp,
+        // cap hidden-tab gaps, and leave fixed stepping to the engine.
+        const elapsed = this.previousFrame === undefined ? 0 : Math.max(0, time - this.previousFrame);
+        this.previousFrame = time;
+        const delta = Math.min(250, elapsed);
+        this.sceneTime = time;
+        if (this.active3d && !this.manual && !this.session.paused && !this.selecting && this.engine.status === 'playing') {
+            this.cadence.add(elapsed);
+            if (this.cadence.fallback) { this.thumb = null; this.heading = undefined; this.pointer = 0; }
+        }
+        this.tick(this.manual ? 0 : delta);
+    }
     private tick(ms: number): void {
         if (this.selecting || this.session.paused) { this.held.clear(); this.pointer = 0; this.thumb = null; this.pendingBonus = false; }
         if (!this.selecting && !this.session.paused) {
             const k = required(this.engine.karts[0]), hits = k.hits, boost = k.boostMs;
             const dx = Number(this.held.has('right')) - Number(this.held.has('left'));
             const dy = Number(this.held.has('down')) - Number(this.held.has('up'));
-            this.heading = dx || dy ? Math.atan2(dy, dx) : this.thumb ? joystickHeading(this.thumb.dx, this.thumb.dy) : undefined;
-            this.engine.input({ mode: this.cameraFixed ? 'joystick' : undefined, heading: this.heading, assist: this.assistance, steer: Number(this.held.has('right')) - Number(this.held.has('left')) + this.pointer + (this.tiltEnabled ? this.tilt : 0), drift: this.held.has('drift'), bonus: this.pendingBonus });
+            this.heading = dx || dy ? Math.atan2(dy, dx) : thumbDirection(this.thumb);
+            if (this.active3d) this.heading = screenHeading(this.heading, k.angle);
+            this.engine.input({ mode: this.active3d || this.cameraFixed ? 'joystick' : undefined, heading: this.heading, assist: this.assistance, steer: Number(this.held.has('right')) - Number(this.held.has('left')) + this.pointer + (this.tiltEnabled ? this.tilt : 0), drift: this.held.has('drift'), bonus: this.pendingBonus });
             this.pendingBonus = false;
             this.engine.step(ms);
             if (k.hits > hits) {
@@ -307,13 +367,15 @@ export class DerapageScene extends Phaser.Scene {
                 sound.playEffect(n.distance > required(this.engine.track.widths[n.index]) / 2 ? 'grass' : k.driftMs > 0 ? 'drift' : 'engine');
                 this.soundFrame = this.engine.frames;
             }
-            if ((k.driftMs > 0 || nearest(this.engine.track, k).distance > required(this.engine.track.widths[nearest(this.engine.track, k).index]) / 2) && ms > 0) {
+            const surface = nearest(this.engine.track, k);
+            if ((k.driftMs > 0 || surface.distance > required(this.engine.track.widths[surface.index]) / 2) && ms > 0) {
                 this.traces.push({ x: k.x, y: k.y });
                 if (this.traces.length > 60)
                     this.traces.shift();
             }
         }
         while (this.recordedLaps < this.engine.lapTimesMs.length) {
+            this.lapCrossedAt = this.sceneTime;
             this.newRecord = recordCircuitLap(browserStorage(), this.progress.save, this.engine.level, required(this.engine.lapTimesMs[this.recordedLaps]));
             this.recordedLaps++;
         }
@@ -331,10 +393,10 @@ export class DerapageScene extends Phaser.Scene {
         this.draw();
     }
     private draw(): void {
-        const g = this.graphics;
-        if (!g)
+        const g = this.graphics, background = this.background;
+        if (!g || !background)
             return;
-        const e = this.engine.snapshot(), p = required(e.karts[0]), t = e.track, angle = this.cameraFixed ? 0 : -p.angle - Math.PI / 2;
+        const e = this.engine.snapshot(false), p = required(e.karts[0]), t = e.track, angle = this.cameraFixed ? 0 : -p.angle - Math.PI / 2;
         const xs = t.points.map(q=>q.x), ys = t.points.map(q=>q.y);
         const cx = (Math.min(...xs)+Math.max(...xs))/2, cy = (Math.min(...ys)+Math.max(...ys))/2;
         const fit = Math.min(300/(Math.max(...xs)-Math.min(...xs)+30),450/(Math.max(...ys)-Math.min(...ys)+30));
@@ -342,9 +404,35 @@ export class DerapageScene extends Phaser.Scene {
         const project = (x: number, y: number) => this.overviewMode ? { x:180+(x-cx)*fit, y:360+(y-cy)*fit } : ({ x: 180 + ((x - p.x) * Math.cos(angle) - (y - p.y) * Math.sin(angle)) * 5, y: (this.cameraFixed ? 368 : 466) + ((x - p.x) * Math.sin(angle) + (y - p.y) * Math.cos(angle)) * 5 });
         const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         g.clear();
+        background.clear();
+        this.road?.hide();
         this.paint?.begin();
-        g.fillStyle(t.circuit.snow.length ? 0xe0eff5 : t.circuit.theme.ground);
-        g.fillRect(0, 96, 360, 544);
+        for (let i=0;i<this.propCount;i++) this.props3d[i]?.clear().setVisible(false);
+        this.propCount = 0;
+        this.hud3d?.clear();
+        let propIndex = 0;
+        const layer=(depth:number): Phaser.GameObjects.Graphics => {
+            const prop=this.props3d[propIndex] ?? this.add.graphics();
+            this.props3d[propIndex++]=prop;
+            this.propCount=propIndex;
+            return prop.setDepth(depth).setVisible(true);
+        };
+        if (this.active3d) {
+            this.renderCost = draw3d(g,e,(id,x,y,size,rotation,depth) => {
+                const driver = id === 0 ? this.hero : this.rivals[id-1];
+                const art = driver && this.rearTextures.get(`${driver.id}-${driver.expression}`);
+                if (art) this.paint?.draw(art,x,y-size/2,size,rotation,1,depth);
+                else {
+                    const g=layer(depth);
+                    g.fillStyle(0x222937);
+                    for (const side of [-1,1]) for (const row of [.25,.75]) g.fillRect(x+side*size*.25-size*.06,y-size*row,size*.12,size*.18);
+                    g.fillStyle(0x89949c); g.fillRoundedRect(x-size*.23,y-size*.85,size*.46,size*.8,size*.08);
+                    g.fillStyle(0xf2eee1); g.fillCircle(x,y-size*.55,size*.13);
+                }
+            }, layer);
+        } else {
+        background.fillStyle(t.circuit.snow.length ? 0xe0eff5 : t.circuit.theme.ground);
+        background.fillRect(0, 96, 360, 544);
         // Clip geometry to the useful rectangle so the reserved HUD never hides the road ahead.
         const line = (a: {
             x: number;
@@ -356,51 +444,26 @@ export class DerapageScene extends Phaser.Scene {
             if (Math.max(a.y, b.y) < 96 || Math.min(a.y, b.y) > 640 || Math.max(a.x, b.x) < 0 || Math.min(a.x, b.x) > 360)
                 return;
             g.lineStyle(width, color);
-            g.lineBetween(a.x, Math.max(96, a.y), b.x, Math.max(96, b.y));
+            g.lineBetween(a.x, a.y, b.x, b.y);
+            if (width > 2) {
+                g.fillStyle(color);
+                g.fillCircle(a.x,a.y,width/2); g.fillCircle(b.x,b.y,width/2);
+            }
         };
         if (t.circuit.plaza) {
             const plaza = [[-28,-18],[22,-18],[22,15],[-28,15]].map(([x,y])=>project(required(x),required(y)));
-            g.fillStyle(0xb6aa91); g.fillPoints(plaza,true);
+            background.fillStyle(0xb6aa91); background.fillPoints(plaza,true);
             for (const q of [{ x:-50,y:-5 },{ x:53,y:15 }]) {
                 const a=project(q.x,q.y);
-                g.fillStyle(t.circuit.theme.border); g.fillCircle(a.x,a.y,7*scale);
-                g.fillStyle(t.circuit.theme.ground); g.fillCircle(a.x,a.y,5*scale);
+                background.fillStyle(t.circuit.theme.border); background.fillCircle(a.x,a.y,7*scale);
+                background.fillStyle(t.circuit.theme.ground); background.fillCircle(a.x,a.y,5*scale);
             }
         }
-        for (let i = 0; i < 96; i++) {
-            const a = project(required(t.points[i]).x, required(t.points[i]).y), b = project(required(t.points[(i + 1) % 96]).x, required(t.points[(i + 1) % 96]).y);
-            line(a, b, required(t.widths[i]) * scale + (t.circuit.theme.urban ? 6*scale : 5), t.circuit.theme.border);
-            const height = required(t.heights[i]);
-            const shade = Math.min(12, Math.floor(height));
-            const road = t.circuit.snow.length ? 0xc9dfe9 : t.circuit.family === 'bmx' ? 0x9b744d : 0x38434d;
-            line(a, b, required(t.widths[i]) * scale, road + shade * 0x010101);
-
-            if (t.circuit.jumps.includes(i)) line(a, b, required(t.widths[i]) * scale, 0xb69366);
-        }
+        const artTime = reduced ? 0 : this.sceneTime;
+        kartLandscape(background,t,project,scale,artTime);
+        this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle);
+        kartRoadArt(g,t,project,scale,artTime);
         for (const edge of t.bermEdges) line(project(edge.a.x,edge.a.y),project(edge.b.x,edge.b.y),2*scale,0xe4c99a);
-        if (t.circuit.theme.urban) {
-            for (let i=0;i<96;i++) {
-                if (!t.walls[i]) continue;
-                const q=required(t.points[i]), r=required(t.points[(i+1)%96]);
-                const n=nearest(t,q), m=nearest(t,r);
-                for (const side of [-1,1]) {
-                    const edge = (p: { x:number; y:number }, normal: { nx:number; ny:number }, half:number) => project(p.x+normal.nx*half*side,p.y+normal.ny*half*side);
-                    line(edge(q,n,required(t.widths[i])/2+.9),edge(r,m,required(t.widths[(i+1)%96])/2+.9),Math.max(2,1.8*scale),0xbec5ca);
-                    const a=edge(q,n,required(t.widths[i])/2+1.8), b=edge(r,m,required(t.widths[(i+1)%96])/2+1.8);
-                    line(a,b,Math.max(2.5,.65*scale),0xf1f5f8);
-                    const posts=Math.max(1,Math.ceil(Math.hypot(r.x-q.x,r.y-q.y)/3));
-                    for (let j=0;j<posts;j++) {
-                        const x=a.x+(b.x-a.x)*j/posts, y=a.y+(b.y-a.y)*j/posts;
-                        line({ x,y },{ x,y:y-Math.max(3,1.1*scale) },Math.max(1.5,.45*scale),0x647583);
-                    }
-                }
-            }
-            // Short paving joints follow the road; the continuous border is the kerb/rail.
-            for (let i=0;i<96;i+=2) {
-                const q=required(t.points[i]), n=nearest(t,q), half=required(t.widths[i])/2-1;
-                line(project(q.x+n.nx*half,q.y+n.ny*half),project(q.x-n.nx*half,q.y-n.ny*half),1,0x65717a);
-            }
-        }
         for (const [i, gate] of t.slalom.entries()) {
             const passed=p.slalomPassed?.[i] === p.lap, missed=p.slalomMissed?.[i] === p.lap;
             const color=missed ? (!reduced && Math.floor(e.frames/10)%2 ? 0xffb7b7 : 0xe64049) : passed ? 0x49e087 : i%2 ? 0x3285e8 : 0xe64049;
@@ -413,11 +476,25 @@ export class DerapageScene extends Phaser.Scene {
             line(required(tops[0]),required(tops[1]),Math.max(4,1.7*scale),color);
         }
         for (const b of t.boosts) {
-            const a = project(b.x, b.y);
-            if (a.y > 110 && a.y < 620) { g.fillStyle(0x68edc0); g.fillCircle(a.x, a.y, b.radius * scale); g.fillStyle(0xffffff); g.fillTriangle(a.x - 6, a.y + 4, a.x + 6, a.y + 4, a.x, a.y - 6); }
+            const strip=boostStrip(t,b);
+            const polygon=strip.corners.map(q=>project(q.x,q.y));
+            if (!inView(polygon)) continue;
+            g.fillStyle(0x168e78); g.fillPoints(polygon,true);
+            // Chevrons travel along the strip, clipped to its exact footprint.
+            const phase=(artTime/500)%1;
+            for (let row=0;row<3;row++) {
+                const u=(row+phase)*strip.length/3;
+                const points=[strip.point(u, -strip.half),strip.point(Math.min(strip.length,u+.7),0),strip.point(u,strip.half),strip.point(Math.max(0,u-.35),strip.half),strip.point(Math.min(strip.length,Math.max(0,u+.35)),0),strip.point(Math.max(0,u-.35),-strip.half)];
+                g.fillStyle(0xb5ffe4); g.fillPoints(points.map(q=>project(q.x,q.y)),true);
+            }
         }
         for (const tree of t.trees) {
             const a = project(tree.x, tree.y);
+            if (!inView([a], (tree.radius*2+8)*scale)) continue;
+            if (t.circuit.theme.kart) {
+                if (t.circuit.theme.kart === 'volcano' && a.y > 110 && a.y < 620) kartTree(g,t.circuit.theme.kart,a,tree.radius,scale,artTime);
+                continue;
+            }
             if (t.circuit.theme.urban) {
                 if (a.y>105 && a.y<630) { g.fillStyle(t.circuit.theme.decor); g.fillRect(a.x-tree.radius*scale,a.y-tree.radius*scale,tree.radius*2*scale,tree.radius*2*scale); }
                 continue;
@@ -434,6 +511,13 @@ export class DerapageScene extends Phaser.Scene {
             for (let j=0;j<7;j++) {
                 const q = required(t.points[(index+j)%96]), r = required(t.points[(index+j+1)%96]);
                 line(project(q.x,q.y),project(r.x,r.y),required(t.widths[index])*scale,0x19212d);
+            }
+            if (t.circuit.theme.kart === 'autumn') for (const end of [index,(index+7)%96]) {
+                const q=required(t.points[end]),n=this.normalAt(t,end),half=required(t.widths[end])/2;
+                const a=project(q.x+n.nx*half,q.y+n.ny*half),b=project(q.x-n.nx*half,q.y-n.ny*half);
+                const topA={x:a.x,y:a.y-4*scale},topB={x:b.x,y:b.y-4*scale};
+                line(a,topA,1.2*scale,0xd69d58); line(b,topB,1.2*scale,0xd69d58);
+                line(topA,topB,2*scale,0x9d693d);
             }
         }
         for (const section of t.circuit.port) {
@@ -453,6 +537,15 @@ export class DerapageScene extends Phaser.Scene {
             g.fillStyle((row+cell)%2 ? 0xffffff : 0x080b10);
             g.fillPoints(polygon,true);
         }
+        const postA=project(finishA.x,finishA.y), postB=project(finishB.x,finishB.y);
+        const postHeight=Math.max(24,8*scale);
+        const topA={x:postA.x,y:postA.y-postHeight}, topB={x:postB.x,y:postB.y-postHeight};
+        line(postA,topA,Math.max(3,scale*.7),0xf4e6b1); line(postB,topB,Math.max(3,scale*.7),0xf4e6b1);
+        for (let row=0;row<2;row++) for (let cell=0;cell<12;cell++) {
+            const points=[[cell/12,row*4],[(cell+1)/12,row*4],[(cell+1)/12,(row+1)*4],[cell/12,(row+1)*4]].map(([u,v])=>({x:topA.x+(topB.x-topA.x)*required(u),y:topA.y+(topB.y-topA.y)*required(u)+required(v)}));
+            g.fillStyle((row+cell)%2 ? 0xffffff : 0x080b10); g.fillPoints(points,true);
+        }
+        if (!reduced && e.timing.lapTimesMs.length && this.sceneTime-this.lapCrossedAt<200) { g.fillStyle(0xffffff,.35*(1-(this.sceneTime-this.lapCrossedAt)/200)); g.fillRect(0,96,360,544); }
         if (t.circuit.theme.urban) {
             const left=project(finishA.x-fx/fw*4+tx*5,finishA.y-fy/fw*4+ty*5);
             const right=project(finishB.x+fx/fw*4+tx*5,finishB.y+fy/fw*4+ty*5);
@@ -488,7 +581,14 @@ export class DerapageScene extends Phaser.Scene {
                 }
             }
         }
-        const colors = [0xffdb70, 0xff786a, 0x67d9ec, 0xc797ff, 0x9ee278, 0xf29acd];
+        const grassEdge=nearest(t,p);
+        if (!t.circuit.theme.urban && grassEdge.distance>required(t.widths[grassEdge.index])/2 && p.jumpMs<=0) {
+            for (let i=0;i<7;i++) {
+                const phase=((artTime/450+i/7)%1), side=i%2 ? 1 : -1;
+                const q=project(p.x-Math.cos(p.angle)*(2+phase*4)-Math.sin(p.angle)*side*phase*2,p.y-Math.sin(p.angle)*(2+phase*4)+Math.cos(p.angle)*side*phase*2);
+                g.fillStyle(0xc2b477,1-phase); g.fillCircle(q.x,q.y,(.15+phase*.3)*scale);
+            }
+        }
         for (const k of e.karts) {
             const a = project(k.x, k.y);
             if (a.y < 126 || a.y > 614)
@@ -543,6 +643,11 @@ export class DerapageScene extends Phaser.Scene {
             }
             g.restore();
         }
+        }
+        {
+        const g=this.active3d ? this.hud3d ??= this.add.graphics().setDepth(1000) : required(this.graphics);
+        const colors = [0xffdb70, 0xff786a, 0x67d9ec, 0xc797ff, 0x9ee278, 0xf29acd];
+        const finishA=t.finishLine.a, finishB=t.finishLine.b;
         g.fillStyle(0x101827);
         g.fillRect(0, 0, 360, 96);
         // Mini-map is entirely in the reserved HUD band.
@@ -560,52 +665,65 @@ export class DerapageScene extends Phaser.Scene {
         const fa=mini(finishA.x,finishA.y), fb=mini(finishB.x,finishB.y);
         g.lineStyle(4,0x080b10); g.lineBetween(fa.x,fa.y,fb.x,fb.y);
         g.lineStyle(2,0xffffff); g.lineBetween(fa.x,fa.y,fb.x,fb.y);
+        }
         const s = e;
         const timing = s.timing;
         const delta = timing.lastLapDeltaMs;
-        const crossing = timing.lapTimesMs.length === 0 ? '' : `Écart ${delta === null ? '—' : `${delta < 0 ? '−' : '+'}${formatTime(Math.abs(delta))}`} ${this.newRecord ? 'Nouveau record !' : ''}`;
+        const crossing = timing.lapTimesMs.length === 0 || this.sceneTime-this.lapCrossedAt >= 2000 ? '' : `Écart ${delta === null ? '—' : `${delta < 0 ? '−' : '+'}${formatTime(Math.abs(delta))}`} ${this.newRecord ? 'Nouveau record !' : ''}`;
         const text = `DÉRAPAGE ${String(e.level + 1)}/30 · PLACE ${String(s.order.indexOf(0) + 1)}/6 · TOUR ${String(Math.min(3, p.lap + 1))}/3
 SCORE ${String(s.score)} · COURSE ${formatTime(timing.raceMs)} · TOUR ${formatTime(timing.currentLapMs)}
 MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${(p.noticeMs ?? 0) > 0 ? 'Porte manquée +2,0 s' : p.item ?? '—'}${crossing ? ` · ${crossing}` : ''}
 ÉLAN ${p.specialLap === p.lap ? '0' : '1'}/1 · COUPE ${String(s.cup.races)}/4 · ${s.cup.order.map(id => `${String(id + 1)}:${String(s.cup.scores[id])}`).join(' ')}`;
         if (this.hud) {
-            this.hud.replaceChildren();
-            const lines = text.split('\n');
-            lines.forEach((line, i) => {
-                const span = document.createElement('span');
-                span.textContent = line + (i < lines.length - 1 ? '\n' : '');
-                if (i === 2 && crossing) {
-                    span.dataset.lapDelta = 'true';
-                    span.style.color = delta !== null && delta < 0 ? '#80efac' : '#ff9b9b';
-                }
-                this.hud?.append(span);
-            });
-            this.hud.style.visibility = this.session.paused || this.selecting ? 'hidden' : 'visible';
+            this.game.canvas.setAttribute('aria-label', `Dérapage : course de karts, vue ${this.active3d ? '3D' : 'de dessus'}`);
             const box = this.game.canvas.getBoundingClientRect(), scale = box.width / 360;
-            this.hud.style.left = `${String(box.x + 8 * scale)}px`;
-            this.hud.style.top = `${String(box.y + 6 * scale)}px`;
-            this.hud.style.fontSize = `${String(12 * scale)}px`;
-            // Keep all four lines left of the mini-map, inside the reserved band.
-            for (const span of this.hud.children) {
-                const width = span.getBoundingClientRect().width;
-                if (width > 249 * scale && span instanceof HTMLElement)
-                    span.style.fontSize = `${String(12 * scale * 249 * scale / width)}px`;
+            const content = `${text}|${crossing}|${String(delta)}|${String(box.x)},${String(box.y)},${String(box.width)}`;
+            this.hud.style.visibility = this.session.paused || this.selecting ? 'hidden' : 'visible';
+            if (content !== this.hudContent) {
+                const layoutChanged = !this.hudContent.endsWith(`|${String(box.x)},${String(box.y)},${String(box.width)}`);
+                this.hudContent = content;
+                const lines = [`TOUR ${formatTime(timing.currentLapMs)}`, `MEILLEUR ${formatTime(timing.bestLapMs)}`, crossing, ...text.split('\n')];
+                lines.forEach((line, i) => {
+                    let span = this.hud?.children[i] as HTMLSpanElement | undefined;
+                    const changed = !span || span.textContent !== line;
+                    if (!span) {
+                        span = document.createElement('span');
+                        span.style.display = 'block';
+                        this.hud?.append(span);
+                    }
+                    if (changed) span.textContent = line;
+                    if (i === 2 && crossing) {
+                        span.dataset.lapDelta = 'true';
+                        span.style.color = delta === null || delta < 0 ? '#80efac' : '#ff9b9b';
+                    }
+                    if (changed || layoutChanged) {
+                        span.style.fontSize = `${String((i === 0 ? 24 : i === 1 ? 12 : i === 2 ? 10 : 8.5) * scale)}px`;
+                        const width = span.getBoundingClientRect().width;
+                        if (width > 249 * scale && i !== 0)
+                            span.style.fontSize = `${String(9 * scale * 249 * scale / width)}px`;
+                    }
+                });
+                this.hud.style.left = `${String(box.x + 8 * scale)}px`;
+                this.hud.style.top = `${String(box.y + 6 * scale)}px`;
+                this.hud.style.fontSize = `${String(12 * scale)}px`;
             }
         }
-        if (this.cameraFixed && this.thumb) {
+        if ((this.active3d || this.cameraFixed) && this.thumb) {
             const rect = this.game.canvas.getBoundingClientRect(), ratio = 360 / rect.width;
             const x = (this.thumb.x - rect.x) * ratio, y = (this.thumb.y - rect.y) * ratio;
-            g.lineStyle(2, 0xffffff, .8); g.strokeCircle(x, y, 28);
-            g.fillStyle(0x80efac, .9); g.fillCircle(x + this.thumb.dx * ratio, y + this.thumb.dy * ratio, 7);
+            g.lineStyle(2, 0xffffff, .8); g.strokeCircle(x, y, 40 * ratio);
+            g.fillStyle(0x80efac, .9); const reach=Math.max(1,Math.hypot(this.thumb.dx,this.thumb.dy)/40); g.fillCircle(x + this.thumb.dx / reach * ratio, y + this.thumb.dy / reach * ratio, 7);
         }
-        if (this.cameraFixed && this.heading !== undefined) {
+        if (!this.active3d && this.cameraFixed && this.heading !== undefined) {
             const q = project(p.x, p.y), a = this.heading;
             const x = q.x + Math.cos(a) * 42, y = q.y + Math.sin(a) * 42;
             g.lineStyle(3, 0x80efac); g.lineBetween(q.x + Math.cos(a) * 22, q.y + Math.sin(a) * 22, x, y);
             for (const side of [-1, 1]) g.lineBetween(x, y, x - Math.cos(a + side * .6) * 10, y - Math.sin(a + side * .6) * 10);
         }
+        const viewButton = document.querySelector('#derapage-view');
+        if (viewButton) viewButton.textContent = this.cadence.fallback ? 'Vue : dessus · repli automatique' : `Vue : ${this.view3d ? '3D' : 'dessus'}`;
         const indicator = document.querySelector<HTMLElement>('#derapage-steering');
-        if (indicator) { indicator.textContent = this.cameraFixed ? 'Posez le pouce, puis pointez la direction' : `◀ ━ ${this.pointer.toFixed(2)} ━ ▶`; indicator.setAttribute('aria-valuenow', String(this.pointer)); }
+        if (indicator) { indicator.textContent = this.active3d || this.cameraFixed ? this.thumb ? `Direction ✓ ${String(Math.round(thumbIntensity(this.thumb)*100))} %` : 'Posez le pouce, puis pointez la direction' : `◀ ━ ${this.pointer.toFixed(2)} ━ ▶`; if (this.cadence.fallback) indicator.textContent = 'Vue de dessus : cadence 3D insuffisante'; indicator.setAttribute('aria-valuenow', String(this.pointer)); }
         const status = document.querySelector('#status');
         if (status)
             status.textContent = `Score : ${String(e.score)} · ${text}`;

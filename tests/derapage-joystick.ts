@@ -5,25 +5,93 @@ import { required } from '../src/engines/derapage/access';
 import { circuitKey } from '../src/engines/derapage/circuits';
 import { readSave, recordCircuitLap, type StoragePort } from '../src/shell/storage';
 import { recordings } from './derapage-recordings';
+import { sameReplayStep } from './derapage-replay';
+import { mobileCases } from './derapage-mobile';
 type Check = (ok: boolean, message: string) => void;
-export function replayHuman(tape: typeof recordings[number], check: Check, EngineType: typeof Engine = Engine): void {
-    const e = new EngineType(tape.level, 28), k = required(e.karts[0]);
-    let off = 0, stopped = 0, longest = 0;
-    for (let frame = 0; frame < tape.frames; frame++) {
-        e.input({ steer: 0, drift: false, bonus: false, mode: 'joystick', heading: required(tape.events[Math.floor(frame / 9)]), assist: true });
-        e.step(1000 / 60);
-        const n = nearest(e.track, k);
-        if (n.distance > required(e.track.widths[n.index]) / 2) off++;
-        stopped = Math.hypot(k.vx, k.vy) < 2 ? stopped + 1 : 0;
-        longest = Math.max(longest, stopped);
+// A complete deterministic replay supplies a witness; corrupt metadata is checked
+// against that same witness instead of driving the identical race six more times.
+// Controls are part of the key, and mutated Engine classes never share a witness.
+const humanWitnesses=new WeakMap<typeof Engine, Map<string, {lap:number;longest:number;off:number;frames:number;x:number;y:number;angle:number}>>();
+export function replayHuman(tape: typeof recordings[number], check: Check, EngineType: typeof Engine = Engine, measureNearest: typeof nearest = nearest): void {
+    check(Number.isInteger(tape.frames) && tape.frames > 0 && tape.frames <= 6000, 'budget déterministe : 1 à 6000 images');
+    check(tape.events.length === Math.ceil(tape.frames / 9), 'budget déterministe : un cap pour neuf images');
+    const key=JSON.stringify([tape.level,tape.frames,tape.events]);
+    let witnesses=humanWitnesses.get(EngineType);
+    if(!witnesses) {witnesses=new Map();humanWitnesses.set(EngineType,witnesses);}
+    let result=witnesses.get(key);
+    // An explicit instrumented nearest query must always inspect the complete run.
+    if(!result || measureNearest!==nearest) {
+        const e = new EngineType(tape.level, 28), k = required(e.karts[0]);
+        let off = 0, stopped = 0, longest = 0;
+        for (let frame = 0; frame < tape.frames; frame++) {
+            e.input({ steer: 0, drift: false, bonus: false, mode: 'joystick', heading: required(tape.events[Math.floor(frame / 9)]), assist: true });
+            e.step(1000 / 60);
+            const n = measureNearest(e.track, k);
+            if (n.distance > required(e.track.widths[n.index]) / 2) off++;
+            stopped = Math.hypot(k.vx, k.vy) < 2 ? stopped + 1 : 0;
+            longest = Math.max(longest, stopped);
+        }
+        result={lap:k.lap,longest:longest/60,off:off/tape.frames,get frames(){return e.frames;},x:k.x,y:k.y,angle:k.angle};
+        witnesses.set(key,result);
     }
-    check(k.lap === 3, 'trois tours');
-    check(longest / 60 < .5, 'arrêt < 0,5 s');
-    check(off / tape.frames < .15, 'hors piste < 15 %');
-    check(e.frames === tape.frames && longest / 60 === tape.longestStop && off / tape.frames === tape.off, 'rejeu des mesures exact');
-    check(k.x === tape.final.x && k.y === tape.final.y && k.angle === tape.final.angle, 'rejeu du cap et de la position exact');
+    check(result.lap === 3, 'trois tours');
+    check(result.longest < .5, 'arrêt < 0,5 s');
+    check(result.off < .15, 'hors piste < 15 %');
+    check(result.frames === tape.frames && result.longest === tape.longestStop && result.off === tape.off, 'rejeu des mesures exact');
+    check(result.x === tape.final.x && result.y === tape.final.y && result.angle === tape.final.angle, 'rejeu du cap et de la position exact');
 }
 export const joystickCases: { name: string; run: (check: Check) => void }[] = [
+    ...mobileCases,
+    { name: 'Z36 budgets en images et en événements', run(check) {
+        const tape = required(recordings[0]);
+        const invalid: [typeof tape, string][] = [
+            [{ ...tape, frames: 0 }, 'budget déterministe : 1 à 6000 images'],
+            [{ ...tape, frames: 6001 }, 'budget déterministe : 1 à 6000 images'],
+            [{ ...tape, frames: 1.5 }, 'budget déterministe : 1 à 6000 images'],
+            [{ ...tape, events: [...tape.events, 0] }, 'budget déterministe : un cap pour neuf images'],
+            [{ ...tape, events: [] }, 'budget déterministe : un cap pour neuf images'],
+        ];
+        for (const frames of [1, 6000]) {
+            let admitted = false;
+            const boundary = { ...tape, frames, events: Array<number>(Math.ceil(frames / 9)).fill(0) };
+            const stop = new Error('budgets vérifiés');
+            try {
+                replayHuman(boundary, (ok, message) => {
+                    check(ok, `borne ${String(frames)} admise : ${message}`);
+                    if (message === 'budget déterministe : un cap pour neuf images') { admitted = ok; throw stop; }
+                });
+            } catch (error) { if (error !== stop) throw error; }
+            check(admitted, `borne ${String(frames)} admise avant simulation`);
+        }
+        for (const [altered, expected] of invalid) {
+            let failure = '';
+            try { replayHuman(altered, (ok, message) => { if (!ok) throw new Error(message); }); }
+            catch (error) { if (error instanceof Error) failure = error.message; else throw error; }
+            check(failure === expected, 'bande invalide rejetée avant la simulation');
+        }
+    } },
+    ...(['angle', 'x', 'y', 'longestStop', 'off', 'frames'] as const).map(field => ({
+        name: `Z36 rejeu : ${field} altéré détecté exactement`,
+        run(check: Check) {
+            const tape = required(recordings[0]);
+            const altered = { ...tape, final: { ...tape.final } };
+            if (field === 'angle' || field === 'x' || field === 'y') altered.final[field] += 1e-9;
+            else if (field !== 'frames') altered[field] += 1e-9;
+            class ObservedEngine extends Engine {
+                static current: Engine | undefined;
+                constructor(level: number, seed: number) { super(level, seed); ObservedEngine.current = this; }
+            }
+            const failures: string[] = [];
+            replayHuman(altered, (ok, message) => {
+                // Change only the executed-frame count, after the real simulation.
+                if (field === 'frames' && message === 'trois tours' && ObservedEngine.current) ObservedEngine.current.frames++;
+                if (!ok) failures.push(message);
+            }, field==='frames' ? ObservedEngine : Engine);
+            const expected = field === 'angle' || field === 'x' || field === 'y'
+                ? 'rejeu du cap et de la position exact' : 'rejeu des mesures exact';
+            check(failures.length === 1 && failures[0] === expected, `le vrai rejeu rejette uniquement ${field} altéré`);
+        },
+    })),
     { name: 'Z37 direction absolue progressive, bornée, diagonales et zone morte', run(check) {
         for (const [dx, dy] of [[0, 0], [10, 0], [-10, 0], [6, 8]]) check(joystickHeading(required(dx), required(dy)) === undefined, 'zone morte 10 px');
         for (const [dx, dy] of [[0,-40],[-40,0],[40,0],[0,40],[40,-40],[-40,40]]) {
@@ -51,7 +119,7 @@ export const joystickCases: { name: string; run: (check: Check) => void }[] = [
             const input = { steer: 0, mode: 'joystick' as const, heading: frame < 45 ? -.7 : 1.2, assist: true, drift: false, bonus: false };
             a.input(input); b.input(input);
             a.step(1000 / 60); b.step(1000 / 120); b.step(1000 / 120);
-            check(JSON.stringify(a.snapshot()) === JSON.stringify(b.snapshot()), 'snapshot exact à chaque pas');
+            check(sameReplayStep(a, b, frame, frame === 89), 'snapshot exact à chaque pas');
         }
     } },
     { name: 'Z38 rail : renvoi intérieur, vitesse résiduelle et départ sans collage', run(check) {

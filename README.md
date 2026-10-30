@@ -4,6 +4,8 @@
 
 English | [Français](README.fr.md)
 
+Alunir now has 30 authored situations and 12 mechanics, from cargo runs to caves and moving pads, verified by 180 deterministic flights (pass 106).
+
 Ferraille now has 30 authored courses and 16 physical terrain modules, with ordered gameplay repetition checks and 900 winning character replays (pass 103).
 
 Pass 101 gives Essaim five mechanically distinct character signatures, larger procedural ships, seven enemy silhouettes and three space themes, preserving historical replays.
@@ -237,3 +239,7 @@ The companion selected at home now plays Caisses, Traverse and Alunir, with a ta
 Le choix du personnage affiche son nom, son sous-titre et sa devise.
 
 **Le Collier du Singe** (`collier`), the thirteenth game: 30 original chain-pearl stages; aim anywhere and release to shoot, tap the shooter or ⇄/X to swap. Node validation: `npm run test:node -- --only=validate-collier.js`.
+
+**Pépites** (`pepites`), the fourteenth game: 30 original turn-based mines; dig soil, dodge falling and rolling boulders, push them aside, gather nuggets and reach the exit; directions on both thumbs, Étai freezes the rocks for twelve turns. Node validation: `npm run test:node -- --only=validate-pepites.js`.
+
+Gourmandises adds 120 seeded match-three levels, two modes, cascading specials, golden cargo, double ice, illustrated worlds and the selected companion; five-seed balance, unchanged states for levels 1–60 and 26 in-memory mutation checks.

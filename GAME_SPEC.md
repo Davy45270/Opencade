@@ -1755,7 +1755,7 @@ ajoutés sont optionnels pour conserver les anciennes positions.
 
 ### Signatures et graphismes — passes 101–102
 
-Le maintien manuel du bouton droit de l'interface (Tir/Charge) ou d'Espace pendant **300 ms minimum**, puis le relâchement, lance la signature du personnage choisi, sans caisse requise. La jauge normalisée est **0…1**, pleine à **1500 ms** ; le seuil de déclenchement est 0,2. Un maintien bref conserve le tir principal. La recharge commune est **8000 ms**, à compter du lancement ; une signature vit au maximum **360 pas (6000 ms)**. Un lancement partage **3 PV de dégâts effectifs maximum** entre tous ses projectiles et phases, sans reporter le reliquat à la vague suivante. Les boucliers frontaux et l'exposition des gardiens s'appliquent ; les dégâts bloqués ne consomment pas le budget. Les tirs ordinaires continuent, et les six caisses conservent leurs règles, dont la charge ramassable historique qui se compose avec la signature. Le Bouclier sur C et son bouton restent indépendants. Le guidage seul et le tir automatique ne chargent jamais la signature.
+Le maintien manuel du bouton droit de l'interface (Tir/Charge) ou d'Espace pendant **300 ms minimum**, puis le relâchement, lance la signature du personnage choisi, sans caisse requise. La jauge normalisée est **0…1**, pleine à **1500 ms** ; le seuil de déclenchement est 0,2. Un maintien bref conserve le tir principal. La recharge commune est **8000 ms**, à compter du lancement ; une signature vit au maximum **360 pas (6000 ms)**. Un lancement partage **3 PV de dégâts effectifs maximum** entre tous ses projectiles et phases, sans reporter le reliquat à la vague suivante. Les boucliers frontaux et l'exposition des gardiens s'appliquent ; les dégâts bloqués ne consomment pas le budget. Les tirs ordinaires continuent, et les six caisses conservent leurs règles, dont la charge ramassable historique qui se compose avec la signature. Le Bouclier sur C et son bouton restent indépendants. Le bouton tactile affiche « Écu » (nom accessible « Bouclier »), à **16 px**, largeur **56 px**. Le libellé court corrige la mesure hôte M02b (ancien « Bouclier » : scrollWidth 58 > clientWidth 56). Un bouton de 72 px dépasserait le logement paysage de 120 px avec Tir (56 px) et le gap (4 px). Le validateur Node vérifie le libellé, le budget conservateur de texte (3 em + 4 px ≤56), la rangée ≤64 px, les logements latéraux hors du terrain et la règle desktop sans défilement ; aucune mesure de navigateur n’est prétendue. Le guidage seul et le tir automatique ne chargent jamais la signature.
 
 | Personnage / signature | Mécanique et chiffres littéraux | Rangées | Chevron | Anneau |
 | --- | --- | ---: | ---: | ---: |
@@ -2341,12 +2341,18 @@ continuent normalement ; il faut toujours piloter la descente. Le HUD montre les
 charges et la durée active en secondes ; bouton tactile de 56 px. Aucune
 recharge hors rechargement de niveau. Pas de modification de la formule du score.
 
-Scores de témoins, **pas des maxima optimisés** : pilote historique sans spécial
-= **1100 / 1020** aux niveaux 1 / 10. Pilote échantillonné à 150 ms et stabilisé
-à moins de 40 px de la plateforme = **1056 / 980**, graine 28. Les 30 scores sans
-spécial sont figés et rejoués ; le validateur couvre aussi 90 atterrissages sans
-spécial (graines 28, 1 et 2026). La stabilisation ne gagne jamais seule : elle
-ne freine pas la descente et consomme du carburant.
+Passe 106 : les scores de campagne sont désormais ceux des 180 vols de
+`tests/fixtures/alunir-campaigns.json` (30 niveaux × trois graines × deux modes).
+Le spécial et les cinq identités conservent exactement leurs effets et coûts.
+Le guide du premier niveau est uniquement visuel : un trait vertical à l’abscisse
+du module, de y−25 à y+18, apparaît pendant le jeu lorsque la plateforme cible
+est à moins de 60 pixels sous le module. La coque inclinée se compare à cette
+référence verticale ; aucune correction de rotation, vitesse ou collision.
+Ce n’est ni un pilote automatique ni le spécial Stable. Le test Node
+`fingerChecks` gagne le niveau 1 sans puis avec spécial, commandes maintenues,
+latence 150 ms et observation 20 ms ; un angle de 0,225 rad reste inchangé et une
+arrivée trop rapide perd. Cela vérifie l’accessibilité au pilote tactile simulé,
+sans prétendre mesurer l’apprentissage humain. U06/U07 restent inchangés.
 
 
 Neuvième jeu original : un module doré doit se poser sur une terrasse turquoise.
@@ -2385,46 +2391,194 @@ Score entier arrondi : `(carburant restant + précision + temps) × multiplicate
 Précision = `100 × max(0, 1 − distanceAuCentre/(largeur/2))` ;
 temps = `max(0, 300 − pasÉcoulés/6)`. Aucun score en cas d'échec.
 
-### Générateur des trente terrains
+### Trente situations écrites — passe 108
 
-Indice `n=0…29`, `t=n/29`. Le PRNG reçoit directement la graine. Il choisit
-le centre de la plateforme dans [150,210[ et son altitude dans [510,540[.
-Une plateforme par terrain ; départ y=85, décalage horizontal défini ci-dessous,
-vitesse et angle nuls.
-De part et d'autre, des sommets espacés de 24 px ont une altitude
-`plateforme.y − random() × relief`, avec extrémités x=0 et 360.
-Les extrémités de la plateforme sont insérées explicitement dans la ligne.
+`src/engines/alunir/levels.ts` contient trente descriptions littérales : nom,
+idée, vedette, liste de règles, départ, destination, largeur et carburant.
+Les douze premières présentent chacune une seule règle avec une arrivée adaptée ;
+les suivantes combinent trois règles déjà présentées. Aucune paire ne possède
+le même ensemble. Les deux vedettes précédentes ne sont jamais réutilisées.
+Les quais sont des segments suspendus solides sur leurs deux faces ; le sol reste
+sous eux pour permettre les remontées. Seule l’altitude des deux extrémités externes
+varie de moins de 8 px avec la graine. Il n’existe plus de courbe `n/29` pour
+les nouveaux niveaux. Gravité ordinaire 0,018 ; poussée et contacts historiques.
 
-| Paramètre `difficulty(n)` | Formule | Niveau 1 → 30 |
+| Mécanique | Effet exact et objectif |
+| --- | --- |
+| choix | Deux arrivées : quai principal ×1, petit quai à x=35, largeur 60, ×2 ; le score utilise le quai touché. |
+| grotte | Plafond solide y=250, parois x=20 et x=340 jusqu’à y=465 ; départ dans la galerie à altitude écrite (y=300 au niveau 2) ; contacts balayés fatals. |
+| mobile | Quai principal translaté de 0 à 48 px puis retour, période **480 ticks**, vitesse ±0,2 ; largeur 46 (64 sur glace), donc aucune zone de posé commune à toutes les phases ; la coque posée suit le mouvement. |
+| ravitaillement | Quai de service de position écrite par niveau, largeur 90 : posé sûr obligatoire, carburant fixé à **1800**, puis poussée pour repartir. |
+| cargo | Posé au quai de service pour prendre le colis ; arrivée principale refusée avant la prise ; repartir et livrer. |
+| meteores | Trajectoire écrite x=−100+1,2×(tick modulo **600**), y=310 ; segment vertical de demi-hauteur 8 balayé en mouvement relatif ; contact fatal, téléport de boucle non balayé. |
+| gravite | Zone fermée x∈[110,300], y∈[180,440] : gravité **0,009**, ailleurs 0,018. |
+| tunnel | Bande fermée y∈[240,380] : accélération horizontale **0,0015**, ailleurs zéro. |
+| geyser | Zone fermée x∈[130,230], y∈[300,480] : poussée verticale **0,012** pendant les **180** premiers ticks de chaque période de **240**. |
+| balise | Passer à distance ≤**38** du centre écrit par niveau (180,350 au niveau 10) avant l’arrivée ; sans validation le posé est un échec. |
+| secours | Recueillir **en vol** l’astronaute à distance ≤**28** du centre écrit par niveau (90,370 au niveau 11), avec **|vx| ≥ 0,1 et |vx| > |vy|**, puis le ramener ; une descente verticale est refusée. Aucun posé intermédiaire nécessaire. |
+| glace | Après un contact sûr, vx est multipliée par **0,94** à chaque tick ; glissement, sortie de quai fatale ; victoire à |vx|≤**0,02**. |
+
+Les cercles de transit jaunes (rayon fermé **22 px**) sont des objectifs visibles
+à franchir dans l’ordre après le service, la balise et le secours éventuels.
+Le cercle courant porte une croix ; les passages validés deviennent verts.
+Un cercle dans la colonne du geyser ne valide que pendant son repos, ticks
+**180 à 239** modulo **240**. Une arrivée sûre sans le parcours reste perdante.
+Les passages sont conservés dans les événements sérialisés, sans pseudo-mécanique dans la mesure des rencontres. Le snapshot porte désormais la version de catalogue.
+
+Les règles s’appliquent aussi au pilote, sans raccourci : il vise le quai de
+service ou l’astronaute avant le retour, passe la balise, compense les champs,
+suit le quai mobile et attend au-dessus de la trajectoire des météores.
+Toutes les victoires de service passent les mêmes seuils que l’arrivée.
+Le posé sur la glace doit déjà être sûr ; la friction ne sauve aucun contact.
+
+| N° | Nom | Vedette | Trajet imposé |
+| --- | --- | --- | --- |
+| 1 | Port des possibles | choix | Départ (222,85), descente vers le quai central ou le petit quai gauche ×2. |
+| 2 | Sous la voûte | grotte | Départ gauche dans la grotte ; descendre au cercle (100,440), traverser vers (265,420), se poser à droite. |
+| 3 | Le pont navette | mobile | Départ haut droit en dérive gauche ; intercepter le quai étroit oscillant sur 48 px. |
+| 4 | La halte des réservoirs | ravitaillement | Descente rapide à gauche ; plein à (90,400), puis traversée et arrivée tout à droite. |
+| 5 | Courrier lunaire | cargo | Départ bas droit ; prendre le colis à (90,480), remonter et livrer au quai haut droit y=280. |
+| 6 | Les étoiles filantes | meteores | Départ haut droit à vx=−1, vy=2 ; freiner et traverser les météores vers le quai gauche. |
+| 7 | Mer de plume | gravite | Départ haut gauche en dérive droite ; traverser la gravité légère par (145,220) et (270,410). |
+| 8 | Le souffle du col | tunnel | Départ droit en descente ; entrer à (290,300), traverser le vent vers (80,320), puis sortir à gauche. |
+| 9 | Fontaine de poussière | geyser | Départ bas gauche ; franchir (175,410) pendant le repos du geyser, détour droit (270,340), revenir au centre. |
+| 10 | Le phare du silence | balise | Départ haut droit ; survoler la balise (180,350), puis redescendre vers le quai gauche. |
+| 11 | Un ami dans la nuit | secours | Approche latérale depuis la droite (310,410), vitesse horizontale dominante ; recueillir à (90,370), revenir au quai droit. |
+| 12 | Le lac miroir | glace | Départ gauche en dérive rapide ; freiner au-dessus du lac central, puis attendre la fin du glissement. |
+| 13 | Marché souterrain | choix | Départ droit sous la voûte ; balise gauche (80,410), retour au cercle droit (275,470), choix du quai. |
+| 14 | La poste errante | cargo | Départ haut droit ; prendre le colis en bas à droite (270,530), remonter au tunnel (170,300), rattraper la navette gauche. |
+| 15 | Puits des comètes | meteores | Départ haut gauche ; plein à (70,410), remontée dans la zone légère vers (265,220), retour sous les comètes à droite. |
+| 16 | Le refuge givré | secours | Départ droit dans la grotte ; secours à (270,450), traversée vers (90,360), posé glacé à gauche. |
+| 17 | Le signal des sources | balise | Départ haut gauche en chute ; balise centrale, passage (180,430) au repos du jet, navette droite. |
+| 18 | Les quais du blizzard | tunnel | Départ haut gauche en dérive ; traverser le tunnel de (70,270) à (280,350), choisir le quai sous les météores. |
+| 19 | Cargo de cristal | glace | Départ droit ; cargo à (270,495), remontée par la zone légère (170,220), livraison sur la glace haute à gauche y=260. |
+| 20 | La citerne cachée | ravitaillement | Départ droit sous la voûte ; plein tout à gauche (65,465), traverser le jet au repos (180,390), détour droit (270,320). |
+| 21 | Le bac des rescapés | mobile | Départ haut gauche en chute rapide ; secours en vol à droite (280,390), retour à la navette gauche sous les comètes. |
+| 22 | Les trois phares | gravite | Départ haut droit en dérive gauche ; balise haute gauche (80,250), traversée légère vers (270,420), choix du quai. |
+| 23 | La galerie postale | grotte | Départ gauche dans la grotte ; cargo au fond (75,515), remontée par (180,425) et (180,400), livraison haute droite y=330. |
+| 24 | L’ambulance du vent | secours | Départ haut droit ; plein droit (270,430), secours gauche (65,305), contre-traversée du tunnel vers (280,270), arrivée gauche. |
+| 25 | La patinoire céleste | glace | Départ bas droit en dérive gauche ; remontée au cercle (65,230), retour (290,380), intercepter la glace mobile centrale. |
+| 26 | Les deux citernes | geyser | Départ gauche ; plein à (65,420), passage du geyser au repos (175,445), détour (280,380), choix du quai. |
+| 27 | L’adresse des étoiles | cargo | Départ haut droit en chute ; cargo à (270,520), remontée vers la balise haute gauche (75,210), livraison gauche. |
+| 28 | Le phare englouti | balise | Départ droit dans la galerie ; balise basse droite (270,430), contre-traversée du tunnel vers (70,315), retour (180,365), quai gauche. |
+| 29 | Le dernier plein | ravitaillement | Départ haut gauche en dérive droite ; plein au fond droit (275,530), remontée et interception de la glace mobile gauche y=430. |
+| 30 | L’aube des retrouvailles | gravite | Départ droit dans la zone légère ; secours bas gauche (65,420), retour au geyser au repos (170,340), détour droit (285,450), arrivée droite. |
+
+La mesure spécifique `scripts/alunir-diversity.js` compare les **435** paires.
+Passe 107 : la similarité est le maximum du Jaccard ordonné des mécaniques
+rencontrées et de la proportion des **commandes réelles identiques au même pas**,
+rapportée à la durée du vol le plus long. Une commande comprend poussée, gauche
+et droite ; les longueurs des suites compressées comptent intégralement,
+y compris la roue libre. Les étiquettes de mission ne participent plus au calcul
+des commandes. Le moteur n’émet plus les pseudo-actions automatiques « suivre »,
+« descendre », « éviter », « compenser », « traverser » et « surfer » ; le harnais
+observe les situations physiques séparément des transitions de mission.
+Seuils littéraux : similarité ≤ **50 %**, au moins **10** règles et vedette
+différente des deux précédentes. Tests négatifs : 60 %, neuf règles, vedette
+répétée, mêmes commandes sous des étiquettes différentes ; 50 % exactement accepté.
+
+La mesure des commandes et ses seuils de passe 107 restent inchangés.
+Les 180 vols sont réenregistrés aux graines **28, 1, 2026**, sans et avec spécial.
+Le pilote corrige position et vitesse, dégage les quais avant de tourner,
+remonte hors de leur emprise avant l’approche et suit la vitesse de la navette
+d’après sa phase observée. Il observe les météores des deux côtés de leur
+trajectoire, sans accès à un futur aléatoire. Les niveaux 1 et 10 conservent le contrôleur
+tactile éprouvé avec **150 ms** de latence. La réserve écrite du niveau 10
+(**1533**) maintient aussi le témoin de score tactile **1207** du validateur
+partagé, qui reste inchangé. Budget de rejeu : **4000 ticks**.
+
+| Mesure sur 435 paires | Passe 107 | Passe 108 |
 | --- | --- | --- |
-| Largeur | 90−62t px | 90 → 28 |
-| Relief maximal | 20+70t px | 20 → 90 |
-| Vent constant | 0,002t px/pas² | 0 → 0,002 |
-| Amplitude des rafales | 0 avant n=14, puis 0,001(n−13)/16 | 0 → 0,001 |
-| Gravité | 0,018+0,006t px/pas² | 0,018 → 0,024 |
-| Carburant initial | 950−200t | 950 → 750 |
+| Paires de commandes > 50 % | 64 | 0 |
+| Maximum des commandes | 95,1168 % | 46,3077 % |
+| Paire du maximum des commandes | 4 / 5 | 7 / 22 |
+| Maximum global (commandes ou mécaniques) | 95,1168 % | 50 % |
+| Commandes communes, niveaux 4 / 5 | 95,1168 % | 26,0030 % |
 
-Multiplicateur de plateforme = `1+floor(n/10)` (×1, ×2, ×3).
-Une rafale dure 90 pas. Son PRNG reçoit `seed + 7919×floor(pas/90)` modulo
-2³² ; sa composante signée est uniforme dans l'amplitude du niveau.
-Le vent total maximal vaut 0,003 px/pas². Le relief mesure l'enveloppe de
-génération, pas une obligation que chaque tirage réalise son maximum.
+Le maximum global reste **50 %** pour les rencontres de mécaniques
+(paires 13/22, 13/28, 20/23, 21/25, 25/29). Le rapport porte **valid=true**,
+**12 mécaniques** et aucune vedette réutilisée parmi les deux précédentes.
+La campagne des compagnons n’est modifiée que pour sa partie Alunir.
+Les témoins historiques de migration, les seuils et corps U06/U07 ainsi que
+les douze mutations de passe 107 restent conservés et vérifiés sous Node.
+A-niv-05 ajoute des témoins indépendants pour les départs, les remontées cargo
+de **180 px** ou plus, l’ordre et le rayon des passages, la phase du geyser,
+l’arrivée directe refusée et la reprise du trajet après sauvegarde.
 
-La politique `pilot` utilise les erreurs proportionnelles de position/vitesse,
-compense le vent, borne l'inclinaison cible à ±0,12 rad et dose la poussée
-selon la vitesse de descente et l'altitude. U10 la fait jouer séparément sur
-**chacun des trente niveaux**, graine témoin 28, depuis l'état initial ordinaire,
-au plus 2500 pas. Le test exige une victoire pour chaque niveau ; cette preuve
-sur témoin n'affirme pas que le contrôleur gagne toutes les graines.
-La vignette applique cette même politique au niveau 3, quatre pas par image.
+`loadState` accepte les vrais snapshots historiques, terrain et reliquat inclus.
+Un état sans métadonnées de mission conserve ses anciennes forces interpolées
+et son terrain, sans lui imposer les nouveaux objectifs. Il remplace aussi la
+mission et les événements courants : un ancien indice d’amarrage ne survit pas.
+Tout indice d’amarrage hors des plateformes restaurées est remis à −1.
+Les snapshots suivants conservent cette migration ; charger ensuite un niveau
+réactive ses mécaniques **avant** de calculer son altitude initiale (niveau 2 : 300 ; autres grottes : altitude écrite).
+`record-alunir-head.js` lit **git show e1f09c8:src/engines/alunir/engine.ts** sans
+changer de branche. Il reproduit `alunir-head.json` (niveau 10, tick 120), ou,
+avec `--gust`, `alunir-legacy-gust.json` (niveau 21, tick 100, rafales actives).
+Les deux témoins contiennent une continuation exacte de 40 pas ; ils sont testés
+après un véritable amarrage au ravitaillement, puis suivis d’un vol de grotte.
+Progression et records gardent leurs clés et leur format.
+
+### Corrections et témoins — passe 110
+
+Les snapshots avec `mission` et `legacy: false` de passe 107 sont migrés
+explicitement vers `catalogueVersion: 107`. Le catalogue historique est figé dans
+`levels-107.ts` : anciens objectifs, positions balise/secours, amplitude mobile
+12 px, terrain et issue sont conservés ; aucun cercle nouveau n’est imposé.
+Sans version, la géométrie historique inclut les quais dans sa ligne de sol
+(au moins quatre points), contrairement aux deux points du sol de passe 108.
+Les nouveaux snapshots portent `catalogueVersion: 108` ; les états de passe 108
+sans version restent reconnus. Les restaurations partielles gardent la version courante.
+
+`scripts/validate-alunir-107.js` extrait réellement les deux modules historiques
+par `git show eecddb7:<fichier>`, produit des snapshots des trente niveaux,
+compare leurs continuations pas à pas et vérifie une seconde sauvegarde.
+Le témoin adverse (niveau 2, x=185, y=497,9, vy=0,982) garde `won`.
+L’ancien secours vertical garde son ancienne règle. Le pilote actuel se place
+latéralement avant le secours ; les 180 vols sont réenregistrés, seule la partie
+Alunir de la campagne commune change. Mesure sur commandes inchangée :
+**0/435 paires >50 %, maximum commandes 46,3077 % (7/22), maximum global 50 %,
+12 mécaniques**, aucune vedette répétée parmi les deux précédentes.
+
+Les vingt mutations sont réellement exécutées sous Node :
+
+| Mutation | Assertion qui la tue |
+| --- | --- |
+| Navette immobile | `mechanicChecks` : x=156 au tick 120 |
+| Plein supprimé | `mechanicChecks` : carburant=1800 après service |
+| Météore non fatal | `mechanicChecks` : collision au tick 233 perdante |
+| Borne haute gravité ouverte | `mechanicChecks` : champ fermé à (300,440) |
+| Borne haute tunnel ouverte | `mechanicChecks` : vent à y=380 |
+| Borne droite geyser ouverte | `mechanicChecks` : poussée à (230,480) |
+| Rayon balise ouvert | `mechanicChecks` : distance exacte 38 |
+| Rayon secours ouvert | `mechanicChecks` : distance exacte 28, vitesse latérale |
+| Arrivée sans secours acceptée | `mechanicChecks` : arrivée sûre sans secours perdante |
+| Rafales historiques supprimées | `migrationChecks` : continuation exacte du témoin avec rafales |
+| Idée du niveau masquée | `hudChecks` : idée visible aux ticks 0/1/119 |
+| Catalogue dupliqué | `measureAlunir` : duplication refusée, similarité=1 |
+| Cercle avant service | `prerequisiteChecks` : niveau 14, service faux/vrai |
+| Cercle avant balise | `prerequisiteChecks` : niveau 13, balise fausse/vraie |
+| Cercle avant secours | `prerequisiteChecks` : niveau 16, secours faux/vrai |
+| Rayon visible 12 | `objectiveDrawingChecks` : appels strokeCircle rayon 22 |
+| Croix inversée | `objectiveDrawingChecks` : deux traits sur le seul cercle courant |
+| Couleurs inversées | `objectiveDrawingChecks` : jaune avant passage, vert après |
+| Balise aux anciennes coordonnées | `objectiveDrawingChecks` : coordonnées du catalogue, dont niveau 13 |
+| Tête du secours aux anciennes coordonnées | `objectiveDrawingChecks` : coordonnées du catalogue, dont niveau 16 |
+
+Le validateur de scène utilise le vrai `draw()` et un port Graphics enregistré,
+aux trente niveaux, avant et après validation du premier cercle. Les négatifs
+de secours couvrent vitesse nulle, descente verticale et vitesse verticale dominante.
 
 ### Commandes et intégration
 
 ↑/W : poussée ; ← →/A D : rotation à maintenir. Une seule rangée tactile :
 ↺ et ↻ à gauche (56 px), Poussée (76×64 px) et Stable (56 px) à droite. La zone utile exposée
 par le crochet est tout le canevas ; aucun bouton ne la recouvre.
-Le HUD tient en deux lignes de 11 px, charges et durée incluses. Il est à y=10, ou à y=590 si le
-haut du module passe au-dessus de y=65, pour ne jamais masquer celui-ci.
+Le HUD affiche le nom et l’idée pendant les **120** premiers ticks (2 s de jeu),
+puis retire ces deux textes à partir du pas 120. Le numéro du niveau reste affiché. Charges, carburant, vitesses et angle restent visibles.
+Police 11 px, retour à la ligne à 340 px ; y=10, ou y=550 si le haut du module
+passe au-dessus de y=85. Champs, plafond, balise, astronaute, cargo, quais et
+météores sont rendus à leurs coordonnées physiques.
 Le crochet Alunir expose aussi `bounds()` (polygone avec contour et HUD).
 Le parcours E2E convertit ces boîtes vers le rectangle écran du canevas et
 vérifie leur absence d’intersection sur bureau comme sur mobile.
@@ -2454,7 +2608,7 @@ Ils ne changent aucun seuil, collision, carburant ni condition de victoire.
 | U08 | Réservoir vide : aucune poussée, chute puis contact fatal |
 | U09 | Termes du score, multiplicateur, score réel et gel terminal |
 | U10 | Politique simulée sur les trente niveaux complets |
-| U11 | Chaque paramètre monotone et strict entre extrêmes ; 90 terrains structurés |
+| U11 | Trente plans écrits, 90 terrains structurés et répétables |
 | U12 | Entrées identiques, cadences regroupées, graine, sérialisation, temps invalides |
 
 `tests/e2e/alunir.spec.ts` couvre bureau et mobile : vraie poussée maintenue,
@@ -2468,6 +2622,38 @@ comptent désormais neuf vignettes.
 Vitest et Playwright sont écrits et relus ici, mais leur exécution appartient
 à l'orchestrateur. Aucun résultat de ces suites n'est présumé.
 
+
+Passe 106 : `tests/alunir-levels.test.ts` et `scripts/validate-alunir.js` couvrent
+**A-niv-01** (douze effets littéraux), **A-niv-02** (180 rejeux exacts),
+**A-niv-03** (mesure recalculée depuis les rencontres et négatifs isolés),
+**A-niv-04** (vrai état de HEAD et reprise sérialisée). U06/U07 restent inchangés
+et sont exécutés directement par Node. Passe 107 : douze mutations effectivement
+rejetées par les mêmes corps d’assertions :
+
+| Mutation | Test qui la tue sous Node |
+|---|---|
+| Quai mobile figé | A-niv-01 : tick 120, x=156 (course de passe 108) |
+| Ravitaillement sans effet | A-niv-01 : carburant=1800 après service |
+| Deux niveaux identiques | A-niv-03 : catalogue dupliqué, similarité=1 |
+| Météores inoffensifs | A-niv-01 : collision au tick 233, défaite |
+| Gravité : y=440 exclu | A-niv-01 : vitesse verticale=0,009 à (300,440) |
+| Tunnel : y=380 exclu | A-niv-01 : vitesse horizontale=0,0015 à (180,380) |
+| Geyser : x=230 exclu | A-niv-01 : poussée=0,012 à (230,480) |
+| Balise : rayon 38 exclu | A-niv-01 : balise validée à (218,350) |
+| Secours : rayon 28 exclu | A-niv-01 : astronaute recueilli à (118,370) |
+| Victoire sans secourir | A-niv-01 : arrivée sûre à (260 ; 517,9), mission refusée |
+| Rafales historiques supprimées | A-niv-04b : comparaison exacte du vrai témoin niveau 21 |
+| Idée du niveau jamais affichée | A-niv-HUD : idée présente aux pas 0,1,119 |
+
+Validation passe 108 : lint, typecheck, build et **40/40 validateurs Node** verts,
+sous le verrou commun ; suite Node séquentielle en **166,26 s**. Aucun navigateur
+ni Vitest exécuté. Les campagnes des compagnons ne changent que dans leur partie Alunir.
+
+`tests/e2e/alunir-levels.spec.ts`, écrit pour l’orchestrateur et non exécuté ici,
+fixe **390×844**, capture `alunir-niveau-1`, `-5`, `-10`, `-15`, `-20`, `-25`,
+`-30`, puis gagne 1 et 10 au doigt bruité ±12 px avec latence de **150 ms**,
+entrées tactiles uniquement, temps réel et **sans advance()**. `FingerClock`
+borne chaque vol à **90000 ms de jeu** ; aucun oracle d’horloge murale.
 
 ## Caisses
 
@@ -3592,3 +3778,535 @@ Le validateur rejoue les niveaux 1 et 5 à une décision toutes les 1,5 s,
 avec bruit ±12 px CSS, 150 ms de latence plus le coût mesuré de lecture Node.
 Il exige une victoire avant 120 s (délai E2E : 240 s) ; ce modèle ne mesure
 pas la latence CDP du conteneur, que le JSON E2E doit établir sur l'hôte.
+## Pépites
+
+Jeu de mine original, mené par le compagnon choisi : creuser la terre case par
+case, ramasser des pépites, ouvrir la sortie au quota, sans se faire écraser.
+Moteur pur `src/engines/pepites/engine.ts` (12 × 16 cases, bord de roche mère),
+simulation au tour : un tour toutes les `turnFrames` images (7 à 9, soit 117 à
+150 ms), le personnage agit d'abord, puis le monde, **balayé du bas vers le haut
+et de gauche à droite**, chaque objet ne bougeant qu'une fois par tour.
+
+| Élément | Règle |
+| --- | --- |
+| Terre `.` | Le personnage la creuse en avançant. |
+| Rocher `o`, pépite `*` | Tombent d'une case par tour dans le vide ; **roulent** à gauche (sinon à droite) d'un rocher, d'une pépite ou d'une brique si la case de côté et celle du dessous sont vides ; jamais sur la terre. Un objet **en chute** qui arrive sur le personnage l'écrase ; posé sur sa tête, il attend qu'il parte. |
+| Pousser | Un rocher immobile se pousse d'une case sur le côté si la case suivante est vide ; jamais vers le haut. |
+| Sortie `E` | Ouverte quand `goal` pépites sont ramassées ; y entrer termine la mine (+ secondes restantes × niveau). |
+| Luciole `f` / papillon `b` | Longent les murs, main gauche pour la luciole, main droite pour le papillon. Le contact (case voisine) déclenche une explosion 3 × 3 ; un objet en chute qui les écrase aussi. La luciole laisse du vide, le papillon des pépites. |
+| Mur trieur `m` | Activé par le premier objet qui tombe dessus, pendant `sortTurns` tours : un rocher en chute ressort dessous en pépite, une pépite en rocher (case du dessous libre) ; éteint, l'objet disparaît. |
+| Mousse `a` | Toutes les `mossEvery` tours, gagne une case voisine (terre ou vide, tirage PRNG) ; sans place, elle devient pépites ; à `mossLimit` cases, rochers. |
+| Dynamite `x` | Fixe ; un objet **en chute** qui la touche ouvre un trou 3 × 3, briques comprises (la roche mère et la sortie résistent). |
+| Grosse pépite `g` | Tombe et roule comme une pépite ; compte pour trois. |
+| Eau `w` | Toutes les `waterEvery` tours, inonde une case vide voisine (dessous d'abord, jamais au-dessus) ; inonder la case du personnage le noie. |
+| Étai (spécial) | Une charge par mine : rochers, pépites, créatures, mousse et eau figés pendant 12 tours. Aucun bonus de score. |
+| Chrono | Défaite « Temps écoulé » à zéro. |
+
+Trente mines écrites (`levels.ts`), une nouveauté tous les trois à cinq niveaux
+(chute 2, poussée 3, lucioles 4, papillon 6, mur trieur 9, mousse 12, étai 16,
+dynamite 17, eau 21, grosse pépite 26) et un défi chronométré tous les cinq niveaux ; la 30 combine papillon,
+mur trieur, mousse et eau. Contrôles : glisser et maintenir = direction tenue,
+toucher une flèche = un pas, flèches des deux côtés du pouce, Étai au milieu ;
+clavier : flèches/ZQSD maintenues, Espace pour l'étai.
+
+Preuves : `tests/pepites-cases.ts` (P01-P11, positions littérales, Vitest et
+`validate-pepites.js`), `scripts/record-pepites.js` (recherche bornée au meilleur
+d'abord sur des tours entiers, calibration hors ligne dans un créneau de calcul)
+écrit `tests/fixtures/pepites-campaign.json`, rejoué par `validate-pepites.js` dans
+le budget de tours du chrono ; la politique au doigt (`tests/e2e/pepites-policy.ts` :
+plus court chemin vers la pépite la plus proche, trois tours simulés sans perdre)
+gagne les mines 1 et 3 en Node à 150 ms de latence et dans `pepites-finger.spec.ts`
+(CDP, ±12 px).
+## Gourmandises
+
+Le nom affiché vient uniquement de `GAME_NAME` dans `levels.ts`. Le registre
+expose 120 niveaux ; quinze mondes et 300 emplacements sont prévus, seuls les
+six premiers mondes sont jouables. Les tailles, collectes et budgets suivent
+les fiches pour les dimensions et les budgets ; les collectes sont rééquilibrées
+par mesure. Les plateaux sont générés, jamais importés.
+
+Permutation orthogonale par glisser ou deux touchers. Un échange sans alignement
+est annulé sans dépense, sauf présence d'un spécial. Trois pièces disparaissent,
+quatre créent un rayé orienté comme l'échange, cinq une bombe couleur, un L/T
+un emballé. L'emballé frappe deux fois son voisinage 3×3, avec gravité entre
+les explosions. Deux rayés font une croix ; rayé/emballé frappe trois lignes
+et trois colonnes ; bombe/rayé transforme puis déclenche la couleur ; deux
+bombes frappent tout le plateau. Les autres spéciaux touchés se déclenchent.
+
+Les caisses ont une ou deux couches, bloquent la gravité et prennent un dégât
+par vague adjacente ou spéciale. La glace reste sous la pièce et perd une couche
+quand cette case est touchée. Les absences coupent les colonnes en segments.
+La gravité conserve l'ordre de chaque segment, puis le remplit avec le PRNG
+commun. Chaque couleur ordinaire a un poids de 1 ; la couleur demandée a le
+poids `targetWeight` déclaré dans le niveau (probabilité poids / somme des poids).
+Ce sac reste identique pour les personnages et les deux modes, sans adaptation
+au résultat du joueur. Les cibles sont 56 fraises, 42 étoiles ou 30 feuilles :
+les budgets décroissants et les sacs différents compensent les cascades et la
+surface disponible. Aucun coup minimum artificiel ne retarde la victoire.
+Les cascades multiplient le score (10 points par pièce × profondeur).
+Après résolution, tout état stable a un coup valide ; sinon permutation à
+graine de l'inventaire, sans alignement préexistant, couleurs et spéciaux conservés.
+
+Découverte : budget non bloquant, trois marteaux, fusées et arcs-en-ciel, indice
+clignotant après 5000 ms d'inactivité. Arcade : budget des fiches et un outil de
+chaque type. Marteau : une case ; fusée : une ligne ; arc-en-ciel : la couleur
+visée. Les outils ne consomment pas de coup et respectent obstacles et cascades.
+Tous les objectifs doivent être atteints ; sinon Arcade perd au dernier coup.
+Étoiles après victoire : une, deux à 1500 points, trois à 3000 points. Le moteur
+accepte plusieurs collectes, un objectif de score ou de couches à casser.
+
+Le premier monde introduit les alignements, le deuxième les rayés dans des
+couloirs, le troisième les îlots de caisses puis leurs deux couches. Les finales
+20/40/60 commencent avec une bombe couleur. La glace simple apparaît en fin
+de monde. La descente d’objets et la glace double occupent les mondes 4 à 6.
+Les types liane, chocolat, tapis, portail, miel, cadenas et clé restent des
+points d’extension pour les campagnes suivantes. `difficulty` compte exclusivement les paramètres réels :
+somme des objectifs / budget, couleurs, couches de bois et glace, cases absentes,
+nombre d'objectifs. G17 vérifie leur correspondance au terrain et leur monotonie
+dans les trois premiers mondes. Les passages 20→21 et 40→41 réinitialisent la cible, le
+budget et la géométrie : leur pression brute et leurs absences peuvent donc
+baisser, sans supplément de rang caché. La progression entre mondes est prouvée
+par la médiane mesurée du glouton, pas par cette fonction.
+
+La colonne étroite, la croix et les deux compartiments reliés ont leurs propres
+masques ; un bonus central ne remplace plus une cloison. Les surfaces absentes
+progressent par taille de plateau (12, 14 puis 16 cases après l'introduction),
+les îlots de bois passent à deux couches et la glace arrive en fin de monde.
+G17 vérifie aussi la colonne, la croix et le pont unique entre compartiments
+dans les trois mondes.
+
+Le compagnon choisi à l'accueil est réellement transmis au moteur et au
+`GameCharacter` : saut lors d'un alignement, spécial lors d'une cascade, joie
+ou tristesse au résultat, repos en pause. Aucun effet sur les règles. Dessins
+et sons sont procéduraux. Les effets `life`, `won` et `lost` utilisent les
+vibrations du socle. Une rangée de trois boutons de 56 px reste sous le plateau.
+Flèches : curseur ; Espace puis flèche : échange ; 1/2/3 : outil puis Espace ;
+P/Échap : pause. Le menu propose les deux modes et le sélecteur commun.
+
+Progression : `arcade-lab:gourmandises:v1` ; préférence :
+`arcade-lab:gourmandises:mode:v1` ; partie : `arcade-lab:gourmandises:run:v1`.
+Le panneau « Prêt ? » précède les entrées ; `realtime: false`. Le crochet
+`__GOURMANDISES_TEST__` propose lecture, HUD, zone utile, chargement, géométrie
+et conseil glouton. Ses scénarios presque finis rejouent exclusivement des
+permutations ordinaires et rendent la dernière permutation à effectuer.
+
+### Campagne et preuve
+
+`nice -n 19 ionice -c3 npm run test:node -- --only=validate-gourmandises.js`
+exécute les corps G01–G24 et G17Campaign utilisés par Vitest, les assertions de
+scène, les 26 mutations en mémoire, la campagne complète et 200 permutations
+effectivement jouées par niveau en Découverte.
+Le substitut de scène remplace uniquement la classe de rendu et enregistre les
+vrais appels Canvas : flèches, Espace, outils, surbrillance, phases de l'indice,
+son `match` et positions de chute à 280/140/0 ms. Aucun navigateur n'est créé.
+
+Graines **8, 19, 37, 65, 101**, sans outils : **300/300 victoires** du glouton
+(meilleure progression immédiate, score pour départager). Chaque médiane de
+niveau respecte 25–50 % du budget en 1–10, 40–70 % en 11–40, 55–85 % en
+41–60 ; aucune des cinq parties ne dépasse le budget. Médianes entre mondes :
+**50.0 %** → **62.5 %** → **76.0 %**. Le pilote aléatoire choisit uniformément une permutation valide
+avec un PRNG initialisé à graine + indice du niveau : **6/50 défaites** en 1–10
+(88 % de victoires), **45/100** en 21–40, **52/100** en 41–60. Le validateur
+verrouille les fourchettes et les taux minimaux demandés, sans exiger ces valeurs
+exactes. Découverte garde son budget non bloquant. Cette preuve couvre ces
+cinq graines, pas toutes les parties possibles. Les 12000 permutations
+d'endurance restent stables et disposent d'un coup valide. G20 reprend les
+niveaux 2, 21, 41 sur deux graines (37 et 101), avec les mêmes fourchettes et des
+contrôles courts de l'aléatoire, dans le budget de 2 s.
+
+Dimensions : colonnes × rangées. Objectif : F = fraises, E = étoiles, L = feuilles.
+Obstacles : B = couches de bois, G = glace, V = cases absentes. La médiane du
+glouton et le taux de défaite aléatoire portent sur cinq graines par niveau.
+
+| Niveau | Taille | Objectif | Coups | Glouton médian (coups) | Médiane / budget | Défaite aléatoire | B/G/V |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | 6×6 | F 56 | 28 | 12 | 42.9 % | 20 % | 0/0/0 |
+| 2 | 6×6 | F 56 | 28 | 13 | 46.4 % | 0 % | 0/0/0 |
+| 3 | 6×6 | F 56 | 27 | 11 | 40.7 % | 20 % | 0/0/12 |
+| 4 | 6×6 | F 56 | 27 | 12 | 44.4 % | 0 % | 0/0/12 |
+| 5 | 6×6 | F 56 | 26 | 13 | 50.0 % | 0 % | 0/0/12 |
+| 6 | 6×6 | F 56 | 26 | 13 | 50.0 % | 20 % | 0/0/12 |
+| 7 | 6×6 | F 56 | 25 | 12 | 48.0 % | 20 % | 0/0/12 |
+| 8 | 7×7 | F 56 | 25 | 7 | 28.0 % | 20 % | 0/0/14 |
+| 9 | 7×7 | F 56 | 24 | 12 | 50.0 % | 0 % | 0/0/14 |
+| 10 | 7×7 | F 56 | 24 | 9 | 37.5 % | 20 % | 0/0/14 |
+| 11 | 7×7 | F 56 | 23 | 12 | 52.2 % | 40 % | 0/0/14 |
+| 12 | 7×7 | F 56 | 23 | 14 | 60.9 % | 80 % | 0/0/14 |
+| 13 | 7×7 | F 56 | 22 | 12 | 54.5 % | 60 % | 0/0/14 |
+| 14 | 7×7 | F 56 | 22 | 12 | 54.5 % | 100 % | 0/0/14 |
+| 15 | 8×7 | F 56 | 21 | 10 | 47.6 % | 80 % | 0/0/16 |
+| 16 | 8×7 | F 56 | 21 | 13 | 61.9 % | 20 % | 0/0/16 |
+| 17 | 8×7 | F 56 | 20 | 10 | 50.0 % | 40 % | 0/0/16 |
+| 18 | 8×7 | F 56 | 20 | 13 | 65.0 % | 40 % | 0/3/16 |
+| 19 | 8×7 | F 56 | 19 | 13 | 68.4 % | 60 % | 0/3/16 |
+| 20 | 8×7 | F 56 | 19 | 10 | 52.6 % | 20 % | 0/3/16 |
+| 21 | 6×6 | E 42 | 28 | 12 | 42.9 % | 40 % | 0/0/4 |
+| 22 | 6×6 | E 42 | 28 | 15 | 53.6 % | 40 % | 0/0/4 |
+| 23 | 6×6 | E 42 | 27 | 14 | 51.9 % | 20 % | 0/0/12 |
+| 24 | 6×6 | E 42 | 27 | 17 | 63.0 % | 40 % | 0/0/12 |
+| 25 | 6×6 | E 42 | 26 | 18 | 69.2 % | 20 % | 0/0/12 |
+| 26 | 6×6 | E 42 | 26 | 14 | 53.8 % | 20 % | 0/0/12 |
+| 27 | 6×6 | E 42 | 25 | 15 | 60.0 % | 40 % | 0/0/12 |
+| 28 | 7×7 | E 42 | 25 | 15 | 60.0 % | 40 % | 0/0/14 |
+| 29 | 7×7 | E 42 | 24 | 15 | 62.5 % | 60 % | 0/0/14 |
+| 30 | 7×7 | E 42 | 24 | 15 | 62.5 % | 60 % | 0/0/14 |
+| 31 | 7×7 | E 42 | 23 | 15 | 65.2 % | 40 % | 0/0/14 |
+| 32 | 7×7 | E 42 | 23 | 11 | 47.8 % | 60 % | 0/0/14 |
+| 33 | 7×7 | E 42 | 22 | 15 | 68.2 % | 60 % | 0/0/14 |
+| 34 | 7×7 | E 42 | 22 | 15 | 68.2 % | 20 % | 0/0/14 |
+| 35 | 8×7 | E 42 | 21 | 14 | 66.7 % | 80 % | 0/0/16 |
+| 36 | 8×7 | E 42 | 21 | 13 | 61.9 % | 80 % | 0/0/16 |
+| 37 | 8×7 | E 42 | 20 | 14 | 70.0 % | 20 % | 0/0/16 |
+| 38 | 8×7 | E 42 | 20 | 13 | 65.0 % | 80 % | 0/3/16 |
+| 39 | 8×7 | E 42 | 19 | 13 | 68.4 % | 60 % | 0/3/16 |
+| 40 | 8×7 | E 42 | 19 | 10 | 52.6 % | 20 % | 0/3/16 |
+| 41 | 6×6 | L 30 | 28 | 22 | 78.6 % | 100 % | 2/0/0 |
+| 42 | 6×6 | L 30 | 28 | 22 | 78.6 % | 60 % | 2/0/0 |
+| 43 | 6×6 | L 30 | 27 | 21 | 77.8 % | 60 % | 2/0/12 |
+| 44 | 6×6 | L 30 | 27 | 17 | 63.0 % | 0 % | 2/0/12 |
+| 45 | 6×6 | L 30 | 26 | 20 | 76.9 % | 60 % | 2/0/12 |
+| 46 | 6×6 | L 30 | 26 | 22 | 84.6 % | 60 % | 2/0/12 |
+| 47 | 6×6 | L 30 | 25 | 21 | 84.0 % | 20 % | 2/0/12 |
+| 48 | 7×7 | L 30 | 25 | 17 | 68.0 % | 80 % | 3/0/14 |
+| 49 | 7×7 | L 30 | 24 | 17 | 70.8 % | 60 % | 3/0/14 |
+| 50 | 7×7 | L 30 | 24 | 15 | 62.5 % | 60 % | 3/0/14 |
+| 51 | 7×7 | L 30 | 23 | 17 | 73.9 % | 20 % | 12/0/14 |
+| 52 | 7×7 | L 30 | 23 | 19 | 82.6 % | 60 % | 12/0/14 |
+| 53 | 7×7 | L 30 | 22 | 17 | 77.3 % | 20 % | 12/0/14 |
+| 54 | 7×7 | L 30 | 22 | 17 | 77.3 % | 40 % | 12/0/14 |
+| 55 | 8×7 | L 30 | 21 | 15 | 71.4 % | 80 % | 16/0/16 |
+| 56 | 8×7 | L 30 | 21 | 15 | 71.4 % | 20 % | 16/0/16 |
+| 57 | 8×7 | L 30 | 20 | 15 | 75.0 % | 60 % | 16/0/16 |
+| 58 | 8×7 | L 30 | 20 | 15 | 75.0 % | 40 % | 16/3/16 |
+| 59 | 8×7 | L 30 | 19 | 15 | 78.9 % | 60 % | 16/3/16 |
+| 60 | 8×7 | L 30 | 19 | 14 | 73.7 % | 80 % | 16/3/16 |
+
+### Oracle
+
+| ID | Preuve |
+| --- | --- |
+| G01 | Permutation reconnue, refus sans coût ni changement, voisinage orthogonal |
+| G02 | Détection 3/4/5/L/T et conservation du pivot à la création |
+| G03 | Ordre de gravité, remplissage et graine reproductibles |
+| G04 | Cascade construite et score multiplié exactement |
+| G05 | Rayés horizontal et vertical |
+| G06 | Deux frappes 3×3 de l'emballé |
+| G07 | Bombe sur exactement la couleur permutée |
+| G08 | Empreintes exactes, conversion rayée déclenchée, caisse centrale sous double bombe |
+| G09 | Caisse à deux couches, casse et séparation de la gravité |
+| G10 | Glace sur alignement simple et sous le pivot protégé d’un nouveau spécial |
+| G11 | Absence infranchissable, gravité segmentée, pas d'alignement à travers |
+| G12 | Rebattage reproductible conservant l'inventaire, sans alignement et avec coup |
+| G13 | Objectifs multiples, victoire/défaite, blocage après résultat, étoiles à 1499/1500/2999/3000 |
+| G14 | Ensemble exact des cases touchées par chaque outil et stock consommé |
+| G15 | Découverte non bloquante, limite d'indice à 5000 ms, Arcade sans indice |
+| G16 | États sérialisables et événements identiques sur les mêmes entrées |
+| G17 | Cinq paramètres physiques exacts, monotonie locale et géométrie des fiches |
+| G18 | 2000 pas de vignette, aucune fenêtre de 36 pas figée, redémarrages |
+| G19 | Cinq identités transmises et équilibre identique ; scène vérifiée sous Node |
+| G20 | Trois niveaux × deux graines : pression du glouton et sélectivité aléatoire |
+
+Mutations tuées : refus payant, minimum de quatre, gravité inversée, score sans
+multiplieur, seconde explosion supprimée, glace incassable, outils illimités,
+compagnon toujours identique dans la scène ; plus les huit mutations adverses :
+bombe sans conversion rayée, deuxième étoile à 1499, flèches horizontales
+inversées, raccourcis 1/3 inversés, indice invisible en Découverte, sélection
+invisible, alignements muets, chutes instantanées. Toutes sont importées et tuées
+en mémoire après vérification de l'unicité de chaque ancre, sans écrire les
+sources mutées. Les ancres uniques sont dans
+`scripts/gourmandises-mutations.json`, au format de `scripts/mutate.js`.
+
+E2E écrits uniquement, à exécuter par l'hôte : victoire et suivant, défaite
+Arcade et reprise, rechargement, absence d'erreur ; parcours clavier par Espace
+et flèche, raccourcis 1/2/3 consommés, comparaison des pixels du plateau
+avant/après sélection ; parcours tactile CDP 390×844
+avec bruit ±12 px et latence 150 ms, deux touchers, outil, victoires 1 et 10,
+JSON joint. Captures : `gourmandises-play`, `gourmandises-level60`,
+`gourmandises-won`, `gourmandises-lost`, et avant/après pour le doigt.
+Contrôler la lisibilité du HUD, les silhouettes et reflets, le compagnon hors
+des cases, la rangée des outils, le plateau du niveau 60, les résultats et les
+boutons Suivant/Rejouer. Aucun navigateur ni Vitest exécuté localement.
+
+### Habillage Gourmandises
+
+Décors statiques mis en cache par monde : jardin fleuri et maison de bois,
+verger au crépuscule, sous-bois avec souches et pont. La table des noms prévoit
+les quinze mondes. Le plateau en verre clair et bois occupe au moins 85 % de
+la largeur utile des 120 niveaux et reste centré entre les cartes du HUD
+et les outils. Objectifs illustrés, compteurs, alerte orange sous cinq coups,
+étoiles et compagnon de 84 unités complètent le HUD. Les trois outils portent
+un dessin et un compteur ; Échap désarme avant d’ouvrir le menu.
+
+Les raccourcis peuvent armer pendant une chute ; leur état accessible est
+synchronisé dès l’événement, sans attendre une image. Armer termine la chute
+visuelle ; le moteur a déjà résolu le plateau et accepte la cible suivante. Les oracles Node exécutent les
+vrais écouteurs installés par `create()` avec 1, 2, 3, Échap et vérifient les
+trois boutons à chaque étape, y compris pendant une animation. Cinq mutations
+supplémentaires couvrent géométrie, objectif, alerte, épuisement et clavier.
+Les effets dessinent les pièces collectées et les rayons des spéciaux ; une
+double bombe secoue légèrement le plateau. Le mouvement réduit supprime
+particules, secousse et déplacement des pièces. Résultats : trois étoiles,
+pleines selon le score. Le scénario clavier E2E reste réservé au bureau : le
+parcours mobile impose des entrées exclusivement tactiles.
+
+### Rivière, montagne et palais : niveaux 61 à 120
+
+La rivière introduit les objets dorés (`piece.drop`), distincts des gouttes
+bleues ordinaires. Ils descendent dans les segments ouverts et sortent par les
+chevrons dorés (`exit`). Une sortie consomme immédiatement l’objet et incrémente
+`drop`, sans score ni collecte de couleur. Les objets peuvent être échangés
+si la permutation forme un alignement ordinaire ; ils ne s’alignent jamais,
+ne sont détruits ni par un outil ni par un spécial et restent à leur place
+pendant un rebattage. Au plus trois objets sont présents (deux dans la colonne
+étroite), alimentés en haut des colonnes continues, jusqu’à la cible exacte.
+Les dernières étapes de la rivière associent glace simple et descente.
+
+La montagne possède de grandes bandes de glace simple, sous les fleurs à
+collecter. Le palais alterne bandes de glace double et passages libres ; sa
+finale resserre la glace dans deux longs couloirs. Chaque vague sur une case
+retire exactement une couche, même lorsqu’un spécial est créé sur cette case.
+Deux couches : surface pleine, double reflet et bord épais ; une couche :
+surface légère, fissure ramifiée et bord fin. Les finales 80, 100 et 120 exigent
+deux objectifs : descente + collecte, fleurs + glace, étoiles + glace.
+
+Décors fixes mis en cache : rivière sinueuse, galets et cascade ; sommets
+avec neige et sapins ; colonnes translucides et lustres de cristal. Les gouttes
+dorées, chevrons de sortie et icônes du HUD sont dessinés par le code.
+Le contrôle de largeur et de centrage couvre les 120 plateaux. G17 vérifie les
+paramètres physiques de chaque niveau, les masques, les sorties, les grandes
+zones gelées et les deux couches ; les nouvelles silhouettes font varier les
+surfaces et les cibles réelles, sans indicateur artificiel de rang.
+
+Mesure sans outils sur les graines 8, 19, 37, 65, 101 : **300/300 victoires**
+sur cette extension, **600/600** sur toute la campagne. Le glouton conserve la
+progression immédiate comme premier critère ; pour `drop`, il départage ensuite
+par descente immédiate des objets, puis par score. Il ne regarde aucun coup
+futur. Ses copies de simulation calculent les mêmes états sans conserver les
+événements d’animation ; les parties et les rejeux les conservent.
+Les médianes des mondes 4/5/6 valent **65,94 % / 73,38 % / 80,00 %**.
+Les défaites aléatoires sont **92/100 / 81/100 / 98/100** respectivement.
+Le validateur verrouille chaque médiane de niveau à 55–85 %, les cinq victoires,
+la croissance entre ces trois mondes et au moins 50 % de défaites en 101–120.
+Les cibles indicatives des fiches sont recalibrées ; dimensions, budgets,
+graines, intentions de géométrie et bonus sont conservés.
+
+G21 : gravité, sortie immédiate, protection des objets et inventaire déterministe
+au rebattage. G22 : deux dégâts séparés et création de spécial sur glace double.
+G23 : objectif `drop`, victoire conjointe, finales doubles et sortie par vraie
+permutation. G24 : empreinte de snapshots **et** événements des niveaux 1–60,
+prélevée avant l’extension : 101807812, sur cinq graines et six états par partie
+(1800 états). La version courte reprend les 60 niveaux sur une graine.
+G17Campaign : trois nouveaux niveaux sur deux graines, sous deux secondes.
+Les 24000 coups d’endurance sont joués sans limite de budget, sans état mort.
+Validation finale : 32,07 s pour le processus du validateur ; 35,93 s pour la
+commande Node complète, précompilation du dépôt comprise. Le plafond de 40 s du validateur
+est une assertion exécutée, comme le plafond de deux secondes par oracle.
+Les cinq mutations de l’extension, conservées, couvrent destruction d’objet, objet rebattu,
+sortie non comptée, deux couches détruites ensemble et progression `drop` nulle.
+
+E2E écrit pour les projets bureau et mobile : `gourmandises-level120`, puis
+`gourmandises-drop-before/after`, dans des sous-dossiers distincts
+`desktop` et `mobile`. Le scénario rejoint la position par des
+permutations ordinaires et laisse la dernière entrée au pilote souris ou aux
+deux touchers mobiles. Node exerce aussi les vrais écouteurs de glisser et de
+deux touchers sur ce scénario, avec contrôle du compteur et du coup dépensé.
+Aucun navigateur, Vitest ou E2E exécuté localement ; les captures restent à
+produire sur l’hôte autorisé. Vérifier les couloirs du palais, les deux objectifs,
+la différence glace pleine/fissurée et l’objet doré qui traverse le chevron,
+sans être compté comme une goutte bleue ordinaire.
+
+D = objets sortis, F = fleurs, E = étoiles, G = couches de glace à briser,
+B = gouttes bleues ordinaires. Glace/absences : couches initiales/cases absentes.
+
+| Niveau | Taille | Objectif(s) | Coups | Glouton médian | Médiane / budget | Défaite aléatoire | Glace/absences |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 61 | 7×7 | D 6 | 27 | 17 | 63.0 % | 100 % | 0/0 |
+| 62 | 7×7 | D 6 | 27 | 18 | 66.7 % | 100 % | 0/0 |
+| 63 | 7×7 | D 3 | 26 | 18 | 69.2 % | 20 % | 0/21 |
+| 64 | 7×7 | D 4 | 26 | 18 | 69.2 % | 100 % | 0/16 |
+| 65 | 7×7 | D 5 | 25 | 17 | 68.0 % | 100 % | 0/0 |
+| 66 | 7×7 | D 5 | 25 | 16 | 64.0 % | 100 % | 0/0 |
+| 67 | 7×7 | D 3 | 24 | 16 | 66.7 % | 100 % | 0/2 |
+| 68 | 8×7 | D 4 | 24 | 18 | 75.0 % | 100 % | 0/1 |
+| 69 | 8×7 | D 5 | 23 | 16 | 69.6 % | 100 % | 0/4 |
+| 70 | 8×7 | D 5 | 23 | 15 | 65.2 % | 80 % | 0/0 |
+| 71 | 8×7 | D 3 | 22 | 13 | 59.1 % | 100 % | 0/0 |
+| 72 | 8×7 | D 2 | 22 | 13 | 59.1 % | 80 % | 0/6 |
+| 73 | 8×7 | D 7 | 21 | 14 | 66.7 % | 100 % | 0/1 |
+| 74 | 8×7 | D 4 | 21 | 12 | 57.1 % | 80 % | 0/4 |
+| 75 | 8×8 | D 4 | 20 | 13 | 65.0 % | 100 % | 0/0 |
+| 76 | 8×8 | D 5 | 20 | 12 | 60.0 % | 80 % | 0/0 |
+| 77 | 8×8 | D 4 | 19 | 13 | 68.4 % | 100 % | 0/0 |
+| 78 | 8×8 | D 8 | 19 | 12 | 63.2 % | 100 % | 8/1 |
+| 79 | 8×8 | D 3 | 18 | 11 | 61.1 % | 100 % | 8/4 |
+| 80 | 8×8 | D 6 + B 30 | 18 | 12 | 66.7 % | 100 % | 8/0 |
+| 81 | 7×7 | F 68 | 27 | 20 | 74.1 % | 100 % | 35/0 |
+| 82 | 7×7 | F 56 | 27 | 20 | 74.1 % | 100 % | 35/0 |
+| 83 | 7×7 | F 48 | 26 | 19 | 73.1 % | 20 % | 15/21 |
+| 84 | 7×7 | F 48 | 26 | 19 | 73.1 % | 40 % | 27/16 |
+| 85 | 7×7 | F 60 | 25 | 18 | 72.0 % | 100 % | 35/0 |
+| 86 | 7×7 | F 52 | 25 | 18 | 72.0 % | 100 % | 35/0 |
+| 87 | 7×7 | F 60 | 24 | 17 | 70.8 % | 80 % | 33/2 |
+| 88 | 8×7 | F 40 | 24 | 17 | 70.8 % | 100 % | 40/1 |
+| 89 | 8×7 | F 72 | 23 | 17 | 73.9 % | 80 % | 40/4 |
+| 90 | 8×7 | F 44 | 23 | 17 | 73.9 % | 80 % | 40/0 |
+| 91 | 8×7 | F 40 | 22 | 16 | 72.7 % | 80 % | 40/0 |
+| 92 | 8×7 | F 56 | 22 | 16 | 72.7 % | 100 % | 36/6 |
+| 93 | 8×7 | F 68 | 21 | 15 | 71.4 % | 80 % | 40/1 |
+| 94 | 8×7 | F 44 | 21 | 15 | 71.4 % | 80 % | 40/4 |
+| 95 | 8×8 | F 44 | 20 | 15 | 75.0 % | 80 % | 48/0 |
+| 96 | 8×8 | F 44 | 20 | 15 | 75.0 % | 100 % | 48/0 |
+| 97 | 8×8 | F 40 | 19 | 14 | 73.7 % | 80 % | 48/0 |
+| 98 | 8×8 | F 56 | 19 | 14 | 73.7 % | 40 % | 48/1 |
+| 99 | 8×8 | F 40 | 18 | 14 | 77.8 % | 80 % | 48/4 |
+| 100 | 8×8 | F 40 + G 48 | 18 | 14 | 77.8 % | 100 % | 48/0 |
+| 101 | 7×7 | E 56 | 27 | 22 | 81.5 % | 100 % | 56/0 |
+| 102 | 7×7 | E 44 | 27 | 21 | 77.8 % | 100 % | 56/0 |
+| 103 | 7×7 | E 40 | 26 | 22 | 84.6 % | 80 % | 36/21 |
+| 104 | 7×7 | E 56 | 26 | 21 | 80.8 % | 80 % | 40/16 |
+| 105 | 7×7 | E 56 | 25 | 20 | 80.0 % | 100 % | 56/0 |
+| 106 | 7×7 | E 52 | 25 | 20 | 80.0 % | 100 % | 56/0 |
+| 107 | 7×7 | E 40 | 24 | 19 | 79.2 % | 100 % | 52/2 |
+| 108 | 8×7 | E 52 | 24 | 18 | 75.0 % | 100 % | 70/1 |
+| 109 | 8×7 | E 40 | 23 | 19 | 82.6 % | 100 % | 66/4 |
+| 110 | 8×7 | E 48 | 23 | 17 | 73.9 % | 100 % | 70/0 |
+| 111 | 8×7 | E 48 | 22 | 18 | 81.8 % | 100 % | 70/0 |
+| 112 | 8×7 | E 72 | 22 | 18 | 81.8 % | 100 % | 58/6 |
+| 113 | 8×7 | E 48 | 21 | 17 | 81.0 % | 100 % | 70/1 |
+| 114 | 8×7 | E 72 | 21 | 15 | 71.4 % | 100 % | 66/4 |
+| 115 | 8×8 | E 52 | 20 | 16 | 80.0 % | 100 % | 80/0 |
+| 116 | 8×8 | E 60 | 20 | 16 | 80.0 % | 100 % | 80/0 |
+| 117 | 8×8 | E 44 | 19 | 15 | 78.9 % | 100 % | 80/0 |
+| 118 | 8×8 | E 56 | 19 | 15 | 78.9 % | 100 % | 80/1 |
+| 119 | 8×8 | E 40 | 18 | 15 | 83.3 % | 100 % | 76/4 |
+| 120 | 8×8 | E 64 + G 32 | 18 | 12 | 66.7 % | 100 % | 32/0 |
+
+### Corrections de rendu et politique de mesure
+
+Les boutons des trois outils conservent une surface tactile d’au moins 56 px et
+une police de 16 px. Le canvas occupe 100 % de leur boîte intérieure, et la
+pastille reste à l’intérieur. Un oracle Node calcule leurs dimensions aux trois
+formats mobiles ; le contrôle E2E de l’hôte reste nécessaire pour les pixels.
+
+Le pilote compare désormais les gains dans l’ordre strict : objectif plafonné,
+descente des objets, score, puis ordre des permutations. Les cinq graines restent
+8, 19, 37, 65 et 101 ; les seuils de la campagne sont inchangés. Les réglages de
+dix niveaux du monde 4 sont recalibrés ; les niveaux 1–60 restent identiques.
+L’oracle G25 vérifie le meilleur gain immédiat parmi toutes les permutations.
+
+La scène garde un trajet distinct pour chaque objet livré, de son origine à sa
+sortie, même si la gravité remplit ensuite cette sortie avec un bonbon. Les commandes
+de dessin sont vérifiées au départ, à mi-course, à la sortie et après livraison,
+ainsi qu’avec les mouvements réduits. Les oracles imposent aussi le dessin doré,
+les deux couches de glace et le chevron de sortie. Les décors vérifient sept filets
+de cascade, 24 galets, quatre étages par sapin et neuf cristaux de lustres ; les
+craquelures de glace simple sont distinguées des reflets de glace double.
+G17 verrouille 17 silhouettes littérales des six mondes.
+
+| Monde | Médiane du glouton / budget | Défaite aléatoire (100 parties) |
+| --- | --- | --- |
+| 1 | 50.00 % | 33 % |
+| 2 | 62.50 % | 45 % |
+| 3 | 75.96 % | 52 % |
+| 4 | 65.94 % | 92 % |
+| 5 | 73.38 % | 81 % |
+| 6 | 80.00 % | 98 % |
+
+Les fourchettes par niveau passent sur les cinq graines, sans dépassement de
+budget. Le tutoriel conserve 88 % de victoires aléatoires. L’empreinte des états
+et événements des niveaux 1–60 reste `101807812` sur ces cinq graines.
+Les 39 mutations (26 conservées et 13 ajoutées) sont tuées en mémoire : les huit
+cas de la relecture, le trajet livré, la pondération de la politique, le canvas
+et la pastille débordants, ainsi que les deux cases gênantes remplies.
+### Circuits Kart du catalogue
+
+K01 **Bambou Express**, K02 **Feuilles Folles** et K03 **Volcan Turbo** occupent
+respectivement les indices 17, 19 et 26 (niveaux affichés 18, 20 et 27).
+Ces emplacements évitent ceux rejoués par Z36 ; la progression va du raccourci
+facultatif aux feuilles glissantes, puis à la lave et au pont effondré.
+Les trente géométries restent distinctes. `legacyCircuits` conserve son ordre.
+Les noms du catalogue deviennent les `circuitKey` des nouveaux circuits.
+Les records des trois anciens circuits restent dans la sauvegarde sous leur
+ancien nom, y compris après migration d'une clé numérique historique ; ils ne
+sont jamais réattribués aux nouveaux circuits. Les nouveaux records sont
+également conservés à la relecture.
+
+Le raccourci K01 est une seconde route de largeur 4, des échantillons 65 à 79,
+derrière une cascade ; son segment est plus court que l'arc principal et les
+arbres laissent le passage libre. Il compte comme piste et franchit réellement
+la porte 72 : le contrôle des portes reste strictement ordonné. La porte
+intermédiaire reconnaît les deux voies, sans autoriser un tour qui la saute.
+K02 réduit uniquement l'amortissement latéral sur ses tas de feuilles
+(coefficient d'adhérence 0,12) : aucun plafond de vitesse d'herbe. Un kart en
+l'air ne touche pas les feuilles. Son tunnel, ses plateformes et ses arbres
+orange sont dessinés dans la scène.
+K03 limite la vitesse sur lave à 22 % de la vitesse sur piste et annule objet,
+turbo, charge de dérapage et Élan en cours ; un kart en l'air reste protégé.
+Le tremplin déclenche à son extrémité le même saut `jumpDuration` que le BMX,
+au seuil existant de 16 unités/s. Le trou suit le tremplin. En cas de lancement
+manqué, le kart suit physiquement les planches extérieures à 7 unités/s puis
+retrouve les commandes après le pont ; les collisions entre karts sont
+suspendues sur ces planches pour éviter le blocage d’une file : aucun gel, remise au départ ni
+traversée instantanée du trou. Le contournement est local à ce pont.
+
+`tests/level-catalogue-kart-checks.ts` vérifie les trois géométries, mesure les
+mécaniques dans la physique réelle et rejoue deux courses gagnantes par
+circuit, six karts, objets et collisions actifs. K01 compare le tour
+initial du rejeu au même pilote sur la voie normale et exige un temps plus
+court par le raccourci ; sa
+contre-épreuve refuse une porte omise et son contrôle positif franchit la
+porte de la branche. K02 mesure une dérive latérale supérieure à celle sur
+route sèche, à accélération longitudinale identique ; le passage aérien sert
+de contre-épreuve. K03 exige moins de 50 % de la vitesse témoin et l'annulation
+des bonus, vérifie le survol complet du trou puis le passage réel sur la voie
+latérale après un saut manqué, sans arrêt de 0,5 s. Une traversée aérienne de
+la lave conserve son bonus. Chaque circuit vérifie aussi l'isolation des
+anciens et nouveaux records.
+
+Les bandes sont régénérées par
+`nice -n 19 ionice -c3 node scripts/record-level-catalogue-kart.js`.
+Une bande par circuit utilise exactement le pilote joystick de
+`scripts/derapage-human.js`, bruit déterministe et retard de 150 ms compris.
+L'autre utilise les commandes de braquage ordinaires (raccourci pour K01).
+Le rejeu exige victoire, trois tours, chronos, score et état final exacts.
+La branche `catalogue()` les exécute dans `test:node` ; les tests unitaires
+séparent chaque mécanique et chaque rejeu, avec un plafond de deux secondes. Aucun navigateur ni
+Vitest n'a été utilisé pour cette validation.
+
+Le rendu lit `circuit.theme.kart` et les zones mécaniques, sans numéro de
+niveau. Bambous, eau, cascade, rochers, flèches et ponts ; forêt orange,
+feuilles et tunnel ; basalte, coulées, flammes, fumée et tremplin sont tracés
+avec Graphics. Les animations décoratives utilisent le temps de scène et
+restent figées avec la préférence de mouvement réduit.
+Pour la revue visuelle, capturer chacun en vue générale puis en vue de jeu :
+les deux voies et la cascade K01, les tas lisibles avant le tunnel K02, les
+plaques de lave et les planches extérieures autour du trou K03. Vérifier aussi
+le kart en l'air, son ombre, les limites de piste et la lisibilité sur mobile.
+
+Les replays historiques des emplacements remplacés utilisent explicitement
+leur circuit de `legacyCircuits` via `createTrack` ; leurs empreintes restent
+inchangées. Ils ne sont pas régénérés avec les nouvelles mécaniques.
+
+Le contournement choisit désormais les planches du côté le plus proche. Une
+approche lente depuis le centre rejoint d'abord ce côté, perpendiculairement
+au trou, avant d'avancer sur les planches. `kartFootprint` définit les emprises
+longitudinales et latérales utilisées par la physique et le dessin du trou et
+du tremplin. Le saut exige les derniers 20 % du tremplin et sa largeur réelle ;
+l'herbe adjacente ne déclenche aucun saut.
+Les contre-épreuves couvrent les deux bords intérieurs, l'extérieur de chaque
+bord et trente approches du pont à six vitesses. Chaque pas au sol doit rester
+hors du trou ; aucune immobilisation de 0,5 s n'est admise. Les feuilles sont
+aussi mesurées pendant un dérapage commandé. Les intervalles attendus de feuilles
+et de lave sont écrits indépendamment dans les tests, avec contrôle de leur
+étendue longitudinale et latérale et de leurs effets sur chaque segment.
+
+`check-level-catalogue-kart.js`, inclus dans `test:node`, enregistre les appels
+Graphics de la vraie scène, vérifie les décors et compare leurs animations à
+deux temps de scène. Il régénère aussi en mémoire la bande joystick K02 avec
+le vrai pilote, puis exige l'égalité intégrale avec la bande enregistrée.
+`check-level-catalogue-kart-mutations.js` rejoue dix mutations isolées en mémoire
+et refuse les survivantes ainsi que les erreurs de chargement ou de syntaxe.
+La spec indépendante `tests/e2e/derapage-catalogue.spec.ts` prévoit six captures
+mobiles à 390 × 844 après pilotage CDP tactile, avec zéro erreur console.
+Le second cliché K03 utilise la vue générale pour montrer simultanément les
+plaques de lave et le pont effondré, qui sont éloignés sur le circuit.

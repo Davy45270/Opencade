@@ -1,6 +1,6 @@
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
-import { Engine, LEVELS, polygon, required } from '../../engines/alunir/engine';
+import { Engine, LEVELS, meteorAt, polygon, required } from '../../engines/alunir/engine';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
 import { Progression } from '../../shell/progression';
@@ -46,7 +46,7 @@ export class AlunirScene extends Phaser.Scene {
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         this.graphics = this.add.graphics();
-        this.hud = this.add.text(10, 10, '', { fontFamily: 'system-ui', fontSize: '11px', color: '#e5f3ff', lineSpacing: 2 });
+        this.hud = this.add.text(10, 10, '', { fontFamily: 'system-ui', fontSize: '11px', color: '#e5f3ff', lineSpacing: 2, wordWrap: { width: 340 } });
         const control = (id: string, held: boolean): void => {
             if (held && !this.session.menuOpen && !this.selecting && this.session.state === 'ready') this.session.send('start');
             if (held && !this.session.paused && !this.selecting) {
@@ -137,21 +137,43 @@ export class AlunirScene extends Phaser.Scene {
         g.clear(); g.fillStyle(0x101827); g.fillRect(0, 0, 360, 640);
         g.fillStyle(0x96b6cd);
         for (let i = 0; i < 45; i++) g.fillCircle((i * 83 + 19) % 360, (i * 113 + 70) % 460, 1);
+        const e = this.engine, plan = e.plan();
+        if (e.has('gravite')) { g.fillStyle(0x8866cc, 0.18); g.fillRect(110, 180, 190, 260); }
+        if (e.has('tunnel')) { g.fillStyle(0x55bbee, 0.15); g.fillRect(0, 240, 360, 140); for (let x = 20; x < 350; x += 50) { g.lineStyle(2, 0x55bbee); g.lineBetween(x, 290, x + 22, 290); g.lineBetween(x + 22, 290, x + 15, 285); } }
+        if (e.has('geyser')) { g.fillStyle(0xffaa55, e.state.ticks % 240 < 180 ? 0.3 : 0.08); g.fillRect(130, 300, 100, 180); }
+        for (const [a, b] of e.obstacles()) { g.lineStyle(8, 0x9c7b91); g.lineBetween(a.x, a.y, b.x, b.y); }
+        if (e.has('meteores')) { const m = meteorAt(e.state.ticks); g.lineStyle(3, 0xffbb66); g.lineBetween(m.x - 22, m.y - 6, m.x, m.y); g.fillStyle(0xff7755); g.fillCircle(m.x, m.y, 8); }
+        if (e.has('balise')) { g.lineStyle(2, e.mission.beacon ? 0x64e4cc : 0xffdd66); g.strokeCircle(plan.beacon[0], plan.beacon[1], 38); g.lineBetween(plan.beacon[0], plan.beacon[1] - 15, plan.beacon[0], plan.beacon[1] + 15); }
+        if (e.has('secours') && !e.mission.rescued) { g.fillStyle(0xffffff); g.fillCircle(plan.rescue[0], plan.rescue[1] - 4, 5); g.lineStyle(3, 0xffffff); g.lineBetween(plan.rescue[0], plan.rescue[1] + 1, plan.rescue[0], plan.rescue[1] + 10); g.lineBetween(plan.rescue[0] - 8, plan.rescue[1] + 4, plan.rescue[0] + 8, plan.rescue[1] + 4); }
+        for (const [i, gate] of plan.route.entries()) {
+            g.lineStyle(2, e.events.includes('passage ' + String(i)) ? 0x64e4cc : 0xffdd66);
+            g.strokeCircle(gate[0], gate[1], 22);
+            if (gate === e.nextGate()) { g.lineBetween(gate[0] - 6, gate[1], gate[0] + 6, gate[1]); g.lineBetween(gate[0], gate[1] - 6, gate[0], gate[1] + 6); }
+        }
         const points = this.engine.terrain.points;
         g.lineStyle(2, 0x7487a6);
         for (let i = 1; i < points.length; i++) g.lineBetween(required(points[i - 1]).x, required(points[i - 1]).y, required(points[i]).x, required(points[i]).y);
-        for (const p of this.engine.terrain.pads) { g.lineStyle(5, 0x64e4cc); g.lineBetween(p.x, p.y, p.x + p.width, p.y); }
+        for (const p of this.engine.terrain.pads) {
+            g.lineStyle(5, p.role === 'service' ? 0xffcc66 : e.has('glace') ? 0xbbeeff : 0x64e4cc); g.lineBetween(p.x, p.y, p.x + p.width, p.y);
+            if (p.role === 'service') { g.lineStyle(2, 0xffcc66); g.strokeRect(p.x + 10, p.y - 18, 12, 15); }
+            if (e.has('cargo') && p.role === 'service' && !e.mission.cargo) { g.fillStyle(0xffbb77); g.fillRect(p.x + 38, p.y - 13, 12, 10); }
+            for (let i = 0; i < p.multiplier; i++) { g.fillStyle(0xffffff); g.fillCircle(p.x + 8 + i * 8, p.y + 9, 2); }
+        }
         const s = this.engine.state, body = polygon(s.x, s.y, s.angle);
+        if (e.level === 0 && e.status === 'playing' && e.target().y - s.y < 60) { g.lineStyle(1, 0x64e4cc, 0.6); g.lineBetween(s.x, s.y - 25, s.x, s.y + 18); }
         g.fillStyle(0xffd080); g.fillPoints(body, true); g.lineStyle(2, 0xffffff); g.strokePoints(body, true);
         g.fillStyle(0x18394e); g.fillCircle(s.x, s.y - 3, 12);
+        if (e.mission.cargo) { g.fillStyle(0xffbb77); g.fillRect(s.x - 5, s.y + 3, 10, 7); }
+        if (e.mission.rescued) { g.fillStyle(0xffffff); g.fillCircle(s.x + 9, s.y - 3, 3); }
         this.hero.draw(g, s.x - 17, s.y - 21, 34, s.angle);
         if (this.engine.controls.thrust && s.fuel > 0 && this.engine.status === 'playing') {
             g.lineStyle(4, 0xff9955); g.lineBetween(s.x - Math.sin(s.angle) * 12, s.y + Math.cos(s.angle) * 12, s.x - Math.sin(s.angle) * 22, s.y + Math.cos(s.angle) * 22);
         }
-        this.hud?.setText(`ALUNIR ${String(this.engine.level + 1)}/30 · ×${String(required(this.engine.terrain.pads[0]).multiplier)} · SCORE ${String(s.score)} · F ${s.fuel.toFixed(0)} · STAB ${String(this.engine.specialUses)}/2 (${(this.engine.specialTicks / 60).toFixed(1)} s)\nVX ${s.vx.toFixed(2)} /0,6 · VY ${s.vy.toFixed(2)} /1,2 · ${(s.angle * 180 / Math.PI).toFixed(0)}° /10°`);
+        const l = e.plan(), intro = s.ticks < 120 ? `\n${l.idea}` : '';
+        this.hud?.setText(`${s.ticks < 120 ? l.name : ''}${intro}\nALUNIR ${String(this.engine.level + 1)}/30 · ×${String(required(this.engine.terrain.pads[0]).multiplier)} · SCORE ${String(s.score)} · F ${s.fuel.toFixed(0)} · STAB ${String(this.engine.specialUses)}/2 (${(this.engine.specialTicks / 60).toFixed(1)} s)\nVX ${s.vx.toFixed(2)} /0,6 · VY ${s.vy.toFixed(2)} /1,2 · ${(s.angle * 180 / Math.PI).toFixed(0)}° /10°`);
         // Place the two-line HUD on the opposite side of the module at every frame.
         const top = Math.min(...body.map(p => p.y));
-        this.hud?.setY(top < 65 ? 590 : 10);
+        this.hud?.setY(top < 85 ? 550 : 10);
         const status = document.querySelector('#status');
         if (status) status.textContent = `Score : ${String(s.score)} · ${this.engine.status === 'playing' ? 'En vol' : this.engine.status === 'won' ? 'Victoire' : 'Défaite'}`;
     }

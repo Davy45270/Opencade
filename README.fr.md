@@ -4,6 +4,8 @@
 
 [English](README.md) | Français
 
+Alunir propose 30 situations écrites et 12 mécaniques, du cargo aux grottes et aux quais mobiles, vérifiées par 180 vols déterministes (passe 106).
+
 Ferraille propose 30 parcours écrits et 16 modules physiques, avec mesure de répétition ordonnée et 900 rejeux gagnants pour les cinq personnages (passe 103).
 
 La passe 101 enrichit Essaim de cinq signatures mécaniquement distinctes, de grands vaisseaux procéduraux, de sept silhouettes ennemies et de trois décors spatiaux, avec rejeux historiques préservés.
@@ -242,3 +244,5 @@ Le compagnon choisi sur l'accueil joue désormais dans Caisses, Traverse et Alun
 Le choix du personnage affiche son nom, son sous-titre et sa devise.
 
 **Le Collier du Singe** (`collier`), treizième jeu : 30 niveaux de perles en chaîne ; viser partout et relâcher pour tirer, tap sur le tireur ou ⇄/X pour échanger. Validation Node : `npm run test:node -- --only=validate-collier.js`.
+
+Gourmandises ajoute 120 niveaux à graine, deux modes, des spéciaux en cascade, des objets dorés, de la glace double, des mondes illustrés et le compagnon choisi ; équilibre sur cinq graines, états inchangés des niveaux 1–60 et 26 mutations en mémoire.

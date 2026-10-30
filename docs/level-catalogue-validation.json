@@ -1,5 +1,4 @@
 {
-  "pass": 77,
   "browserRun": false,
   "cases": [
     {
@@ -9,7 +8,7 @@
       "name": "Jungle mécanique",
       "feature": "Tourelles, plateformes, camp dans les bambous",
       "passed": true,
-      "ms": 287.93889500000023
+      "ms": 520.1505570000002
     },
     {
       "code": "R02",
@@ -18,7 +17,7 @@
       "name": "Forteresse oubliée",
       "feature": "Étages, ascenseurs et passage supérieur à récompense",
       "passed": true,
-      "ms": 31.11676399999942
+      "ms": 77.4299860000001
     },
     {
       "code": "R03",
@@ -27,7 +26,7 @@
       "name": "Usine infernale",
       "feature": "Robots blindés, convoyeurs et fosses volcaniques",
       "passed": true,
-      "ms": 133.66877900000054
+      "ms": 231.9198719999997
     },
     {
       "code": "A01",
@@ -36,7 +35,7 @@
       "name": "Festin de Boubou",
       "feature": "Deux bambous et un bao dans la grille",
       "passed": true,
-      "ms": 124.77456400000028
+      "ms": 161.4531350000002
     },
     {
       "code": "A02",
@@ -45,7 +44,7 @@
       "name": "Tourbillon d'automne",
       "feature": "Briques mobiles, miroirs inclinés et portails",
       "passed": true,
-      "ms": 19.026636999999937
+      "ms": 20.1555129999997
     },
     {
       "code": "A03",
@@ -54,7 +53,7 @@
       "name": "Constellations",
       "feature": "Étoiles, portails et obstacles indestructibles",
       "passed": true,
-      "ms": 186.11161700000048
+      "ms": 110.75331899999992
     },
     {
       "code": "G01",
@@ -63,7 +62,7 @@
       "name": "Ceinture de bambou",
       "feature": "Astéroïdes verts, formation en pince et mines",
       "passed": true,
-      "ms": 62.58154399999967
+      "ms": 76.7618910000001
     },
     {
       "code": "G02",
@@ -72,7 +71,7 @@
       "name": "Nébuleuse écarlate",
       "feature": "Chasseurs rapides, météores et tirs en éventail",
       "passed": true,
-      "ms": 40.86904200000026
+      "ms": 36.58872999999994
     },
     {
       "code": "G03",
@@ -81,7 +80,34 @@
       "name": "Royaume des étoiles",
       "feature": "Anneaux concentriques et gardien à deux phases",
       "passed": true,
-      "ms": 250.47521600000073
+      "ms": 119.23154999999997
+    },
+    {
+      "code": "K01",
+      "game": "derapage",
+      "index": 17,
+      "name": "Bambou Express",
+      "feature": "Raccourci étroit derrière la cascade et ponts de bois",
+      "passed": true,
+      "ms": 1885.313137
+    },
+    {
+      "code": "K02",
+      "game": "derapage",
+      "index": 19,
+      "name": "Feuilles Folles",
+      "feature": "Feuilles glissantes et tunnel dans la forêt orange",
+      "passed": true,
+      "ms": 837.5763699999998
+    },
+    {
+      "code": "K03",
+      "game": "derapage",
+      "index": 26,
+      "name": "Volcan Turbo",
+      "feature": "Lave, tremplin et pont effondré avec contournement lent",
+      "passed": true,
+      "ms": 1006.3997199999994
     }
   ],
   "before": {

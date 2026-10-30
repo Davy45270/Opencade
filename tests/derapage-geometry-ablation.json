@@ -1,0 +1,273 @@
+{
+  "before": [
+    {
+      "level": 18,
+      "mode": "play",
+      "period": 150,
+      "fps": 4,
+      "graphicsCalls": 1965,
+      "observations": [
+        0,
+        500,
+        1000
+      ],
+      "applied": [
+        750,
+        1250,
+        1750
+      ],
+      "hits": 65,
+      "lapTimesMs": [
+        132333.33333333334,
+        78966.66666666667
+      ],
+      "frames": 1000,
+      "raceMs": 249750.00000000003,
+      "laps": 2,
+      "place": 6,
+      "status": "playing",
+      "moves": 499,
+      "special": false,
+      "off": 0.244,
+      "maxStopMs": 250,
+      "noiseSeed": 1220529719
+    },
+    {
+      "level": 20,
+      "mode": "play",
+      "period": 150,
+      "fps": 7.005,
+      "graphicsCalls": 999,
+      "observations": [
+        0,
+        428.26552462526763,
+        856.5310492505353
+      ],
+      "applied": [
+        571.0206995003568,
+        999.2862241256245,
+        1427.5517487508923
+      ],
+      "hits": 495,
+      "lapTimesMs": [
+        23733.333333333336,
+        25150,
+        52100.00000000001
+      ],
+      "frames": 709,
+      "raceMs": 100983.33333333334,
+      "laps": 3,
+      "place": 6,
+      "status": "lost",
+      "moves": 235,
+      "special": false,
+      "off": 0.152327221438646,
+      "maxStopMs": 285.5103497501784,
+      "noiseSeed": 1092476202
+    }
+  ],
+  "width": [
+    {
+      "level": 18,
+      "mode": "play",
+      "period": 150,
+      "fps": 4,
+      "graphicsCalls": 1965,
+      "observations": [
+        0,
+        500,
+        1000
+      ],
+      "applied": [
+        750,
+        1250,
+        1750
+      ],
+      "hits": 59,
+      "lapTimesMs": [
+        98166.66666666667,
+        52633.333333333336,
+        23333.333333333336
+      ],
+      "frames": 698,
+      "raceMs": 174133.33333333334,
+      "laps": 3,
+      "place": 6,
+      "status": "lost",
+      "moves": 348,
+      "special": false,
+      "off": 0.14756446991404013,
+      "maxStopMs": 250,
+      "noiseSeed": 538847951
+    },
+    {
+      "level": 20,
+      "mode": "play",
+      "period": 150,
+      "fps": 7.005,
+      "graphicsCalls": 999,
+      "observations": [
+        0,
+        428.26552462526763,
+        856.5310492505353
+      ],
+      "applied": [
+        571.0206995003568,
+        999.2862241256245,
+        1427.5517487508923
+      ],
+      "hits": 57,
+      "lapTimesMs": [
+        23116.666666666668,
+        23366.666666666668,
+        22050
+      ],
+      "frames": 482,
+      "raceMs": 68533.33333333334,
+      "laps": 3,
+      "place": 1,
+      "status": "won",
+      "moves": 160,
+      "special": false,
+      "off": 0.04149377593360996,
+      "maxStopMs": 285.5103497501784,
+      "noiseSeed": 1578169214
+    }
+  ],
+  "path": [
+    {
+      "level": 18,
+      "mode": "play",
+      "period": 150,
+      "fps": 4,
+      "graphicsCalls": 1965,
+      "observations": [
+        0,
+        500,
+        1000
+      ],
+      "applied": [
+        750,
+        1250,
+        1750
+      ],
+      "hits": 184,
+      "lapTimesMs": [
+        47383.333333333336,
+        78683.33333333334,
+        48583.333333333336
+      ],
+      "frames": 700,
+      "raceMs": 174650,
+      "laps": 3,
+      "place": 6,
+      "status": "lost",
+      "moves": 349,
+      "special": false,
+      "off": 0.19428571428571428,
+      "maxStopMs": 250,
+      "noiseSeed": 478973058
+    },
+    {
+      "level": 20,
+      "mode": "play",
+      "period": 150,
+      "fps": 7.005,
+      "graphicsCalls": 999,
+      "observations": [
+        0,
+        428.26552462526763,
+        856.5310492505353
+      ],
+      "applied": [
+        571.0206995003568,
+        999.2862241256245,
+        1427.5517487508923
+      ],
+      "hits": 488,
+      "lapTimesMs": [
+        46416.66666666667,
+        98100,
+        24166.666666666668
+      ],
+      "frames": 1183,
+      "raceMs": 168683.33333333334,
+      "laps": 3,
+      "place": 6,
+      "status": "lost",
+      "moves": 393,
+      "special": false,
+      "off": 0.1242603550295858,
+      "maxStopMs": 285.5103497501784,
+      "noiseSeed": 200812062
+    }
+  ],
+  "after": [
+    {
+      "level": 18,
+      "mode": "play",
+      "period": 150,
+      "fps": 4,
+      "graphicsCalls": 1965,
+      "observations": [
+        0,
+        500,
+        1000
+      ],
+      "applied": [
+        750,
+        1250,
+        1750
+      ],
+      "hits": 42,
+      "lapTimesMs": [
+        23066.666666666668,
+        22016.666666666668,
+        21783.333333333336
+      ],
+      "frames": 269,
+      "raceMs": 66866.66666666667,
+      "laps": 3,
+      "place": 2,
+      "status": "won",
+      "moves": 133,
+      "special": false,
+      "off": 0.06691449814126393,
+      "maxStopMs": 250,
+      "noiseSeed": 1504748075
+    },
+    {
+      "level": 20,
+      "mode": "play",
+      "period": 150,
+      "fps": 7.005,
+      "graphicsCalls": 999,
+      "observations": [
+        0,
+        428.26552462526763,
+        856.5310492505353
+      ],
+      "applied": [
+        571.0206995003568,
+        999.2862241256245,
+        1427.5517487508923
+      ],
+      "hits": 3,
+      "lapTimesMs": [
+        22816.666666666668,
+        22283.333333333336,
+        21800
+      ],
+      "frames": 470,
+      "raceMs": 66900,
+      "laps": 3,
+      "place": 1,
+      "status": "won",
+      "moves": 156,
+      "special": false,
+      "off": 0.03829787234042553,
+      "maxStopMs": 285.5103497501784,
+      "noiseSeed": 1904786023
+    }
+  ]
+}

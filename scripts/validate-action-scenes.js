@@ -76,7 +76,33 @@ for (const game of ['ferraille', 'briqueterie', 'essaim']) for (const id of ids)
     // avoidable GC stalls when campaign validators run in sibling workers.
     const originalDraw = scene.draw.bind(scene);
     scene.draw = (...args) => { calls.length = 0; return originalDraw(...args); };
-    scene.create(); const initial = generations, capacity = images.length;
+    scene.create();
+    if (game === 'essaim') {
+        const special = module.essaimButtons.find(b => b.id === 'essaim-special');
+        assert.equal(special.ariaLabel, 'Bouclier');
+        assert.equal(special.label, 'Écu', 'short visible shield name');
+        assert.equal(elements.get('#essaim-special').textContent, 'Écu', 'actual mounted shield label');
+        assert.equal(special.size, 56);
+        const specialRule = [...css.matchAll(/([^{}]*#touch-controls[^{}]*special[^{}]*)\{([^{}]*)\}/g)].find(rule => rule[1].includes('essaim-special'));
+        assert(specialRule);
+        assert.match(specialRule[2], /font-size: 16px;/);
+        assert.match(specialRule[2], /padding: 2px;/);
+        assert.match(specialRule[2], /width: 56px;/);
+        // Conservative Latin glyph budget: one full em per glyph, with padding.
+        // Host M02b measured Bouclier at 58 > 56; keep 16px and shorten the label.
+        assert([...special.label].length * 16 + 4 <= 56, 'shield text fits without clipping');
+        const buttons = module.essaimButtons;
+        const lane = side => buttons.filter(b => b.placement === side).reduce((sum, b) => sum + b.size, 0) + 4;
+        assert(lane('left') + lane('right') + 4 <= 320, 'portrait thumb row fits narrow field');
+        assert(Math.max(...buttons.map(b => b.size)) <= 64, 'row at most 64px high');
+        assert.match(css, /body\.playing\.essaim #touch-controls \.touch-slot \{ position: absolute; bottom: 8px; width: 120px;/);
+        assert(56 + 56 + 4 <= 120, 'landscape lane fits');
+        assert(72 + 56 + 4 > 120, '72px shield would overflow landscape lane');
+        assert.match(css, /body\.playing\.essaim #play-area \{ margin: 0 124px;/);
+        assert(120 < 124, 'landscape controls remain outside field and ship');
+        assert.match(css, /body\.playing #touch-controls \{ display: flex; height: 64px; min-height: 64px; flex: 0 0 64px;/);
+    }
+    const initial = generations, capacity = images.length;
     const hook = globalThis.window[`__${game.toUpperCase()}_TEST__`]; assert(hook);
     for (const entry of levelCatalogue.filter(e => e.game === game)) {
         hook.loadLevel(entry.index, 28);

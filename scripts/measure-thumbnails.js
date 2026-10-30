@@ -1,7 +1,7 @@
 /* global console, performance */
 import './ts-loader.js';
 import assert from 'node:assert/strict';
-const ids = ['collier', 'derapage','traverse','caisses','alunir','ferraille','dedale','essaim','orbite','empilo','briqueterie','bubble','serpentin'];
+const ids = ['gourmandises', 'collier', 'derapage','traverse','caisses','alunir','ferraille','dedale','essaim','orbite','empilo','briqueterie','bubble','serpentin'];
 let total = 0;
 for (const id of ids) {
     const { createThumbnail, createDemo } = await import(`../src/games/${id}/thumbnail.ts`);

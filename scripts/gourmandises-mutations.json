@@ -1,0 +1,275 @@
+[
+  {
+    "name": "permutation refusée payante",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "this.emit('refused', [a, b]);",
+    "after": "this.state.moves++;\n            this.emit('refused', [a, b]);",
+    "oracle": "G01"
+  },
+  {
+    "name": "trois ignorés",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "if (run.length >= 3) runs.push(run);",
+    "after": "if (run.length >= 4) runs.push(run);",
+    "oracle": "G02"
+  },
+  {
+    "name": "gravité inversée",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "const piece = pieces.pop();",
+    "after": "const piece = pieces.shift();",
+    "oracle": "G03"
+  },
+  {
+    "name": "multiplicateur absent",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "this.state.score += 10 * multiplier;",
+    "after": "this.state.score += 10;",
+    "oracle": "G04"
+  },
+  {
+    "name": "seconde explosion absente",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "second.push(...spread);",
+    "after": "second.push();",
+    "oracle": "G06"
+  },
+  {
+    "name": "glace incassable",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "cell.ice--;",
+    "after": "cell.ice += 0;",
+    "oracle": "G10"
+  },
+  {
+    "name": "outil inépuisable",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "this.state.tools[tool]--;",
+    "after": "this.state.tools[tool] += 0;",
+    "oracle": "G14"
+  },
+  {
+    "name": "identité perdue dans la scène",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "new GameCharacter(selectedCharacter())",
+    "after": "new GameCharacter('panda')",
+    "oracle": "sceneCharacter"
+  },
+  {
+    "name": "bombe sans conversion rayée",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "for (const i of hit) required(required(this.state.cells[i]).piece).special = i % 2 ? 'row' : 'column';",
+    "after": "for (const i of hit) required(required(this.state.cells[i]).piece).special = undefined;",
+    "oracle": "G08"
+  },
+  {
+    "name": "deuxième étoile trop tôt",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "this.state.score >= 1500 ? 2 : 1",
+    "after": "this.state.score >= 1499 ? 2 : 1",
+    "oracle": "G13"
+  },
+  {
+    "name": "flèches horizontales inversées",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "ArrowLeft: -1, ArrowRight: 1",
+    "after": "ArrowLeft: 1, ArrowRight: -1",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "raccourcis outils inversés",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "(['hammer', 'rocket', 'rainbow'] as const)[Number(e.code.slice(-1)) - 1]",
+    "after": "(['rainbow', 'rocket', 'hammer'] as const)[Number(e.code.slice(-1)) - 1]",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "indice invisible en Découverte",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "const hint = this.engine.hint();",
+    "after": "const hint = this.engine.state.mode === 'arcade' ? this.engine.hint() : null;",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "sélection sans surbrillance",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "if (i === this.selected || (hint?.includes(i) && Math.floor(s.idle / 300) % 2 === 0)) {",
+    "after": "if (i === -2 || (hint?.includes(i) && Math.floor(s.idle / 300) % 2 === 0)) {",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "alignements muets",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "['swap', 'refused', 'match', 'special', 'cascade', 'obstacle'].includes(event.type)",
+    "after": "['swap', 'refused', 'special', 'cascade', 'obstacle'].includes(event.type)",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "chutes instantanées",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "const distance = this.falls.get(i) ?? 0;",
+    "after": "const distance = (this.falls.get(i) ?? 0) * 0;",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "plateau trop étroit",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "332 / width",
+    "after": "240 / width",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "objectif mauvais fruit",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "o.kind === 'collect' ? o.color : o.kind",
+    "after": "o.kind === 'collect' ? 0 : o.kind",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "alerte coups tardive",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "s.budget - s.moves < 5",
+    "after": "s.budget - s.moves < 4",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "outil épuisé disponible",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "s.tools[tool] <= 0 ||",
+    "after": "s.tools[tool] < 0 ||",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "raccourci bloqué pendant une chute",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "if (!this.ready && !this.session.paused && !this.selecting && ['Digit1'",
+    "after": "if (!this.ready && !this.session.paused && !this.selecting && this.animation === 0 && ['Digit1'",
+    "oracle": "sceneListeners"
+  },
+  {
+    "name": "objet détruit par un outil",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "if (!cell.piece || cell.piece.drop) continue;",
+    "after": "if (!cell.piece) continue;",
+    "oracle": "G21"
+  },
+  {
+    "name": "objet rebattu",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "c.active && !c.crate && !c.piece?.drop ? [i] : []",
+    "after": "c.active && !c.crate ? [i] : []",
+    "oracle": "G21"
+  },
+  {
+    "name": "sortie sans livraison",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "this.state.dropped = (this.state.dropped ?? 0) + 1;",
+    "after": "this.state.dropped = (this.state.dropped ?? 0) + 0;",
+    "oracle": "G21"
+  },
+  {
+    "name": "deux couches brisées ensemble",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "cell.ice--;",
+    "after": "cell.ice = 0;",
+    "oracle": "G22"
+  },
+  {
+    "name": "objectif de descente sans progrès",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "if (objective.kind === 'drop') return this.state.dropped ?? 0;",
+    "after": "if (objective.kind === 'drop') return 0;",
+    "oracle": "G23"
+  },
+  {
+    "name": "objet dessiné comme un bonbon bleu",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "if (cell.piece.drop) drawDrop(c, x + b.unit / 2, y + b.unit / 2 + offset, b.unit * 0.34);",
+    "after": "if (cell.piece.drop) drawPiece(c, x + b.unit / 2, y + b.unit / 2 + offset, b.unit * 0.34, 2);",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "glace double dessinée comme simple",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "if (cell.ice) drawIce(c, x, y, b.unit, cell.ice);",
+    "after": "if (cell.ice) drawIce(c, x, y, b.unit, 1);",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "sorties invisibles",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "if (cell.exit) {",
+    "after": "if (cell.exit && s.level < 0) {",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "cascade du décor supprimée",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "for (let i = 0; i < 7; i++) {",
+    "after": "for (let i = 0; i < 0; i++) {",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "sapins sans branches",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "for (let tier = 0; tier < 4; tier++) {",
+    "after": "for (let tier = 0; tier < 0; tier++) {",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "lustres sans cristaux",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "drawPiece(c, x + dx, 150 + (dx === 0 ? 16 : 0), 8, 2);",
+    "after": "drawPiece(c, x + dx, 150 + (dx === 0 ? 16 : 0), 0, 2);",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "galets invisibles",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "disc(c, i % 2 ? 18 + i % 3 * 8 : 330 + i % 3 * 6, 280 + i * 14, 9, i % 3 ? '#c5dce0' : '#8bb1b7');",
+    "after": "disc(c, i % 2 ? 18 + i % 3 * 8 : 330 + i % 3 * 6, 280 + i * 14, 0, i % 3 ? '#c5dce0' : '#8bb1b7');",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "craquelures des couches inversées",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "if (layers === 2) {",
+    "after": "if (layers === 1) {",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "livraison sans trajet doré",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "for (const delivery of this.deliveries) {",
+    "after": "for (const delivery of this.deliveries.slice(0, 0)) {",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "score avant objectif",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "const rank = [gain, dropGain, copy.state.score - engine.state.score];",
+    "after": "const rank = [gain * 10000 + dropGain * 500 + copy.state.score - engine.state.score, 0, 0];",
+    "oracle": "G25"
+  },
+  {
+    "name": "pictogramme débordant",
+    "file": "src/games/gourmandises/style.css",
+    "before": "    width: 100%;",
+    "after": "    width: 56px;",
+    "oracle": "toolBoxes"
+  },
+  {
+    "name": "pastille extérieure",
+    "file": "src/games/gourmandises/style.css",
+    "before": "    right: 0;",
+    "after": "    right: -4px;",
+    "oracle": "toolBoxes"
+  },
+  {
+    "name": "deux cases gênantes remplies",
+    "file": "src/engines/gourmandises/levels.ts",
+    "before": "if (layout === 6 && y === my && (x === 1 || x === w - 2)) active = false;",
+    "after": "if (layout === 6 && y === my && (x === 1 || x === w - 2)) active = true;",
+    "oracle": "geometryChecks"
+  }
+]
