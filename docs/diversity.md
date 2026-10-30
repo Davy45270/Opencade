@@ -1,6 +1,6 @@
-# Level diversity audit — pass 54 (Essaim)
+# Level diversity audit — pass 57 (Dédale)
 
-Essaim is updated for pass 54; Ferraille retains passes 51–52 and Bubble Lab its pass 49 correction. Other game implementations are unchanged. Run from the repository root:
+Dédale is updated for pass 57; Essaim retains pass 54; Ferraille retains passes 51–52 and Bubble Lab its pass 49 correction. Other game implementations are unchanged. Run from the repository root:
 
 ```sh
 nice -n 19 ionice -c3 node scripts/diversity-report.js
@@ -16,7 +16,7 @@ For each game, use `difficulty(level)` and summaries of generated data: occupied
 
 For parameter k, normalize over existing levels: z(k,l) = (x(k,l) − min(k)) / (max(k) − min(k)); constant parameters become zero and are excluded from parameter distance. P is the mean absolute difference over varying parameters. Every game uses the same clone rule: D = (P + L) / 2, clone iff D < **0.08**. No threshold is tuned per game. These are near-clones under the chosen descriptors, not claims of identical play.
 
-L is Jaccard distance, 1 − |A ∩ B| / |A ∪ B| (zero for two empty signatures), except Dérapage. Signatures are colored bubble cells; typed brick positions; occupied Empilo cells with tile value; Serpentin obstacle cells; Orbite row/column formation cells; Essaim typed home formation cells; Dédale walkable maze indices; typed walls/targets/boxes in Caisses; Ferraille solid terrain cells, platform and cage positions in world coordinates; and Traverse lane row/type/direction/phase/diver tuples. Alunir samples interpolated terrain every 12 screen pixels and quantizes height into fixed 12-pixel bins. Dérapage uses the existing `shapeSignature` and `signatureDistance` curvature histogram, divided by two to put its L1 distance in 0..1; the existing turn list is retained in JSON but is not part of that engine distance. Layouts are initial layouts, never pilot-damaged boards. Empty layouts are legitimate, not missing data. Jaccard can emphasize cell changes and ignore strategic equivalence; the curvature histogram can miss order differences.
+L is Jaccard distance, 1 − |A ∩ B| / |A ∪ B| (zero for two empty signatures), except Dérapage. Signatures are colored bubble cells; typed brick positions; occupied Empilo cells with tile value; Serpentin obstacle cells; Orbite row/column formation cells; Essaim typed home formation cells; Dédale floor coordinates and typed mechanism cells; typed walls/targets/boxes in Caisses; Ferraille solid terrain cells, platform and cage positions in world coordinates; and Traverse lane row/type/direction/phase/diver tuples. Alunir samples interpolated terrain every 12 screen pixels and quantizes height into fixed 12-pixel bins. Dérapage uses the existing `shapeSignature` and `signatureDistance` curvature histogram, divided by two to put its L1 distance in 0..1; the existing turn list is retained in JSON but is not part of that engine distance. Layouts are initial layouts, never pilot-damaged boards. Empty layouts are legitimate, not missing data. Jaccard can emphasize cell changes and ignore strategic equivalence; the curvature histogram can miss order differences.
 
 Essaim and Ferraille observe controls at every fixed simulation tick, including inside their six-tick demo advances. The script reuses demo policy source in memory, transpiled with the existing compiler, replacing only the shared wrapper so it can load each requested level and run without attract-mode resets. Dérapage uses the same ordinary controller directly. Caisses uses its existing exact solver and replays the inputs through the engine. No state is injected and no rule is bypassed. Stop at the first terminal outcome or 1,800 policy iterations. Most iterations advance 1/15 second; Essaim and Ferraille advance six fixed ticks (1/10 second), Alunir advances four 1/60 steps, Traverse one flow quantum, and Caisses one input per 1/15 second. Thus the cap is a policy-step budget, not a common time limit. The midpoint is halfway through the **observed attempt**, replayed deterministically; it is not a claim to represent half of a victorious game.
 
@@ -34,7 +34,6 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 
 | Game | Score | Novelties (count; levels) | Clone share | Longest flat plateau | What actually varies |
 | --- | ---: | --- | ---: | ---: | --- |
-| Dédale | 100 | 0; none | 100.0% | 3 | Seeded maze loops and corridors, pursuit timing and vulnerability duration. |
 | Briqueterie | 79.3 | 3; 8, 11, 14 | 86.2% | 3 | Brick masks, density, solid bricks, hit points, ball speed and paddle width. |
 | Orbite | 78.4 | 3; 6, 10, 15 | 86.2% | 3 | Formation dimensions, armor, movement tier, fire cadence and shot allowance. |
 | Serpentin | 62.1 | 3; 2, 5, 6 | 37.9% | 3 | Obstacle placement and patterns, boundary wrapping, speed and apple target. |
@@ -44,8 +43,9 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Traverse | 41.4 | 1; 10 | 0.0% | 3 | Lane placement, direction and phase, diving logs, shelters and flow speed. |
 | Dérapage | 38.8 | 4; 3, 24, 29, 30 | 0.0% | 0 | Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning. |
 | Bulles | 25.9 | 7; 2, 11, 14, 17, 20, 23, 26 | 0.0% | 0 | Thirty seeded layouts with increasing density and pressure; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers. |
+| Dédale | 22.4 | 8; 4, 5, 9, 13, 16, 19, 22, 25 | 0.0% | 0 | Five seeded topologies; observed colored doors, one-way passages, paired portals, switches, cyclic walls, sliding ice, reduced sight and distinct wisp behaviors. |
 | Essaim | 16.4 | 14; 2, 3, 4, 5, 7, 10, 13, 15, 16, 19, 20, 22, 25, 30 | 0.0% | 3 | Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship. |
-| Ferraille | 11.2 | 19; 2, 4, 5, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 20, 21, 24, 25, 26, 30 | 0.0% | 0 | Ascending/descending routes, wagon rides, hostage rescues, six enemy behaviors, three special weapons, five guardian patterns and a three-phase reactor. |
+| Ferraille | 11.2 | 19; 2, 4, 5, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 20, 21, 24, 25, 26, 30 | 0.0% | 0 | Authored ascent/descent, wagon rides, hostage rescues, six enemy behaviors, three special weapons and five guardian patterns plus a three-phase reactor. |
 
 “Flat” in the table refers to the configuration proxy above. A zero means no qualifying window, not proof of continuous experiential difficulty growth. The JSON carries the exact ranges and pairs.
 
@@ -53,7 +53,7 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 
 | Game | Wins | Terminal losses | Censored attempts |
 | --- | ---: | ---: | ---: |
-| Dédale | 10 | 20 | 0 |
+| Dédale | 30 | 0 | 0 |
 | Ferraille | 30 | 0 | 0 |
 | Essaim | 30 | 0 | 0 |
 | Briqueterie | 2 | 1 | 27 |
@@ -66,11 +66,11 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Traverse | 1 | 29 | 0 |
 | Dérapage | 23 | 7 | 0 |
 
-For Orbite and Empilo no completion time is measured at any level. Briqueterie is mostly censored. Those curves require a stronger ordinary-input policy before completion-time comparisons become useful. Caisses times reflect the chosen replay cadence, not puzzle-solving time. Dédale scores 100 under this descriptor because all adjacent layouts remain near enough to the fixed threshold and no new element type is observed; this does not mean its mazes are identical.
+For Orbite and Empilo no completion time is measured at any level. Briqueterie is mostly censored. Those curves require a stronger ordinary-input policy before completion-time comparisons become useful. Caisses times reflect the chosen replay cadence, not puzzle-solving time. Dédale moves from 100/100, zero novelties and 100% clones to 22.4/100, eight novelty-bearing levels and 0% clones. These remain descriptor measurements, not a claim about human difficulty.
 
 ## Campaign plans and implementations
 
-The remaining proposals introduce something every 3–5 levels, include recovery levels, a challenge or boss every five levels, and a distinctive final level. Bubble Lab, Essaim and Ferraille below describe their implemented extensions; the other entries remain design suggestions.
+The remaining proposals introduce something every 3–5 levels, include recovery levels, a challenge or boss every five levels, and a distinctive final level. Bubble Lab, Dédale, Essaim and Ferraille below describe their implemented extensions; the other entries remain design suggestions.
 
 ### Bulles
 
@@ -139,7 +139,39 @@ functional weapon and boss markers remains part 2.
 
 ### Dédale
 
-Introduce keyed doors at 4, one-way corridors at 8, paired portals at 12, pressure switches at 16, rotating junctions at 20, temporary shadow zones at 24 and linked doors at 28. Put short mazes with long sun effects at 6/11/17/22/27. At 5/10/15/20/25 add a timed exit challenge; at 30 escape a changing central maze while all four wisp roles coordinate.
+Implemented in pass 57. Before: **100/100**, **0** novelty-bearing levels,
+**100%** adjacent clones. After: **22.4/100**, **8** novelty-bearing levels
+(**4/5/9/13/16/19/22/25**), **0%** adjacent clones. The clone threshold 0.08
+and shared score formula are unchanged. There are twelve post-baseline observed
+element types (several arrive together); the score counts levels, not labels.
+
+The shared `scripts/dedale-diversity.js` adapter replays all thirty recorded BFS
+routes through ordinary inputs on the actual seed-28 generator. Door passage,
+one-way traversal, paired teleportation, switch and gate crossing, blocked and
+open cyclic walls, multi-cell slides, dark-zone entry and moving patrol/fleeing
+wisps have move-indexed witnesses with hero positions. Configuration declarations
+and shape names do not count as novelties. Layout signatures use actual walkable
+coordinates and typed mechanism locations. Five upper topologies alternate:
+narrow corridors, connected rooms, an elliptical ring, a spiral and a mirrored
+tree; the lower connected gallery teaches the accumulated rules.
+
+Recovery stages 6/11/17/22/27 provide twelve-second suns and one tracker.
+Challenges 5/10/15/20/25 combine acquired rules under 25 seconds; the final
+combines every rule and both key colors under 40 seconds. The BFS state includes
+position, held colors, switches, cyclic phase and buffered heading. Each leg uses
+the engine's own movement transition; the complete replay proves victory with
+normal enemies, collisions and timers. This is a witness for the two validated
+seeds, not an optimal solution or a proof for every possible seed.
+
+`nice -n 19 ionice -c3 node scripts/validate-dedale.js --record` checks eight
+literal mechanic probes, 180 connected generated maps, 60 victories (28/459),
+fast replay and six rejected in-memory mutations. `dedale-validation.json`
+contains exact source lines and all inputs; `tests/dedale-solutions.ts` stores
+thirty seed-28 witnesses. D-SOLVE and D-DIV-01 only replay these records.
+The repeated-first-level negative control yields exactly 100% clones and zero
+novelty. No browser or Vitest is executed here. The four written E2E captures
+are `dedale-level04`, `dedale-level12`, `dedale-level20`, `dedale-level30`.
+See the full thirty-level table in `GAME_SPEC.md`.
 
 ### Caisses
 

@@ -171,3 +171,5 @@ et la [politique de sécurité](SECURITY.md) avant de contribuer.
 Dérapage ajoute les portes de slalom avec pénalités, la neige et la gravité en descente, les virages relevés et sauts BMX et les rails urbains continus.
 
 Validation Essaim (armes, diversité, 60 victoires et mutations) : `nice -n 19 ionice -c3 node scripts/validate-essaim.js`. Les captures E2E sont réservées à l’hôte de test.
+
+Dédale, passe 57 : clés/portes colorées, sens uniques, portails, interrupteurs, murs cycliques, glace et ombres dans cinq formes à graine. Trente solutions enregistrées et six mutations sont vérifiées par `nice -n 19 ionice -c3 node scripts/validate-dedale.js`. Répétitivité : 100 → 22,4, clones adjacents : 0 %. Voir [les trente niveaux](GAME_SPEC.md#dédale).

@@ -1,4 +1,6 @@
 import { Random } from '../shared/random';
+import { createLabyrinth, walk, type Journey } from './labyrinth';
+export { visible } from './labyrinth';
 export const WIDTH = 19, HEIGHT = 23, TICK = 1000 / 60;
 export type Direction = 'up' | 'left' | 'down' | 'right';
 export type Mode = 'scatter' | 'chase';
@@ -9,13 +11,13 @@ export interface Cell { x: number; y: number }
 export interface Actor extends Cell { direction: Direction }
 export interface Wisp extends Actor { kind: 'tracker' | 'seer' | 'roamer' | 'shy'; returning: boolean; wait: number }
 export interface State {
-    maze: boolean[]; seeds: number[]; suns: number[]; hero: Actor; wisps: Wisp[];
+    journey?: Journey; maze: boolean[]; seeds: number[]; suns: number[]; hero: Actor; wisps: Wisp[];
     requested: Direction; score: number; lives: number; ticks: number; heroClock: number; wispClock: number;
     vulnerable: number; chain: number; mode: Mode; phase: number; modeTime: number; schedule: number[]; grace: number;
 }
 export function difficulty(level: number) {
     if (!Number.isInteger(level) || level < 0 || level > 29) throw new RangeError('Niveau invalide');
-    return { wispRatio: 0.75 + 0.3 * level / 29, vulnerableMs: 8000 - 7000 * level / 29, chaseMs: 12000 + 18000 * level / 29, loopCount: 8 + Math.floor(24 * level / 29) };
+    return { wispRatio: 0.75 + 0.3 * level / 29, vulnerableMs: 8000 - 7000 * level / 29, chaseMs: 12000 + 18000 * level / 29 };
 }
 export const LEVELS = Array.from({ length: 30 }, (_, i) => ({ name: `Dédale ${String(i + 1)}` }));
 export const index = (c: Cell): number => c.y * WIDTH + c.x;
@@ -36,33 +38,15 @@ export function branching(maze: readonly boolean[]): number {
     return edges - vertices + 1;
 }
 export function generate(level: number, random: Random): boolean[] {
-    const maze = Array<boolean>(WIDTH * HEIGHT).fill(false), stack: Cell[] = [{ x: 1, y: 1 }]; maze[20] = true;
-    while (stack.length) {
-        const c = stack[stack.length - 1]; if (!c) break;
-        const options = PRIORITY.map(d => { const [dx, dy] = vectors[d]; return { x: c.x + 2 * dx, y: c.y + 2 * dy }; }).filter(p => p.x > 0 && p.x < WIDTH - 1 && p.y > 0 && p.y < HEIGHT - 1 && !maze[index(p)]);
-        const next = options[Math.floor(random.next() * options.length)];
-        if (!next) { stack.pop(); continue; }
-        maze[index(next)] = true; maze[index({ x: (c.x + next.x) / 2, y: (c.y + next.y) / 2 })] = true; stack.push(next);
-    }
-    // Raccorder chaque cul-de-sac à un voisin de l'arbre : aucun follet n'est piégé.
-    for (let y = 1; y < HEIGHT - 1; y += 2) for (let x = 1; x < WIDTH - 1; x += 2) {
-        const c = { x, y };
-        if (PRIORITY.filter(d => neighbor(maze, c, d)).length > 1) continue;
-        const options = PRIORITY.filter(d => { const [dx, dy] = vectors[d]; return !maze[index({ x: x + dx, y: y + dy })] && x + 2 * dx > 0 && x + 2 * dx < WIDTH - 1 && y + 2 * dy > 0 && y + 2 * dy < HEIGHT - 1; });
-        const d = options[Math.floor(random.next() * options.length)];
-        if (d) { const [dx, dy] = vectors[d]; maze[index({ x: x + dx, y: y + dy })] = true; }
-    }
-    const walls: number[] = [];
-    for (let y = 1; y < HEIGHT - 1; y++) for (let x = 1; x < WIDTH - 1; x++) if ((x % 2 !== y % 2) && !maze[y * WIDTH + x]) walls.push(y * WIDTH + x);
-    for (let n = 0; n < difficulty(level).loopCount && walls.length; n++) { const i = Math.floor(random.next() * walls.length), wall = walls.splice(i, 1)[0]; if (wall !== undefined) maze[wall] = true; }
-    maze[11 * WIDTH] = maze[11 * WIDTH + 18] = true;
-    return maze;
+    difficulty(level); return createLabyrinth(level, Math.floor(random.next() * 1000000)).maze;
 }
 const corners: readonly Cell[] = [{ x: 1, y: 1 }, { x: 17, y: 1 }, { x: 17, y: 21 }, { x: 1, y: 21 }];
 const distance = (a: Cell, b: Cell): number => (a.x - b.x) ** 2 + (a.y - b.y) ** 2;
 export function target(s: State, w: Wisp): Cell {
     if (w.returning) return HOME;
     const corner = corners[['tracker', 'seer', 'roamer', 'shy'].indexOf(w.kind)] ?? HOME;
+    if (s.journey && w.kind === 'roamer') return (corners[Math.floor(s.ticks / 120) % 4] ?? HOME);
+    if (s.journey && w.kind === 'shy') return s.hero;
     if (s.mode === 'scatter') return corner;
     if (w.kind === 'tracker') return s.hero;
     if (w.kind === 'seer') { const [dx, dy] = vectors[s.hero.direction]; return { x: s.hero.x + dx * 3, y: s.hero.y + dy * 3 }; }
@@ -70,8 +54,9 @@ export function target(s: State, w: Wisp): Cell {
     return distance(w, s.hero) < 36 ? corner : s.hero;
 }
 export function choose(s: State, w: Wisp): Direction | undefined {
-    const candidates = PRIORITY.filter(d => d !== opposite[w.direction] && neighbor(s.maze, w, d));
-    const aim = target(s, w), flee = s.vulnerable > 0 && !w.returning;
+    let candidates = PRIORITY.filter(d => d !== opposite[w.direction] && neighbor(s.maze, w, d));
+    if (!candidates.length && s.journey) candidates = PRIORITY.filter(d => neighbor(s.maze, w, d));
+    const aim = target(s, w), flee = !w.returning && (s.vulnerable > 0 || (!!s.journey && w.kind === 'shy' && distance(w, s.hero) < 36));
     const distances = new Map<number, number>();
     if (w.returning) {
         const queue = [HOME]; distances.set(index(HOME), 0);
@@ -93,8 +78,8 @@ export class Engine {
     constructor(level = 0, seed = 459) { this.loadLevel(level, seed); }
     loadLevel(level: number, seed = 459): void {
         const d = difficulty(level); this.level = level; this.seed = seed; this.random = new Random((seed + level * 7919) >>> 0); this.remainder = 0; this.status = 'playing'; this.events = [];
-        const maze = generate(level, new Random(seed)), suns = corners.map(index);
-        this.state = { maze, suns: [...suns], seeds: maze.flatMap((open, i) => open && !suns.includes(i) ? [i] : []), hero: { ...START, direction: 'left' }, requested: 'left', wisps: wisps(), score: 0, lives: 3, ticks: 0, heroClock: 0, wispClock: 0, vulnerable: 0, chain: 0, mode: 'scatter', phase: 0, modeTime: 0, schedule: Array.from({ length: 8 }, (_, i) => i % 2 ? d.chaseMs + Math.floor(this.random.next() * 1000) : 8000 + Math.floor(this.random.next() * 1000)), grace: 1800 };
+        const { maze, journey, seeds, suns } = createLabyrinth(level, seed);
+        this.state = { journey, maze, suns, seeds, hero: { ...START, direction: 'left' }, requested: 'left', wisps: wisps().filter(w => (level >= 24 && ![5, 10, 16, 21, 26].includes(level)) || w.kind === 'tracker'), score: 0, lives: 3, ticks: 0, heroClock: 0, wispClock: 0, vulnerable: 0, chain: 0, mode: 'scatter', phase: 0, modeTime: 0, schedule: Array.from({ length: 8 }, (_, i) => i % 2 ? d.chaseMs + Math.floor(this.random.next() * 1000) : 8000 + Math.floor(this.random.next() * 1000)), grace: 1800 };
     }
     loadState(state: State): void { this.state = structuredClone(state); this.remainder = 0; this.status = 'playing'; this.events = []; }
     input(d: Direction): void { this.state.requested = d; }
@@ -102,7 +87,7 @@ export class Engine {
     private collect(): void {
         const s = this.state, pos = index(s.hero), at = s.seeds.indexOf(pos), sun = s.suns.indexOf(pos);
         if (at >= 0) { s.seeds.splice(at, 1); s.score += 10; this.events.push('seed'); }
-        if (sun >= 0) { s.suns.splice(sun, 1); s.score += 50; s.vulnerable = difficulty(this.level).vulnerableMs; s.chain = 0; this.events.push('sun'); }
+        if (sun >= 0) { s.suns.splice(sun, 1); s.score += 50; s.vulnerable = s.journey && [5, 10, 16, 21, 26].includes(this.level) ? 12000 : difficulty(this.level).vulnerableMs; s.chain = 0; this.events.push('sun'); }
         if (!s.seeds.length && !s.suns.length) this.status = 'won';
     }
     private collision(beforeHero?: Cell, beforeWisps?: readonly Cell[]): boolean {
@@ -112,7 +97,7 @@ export class Engine {
             else if (s.grace <= 0) {
                 s.lives--; this.events.push('life');
                 if (!s.lives) this.status = 'lost';
-                s.hero = { ...START, direction: 'left' }; s.requested = 'left'; s.wisps = wisps(); s.heroClock = s.wispClock = 0; s.grace = 1800; s.vulnerable = s.chain = 0; s.mode = 'scatter'; s.phase = 0; s.modeTime = 0; return true;
+                s.hero = { ...START, direction: 'left' }; s.requested = 'left'; s.wisps = wisps().filter(w => !s.journey || (this.level >= 24 && ![5, 10, 16, 21, 26].includes(this.level)) || w.kind === 'tracker'); s.heroClock = s.wispClock = 0; s.grace = 1800; s.vulnerable = s.chain = 0; s.mode = 'scatter'; s.phase = 0; s.modeTime = 0; return true;
             }
         } return false;
     }
@@ -130,10 +115,20 @@ export class Engine {
         s.heroClock += TICK;
         if (s.heroClock + 1e-8 >= 1000 / 6) {
             s.heroClock -= 1000 / 6;
-            if (neighbor(s.maze, s.hero, s.requested)) s.hero.direction = s.requested;
-            const next = neighbor(s.maze, s.hero, s.hero.direction);
-            if (next) { Object.assign(s.hero, next); this.events.push('move'); }
-            this.collect();
+            if (s.journey) {
+                const j = s.journey;
+                const result = walk(s.maze, j, { pos: index(s.hero), direction: s.hero.direction, held: j.held, toggled: j.toggled, phase: j.turn % 4 }, s.requested);
+                j.turn++; j.held = result.next.held; j.toggled = result.next.toggled;
+                for (const at of result.visited) { Object.assign(s.hero, cell(at)); this.collect(); }
+                s.hero.direction = result.next.direction; this.events.push(...result.events);
+                if (result.visited.length) this.events.push('move');
+                if (j.remaining > 0) { j.remaining = Math.max(0, j.remaining - 1000 / 6); if (!j.remaining && this.status === 'playing') { this.status = 'lost'; this.events.push('timeout'); } }
+            } else {
+                if (neighbor(s.maze, s.hero, s.requested)) s.hero.direction = s.requested;
+                const next = neighbor(s.maze, s.hero, s.hero.direction);
+                if (next) { Object.assign(s.hero, next); this.events.push('move'); }
+                this.collect();
+            }
             if ((!wispsDue && this.collision()) || this.status !== 'playing') return;
         }
         s.wispClock += TICK;
@@ -143,7 +138,7 @@ export class Engine {
                 if (w.wait > 0) continue;
                 if (w.returning && index(w) === index(HOME)) { w.returning = false; w.wait = 2000; continue; }
                 const direction = choose(s, w);
-                if (direction) { const next = neighbor(s.maze, w, direction); if (next) { Object.assign(w, next); w.direction = direction; } }
+                if (direction) { const next = neighbor(s.maze, w, direction); if (next) { Object.assign(w, next); w.direction = direction; if (s.journey) this.events.push(w.kind === 'roamer' ? 'patrol' : w.kind === 'shy' && (s.vulnerable > 0 || distance(w, s.hero) < 36) ? 'light-flee' : 'pursuit'); } }
             }
             this.collision(beforeHero, beforeWisps);
         }

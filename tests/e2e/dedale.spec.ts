@@ -122,3 +122,19 @@ test('D12 crochet inerte et nettoyage lors du retour à l’accueil', async ({ p
     await expect(page.locator('#game canvas')).toHaveCount(0);
     expect(await page.evaluate(() => window.__DEDALE_TEST__)).toBeUndefined();
 });
+
+for (const level of [4, 12, 20, 30]) test(`D-MEC capture dedale-level${String(level).padStart(2, '0')}`, async ({ page }, info) => {
+    await page.goto('/?test=1#/dedale');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__DEDALE_TEST__))).toBe(true);
+    await page.evaluate(level => { window.__DEDALE_TEST__?.loadLevel(level - 1, 28); }, level);
+    const state = await read(page);
+    expect(state?.level).toBe(level - 1);
+    expect(state?.journey?.doors.length).toBeGreaterThan(0);
+    if (level >= 12) expect(state?.journey?.portals).toHaveLength(1);
+    if (level >= 20) expect(state?.journey?.ice.length).toBeGreaterThan(0);
+    if (level === 30) expect(state?.journey?.dark.length).toBeGreaterThan(0);
+    await tap(page, '#resume', info.project.name === 'mobile-chromium');
+    await page.evaluate(() => { window.__DEDALE_TEST__?.advance(0); });
+    await expect(page.locator('#pause-panel')).toBeHidden();
+    await page.screenshot({ path: `test-results/screenshots/dedale-level${String(level).padStart(2, '0')}-${info.project.name}.png` });
+});

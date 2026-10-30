@@ -3,6 +3,7 @@
 import './ts-loader.js';
 import { essaimFeatures, essaimDiversity } from './essaim-diversity.js';
 import { ferrailleFeatures } from './ferraille-diversity.js';
+import { dedaleDiversity } from './dedale-diversity.js';
 import { measureDiversity } from './diversity-metrics.js';
 import ts from 'typescript';
 import { readFileSync } from 'node:fs';
@@ -92,7 +93,7 @@ const variations = [
     'Obstacle placement and patterns, boundary wrapping, speed and apple target.',
     'Formation dimensions, armor, movement tier, fire cadence and shot allowance.',
     'Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship.',
-    'Seeded maze loops and corridors, pursuit timing and vulnerability duration.',
+    'Five seeded topologies; observed colored doors, one-way passages, paired portals, switches, cyclic walls, sliding ice, reduced sight and distinct wisp behaviors.',
     'Authored room topology, box/target positions and solution length; the rules stay fixed.',
     'Terrain relief, landing width, wind, gusts, fuel and initial offset.',
     'Authored ascent/descent, wagon rides, hostage rescues, six enemy behaviors, three special weapons and five guardian patterns plus a three-phase reactor.',
@@ -102,6 +103,7 @@ const variations = [
 const games = [];
 for (const [index, id] of ids.entries()) {
     const mod = await import(`../src/engines/${id}/engine.ts`);
+    if (id === 'dedale') { const { solutions } = await import('../tests/dedale-solutions.ts'); games.push({ id, game: names[index], ...dedaleDiversity(mod.Engine, solutions), varies: variations[index] }); continue; }
     if (id === 'essaim') { games.push({ id, game:names[index], ...essaimDiversity(mod.Engine, mod.difficulty), varies:variations[index] }); continue; }
     const levelsMod = id === 'bubble' ? await import('../src/engines/bubble/levels.ts') : mod;
     const track = id === 'derapage' ? await import('../src/engines/derapage/track.ts') : null;
@@ -134,5 +136,5 @@ for (const [index, id] of ids.entries()) {
 }
 games.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
 const table = ['| Game | Score | Novelties (count; levels) | Clone share | Longest flat plateau | What actually varies |', '| --- | ---: | --- | ---: | ---: | --- |', ...games.map(g => `| ${g.game}${g.partial ? ' *' : ''} | ${g.score} | ${g.noveltyCount}; ${g.noveltyLevels.join(', ') || 'none'} | ${(g.cloneShare * 100).toFixed(1)}% | ${g.longestPlateau} | ${g.varies} |`)].join('\n');
-console.log(JSON.stringify({ revision: 'pass-53', seed: SEED, thresholds: { clone: CLONE, flatParameterRange: FLAT, minPlateauLevels: 3, maxPolicySteps: CAP }, games }, null, 2));
+console.log(JSON.stringify({ revision: 'pass-57', seed: SEED, thresholds: { clone: CLONE, flatParameterRange: FLAT, minPlateauLevels: 3, maxPolicySteps: CAP }, games }, null, 2));
 console.log('\n' + table);

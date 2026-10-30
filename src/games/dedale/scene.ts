@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Engine, LEVELS, WIDTH, HEIGHT, type Direction } from '../../engines/dedale/engine';
+import { Engine, LEVELS, WIDTH, HEIGHT, visible, index, type Direction } from '../../engines/dedale/engine';
 import { Inputs, renderTouchControls, directionalSwipe, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
 import { Progression } from '../../shell/progression';
@@ -58,7 +58,7 @@ export class DedaleScene extends Phaser.Scene {
         this.add.image(0, 0, 'dedale-board').setOrigin(0);
         this.graphics = this.add.graphics();
         this.add.text(20, 22, 'LES JARDINS DE LUMIÈRE', { fontFamily: 'system-ui', fontSize: '19px', color: '#b9fff0' });
-        this.hud = this.add.text(18, 510, '', { fontFamily: 'system-ui', fontSize: '16px', color: '#e5f3ff', lineSpacing: 6 });
+        this.hud = this.add.text(18, 510, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 6 });
         const direction = (value: Direction): void => {
             if (this.session.state === 'ready') this.session.send('start');
             if (this.session.paused || this.selecting || this.engine.status !== 'playing') return;
@@ -141,7 +141,7 @@ export class DedaleScene extends Phaser.Scene {
     }
     private paintBoard(): void {
         const texture = this.board; if (!texture) return;
-        const s = this.engine.state, signature = `${String(s.seeds.length)}|${String(s.suns.length)}`;
+        const s = this.engine.state, signature = `${String(s.seeds.length)}|${String(s.suns.length)}|${String(s.journey?.held)}|${String(s.journey?.toggled)}|${String((s.journey?.turn ?? 0) % 4)}`;
         if (this.drawnMaze === s.maze && this.boardSignature === signature) return;
         this.drawnMaze = s.maze; this.boardSignature = signature;
         const ctx = texture.context, size = 18.4, left = 5.2, top = 64;
@@ -161,13 +161,32 @@ export class DedaleScene extends Phaser.Scene {
             for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; ctx.moveTo(x + Math.cos(a) * 7, y + Math.sin(a) * 7); ctx.lineTo(x + Math.cos(a) * 9, y + Math.sin(a) * 9); }
             ctx.stroke();
         }
+        const j = s.journey;
+        if (j) {
+            const mark = (at: number, label: string, color: string, solid = false): void => {
+                const x = left + (at % WIDTH) * size, y = top + Math.floor(at / WIDTH) * size;
+                ctx.fillStyle = color; ctx.globalAlpha = solid ? 0.85 : 0.28;
+                ctx.fillRect(x + 1, y + 1, size - 2, size - 2); ctx.globalAlpha = 1;
+                ctx.font = 'bold 13px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillStyle = '#ffffff'; ctx.fillText(label, x + size / 2, y + size / 2);
+            };
+            for (const at of j.dark) mark(at, '·', '#5b4194');
+            for (const at of j.ice) mark(at, '≈', '#6eeaff');
+            for (const key of j.keys) if (!(j.held & (1 << key.color))) mark(key.at, '⚿', key.color ? '#ef92d4' : '#ffcf71');
+            for (const door of j.doors) mark(door.at, j.held & (1 << door.color) ? '□' : '▣', door.color ? '#ef92d4' : '#ffcf71', !(j.held & (1 << door.color)));
+            for (const a of j.arrows) mark(a.at, { up: '↑', down: '↓', left: '←', right: '→' }[a.direction], '#94ce93');
+            j.portals.forEach(pair => { pair.forEach(at => { mark(at, '◎', '#be95ff'); }); });
+            for (const at of j.switches) mark(at, j.toggled ? '●' : '○', '#ffb669');
+            for (const at of j.gates) mark(at, j.toggled ? '┄' : '╳', '#ffb669', !j.toggled);
+            for (const at of j.moving) mark(at, j.turn % 4 < 2 ? '▥' : '┄', '#f17788', j.turn % 4 < 2);
+        }
         texture.refresh();
     }
     private draw(): void {
         const g = this.graphics; if (!g) return;
         const s = this.engine.state, size = 18.4, left = 5.2, top = 64;
         const signature = JSON.stringify([this.engine.level, this.engine.seed, this.engine.status, s.hero.x, s.hero.y, s.score, s.lives,
-            s.seeds.length, s.suns.length, s.mode, (s.vulnerable / 1000).toFixed(1), Math.round(this.glow * 10),
+            s.seeds.length, s.suns.length, s.journey, s.mode, (s.vulnerable / 1000).toFixed(1), Math.round(this.glow * 10),
             s.grace > 0 && s.ticks % 8 < 4, s.wisps.map(w => [w.x, w.y, w.kind, w.returning, w.wait > 0])]);
         if (signature === this.drawSignature && this.drawnMaze === s.maze) return;
         this.drawSignature = signature;
@@ -175,6 +194,7 @@ export class DedaleScene extends Phaser.Scene {
         g.clear();
         g.lineStyle(2, this.glow ? 0xffdf88 : 0x36666a); g.strokeRoundedRect(4, 4, 352, 632, 15);
         s.wisps.forEach(w => {
+            if (!visible(s.journey, index(s.hero), index(w))) return;
             const x = left + (w.x + 0.5) * size, y = top + (w.y + 0.5) * size;
             const colors = { tracker: 0xff618a, seer: 0xc399ff, roamer: 0xffbf49, shy: 0x48e5de };
             if (w.returning) {
@@ -196,7 +216,14 @@ export class DedaleScene extends Phaser.Scene {
         g.fillStyle(0xb9fff0, 0.12); g.fillCircle(x, y + 3, 13);
         g.fillStyle(s.grace > 0 && s.ticks % 8 < 4 ? 0xffffff : 0xffdf88); g.fillEllipse(x, y + 2, 8, 12);
         g.fillStyle(0x173a3f); g.fillCircle(x, y - 4, 3); g.lineStyle(1, 0xb9fff0); g.lineBetween(x - 2, y - 5, x - 4, y - 9); g.lineBetween(x + 2, y - 5, x + 4, y - 9);
-        this.hud?.setText(`DÉDALE ${String(this.engine.level + 1)}     VIES ${'◆'.repeat(s.lives)}\nSCORE ${String(s.score)} · LUMIÈRES ${String(s.seeds.length + s.suns.length)}\n${s.vulnerable > 0 ? `SOLEIL ${ (s.vulnerable / 1000).toFixed(1)} s · CHAÎNE ${String(s.chain)}` : s.mode === 'scatter' ? 'Les follets se dispersent' : 'Les follets vous cherchent'}\n\nRécoltez les 4 soleils pour les approcher.`);
+        if (s.journey?.dark.includes(index(s.hero))) {
+            for (let at = 0; at < WIDTH * HEIGHT; at++) if (!visible(s.journey, index(s.hero), at)) {
+                g.fillStyle(0x080d19, 0.96); g.fillRect(left + at % WIDTH * size, top + Math.floor(at / WIDTH) * size, size, size);
+            }
+        }
+        const j = s.journey, shapes = { corridors: 'Couloirs', rooms: 'Salles reliées', ring: 'Anneau', spiral: 'Spirale', mirror: 'Miroir' };
+        const lesson = this.engine.level >= 24 ? 'Follets : poursuite / patrouille / fuite' : this.engine.level >= 21 ? 'Ombres : vision à 3 cases autour de vous' : this.engine.level >= 18 ? 'Glace ≈ : glisse jusqu’au prochain obstacle' : this.engine.level >= 15 ? 'Grille ▥ : deux temps fermée, deux ouverte' : this.engine.level >= 12 ? 'Interrupteur ○ : ouvre / ferme les murs ╳' : this.engine.level >= 8 ? 'Portails ◎ : voyage dans les deux sens' : this.engine.level >= 4 ? 'Flèches : passage dans un seul sens' : this.engine.level >= 3 ? 'Clé ⚿ et porte ▣ de même couleur' : 'Quatre soleils et quatre graines à retrouver';
+        this.hud?.setText(`DÉDALE ${String(this.engine.level + 1)} · ${j ? shapes[j.shape] : ''} · VIES ${'◆'.repeat(s.lives)}\nSCORE ${String(s.score)} · LUMIÈRES ${String(s.seeds.length + s.suns.length)}\n${j?.remaining ? `DÉFI · ${String(Math.ceil(j.remaining / 1000))} s` : [5, 10, 16, 21, 26].includes(this.engine.level) ? 'RESPIRATION · soleils de 12 secondes' : s.vulnerable > 0 ? `SOLEIL ${(s.vulnerable / 1000).toFixed(1)} s` : 'Les follets vous cherchent'}\n${lesson}\n${this.engine.level === 29 ? 'FINAL · toutes les mécaniques réunies' : 'Flèches / ZQSD · glisser pour tourner'}`);
         const status = document.querySelector('#status');
         if (status) status.textContent = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'playing' ? 'En jeu' : this.engine.status === 'won' ? 'Victoire' : 'Défaite'}`;
     }

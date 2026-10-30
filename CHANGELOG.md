@@ -5,6 +5,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Dédale (pass 57): five seeded maze topologies; progressively introduce colored keys/doors, one-way passages, paired portals, toggle walls, cyclic walls, sliding ice, reduced sight and distinct pursuit/patrol/light-flee behaviors.
+- Add recovery stages, timed challenges every five levels and an all-mechanic finale; preserve progression saves and legacy engine states.
+- Record thirty BFS solutions, validate both default/report campaigns and six source mutations; diversity improves from 100 to 22.4 with 0% adjacent clones. Write four E2E captures without running a browser or Vitest.
+
 - Essaim (pass 55): rounded shaded ships, animated engines and distinct enemy silhouettes, directional shield arcs, white impact flashes and multipart bosses with a changed second phase; retain all engine rules and controls.
 - Draw six weapon signatures, pooled explosions (96 particles, at most 4 rings with reduced motion), subtle large-impact shake, three star layers, cached procedural nebula textures and six distant planet palettes. Expose rendering counters in the test hook.
 - Add pure particle/texture tests and a Node check; write four art capture scenarios and a mobile 5-second requestAnimationFrame check at CPU ×4 with a literal 30 fps threshold for execution by the test host.

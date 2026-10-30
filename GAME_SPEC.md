@@ -1172,152 +1172,134 @@ Le pilote utilise uniquement déplacement et maintien/relâchement du tir, en ob
 
 ## Dédale
 
-Création originale : une luciole récolte des graines lumineuses dans les Jardins
-de lumière, poursuivie par quatre feux follets. Dessins vectoriels et sons
-synthétisés uniquement par code, sous la licence MIT du dépôt.
+Une luciole cherche quatre graines et quatre soleils dans trente labyrinthes
+19×23. La progression et les clés de sauvegarde communes restent compatibles.
+`loadState` accepte aussi les anciens états sans extension `journey` : ils
+conservent les déplacements et collisions historiques. Aucun tirage aléatoire
+n'intervient pendant un déplacement ; graines, niveau et entrées fixent la partie.
 
-### Génération des trente niveaux
+### Formes et mécaniques (passe 57)
 
-Indices internes `l=0…29`, affichés 1…30. Grille 19×23 : parcours en profondeur
-à graine sur les 9×11 cellules de coordonnées impaires. Chaque arête de l'arbre
-couvrant ouvre sa case intermédiaire. Chaque impasse est ensuite raccordée à
-une autre cellule de l'arbre par un mur fermé choisi à graine. Enfin, on ouvre
-sans remise des murs intermédiaires supplémentaires selon `loopCount`.
-Deux ouvertures en (0,11) et (18,11) forment un tunnel bilatéral. Toute case
-ouverte est couverte par une graine ou un soleil ; aucun tirage de bonus pendant
-la partie, aucune superposition ni apparition dans les murs. Les quatre soleils
-occupent (1,1), (17,1), (17,21), (1,21). La luciole part de (9,17), la base des
-follets est (9,11). Le PRNG partagé reçoit `seed + 7919*l` modulo 2³².
+Le PRNG reçoit `seed + 7919*level` modulo 2³². Cinq générateurs alternent :
+arbre à couloirs étroits, salles connectées avec alcôves, anneau elliptique avec
+rayons, spirale avec raccourci radial, arbre réfléchi sur son axe central.
+La partie supérieure porte ces formes ; une galerie inférieure connectée
+introduit les interactions avant la recherche du quatrième soleil, placé à graine
+dans la forme supérieure. Chaque objectif est sur une case ouverte. Les graines
+ne couvrent plus automatiquement toutes les cases : les huit objectifs gardent
+l'exploration lisible. La signature de diversité contient les vraies cases de sol
+et les cases typées des mécanismes, jamais le nom de la forme ou du niveau.
 
-| Paramètre moteur | Formule | Niveau 1 → 30 |
-| --- | --- | --- |
-| `wispRatio` | 0,75 + 0,30*l/29 | 75 % → 105 % |
-| `vulnerableMs` | 8000 − 7000*l/29 | 8 s → 1 s |
-| `chaseMs` | 12000 + 18000*l/29 | 12 s → 30 s |
-| `loopCount` | 8 + floor(24*l/29) | 8 → 32 boucles supplémentaires |
+Les règles suivantes se cumulent, avec des marqueurs et une instruction dans le HUD :
 
-La luciole parcourt 6 cases/s. Chaque acteur change de case à son échéance ;
-la simulation est découpée en pas de 1000/60 ms. Le temps résiduel est conservé,
-indépendamment de la cadence d'affichage. Une demande de direction reste en
-mémoire tant que le passage est fermé ; la direction courante continue si elle
-est praticable. Le demi-tour est autorisé pour la luciole.
+- Niveau 4 : clé et porte de même couleur ; une clé est conservée après une vie perdue.
+- Niveau 5 : flèche à sens unique, contraignant l'entrée et la sortie.
+- Niveau 9 : portails appariés, téléportation à l'arrivée, sans rebond immédiat.
+- Niveau 13 : chaque entrée sur l'interrupteur inverse le mur associé (ouvert/fermé).
+- Niveau 16 : mur fermé pendant deux échéances de déplacement, ouvert pendant deux ;
+  les tentatives bloquées font aussi avancer le cycle, soit 2/3 s par cycle.
+- Niveau 19 : entrer sur la glace lance une glissade jusqu'au prochain obstacle,
+  même au-delà des cases gelées ; toutes les collectes intermédiaires comptent.
+- Niveau 22 : dans les ombres, vision limitée à une distance Manhattan de trois cases.
+  La scène utilise la fonction de visibilité du moteur pour masquer réellement le décor.
+- Niveau 25 : le rôdeur change de point de patrouille toutes les deux secondes ;
+  le timide fuit la lumière du héros à moins de six cases ou sous l'effet d'un soleil.
+  Le traqueur poursuit ; le devin anticipe trois cases. Les impasses permettent
+  aux follets un demi-tour si aucune autre sortie n'existe.
+- Niveau 28 : seconde couleur, exigeant sa propre clé.
 
-### Follets et calendrier
+Respirations aux niveaux 6/11/17/22/27 : un traqueur, soleils de 12 s.
+Défis à 5/10/15/20/25 : combinaison des règles acquises avec 25 s de temps réel
+simulé ; le niveau 5 combine déjà portes et sens unique. Final au 30 : toutes
+les mécaniques, deux couleurs, quatre rôles de follets et limite de 40 s.
+Les autres niveaux ne sont pas chronométrés. Les follets circulent sur le sol ;
+les contraintes des cases spéciales concernent la luciole.
 
-Priorité fixe **haut, gauche, bas, droite**. À chaque case, un follet choisit
-parmi les directions ouvertes, hors demi-tour, celle qui minimise la distance
-euclidienne au carré à sa cible. Les égalités conservent la priorité fixe.
-La suppression des impasses garantit au moins une sortie sans demi-tour.
+### Déplacement et compatibilité
 
-En dispersion, chaque follet vise son coin : haut gauche, haut droit, bas droit,
-bas gauche dans l'ordre ci-dessous. En poursuite :
+Six échéances de déplacement par seconde, avec simulation fixe à 60 Hz.
+La direction demandée reste mémorisée : en cas de refus, la direction courante
+continue si elle est autorisée. Un blocage ne consomme ni clé ni interrupteur.
+Un portail est évalué après une glissade. Les murs cycliques bloquent l'entrée ;
+un héros déjà sur la case peut en sortir pendant sa fermeture.
 
-| Follet | Cible |
-| --- | --- |
-| Traqueur | Case actuelle de la luciole |
-| Devin | Trois cases devant sa direction courante, même hors grille |
-| Rôdeur | Luciole et coin bas droit, alternés toutes les 4 s simulées |
-| Timide | Coin bas gauche à moins de 6 cases en distance euclidienne, sinon luciole |
+Graines : 10 points ; soleils : 50 points et vulnérabilité
+`8000 - 7000*level/29` ms (12 s pendant les respirations). Trois vies,
+1,8 s de grâce au départ et après une collision. Collectes, clés, interrupteurs,
+phase cyclique et temps restant sont conservés après une vie perdue.
+Les phases dispersion/poursuite, les échanges de cases et la chaîne de follets
+200/400/800/1600 restent déterministes. Victoire après les huit collectes ;
+zéro vie ou temps épuisé entraîne la défaite. Les états terminaux sont gelés.
 
-Huit phases initiales alternent dispersion (8000 + un tirage entier de 0 à
-999 ms) et poursuite (`chaseMs` + un tirage entier de 0 à 999 ms). Après ces
-huit phases, l'alternance continue avec `chaseMs` pour chaque phase. Le
-changement de mode inverse la direction de chaque follet ; c'est la seule
-exception à l'interdiction de demi-tour. Les départs de base sont échelonnés à
-2,5 / 4,3 / 6,1 / 7,9 s. Le rôdeur utilise le temps total simulé de la partie.
+### Preuves et tests
 
-### Collecte, collisions et choix de jouabilité
+`src/engines/dedale/solver.ts` effectue un BFS par objectif sur
+(position, clés, interrupteur, phase cyclique, direction mémorisée).
+Chaque arc appelle exactement `walk`, également utilisé par le moteur.
+Le parcours complet est ensuite exécuté avec les follets, collisions et minuterie
+ordinaires ; il s'agit d'une preuve par rejeu, pas d'un optimum global ni d'une
+preuve sur toutes les graines possibles. Le validateur gagne les trente niveaux
+sur les graines 28 et 459. Les trente enregistrements de la graine 28 sont dans
+`tests/dedale-solutions.ts`. Aucun BFS de campagne n'est exécuté en test Vitest.
 
-Graine : 10 points ; soleil : 50 points et remise à zéro de la chaîne. Pendant
-la vulnérabilité, le follet choisit la sortie qui maximise sa distance à sa cible,
-avec la même priorité et sans demi-tour. Chaque follet mangé rapporte 200, 400,
-800 puis 1600 points (plafond 1600) et devient inoffensif. Il suit la distance
-BFS à la base, toujours sans demi-tour, puis y attend 2 s avant de repartir.
-La vulnérabilité expire même pendant un retour et n'est pas prolongée par la
-consommation d'un follet.
+`tests/dedale-mechanics.ts` partage les huit micro-grilles littérales D-MEC-01…08
+avec le validateur Node. D-SOLVE rejoue trente victoires avec un délai maximal de
+2 s. D-DIV-01 mesure les observations de ces parties sur le vrai générateur,
+exige au moins sept types nouveaux, aucun intervalle de plus de cinq niveaux
+sans découverte jusqu'au 25 et moins de 25 % de clones. Un contrôle négatif
+remplace les trente niveaux par le premier et exige 100 % de clones et zéro
+nouveauté. Les anciens tests de déplacement, score, cibles, collisions,
+déterminisme et gel terminal restent en place ; les anciennes campagnes longues
+et hypothèses de croissance monotone des boucles sont remplacées.
 
-Trois vies. Une collision est vérifiée après le déplacement de la luciole,
-puis après celui des follets : un échange de cases ne traverse pas un ennemi.
-Une vie perdue conserve le score et les collectes, réinitialise les positions,
-les horloges de déplacement, la vulnérabilité et la chaîne. **Choix précisé pour
-la jouabilité :** le calendrier repart en dispersion après chaque vie perdue,
-et la luciole reçoit 1,8 s de grâce, également au début du niveau. Ces règles
-s'appliquent dans le moteur, sans condition d'URL ni de scénario.
-La dernière collecte gagne ; zéro vie perd la partie. Les états terminaux sont
-gelés. La progression commune débloque N+1 et restaure le cumul après défaite.
+Le script vérifie aussi la connexité de 180 labyrinthes (30 niveaux × 6 graines),
+rejette les six mutations demandées en mémoire et inscrit leurs fichiers/lignes
+dans `dedale-validation.json`. Commande de régénération :
 
-La politique de preuve utilise un BFS vers la lumière la plus proche, évite les
-positions courantes et deux positions projetées des follets dangereux, puis
-s'éloigne si aucun chemin n'est disponible. Elle joue les niveaux initiaux
-complets, sans modifier l'état ni supprimer les ennemis. Sur les graines
-11, 16 et 2026, au moins une victoire sur trois est exigée séparément aux niveaux
-1, 15 et 30 (5000 déplacements maximum). La graine 16 est un témoin de victoire
-au niveau 30. Cela démontre une jouabilité sur ces témoins, pas une garantie
-que cette politique simple gagne chaque labyrinthe.
+```sh
+nice -n 19 ionice -c3 node scripts/validate-dedale.js --record
+nice -n 19 ionice -c3 node scripts/diversity-report.js
+```
 
-### Présentation, contrôles et intégration
+Clavier flèches/ZQSD/WASD, glisser et croix tactile de 56 px ; pause et
+progression communes inchangées. Les captures E2E écrites `dedale-level04`,
+`dedale-level12`, `dedale-level20` et `dedale-level30` attendent le serveur de test.
+Aucun navigateur ni Vitest n'est lancé pendant cette passe.
 
-Écran Prêt, démarrage par Jouer ou une direction ; pause P/Échap et bouton
-commun, qui suspend le moteur. Flèches, ZQSD et WASD ; souris sur la croix ;
-glisser de 16 px sur la zone de jeu. Croix visible de quatre boutons 56×56 px,
-sous le canevas pour garder l'action dégagée. Les tests vérifient le non-
-chevauchement de Pause, des quatre directions, de Niveaux et de Recommencer.
-Halo de collecte, indication de vulnérabilité et de mode, vies et lumières
-restantes, effets nommés `turn`, `move`, `seed`, `sun`, `wisp`, `mode`, `life`,
-`won`, `lost`, via l'unique son global.
+### Les trente parcours enregistrés
 
-Entrée `GameDefinition` dans le registre ; aucun changement d'API du socle.
-Le crochet `__ARCADE_TEST__.games.dedale` expose `read`, `loadLevel` et, à travers
-l'objet typé Dédale, `scenario('finish'|'danger'|'showcase')`. Il n'est installé qu'en mode
-`?test=1`. Les scénarios chargent des états construits ; les issues passent
-ensuite par les vraies entrées, déplacements, collectes et collisions du moteur.
-
-### Traçabilité de l'oracle
-
-| ID | Oracle moteur seul (`tests/dedale.test.ts`) | E2E (`tests/e2e/dedale.spec.ts`) |
-| --- | --- | --- |
-| D01 | BFS connexité, couverture et unicité, murs, quatre soleils, absence d'impasses, plusieurs graines | Affichage niveaux 1 et 30 |
-| D02 | Déplacement, mur et direction mémorisée | Clavier, croix souris/tactile et glisser |
-| D03 | Tunnel dans les deux sens, autre rangée interdite | — |
-| D04 | 10/50 points, collecte unique et durée | Dernière graine par vraie entrée |
-| D05 | Quatre cibles, coin et alternance | — |
-| D06 | Distance, égalité, priorité et aucun demi-tour | — |
-| D07 | Échéance, changement de mode, inversion et calendrier à graine | — |
-| D08 | Chaîne, retour réel, attente à la base et expiration | Indicateurs visuels |
-| D09 | Vie, réinitialisation, score conservé et grâce | Collision tactile/clavier, défaite puis rejouer |
-| D10 | Victoire, défaite, gel et politiques complètes | Panneaux, cumul, N+1 et reprise après reload |
-| D11 | Chaque paramètre dans son sens et strict aux extrêmes ; politique 1/15/30 | Niveau 30 |
-| D12 | Entrées horodatées, cadences, graine et sérialisation | Pause figée, crochet inerte et nettoyage |
-
-D01 vérifie les trente niveaux sur six graines chacun.
-
-Mutations contrôlées, restaurées : score d'une graine supprimé (D04), demi-tour
-autorisé (D06), perte de vie supprimée (D09). Chaque échec provient d'une
-assertion, pas d'une erreur de compilation. L'E2E utilise Chromium seul, un
-worker, le build de production et une fixture qui échoue sur toute erreur JS
-ou `console.error`. Sur mobile, seules des entrées tactiles sont utilisées.
-
-Le décor est tracé par Canvas 2D dans une texture Phaser, recalculée seulement
-au chargement ou après une collecte. Les personnages et le halo restent
-séparés. Les panneaux DOM ne sont réécrits que si leurs données changent.
-Cette optimisation de présentation conserve les pas fixes et la logique du
-moteur ; aucun asset externe ni service commun n'est ajouté.
-
-### Dédale — ajustements de jouabilité
-
-Les déplacements simultanés sont résolus avant le contact : une case finale
-commune ou un échange des deux cases compte comme collision. D09 couvre les
-deux états (normal/vulnérable). `branching(maze)` mesure arêtes − cases + 1,
-tunnel compris. Pour une même graine, l'arbre initial et l'ordre des murs sont
-communs aux trente niveaux ; seuls les préfixes de boucles ouvertes changent.
-D11 mesure cette croissance réelle sur quatre graines. La politique BFS garde
-ses règles ; ses trois graines témoins sont désormais 6, 16 et 2026.
-
-Le labyrinthe occupe 349,6 des 360 pixels logiques disponibles en largeur.
-Chaque follet a une silhouette de 90 % de case et une couleur liée à son
-comportement : rose, violet, ambre ou turquoise. L'attente conserve la couleur
-et ajoute un cercle blanc. La vulnérabilité est bleue avec bouche blanche ;
-le retour est représenté par deux yeux blancs dans un anneau, sans corps.
+| Niveau | Forme | Mécanique / rythme (cumulatif) | Coups, graine 28 |
+| ---: | --- | --- | ---: |
+| 1 | Couloirs étroits | Déplacement et soleils | 67 |
+| 2 | Salles reliées | Déplacement et soleils | 54 |
+| 3 | Anneau | Déplacement et soleils | 57 |
+| 4 | Spirale | + clés / portes | 80 |
+| 5 | Miroir | + sens unique ; défi 25 s | 48 |
+| 6 | Couloirs étroits | Mécaniques acquises ; respiration | 54 |
+| 7 | Salles reliées | Mécaniques acquises | 50 |
+| 8 | Anneau | Mécaniques acquises | 41 |
+| 9 | Spirale | + portails | 53 |
+| 10 | Miroir | Mécaniques acquises ; défi 25 s | 38 |
+| 11 | Couloirs étroits | Mécaniques acquises ; respiration | 62 |
+| 12 | Salles reliées | Mécaniques acquises | 59 |
+| 13 | Anneau | + interrupteurs | 58 |
+| 14 | Spirale | Mécaniques acquises | 100 |
+| 15 | Miroir | Mécaniques acquises ; défi 25 s | 37 |
+| 16 | Couloirs étroits | + murs cycliques | 44 |
+| 17 | Salles reliées | Mécaniques acquises ; respiration | 54 |
+| 18 | Anneau | Mécaniques acquises | 52 |
+| 19 | Spirale | + glace | 102 |
+| 20 | Miroir | Mécaniques acquises ; défi 25 s | 61 |
+| 21 | Couloirs étroits | Mécaniques acquises | 38 |
+| 22 | Salles reliées | + zones sombres ; respiration | 47 |
+| 23 | Anneau | Mécaniques acquises | 54 |
+| 24 | Spirale | Mécaniques acquises | 104 |
+| 25 | Miroir | + patrouille / fuite ; défi 25 s | 53 |
+| 26 | Couloirs étroits | Mécaniques acquises | 47 |
+| 27 | Salles reliées | Mécaniques acquises ; respiration | 43 |
+| 28 | Anneau | + seconde couleur | 36 |
+| 29 | Spirale | Mécaniques acquises | 46 |
+| 30 | Miroir | Mécaniques acquises ; final complet, 40 s | 129 |
 
 ## Ferraille
 

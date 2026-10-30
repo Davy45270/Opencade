@@ -164,3 +164,5 @@ and the [security policy](SECURITY.md) before contributing.
 Dérapage adds alternating slalom gates with time penalties, snow and downhill acceleration, banked BMX turns and jumps, and continuous urban rails.
 
 Essaim validation (weapons, diversity, 60 campaign wins and mutations): `nice -n 19 ionice -c3 node scripts/validate-essaim.js`. E2E captures run on the test host.
+
+Dédale pass 57 adds colored keys/doors, one-way passages, portals, switches, cyclic walls, ice and darkness across five seeded maze shapes. Thirty recorded solver routes and six mutation checks run with `nice -n 19 ionice -c3 node scripts/validate-dedale.js`; diversity drops from 100 to 22.4 (0% adjacent clones). See [the level table](GAME_SPEC.md#dédale).

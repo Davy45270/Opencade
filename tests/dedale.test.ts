@@ -1,28 +1,12 @@
 import { expect, test } from 'vitest';
-import { Engine, branching, difficulty, TICK, WIDTH, HEIGHT, PRIORITY, HOME, START, index, cell, neighbor, target, choose, opposite, type Wisp, type Direction } from '../src/engines/dedale/engine';
+import { Engine, difficulty, TICK, WIDTH, HEIGHT, PRIORITY, HOME, START, index, neighbor, target, choose, opposite, type Wisp, type Direction } from '../src/engines/dedale/engine';
 function arena(): Engine {
     const e = new Engine(); e.state.maze = Array<boolean>(WIDTH * HEIGHT).fill(true);
-    e.state.wisps = []; e.state.seeds = [index({ x: 17, y: 21 })]; e.state.suns = []; e.state.grace = 0;
+    e.state.journey = undefined; e.state.wisps = []; e.state.seeds = [index({ x: 17, y: 21 })]; e.state.suns = []; e.state.grace = 0;
     e.state.hero = { x: 5, y: 5, direction: 'right' }; e.state.requested = 'right'; return e;
 }
 function wisp(x = 5, y = 5): Wisp { return { x, y, kind: 'tracker', direction: 'up', wait: 0, returning: false }; }
 function move(e: Engine, d: Direction): void { e.input(d); e.step(1000 / 6); }
-function reachable(e: Engine): Set<number> {
-    const seen = new Set([index(START)]), queue = [START];
-    for (let i = 0; i < queue.length; i++) { const c = queue[i]; if (!c) continue; for (const d of PRIORITY) { const p = neighbor(e.state.maze, c, d); if (p && !seen.has(index(p))) { seen.add(index(p)); queue.push(p); } } } return seen;
-}
-test('D01 arbre et boucles connexes, couverture complète, quatre soleils distincts, aucun cul-de-sac', () => {
-    const counts: number[] = [];
-    for (let level = 0; level < 30; level++) for (let seed = 0; seed < 6; seed++) {
-        const e = new Engine(level, seed), open = e.state.maze.flatMap((p, i) => p ? [i] : []), seen = reachable(e);
-        expect(seen.size).toBe(open.length); expect(e.state.suns).toHaveLength(4);
-        expect(new Set([...e.state.seeds, ...e.state.suns]).size).toBe(open.length);
-        expect(e.state.seeds.every(i => e.state.maze[i] && !e.state.suns.includes(i))).toBe(true);
-        expect(open.every(i => PRIORITY.filter(d => neighbor(e.state.maze, cell(i), d)).length >= 2)).toBe(true);
-        if (level === 0) counts.push(open.length);
-    }
-    expect(new Set(counts).size).toBeGreaterThan(1);
-});
 test('D02 direction mémorisée jusqu’au prochain passage, mur et déplacement', () => {
     const e = arena(); e.state.maze[index({ x: 5, y: 4 })] = false;
     move(e, 'up'); expect(e.state.hero).toEqual({ x: 6, y: 5, direction: 'right' }); expect(e.state.requested).toBe('up');
@@ -76,7 +60,7 @@ test('D10 victoire après les deux collectes, défaite et gel des états termina
     const b = arena(); b.state.lives = 1; b.state.wisps = [wisp(6, 5)]; move(b, 'right'); expect(b.status).toBe('lost'); const lost = b.snapshot(); b.step(1000); expect(b.snapshot()).toEqual(lost);
 });
 test('D11 chaque paramètre évolue dans son sens aux trente niveaux', () => {
-    const signs = { wispRatio: 1, vulnerableMs: -1, chaseMs: 1, loopCount: 1 } as const;
+    const signs = { wispRatio: 1, vulnerableMs: -1, chaseMs: 1 } as const;
     expect(Object.keys(difficulty(0)).sort()).toEqual(Object.keys(signs).sort());
     for (const key of Object.keys(signs) as (keyof typeof signs)[]) {
         expect(difficulty(29)[key] * signs[key]).toBeGreaterThan(difficulty(0)[key] * signs[key]);
@@ -90,39 +74,6 @@ test('D12 mêmes entrées horodatées, cadence indépendante, snapshot sérialis
     expect(a.snapshot()).toEqual(b.snapshot()); expect(() => JSON.stringify(a.snapshot())).not.toThrow(); expect(new Engine(14, 18).snapshot()).not.toEqual(new Engine(14, 17).snapshot());
 });
 
-for (const level of [0, 14, 29]) test(`D10 D11 politique BFS gagne au niveau ${String(level + 1)} sur trois graines`, () => {
-    let wins = 0;
-    for (const seed of [6, 16, 2026]) {
-        const e = new Engine(level, seed);
-        for (let turn = 0; turn < 5000 && e.status === 'playing'; turn++) {
-            const s = e.state, food = new Set([...s.seeds, ...s.suns]), start = index(s.hero);
-            const danger = new Set<number>();
-            if (s.vulnerable < 500 && s.grace < 500) for (const w of s.wisps) if (!w.returning && w.wait < 500) {
-                danger.add(index(w));
-                let projected = { ...w };
-                for (let step = 0; step < 2; step++) {
-                    const d = choose(s, projected), p = d && neighbor(s.maze, projected, d);
-                    if (d && p) { projected = { ...projected, ...p, direction: d }; danger.add(index(p)); }
-                }
-            }
-            const queue: { pos: number; direction?: Direction }[] = [{ pos: start }], seen = new Set([start]); let choice: Direction | undefined;
-            for (let i = 0; i < queue.length; i++) {
-                const entry = queue[i]; if (!entry) continue;
-                if (entry.direction && food.has(entry.pos)) { choice = entry.direction; break; }
-                for (const d of PRIORITY) { const p = neighbor(s.maze, cell(entry.pos), d); if (p && !seen.has(index(p)) && (!danger.has(index(p)) || s.suns.includes(index(p)))) { seen.add(index(p)); queue.push({ pos: index(p), direction: entry.direction ?? d }); } }
-            }
-            if (!choice) choice = PRIORITY.filter(d => neighbor(s.maze, s.hero, d)).sort((a, b) => {
-                const score = (d: Direction): number => { const p = neighbor(s.maze, s.hero, d); return p ? Math.min(...s.wisps.filter(w => !w.returning && w.wait < 500).map(w => (p.x - w.x) ** 2 + (p.y - w.y) ** 2)) : -1; };
-                return score(b) - score(a);
-            })[0];
-            if (choice) e.input(choice);
-            e.step(1000 / 6);
-        }
-        if (e.status === 'won') wins++;
-    }
-    expect(wins, `niveau ${String(level + 1)}`).toBeGreaterThanOrEqual(1);
-});
-
 test('D09 croisement simultané : contact normal et follet vulnérable mangé', () => {
     for (const vulnerable of [0, 1000]) {
         const e = arena(); e.state.maze.fill(false);
@@ -133,13 +84,5 @@ test('D09 croisement simultané : contact normal et follet vulnérable mangé', 
         expect(e.state.lives).toBe(vulnerable ? 3 : 2);
         expect(e.state.score).toBe(vulnerable ? 200 : 0);
         if (vulnerable) { expect(e.state.hero.x).toBe(6); expect(e.state.wisps[0]?.x).toBe(5); expect(e.state.wisps[0]?.returning).toBe(true); }
-    }
-});
-
-test('D11 ramification réelle non décroissante et strictement accrue sur plusieurs graines', () => {
-    for (const seed of [1, 11, 459, 2026]) {
-        const cycles = Array.from({ length: 30 }, (_, level) => branching(new Engine(level, seed).state.maze));
-        expect(cycles[29]).toBeGreaterThan(cycles[0] ?? Infinity);
-        for (let level = 1; level < 30; level++) expect(cycles[level]).toBeGreaterThanOrEqual(cycles[level - 1] ?? Infinity);
     }
 });
