@@ -5,42 +5,42 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-- Correct Bubble Lab seed variants and replace short extension islands with denser layouts and a measured rising difficulty curve; retain all historical grids.
-- Lock complete historical cells, real generated mechanics and clone detection, bomb interactions, distant ice, rainbow cadence, multiple stars and both bumpers; reject the eight review mutations.
-- Restore the full 30-level solver campaign and 20-seed streaming statistics. All fixed-seed levels win, but the unchanged ten-second campaign limit still fails.
-- Correct synthetic touch coordinates in B-HEX-14 and check the installed input transforms directly with Node; no browser test runner was launched.
+## [0.3.1] - 2026-10-30
 
-- Extend Bubble Lab to 30 seeded, sculpted levels while retaining L1–L10 and save keys; add stone bubbles, radius-one bomb chains, rainbow shots, two-burst ice, star rescues and internal reflecting bumpers.
-- Add shared B-LVL literal oracles, diversity metrics, seeded solver measurements and direct browser captures for levels 15 and 30.
+### Dérapage
 
-- Refine Bubble Lab hex snapping with accessible contact sockets, reduced collision radius, exact wall reflections, one-bounce guidance, touch drag/release aiming, optional tap firing and next-bubble swapping.
-- Add B-HEX geometry, drop scoring, parity, determinism and desktop/mobile capture oracles; retain save formats.
+- Thirty hand-drawn tracks instead of one deformed loop: urban, fast, technical, banked and
+  nature families, with cup themes. Among them a slow seaside street circuit, a circuit
+  around a Paris esplanade, a fast forest hill circuit, a downhill slalom and a BMX track.
+  A scale- and rotation-invariant shape signature proves the tracks differ (Z26).
+- Full-width chequered finish line drawn from the engine's lap gate (Z27), a starting grid,
+  lap messages and a mini-map marker.
+- Race and lap timers (mm:ss.cc) on simulation time, best lap, gap at the line, and a
+  per-track record kept in the existing save (Z28, Z29).
+- Slalom gates with a 2 s time penalty, snow with reduced grip, downhill gravity, BMX
+  berms and speed-dependent jumps with a shadow, and continuous urban kerbs and rails with
+  collision (Z30–Z35).
+- After play-testing: continuous thumb steering with a dead zone, a held Drift button,
+  grass capped at 45% of road speed, seeded boost strips from level 3, and roadside trees
+  with collisions.
+- The home preview finishes real races; faster track lookup (about 2.5× per step).
 
-## [0.3.1] - 2026-10-29
+### Bubble Lab
 
-- Add slalom gate penalties, snow grip and downhill gravity, BMX banking and speed-dependent jumps, continuous urban rail collisions, elevation shading and themed scenery.
-- Add shared Z30–Z35 mechanics oracles to unit tests and the Node validator, and gameplay gate/jump capture scenarios for desktop and mobile.
+- Strict hex grid, snapping to the free socket nearest the contact point, a slightly
+  reduced collision radius so gap shots pass, exact wall reflections, falling detached
+  groups with a bonus, drag-and-release aiming with a one-bounce guide, optional tap
+  firing and next-bubble swapping (B-HEX tests).
+- Thirty levels instead of ten. The first ten are unchanged. New mechanics arrive every
+  few levels: stone, bomb, rainbow, ice, star rescue and bumpers, with breathing levels,
+  challenges every five levels and a final level that combines them.
+- The difficulty curve rises, and recorded winning solutions for all 30 levels are
+  replayed in the tests (B-LVL tests).
 
-### Changed
+### Other
 
-- Dérapage simulation-step race/lap timers, best lap and crossing deltas in the reserved
-  mobile HUD; per-circuit historical records in the existing save, record announcements
-  and race results with total time, best lap, circuit record and ranking.
-- Z28 deterministic timing and Z29 persistence tests, plus a mobile input/advance/reload journey.
-
-- Replace Dérapage's shared deformed loop with 30 hand-drawn spline layouts, cup themes,
-  urban collision scenery, forest routes and reserved slalom/BMX feature data.
-- Draw a full-width finish checker from the engine's lap gate geometry, with a starting grid,
-  lap messages and mini-map marker; add Z26 shape diversity, Z27 finish checks and overview captures.
-
-- Dérapage, after play-testing: continuous thumb steering with a dead zone and steering indicator,
-  an 88 px held Drift button and a 56 px Bonus button above it. The old touch
-  arrows are removed; keyboard, optional mouse steering and tilt remain available.
-- Seeded acceleration strips from level 3 (32 units/s for 900 ms) and roadside
-  trees with swept circle collisions, exposed in world coordinates for future views.
-- Grass speed capped at 45% or less of road speed, with immediate slowdown,
-  visual traces and a light sound; AI grass-time and tree-collision measurements.
-- Z17–Z25 coverage and an expanded 30-track validation table.
+- A measured level-diversity report for the twelve games (`docs/diversity.md`,
+  `scripts/diversity-report.js`).
 
 ## [0.3.0] - 2026-10-29
 
