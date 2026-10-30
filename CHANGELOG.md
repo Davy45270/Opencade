@@ -5,41 +5,46 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
-- Pass 68 (0.3.2): visible build version/date, active PWA update checks, dismissible update banner and forced update with app-only cache recovery; preserve game saves. Add unit coverage and written v1 → v2 deployment E2E fixtures.
+## [0.3.2] - 2026-10-30
 
-- Dérapage (pass 67): default north-up 360° thumb joystick, absolute keyboard arrows and diagonals, visible ring/thumb/heading, and saved rotating-camera legacy controls.
-- Add optional bounded trajectory assistance and inward rail recovery with a minimum residual speed; introduce the wide La Flèche des prés at level 1 and move Le Rocher to level 5, migrating historical indexed records by circuit name.
-- Add seeded 150 ms human campaigns, short recorded Z36 replays, Z37–Z39 mechanic/save checks and four source mutations; write mobile joystick/camera persistence E2E without browser or Vitest execution. The unassisted human pilot also meets playability thresholds on Le Rocher; the assistance mutation is detected by exact replay and the local correction oracle.
+### Dérapage: playable by touch
 
-- Orbite (pass 64): six authored formations and eight progressively introduced mechanics — rotating shields, split probes, asteroid deflections, gravity curves, intermittent stealth, local repair, satellite defense and coordinated swarms.
-- Add five recovery stages, six guardians with exposed cores and distinct firing motifs, and a two-phase carrier finale; retain v1 progression saves and deterministic ordinary controls.
-- Record 60 victories on seeds 457/28; add eight literal mechanic oracles, boss/save checks, short per-level replays, eleven rejected mutations and four written desktop/mobile E2E captures. Repetition improves from 78.4 to 18.1, with twelve observed introduction levels and 0% adjacent clones. No browser or Vitest execution.
+- New default touch control: an absolute 360° thumb joystick with a fixed, north-up camera.
+  Put your thumb anywhere and the kart turns towards where it points, with a visible ring,
+  thumb dot and heading arrow. The rotating camera with relative steering stays available in
+  the ☰ menu and is remembered.
+- Gentle, switchable line assist; kerbs and rails push the kart back onto the track instead
+  of trapping it; an easy, wide first track (the seaside street circuit moves to track 5).
+  Per-track records follow their track, and old saves are migrated.
 
-- Briqueterie (pass 61): thirty authored silhouettes with holes, arches, a spiral and falling suspensions; progressively introduce sliding rows, neighboring blasts, regrowth, portals, solid chicanes, inclined normals, keys/locks, brick multiball and inverse-gravity zones.
-- Add recovery stages, five-level challenges, a combined fortress finale and distinct mechanic marks; preserve v1 progression saves and deterministic simulation.
-- Record 60 ordinary-input victories on seeds 455/28; add ten literal mechanic oracles, short campaign replays, six rejected source mutations and four written E2E captures. Repetition score improves from 79.3 to 18.1, with ten observed introductions and 0% adjacent clones. No browser or Vitest execution.
+### App updates
 
-- Pass 59: add five original recurring companions, deterministic vector pose/expression/animation lists, shared direct Canvas and Phaser Graphics adapters, and reduced-motion support.
-- Add the accessible home character picker with idle/special previews, persistent isolated selection and a stable companion API; game integration follows in a later pass.
-- Add C01–C06 checks, three rejected Node source mutations and desktop/mobile E2E review sheets; browser and Vitest execution is deferred to the test host.
+- Version and build date on the home screen and in the ☰ menu; an active update check at launch,
+  every 30 minutes and when the app returns to the foreground; a "New version" banner and a
+  "Force update" button that keeps every save.
 
-- Dédale (pass 57): five seeded maze topologies; progressively introduce colored keys/doors, one-way passages, paired portals, toggle walls, cyclic walls, sliding ice, reduced sight and distinct pursuit/patrol/light-flee behaviors.
-- Add recovery stages, timed challenges every five levels and an all-mechanic finale; preserve progression saves and legacy engine states.
-- Record thirty BFS solutions, validate both default/report campaigns and six source mutations; diversity improves from 100 to 22.4 with 0% adjacent clones. Write four E2E captures without running a browser or Vitest.
+### Less repetitive games
 
-- Essaim (pass 55): rounded shaded ships, animated engines and distinct enemy silhouettes, directional shield arcs, white impact flashes and multipart bosses with a changed second phase; retain all engine rules and controls.
-- Draw six weapon signatures, pooled explosions (96 particles, at most 4 rings with reduced motion), subtle large-impact shake, three star layers, cached procedural nebula textures and six distant planet palettes. Expose rendering counters in the test hook.
-- Add pure particle/texture tests and a Node check; write four art capture scenarios and a mobile 5-second requestAnimationFrame check at CPU ×4 with a literal 30 fps threshold for execution by the test host.
+A measured repetitiveness score (`docs/diversity.md`, lower is more varied):
 
-- Essaim: add six finite tactical pickups (overheating beam, side ricochets, intercepting drones, slow field, magnetic returns and release-to-fire charge), with two simultaneous weapons and visible gauges.
-- Author thirty Essaim stages with shield escorts, mines, splitting swarms, spiral kamikazes, carried guided turrets, rescues, movement mirrors, armored columns, five guardians and a two-phase command ship; retain progression saves and touch target sizes.
-- Add shared Node/unit weapon, formation, boss, diversity and deterministic replay checks, a normal-input two-seed campaign pilot and seven rejected source mutations. Write weapon and level-30 capture scenarios for execution on the test host.
+- Ferraille 84.5 → 11.2: six enemy behaviours, flamethrower, ricochet and grenade pickups,
+  wagons, hostages, a guardian every five stages, a three-phase reactor and four themes.
+- Essaim 81.9 → 15.5: six weapons (overheating beam, bouncing shots, drones, slow-down wave,
+  magnet, charged shot), directional shields, typed waves, guardians, a two-phase command ship,
+  and new rounded ships, particles and parallax.
+- Dédale 100 → 22.4: keys and doors, one-way passages, portals, switches, cycling walls, ice,
+  darkness and three wisp behaviours, woven into corridor, room, ring, spiral and mirror mazes.
+- Briqueterie 79.3 → 18.1: moving, explosive, regrowing, portal, angled and key bricks,
+  multi-ball and gravity zones on drawn layouts.
+- Orbite 78.4 → 18.1: new probe behaviours, hazards, an ally to protect, guardians and a
+  two-phase finale.
 
-- Ferraille: author 30 stages with six distinct enemy behaviors, finite flame/ricochet/grenade pickups, ascending/descending routes, wagon rides and hostage rescues; retain progression saves and mobile controls.
-- Add four procedural parallax themes, recovery discoveries, five guardian patterns with exposed cores and a three-phase final reactor.
-- Fix frozen boss attack thresholds; verify 30 normal-input victories on both default seed 460 and seed 28, with thirteen rejected engine mutations.
-- Give all six Ferraille bosses distinct silhouettes, names, palettes and exposed cores, plus three reactor appearances and reduced-motion support.
-- Cover grenade boundaries, cages, floor relief and scene presentation; remove local browser capture scripts. Screenshots run through E2E on the test host.
+### Characters (first part)
+
+- Five recurring characters drawn in code: a greedy panda, a playful red panda, a studious
+  dragon, a monkey in a tutu and a playful unicorn. Each has three poses, five expressions,
+  animations and a special move. A picker on the home screen remembers your choice. Their
+  integration into the games comes next.
 
 ## [0.3.1] - 2026-10-30
 
