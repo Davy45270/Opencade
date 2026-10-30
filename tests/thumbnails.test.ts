@@ -7,7 +7,12 @@ import type { Thumbnail } from '../src/games/thumbnail';
 function recording() {
     const calls: unknown[] = [];
     const context = new Proxy({}, {
-        get: (_target, key) => (...args: unknown[]) => { calls.push([key, ...args]); },
+        get: (_target, key) => (...args: unknown[]) => {
+            calls.push([key, ...args]);
+            // Gradient factories return a recordable gradient, like a real 2D context.
+            if (typeof key === 'string' && key.startsWith('create') && key.endsWith('Gradient')) return { addColorStop: (...stop: unknown[]) => { calls.push(['addColorStop', ...stop]); } };
+            return undefined;
+        },
         set: (_target, key, value: unknown) => { calls.push([key, value]); return true; },
     }) as CanvasRenderingContext2D;
     return { calls, context };
