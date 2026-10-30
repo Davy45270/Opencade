@@ -32,7 +32,8 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint . --max-warnings=0",
     "test": "vitest run --pool=threads --maxWorkers=2",
-    "test:e2e": "playwright test"
+    "test:pwa": "node --test scripts/test-pwa.js",
+    "test:e2e": "node scripts/build-pwa-fixture.js && playwright test"
   },
   "dependencies": {
     "phaser": "3.90.0"

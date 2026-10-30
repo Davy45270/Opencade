@@ -19,22 +19,22 @@ for (const action of ['banner', 'force', 'fallback'] as const) {
                 await caches.open('foreign-proof');
             });
             // Replace files in the SAME directory; no new origin or registration.
-            await deployment.deployV2();
+            await deployment.deployV2({ keepWorker: action === 'fallback' });
             if (action === 'fallback') {
-                // Pre-activate v2 while retaining the v1 document: force then finds
-                // no waiting worker, so it must unregister + clear only app caches.
                 await page.evaluate(async () => {
                     const reg = await navigator.serviceWorker.ready;
                     await reg.update();
-                    await new Promise<void>(resolve => {
-                        const timer = setInterval(() => {
-                            if (!reg.waiting) return;
-                            clearInterval(timer);
-                            navigator.serviceWorker.addEventListener('controllerchange', () => { resolve(); }, { once: true });
-                            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-                        }, 20);
-                    });
+                    if (reg.waiting || reg.installing) throw new Error('Recovery requires v1 alone');
+                    // Observe the real API call across the ensuing navigation.
+                    const unregister = ServiceWorkerRegistration.prototype.unregister.bind(reg);
+                    ServiceWorkerRegistration.prototype.unregister = async function () {
+                        const result = await unregister();
+                        sessionStorage.setItem('pwa-unregistered', String(result));
+                        return result;
+                    };
+                    await caches.open('opencade-recovery-proof');
                 });
+                await expect(page.locator('#home footer > [data-build]')).toContainText('Opencade 0.3.1');
             }
             if (action === 'banner') {
                 await page.evaluate(async () => { await (await navigator.serviceWorker.ready).update(); });
@@ -48,6 +48,23 @@ for (const action of ['banner', 'force', 'fallback'] as const) {
             await expect(page.locator('#pwa-message')).toContainText('Version obtenue : Opencade 0.3.2');
             expect(await page.evaluate(() => localStorage.getItem('arcade-lab:pwa-proof'))).toBe('saved-in-v1');
             expect(await page.evaluate(() => caches.has('foreign-proof'))).toBe(true);
+            if (action === 'fallback') {
+                expect(await page.evaluate(() => sessionStorage.getItem('pwa-unregistered'))).toBe('true');
+                expect(await page.evaluate(() => caches.has('opencade-recovery-proof'))).toBe(false);
+            }
+            // Compare every build label with the metadata emitted by this actual build.
+            const metadata = await (await page.request.get(`${origin}/version.json`)).json() as { version: string; builtAt: string };
+            const label = await page.evaluate(({ version, builtAt }) => {
+                const date = new Intl.DateTimeFormat('sv-SE', {
+                    year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23',
+                }).format(new Date(builtAt));
+                return `Opencade ${version} · ${date}`;
+            }, metadata);
+            await page.locator('#home-menu summary').click();
+            await expect(page.locator('#home-menu [data-build]')).toHaveText(label);
+            const labels = await page.locator('[data-build]').allTextContents();
+            expect(labels.length).toBeGreaterThanOrEqual(3);
+            expect(labels.every(value => value === label)).toBe(true);
         } finally {
             await deployment.close();
         }

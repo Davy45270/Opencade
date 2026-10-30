@@ -1,1 +1,1 @@
-export function startDeployment(root: string): Promise<{ origin: string; deployV2(): Promise<void>; close(): Promise<void> }>;
+export function startDeployment(root: string): Promise<{ origin: string; deployV2(options?: { keepWorker?: boolean }): Promise<void>; close(): Promise<void> }>;

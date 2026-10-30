@@ -1,6 +1,6 @@
 import { URL } from 'node:url';
 import { createServer } from 'node:http';
-import { cp, mkdir, readFile, rm } from 'node:fs/promises';
+import { cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { resolve, extname, sep } from 'node:path';
 
 export async function startDeployment(root) {
@@ -18,7 +18,12 @@ export async function startDeployment(root) {
     await new Promise(resolve => { server.listen(0, '127.0.0.1', resolve); });
     return {
         origin: `http://127.0.0.1:${server.address().port}`,
-        deployV2: () => cp('.pwa-fixtures/v2', root, { recursive: true }),
+        async deployV2({ keepWorker = false } = {}) {
+            // Keep the actual v1 worker byte-identical to exercise recovery, not activation.
+            const worker = keepWorker ? await readFile(resolve(root, 'sw.js')) : undefined;
+            await cp('.pwa-fixtures/v2', root, { recursive: true });
+            if (worker) await writeFile(resolve(root, 'sw.js'), worker);
+        },
         async close() {
             await new Promise((resolve, reject) => { server.close(error => { if (error) reject(error); else resolve(); }); server.closeAllConnections(); });
             await rm(root, { recursive: true, force: true });

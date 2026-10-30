@@ -54,7 +54,12 @@ async function force(): Promise<void> {
     if (!registration || applying) return;
     forceButtons.forEach(button => { button.disabled = true; });
     try {
-        await registration.update();
+        // A worker already downloaded can be activated even while offline.
+        if (canAnnounce()) { activate(); return; }
+        try { await registration.update(); } catch (error) {
+            if (registration.waiting) { activate(); return; }
+            throw error;
+        }
         if (registration.installing) {
             const installing = registration.installing;
             await new Promise<void>((resolve, reject) => {
