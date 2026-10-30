@@ -13,3 +13,6 @@ test('C05 model has no presentation dependency', () => {
 });
 
 test('C06 both vector adapters consume the list at 32, 160 and 480 px', () => { renderers(); });
+
+import { panelLifecycle } from './character-panel-checks';
+test('C07 real panel events, live motion preference and home shutdown', () => { panelLifecycle(); });

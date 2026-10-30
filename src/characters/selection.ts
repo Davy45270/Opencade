@@ -1,13 +1,21 @@
 import { ids, type CharacterId } from './model';
-import { browserStorage, readValue, writeValue, type StoragePort } from '../shell/storage';
+import { browserStorage, type StoragePort } from '../shell/storage';
 export { others } from './model';
 export const CHARACTER_KEY = 'arcade-lab:character:v1';
 let fallback: CharacterId = 'panda';
+const sessionChoices = new WeakMap<StoragePort, CharacterId>();
 export function selectedCharacter(storage: StoragePort | undefined = browserStorage()): CharacterId {
-    const value = readValue(storage, CHARACTER_KEY);
-    return ids.find(id => id === value) ?? (storage ? 'panda' : fallback);
+    if (!storage) return fallback;
+    const session = sessionChoices.get(storage);
+    if (session) return session;
+    try {
+        const value = storage.getItem(CHARACTER_KEY);
+        return ids.find(id => id === value) ?? 'panda';
+    } catch { return fallback; }
 }
 export function selectCharacter(id: CharacterId, storage: StoragePort | undefined = browserStorage()): void {
     fallback = id;
-    writeValue(storage, CHARACTER_KEY, id);
+    if (!storage) return;
+    try { storage.setItem(CHARACTER_KEY, id); sessionChoices.delete(storage); }
+    catch { sessionChoices.set(storage, id); }
 }

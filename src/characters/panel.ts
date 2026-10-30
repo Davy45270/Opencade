@@ -43,11 +43,12 @@ export function setupCharacters(inputs: Inputs, testing = false): void {
     if (testing) {
         const review = document.createElement('details'); review.id = 'character-review';
         const summary = document.createElement('summary'); summary.textContent = 'Planches de relecture'; review.append(summary);
-        for (const id of ids) for (const kind of ['poses', 'expressions'] as const) {
+        for (const id of ids) for (const kind of ['poses', 'expressions', 'special'] as const) {
             const sheet = document.createElement('section'); sheet.dataset.sheet = `${id}-${kind}`; sheet.className = 'character-sheet';
-            for (const value of kind === 'poses' ? poses : expressions) {
+            for (const value of kind === 'poses' ? poses : kind === 'expressions' ? expressions : ['special']) {
                 const figure = document.createElement('figure');
                 const preview = makePreview(id, 240, kind === 'poses' ? value as Pose : 'face', kind === 'expressions' ? value as Expression : 'joie');
+                if (kind === 'special') { const item = previews.find(p => p.element === preview); if (item) item.special = true; }
                 const caption = document.createElement('figcaption'); caption.textContent = value; figure.append(preview, caption); sheet.append(figure);
             }
             review.append(sheet);
@@ -60,6 +61,11 @@ export function setupCharacters(inputs: Inputs, testing = false): void {
             if (!dialog.open || (!p.element.dataset.characterPreview && !p.element.closest('details[open]'))) continue;
             const context = p.element.getContext('2d'); if (!context) continue;
             context.clearRect(0, 0, p.element.width, p.element.height);
+            if (testing) {
+                p.element.dataset.animation = p.special ? 'special' : 'repos';
+                p.element.dataset.motion = media.matches ? 'reduce' : 'full';
+                p.element.dataset.paintCount = String(Number(p.element.dataset.paintCount ?? 0) + 1);
+            }
             renderCharacter(context, drawList(p.id, p.pose, p.expression, p.special ? 'special' : 'repos', time, media.matches ? 'reduce' : 'full'), 0, 0, p.element.height);
         }
     };

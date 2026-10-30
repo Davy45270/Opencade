@@ -16,7 +16,7 @@ export const characters = {
 } as const;
 export type Point = readonly [number, number];
 export type Command = { op: 'M' | 'L'; p: Point } | { op: 'C'; a: Point; b: Point; p: Point };
-interface Paint { fill: string; stroke: string; width: number }
+interface Paint { effect?: boolean; fill: string; stroke: string; width: number }
 export type Primitive = Paint & (
     { kind: 'ellipse'; x: number; y: number; rx: number; ry: number; rotation: number }
     | { kind: 'circle'; x: number; y: number; r: number }
@@ -25,6 +25,7 @@ export type Primitive = Paint & (
     | { kind: 'path'; commands: Command[]; closed: boolean }
 );
 const ink = '#49333c', cream = '#ffe6be', gold = '#efbd43', dark = '#49383e';
+export const specialCycleMs = { singe: 1500, pandaroux: 1600 } as const;
 const rainbow = ['#f18cbd', '#f4a153', '#f5d65d', '#72c88b', '#75bce4', '#ac87db'];
 
 export function drawList(id: CharacterId, pose: Pose = 'face', expression: Expression = 'joie', anim: Animation = 'repos', t = 0, motion: 'full' | 'reduce' = 'full'): Primitive[] {
@@ -33,31 +34,55 @@ export function drawList(id: CharacterId, pose: Pose = 'face', expression: Expre
     const phase = time / 210;
     const wave = Math.sin(phase);
     const bounce = reduce ? 0 : anim === 'saut' ? -26 * Math.abs(Math.sin(time / 480)) : anim === 'marche' ? -4 * Math.abs(wave) : anim === 'celebration' ? -8 * Math.abs(wave) : -2 * Math.sin(time / 500);
-    const lean = !reduce && anim === 'special' ? (id === 'pandaroux' ? time / 260 : Math.sin(time / 300) * (id === 'singe' ? 0.15 : 0.08)) : 0;
-    const turn = !reduce && anim === 'special' && id === 'singe' ? 0.35 + 0.65 * Math.abs(Math.cos(time / 240)) : 1;
+    const lean = !reduce && anim === 'special' ? (id === 'pandaroux' || id === 'singe' ? time / specialCycleMs[id] * Math.PI * 2 : Math.sin(time / 300) * 0.08) : 0;
+    const rolling = !reduce && anim === 'special' && id === 'pandaroux';
     const list: Primitive[] = [];
     const coat = characters[id].coat;
     const sheen = { panda: '#ffffff', pandaroux: '#f3a365', dragon: '#ff8980', singe: '#c18d65', licorne: '#ffffff' }[id];
     const back = pose === 'dos', side = pose === 'profil';
     const point = (x: number, y: number): Point => {
-        const dx = (x - 120) * turn, dy = y - 135;
-        return [120 + dx * Math.cos(lean) - dy * Math.sin(lean), 135 + bounce + dx * Math.sin(lean) + dy * Math.cos(lean)];
+        const dx = x - 120, dy = y - 135;
+        return [120 + (rolling ? 18 * Math.sin(lean) : 0) + dx * Math.cos(lean) - dy * Math.sin(lean), 135 + bounce + dx * Math.sin(lean) + dy * Math.cos(lean)];
     };
     const paint = (fill: string, width = 3, stroke = ink): Paint => ({ fill, stroke, width });
     const ellipse = (x: number, y: number, rx: number, ry: number, fill: string, rotation = 0, width = 3, stroke = ink): void => {
-        const p = point(x, y); list.push({ kind: 'ellipse', x: p[0], y: p[1], rx: rx * turn, ry, rotation: rotation + lean, ...paint(fill, width, stroke) });
+        const p = point(x, y); list.push({ kind: 'ellipse', x: p[0], y: p[1], rx, ry, rotation: rotation + lean, ...paint(fill, width, stroke) });
     };
     const circle = (x: number, y: number, r: number, fill: string, width = 0): void => {
         const p = point(x, y); list.push({ kind: 'circle', x: p[0], y: p[1], r, ...paint(fill, width) });
     };
     const polygon = (points: Point[], fill: string, width = 3): void => { list.push({ kind: 'polygon', points: points.map(p => point(...p)), ...paint(fill, width) }); };
     const line = (points: Point[], stroke: string, width = 3): void => { list.push({ kind: 'line', points: points.map(p => point(...p)), ...paint('', width, stroke) }); };
-    const path = (start: Point, curves: [Point, Point, Point][], fill: string, width = 3, closed = true): void => {
-        list.push({ kind: 'path', commands: [{ op: 'M', p: point(...start) }, ...curves.map(([a, b, p]): Command => ({ op: 'C', a: point(...a), b: point(...b), p: point(...p) }))], closed, ...paint(fill, width) });
+    const path = (start: Point, curves: [Point, Point, Point][], fill: string, width = 3, closed = true, stroke = ink): void => {
+        list.push({ kind: 'path', commands: [{ op: 'M', p: point(...start) }, ...curves.map(([a, b, p]): Command => ({ op: 'C', a: point(...a), b: point(...b), p: point(...p) }))], closed, ...paint(fill, width, stroke) });
     };
     const star = (x: number, y: number, r: number, fill: string): void => {
         polygon(Array.from({ length: 10 }, (_, i): Point => { const a = i * Math.PI / 5 - Math.PI / 2, s = i % 2 ? r * 0.45 : r; return [x + Math.cos(a) * s, y + Math.sin(a) * s]; }), fill, 1.5);
     };
+    if (rolling) {
+        // Tucked head and paws sit inside a round coat; the striped tail wraps its rim.
+        circle(120, 135, 45, coat, 3);
+        ellipse(119, 137, 29, 28, sheen, 0, 0);
+        ellipse(112, 126, 22, 19, cream, 0, 2);
+        ellipse(103, 128, 4, 3, dark, 0, 0);
+        ellipse(124, 128, 4, 3, dark, 0, 0);
+        ellipse(113, 137, 5, 3, dark, 0, 0);
+        ellipse(130, 151, 14, 10, dark, 0.5, 0);
+        path([88, 113], [[[62, 159], [108, 187], [146, 165]], [[174, 149], [164, 114], [146, 108]]], '', 15, false, coat);
+        for (let i = 0; i < 6; i++) {
+            const a = 2.9 - i * 0.56;
+            ellipse(120 + Math.cos(a) * 38, 135 + Math.sin(a) * 38, 8, 5, cream, a, 0);
+        }
+        const bodyEnd = list.length;
+        // Trail and hearts stay in stage space while the ball turns and travels.
+        for (let i = 0; i < 3; i++) list.push({ kind: 'line', points: [[39 + i * 5, 153 + i * 10], [69 + i * 5, 149 + i * 10]], ...paint('', 3, '#ed8b25') });
+        for (let i = 0; i < 3; i++) {
+            const x = 64 + i * 56, y = 45 - Math.sin(time / 300 + i) * 12;
+            list.push({ kind: 'path', commands: [{ op: 'M', p: [x, y + 8] }, { op: 'C', a: [x - 23, y - 7], b: [x - 6, y - 18], p: [x, y - 6] }, { op: 'C', a: [x + 9, y - 20], b: [x + 22, y - 4], p: [x, y + 8] }], closed: true, ...paint('#f397ad', 1) });
+        }
+        for (const p of list.slice(bodyEnd)) p.effect = true;
+        return list;
+    }
     // Distinct rear silhouettes: striped plume, curled tail, wings, flowing mane.
     if (id === 'pandaroux') {
         path([148, 185], [[[215, 218], [235, 123], [195, 106]], [[177, 100], [161, 124], [184, 145]], [[202, 165], [164, 164], [148, 185]]], coat);
@@ -79,8 +104,22 @@ export function drawList(id: CharacterId, pose: Pose = 'face', expression: Expre
         ellipse(side ? x + 8 : x, 202 + step, 19, 12, id === 'panda' || id === 'pandaroux' ? dark : id === 'singe' ? '#ed83b5' : id === 'licorne' ? gold : coat, i ? -0.12 : 0.12);
     }
     if (id === 'singe') {
+        const skirtStart = list.length;
         path([75, 172], [[[99, 184], [140, 183], [164, 172]], [[162, 189], [179, 191], [170, 197]], [[153, 203], [149, 191], [139, 199]], [[123, 211], [114, 196], [105, 201]], [[89, 208], [67, 199], [65, 192]], [[76, 183], [72, 179], [75, 172]]], '#f59bc7');
         for (const x of [85, 104, 125, 145]) line([[x, 181], [x - 4, 194]], '#c95a94', 2);
+        if (!reduce && anim === 'special') {
+            // Centrifugal flare widens the skirt around the rotating waist.
+            const c = point(120, 180);
+            for (const p of list.slice(skirtStart)) {
+                const flare = (v: Point): Point => {
+                    const dx = v[0] - c[0], dy = v[1] - c[1];
+                    const radial = (dx * Math.cos(lean) + dy * Math.sin(lean)) * 0.35;
+                    return [v[0] + radial * Math.cos(lean), v[1] + radial * Math.sin(lean)];
+                };
+                if (p.kind === 'path') for (const command of p.commands) { command.p = flare(command.p); if (command.op === 'C') { command.a = flare(command.a); command.b = flare(command.b); } }
+                if (p.kind === 'line') p.points = p.points.map(flare);
+            }
+        }
     }
     for (const x of [73, 167]) ellipse(x, 150, 16, 27, id === 'panda' || id === 'pandaroux' ? dark : coat, x < 120 ? -0.4 : 0.4);
     // Ears are separate lobes, with pointed tufts for the red panda.
@@ -159,6 +198,7 @@ export function drawList(id: CharacterId, pose: Pose = 'face', expression: Expre
         for (const y of [162, 170]) { line([[96, y], [113, y + 5]], '#bb9d7a', 1.5); line([[131, y + 4], [146, y - 2]], '#bb9d7a', 1.5); }
     }
     // Specials remain procedural, with no particles at all in reduced motion.
+    const effectsStart = list.length;
     if (!reduce && (anim === 'special' || anim === 'celebration')) {
         if (id === 'panda') for (let i = 0; i < 10; i++) { const a = time / 260 + i * 0.8; ellipse(120 + Math.cos(a) * 91, 124 + Math.sin(a) * 65, 12, 4, '#65b85e', a, 1); }
         if (id === 'pandaroux') {
@@ -176,6 +216,7 @@ export function drawList(id: CharacterId, pose: Pose = 'face', expression: Expre
             star(211, 70 + wave * 12, 16, '#ffda60');
         }
     }
+    for (const p of list.slice(effectsStart)) p.effect = true;
     return list;
 }
 
