@@ -225,7 +225,7 @@ test('E-ART mouvement réduit, effets bornés et textures réutilisées', async 
     await tap(page, '#topbar [data-home]', mobile);
     await page.goto('/?test=1#/essaim');
     await expect.poll(() => page.evaluate(() => Boolean(window.__ESSAIM_TEST__))).toBe(true);
-    expect((await page.evaluate(() => window.__ESSAIM_TEST__?.art()))?.textureGenerations).toBe(2); // New game, new texture manager.
+    await expect.poll(async () => (await page.evaluate(() => window.__ESSAIM_TEST__?.art()))?.textureGenerations).toBe(2); // New game, new texture manager.
     expect((await page.evaluate(() => window.__ESSAIM_TEST__?.art()))?.activeGraphics).toBe(5);
 });
 
@@ -245,6 +245,7 @@ async function sampleFrames(page: Page, game: 'essaim' | 'serpentin') {
     }, game);
 }
 test('E-ART mobile CPU ×4 : cadence relative ≥0,5 et JavaScript ≤8 ms sans bridage', async ({ page }, info) => {
+    test.skip(!(globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env.PERF, 'Mesure de cadence : environnement-dépendante, lancée à part avec PERF=1 (voir GAME_SPEC, section Essaim).');
     test.skip(info.project.name !== 'mobile-chromium', 'Profil mobile uniquement');
     const client = await page.context().newCDPSession(page);
     try {
