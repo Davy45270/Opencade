@@ -37,7 +37,7 @@ while pausing play.
 | **Briqueterie** | Break bricks with a ball and paddle, collecting bonuses and wearing down tougher bricks. | Mouse: guide the paddle; Left/Right or A/D: move; Space: launch; touch: drag along the bottom, tap or use Launch. |
 | **Empilo** | Fit crystal pieces into a 9 × 16 well and complete rows, including sealed ones. | Left/Right/Down: move; X/W/Up and Z/C: rotate; Space: drop; touch: drag, tap to rotate, swipe down quickly to drop. |
 | **Orbite** | Defend four erodible shields against an accelerating fleet of probes. | Mouse: guide; Left/Right or A/D: move; Space: fire; touch: drag along the bottom and hold Fire, or enable auto-fire. |
-| **Essaim** | Fight patterned waves with diving, armored and splitting enemies and a twin-cannon pod. | Mouse: guide and fire; Left/Right or A/D: move; Space: hold to fire; touch: drag below the line to guide and fire. |
+| **Essaim** | Thirty tactical stages, six collectible weapons, rescue ships and six bosses. | Mouse: guide and fire; Left/Right or A/D: move; hold Space or Fire, release for a charged shot; touch: drag below the line. |
 | **Dédale** | Gather maze seeds while evading four wisps, then turn the tables by collecting a sun. | Arrows or ZQSD; touch: swipe or direction pad. |
 | **Ferraille** | Run, jump and shoot through workshops, facing a multi-phase guardian every five levels. | Left/Right or A/D: run; Up/W and Down/S: aim or crouch; Space/Z: jump; X/J: fire; touch: joystick, hold Jump and Fire. |
 | **Alunir** | Land a lunar module gently while managing rotation, thrust and fuel over rough terrain and gusts. | Up/W: thrust; Left/Right or A/D: rotate; touch: hold the rotation and Thrust buttons. |
@@ -162,3 +162,5 @@ and the [security policy](SECURITY.md) before contributing.
 [MIT](LICENSE) © 2026 David Sevin. Phaser is also MIT licensed.
 
 Dérapage adds alternating slalom gates with time penalties, snow and downhill acceleration, banked BMX turns and jumps, and continuous urban rails.
+
+Essaim validation (weapons, diversity, 60 campaign wins and mutations): `nice -n 19 ionice -c3 node scripts/validate-essaim.js`. E2E captures run on the test host.

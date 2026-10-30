@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { Engine, LEVELS, CANNON_Y } from '../../engines/essaim/engine';
+import { Engine, LEVELS, CANNON_Y, WEAPONS, difficulty, type Weapon } from '../../engines/essaim/engine';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
 import { Progression } from '../../shell/progression';
@@ -19,6 +19,8 @@ export interface EssaimHook {
     read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; autoFire: boolean };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger'): void;
+    weapon(kind: Weapon): void;
+    command(): void;
 }
 declare global { interface Window { __ESSAIM_TEST__?: EssaimHook } }
 const OPTIONS_KEY = 'arcade-lab:essaim:options:v1';
@@ -47,6 +49,7 @@ export class EssaimScene extends Phaser.Scene {
     private fire(held: boolean): void {
         if (held && this.session.state === 'ready') this.session.send('start');
         this.firing = held;
+        if (!this.session.paused && !this.selecting) this.engine.holdFire(held);
         if (!this.session.paused && !this.selecting && held && this.engine.fire()) sound.playEffect('fire');
     }
     create(): void {
@@ -54,7 +57,7 @@ export class EssaimScene extends Phaser.Scene {
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('essaim'); delete window.__ESSAIM_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.graphics = this.add.graphics();
-        this.hud = this.add.text(16, 600, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 3 });
+        this.hud = this.add.text(12, 592, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 1 });
         renderTouchControls(this.inputs, essaimButtons, (id, held) => {
             if (id === 'essaim-fire') this.fire(held);
             else if (id === 'essaim-left') this.left = held;
@@ -107,6 +110,12 @@ export class EssaimScene extends Phaser.Scene {
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             read: () => ({ ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state, autoFire: this.autoFire }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
+            weapon: kind => { this.start(0, 458, true); this.engine.state.pickups = []; this.engine.step(1200); this.engine.equip(kind); this.draw(); },
+            command: () => {
+                this.start(29, 458, true);
+                this.engine.loadState({ ...this.engine.state, wave: difficulty(29).waves, pickups: [], enemies: [], boss: { x:180,y:65,hp:12,maxHp:24,phase:2,clock:1900,exposed:true,pattern:6 } });
+                this.engine.equip('charge'); this.draw();
+            },
             scenario: name => {
                 this.start(0, 457, true);
                 const first = this.engine.state.enemies[0]; if (!first) throw new Error('Ennemi absent');
@@ -172,8 +181,20 @@ export class EssaimScene extends Phaser.Scene {
             g.fillStyle(color); g.fillTriangle(p.x, p.y - 12, p.x - 10, p.y + 7, p.x + 10, p.y + 7);
             g.fillStyle(0x102339); g.fillCircle(p.x, p.y, 4);
             if (p.hp > 1) { g.lineStyle(2, 0xffffff); g.strokeCircle(p.x, p.y, 15); }
+            if (p.type === 'turret') { g.lineStyle(2, 0xffdb89); g.strokeRect(p.x+12,p.y-5,12,10); }
             if (p.captured) { g.lineStyle(1, 0xffdb89); g.lineBetween(p.x, p.y + 10, p.x, p.y + 22); g.strokeRoundedRect(p.x - 6, p.y + 18, 12, 10, 3); }
         }
+        const colors = [0xc2fff2, 0xffdb89, 0xbaadff, 0x78ead5, 0xff9ebb, 0xffffff];
+        for (const p of s.pickups) { g.lineStyle(2, (colors[WEAPONS.indexOf(p.kind)] ?? 0xffffff)); g.strokeRect(p.x-9, p.y-9, 18, 18); }
+        if (s.beam) { g.lineStyle(5, 0xc2fff2, 0.8); g.lineBetween(s.cannon, CANNON_Y-20, s.cannon, 35); }
+        if (this.engine.has('slow')) { g.lineStyle(2, 0x78ead5, 0.6); g.strokeCircle(s.cannon, CANNON_Y-140, 125); }
+        if (this.engine.has('magnet')) { g.lineStyle(1, 0xff9ebb, 0.6); g.strokeCircle(s.cannon, CANNON_Y, 145); }
+        if (this.engine.has('drones')) for (const p of this.engine.dronePositions()) { g.fillStyle(0xbaadff); g.fillCircle(p.x, p.y, 7); }
+        if (s.charge > 0) { g.lineStyle(3, 0xffffff); g.strokeCircle(s.cannon, CANNON_Y-18, 4+s.charge/1500*14); }
+        if (s.rescue) { g.lineStyle(2, 0x78ead5); g.strokeRect(s.rescue.x-22, s.rescue.y-10, 44, 20); }
+        if (s.boss) { const b = s.boss; g.lineStyle(3, b.exposed ? 0xffdb89 : 0xbaadff); g.strokeEllipse(b.x, b.y, 60, 38); g.fillStyle(0xff9ebb); g.fillRect(b.x-30,b.y-30,60*b.hp/b.maxHp,4); }
+        for (const p of s.enemies) if (p.type === 'shield' && (p.clock ?? 0) % 6000 < 5500) { g.lineStyle(3, 0xbaadff); g.lineBetween(p.x-16,p.y+16,p.x+16,p.y+16); }
+        for (const p of s.shots) if (p.radius) { g.lineStyle(2, 0xffffff); g.strokeCircle(p.x,p.y,p.radius); }
         for (const shot of s.shots) { g.fillStyle(shot.owner === 'player' ? 0xc2fff2 : 0xff91ac); g.fillRoundedRect(shot.x - 1.5, shot.y - 5, 3, 10, 1.5); }
         if (s.invulnerable === 0 || s.ticks % 8 < 4) {
             g.fillStyle(0x78ead5); g.fillTriangle(s.cannon, CANNON_Y - 14, s.cannon - 15, CANNON_Y + 10, s.cannon + 15, CANNON_Y + 10);
@@ -182,7 +203,9 @@ export class EssaimScene extends Phaser.Scene {
         }
         for (const spark of this.sparks) { g.lineStyle(2, 0xffdb89, 1 - spark.age / 350); for (let i = 0; i < 6; i++) { const angle = i * Math.PI / 3, radius = 8 + spark.age / 15; g.lineBetween(spark.x + Math.cos(angle) * radius, spark.y + Math.sin(angle) * radius, spark.x + Math.cos(angle) * (radius + 5), spark.y + Math.sin(angle) * (radius + 5)); } }
         g.lineStyle(2, this.glow ? this.glowColor : 0x42718b, this.glow ? this.glow : 0.7); g.strokeRoundedRect(2, 2, 356, 636, 14);
-        this.hud?.setText(`${s.double > 0 ? 'DOUBLE ' : ''}${this.engine.challenge ? 'DÉFI ' : ''}ESSAIM ${String(this.engine.level + 1)}     VIES ${'◆'.repeat(s.lives)}\nSCORE ${String(s.score)}     VAGUE ${String(s.wave)} · ${String(s.enemies.length)}`);
+        const labels: Record<Weapon, string> = { beam: 'Rayon', bounce: 'Rebond', drones: 'Drones', slow: 'Onde', magnet: 'Aimant', charge: 'Charge' };
+        const weapons = s.weapons.map(w => `${labels[w.kind]} ${String(Math.ceil(w.remaining/1000))}s${w.kind === 'beam' ? ` ${String(Math.round(s.heat))}%${s.overheated ? ' BLOQUÉ' : ''}` : w.kind === 'charge' ? ` ${String(Math.round(s.charge/15))}%` : ''}`).join(' · ');
+        this.hud?.setText(`${weapons}\n${s.double > 0 ? 'DOUBLE ' : ''}${this.engine.challenge ? 'DÉFI ' : ''}ESSAIM ${String(this.engine.level + 1)}     VIES ${'◆'.repeat(s.lives)}\nSCORE ${String(s.score)}     VAGUE ${String(s.wave)} · ${String(s.enemies.length)}`);
         const status = document.querySelector('#status'); if (status) status.textContent = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'won' ? 'Victoire' : this.engine.status === 'lost' ? 'Défaite' : 'En jeu'}`;
     }
 }

@@ -1,6 +1,7 @@
 /* global console, Buffer, URL */
 // Read-only analysis; uses the repository's existing TypeScript loader.
 import './ts-loader.js';
+import { essaimFeatures } from './essaim-diversity.js';
 import { ferrailleFeatures } from './ferraille-diversity.js';
 import { measureDiversity } from './diversity-metrics.js';
 import ts from 'typescript';
@@ -35,8 +36,7 @@ function extract(id, e, d) {
         if (d.shotLimit > 1) add('two-player-shots');
         layout.push(...s.probes.map(p => `${p.row},${p.column}:probe`)); break;
     case 'essaim':
-        typed(s.enemies, 'enemy', 'type'); typed(s.enemies, 'phase', 'phase'); add('shoot'); if (e.challenge) add('challenge'); if (s.double) add('double-cannon');
-        layout.push(...s.enemies.map(p => `${p.homeX},${p.homeY}:formation`)); break;
+        return essaimFeatures(e);
     case 'dedale':
         add('maze', 'seed', 'sun', 'scatter', 'chase'); typed(s.wisps, 'wisp');
         layout.push(...s.maze.flatMap((v, i) => v ? [String(i)] : [])); break;
@@ -91,7 +91,7 @@ const variations = [
     'Piece vocabulary, initial rubble and sealed tiles, gravity and line target.',
     'Obstacle placement and patterns, boundary wrapping, speed and apple target.',
     'Formation dimensions, armor, movement tier, fire cadence and shot allowance.',
-    'Enemy mixture, formation size, wave count, dive cadence and every-fifth-level challenge.',
+    'Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship.',
     'Seeded maze loops and corridors, pursuit timing and vulnerability duration.',
     'Authored room topology, box/target positions and solution length; the rules stay fixed.',
     'Terrain relief, landing width, wind, gusts, fuel and initial offset.',
@@ -133,5 +133,5 @@ for (const [index, id] of ids.entries()) {
 }
 games.sort((a, b) => b.score - a.score || a.id.localeCompare(b.id));
 const table = ['| Game | Score | Novelties (count; levels) | Clone share | Longest flat plateau | What actually varies |', '| --- | ---: | --- | ---: | ---: | --- |', ...games.map(g => `| ${g.game}${g.partial ? ' *' : ''} | ${g.score} | ${g.noveltyCount}; ${g.noveltyLevels.join(', ') || 'none'} | ${(g.cloneShare * 100).toFixed(1)}% | ${g.longestPlateau} | ${g.varies} |`)].join('\n');
-console.log(JSON.stringify({ revision: 'pass-52', seed: SEED, thresholds: { clone: CLONE, flatParameterRange: FLAT, minPlateauLevels: 3, maxPolicySteps: CAP }, games }, null, 2));
+console.log(JSON.stringify({ revision: 'pass-53', seed: SEED, thresholds: { clone: CLONE, flatParameterRange: FLAT, minPlateauLevels: 3, maxPolicySteps: CAP }, games }, null, 2));
 console.log('\n' + table);

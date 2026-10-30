@@ -5,6 +5,10 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Essaim: add six finite tactical pickups (overheating beam, side ricochets, intercepting drones, slow field, magnetic returns and release-to-fire charge), with two simultaneous weapons and visible gauges.
+- Author thirty Essaim stages with shield escorts, mines, splitting swarms, spiral kamikazes, carried guided turrets, rescues, movement mirrors, armored columns, five guardians and a two-phase command ship; retain progression saves and touch target sizes.
+- Add shared Node/unit weapon, formation, boss, diversity and deterministic replay checks, a normal-input two-seed campaign pilot and seven rejected source mutations. Write weapon and level-30 capture scenarios for execution on the test host.
+
 - Ferraille: author 30 stages with six distinct enemy behaviors, finite flame/ricochet/grenade pickups, ascending/descending routes, wagon rides and hostage rescues; retain progression saves and mobile controls.
 - Add four procedural parallax themes, recovery discoveries, five guardian patterns with exposed cores and a three-phase final reactor.
 - Fix frozen boss attack thresholds; verify 30 normal-input victories on both default seed 460 and seed 28, with thirteen rejected engine mutations.

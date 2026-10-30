@@ -40,7 +40,7 @@ partie en pause.
 | **Briqueterie** | Casser les briques avec une balle et une raquette, entre bonus et briques renforcées. | Souris : guider ; Gauche/Droite ou A/D : déplacer ; Espace : lancer ; toucher : glisser en bas, tap ou bouton Lancer. |
 | **Empilo** | Placer des pièces de cristal dans un puits de 9 × 16 et compléter des lignes, dont certaines sont scellées. | Gauche/Droite/Bas : déplacer ; X/W/Haut et Z/C : tourner ; Espace : chute ; toucher : glisser, tap pour tourner, glisser vite vers le bas pour lâcher. |
 | **Orbite** | Défendre quatre boucliers érodables contre une flotte de sondes qui accélère. | Souris : guider ; Gauche/Droite ou A/D : déplacer ; Espace : tirer ; toucher : glisser en bas et maintenir Tir, ou activer Tir auto. |
-| **Essaim** | Abattre des vagues aux trajectoires déterministes, avec piqués, blindés, scindeurs et nacelle à double canon. | Souris : guider et tirer ; Gauche/Droite ou A/D : déplacer ; Espace : tir maintenu ; toucher : glisser sous la ligne pour guider et tirer. |
+| **Essaim** | Trente niveaux de formations tactiques, six armes ramassables, sauvetages et six boss. | Souris : guider et tirer ; Gauche/Droite ou A/D : déplacer ; Espace ou Tir : maintenir, relâcher pour la charge ; toucher : glisser en bas. |
 | **Dédale** | Récolter les graines d’un labyrinthe en échappant à quatre follets, puis les rendre vulnérables avec un soleil. | Flèches ou ZQSD ; toucher : glisser ou croix directionnelle. |
 | **Ferraille** | Traverser des ateliers en courant, sautant et tirant, avec un gardien à phases tous les cinq niveaux. | Gauche/Droite ou A/D : courir ; Haut/W et Bas/S : viser ou s’accroupir ; Espace/Z : saut ; X/J : tir ; toucher : joystick, Saut et Tir maintenus. |
 | **Alunir** | Poser doucement un module lunaire en dosant rotation, poussée et carburant, entre relief et rafales. | Haut/W : poussée ; Gauche/Droite ou A/D : rotation ; toucher : maintenir les boutons de rotation et Poussée. |
@@ -169,3 +169,5 @@ et la [politique de sécurité](SECURITY.md) avant de contribuer.
 [MIT](LICENSE) © 2026 David Sevin. Phaser est également distribué sous licence MIT.
 
 Dérapage ajoute les portes de slalom avec pénalités, la neige et la gravité en descente, les virages relevés et sauts BMX et les rails urbains continus.
+
+Validation Essaim (armes, diversité, 60 victoires et mutations) : `nice -n 19 ionice -c3 node scripts/validate-essaim.js`. Les captures E2E sont réservées à l’hôte de test.

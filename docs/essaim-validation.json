@@ -1,0 +1,2310 @@
+{
+  "checks": [
+    {
+      "name": "E-WPN-01 overheat blocks until cooled",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-02 two side reflections",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-03 drones intercept swept projectile",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-04 wave slows enemy and projectile by 0.35",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-05 magnet returns a shot that kills",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-06 hold and release changes size and piercing",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 ricochet defeats frontal escorts faster",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-08 at most two with beam wave combination",
+      "passed": true
+    },
+    {
+      "name": "E-BOSS closed core weakness and command phases",
+      "passed": true
+    },
+    {
+      "name": "E-WAVE mines split rescue mirror and carried turrets",
+      "passed": true
+    },
+    {
+      "name": "E-PICKUP six collectibles expire and refresh",
+      "passed": true
+    },
+    {
+      "name": "E-DET cadence seed and legacy state",
+      "passed": true
+    },
+    {
+      "name": "E-DIV-01",
+      "passed": true
+    },
+    {
+      "name": "E-PILOT 458",
+      "passed": true
+    },
+    {
+      "name": "E-PILOT 28",
+      "passed": true
+    },
+    {
+      "name": "E-WPN-07 measured speed",
+      "passed": true
+    }
+  ],
+  "escort": {
+    "baseTicks": 702,
+    "bounceTicks": 223,
+    "ratio": 3.1479820627802693
+  },
+  "diversity": {
+    "coverage": "30/30",
+    "partial": false,
+    "ranges": {
+      "waves": {
+        "min": 2,
+        "max": 6
+      },
+      "count": {
+        "min": 6,
+        "max": 12
+      },
+      "diveRate": {
+        "min": 0.3,
+        "max": 0.8799999999999999
+      },
+      "diveSpeed": {
+        "min": 180,
+        "max": 267
+      },
+      "fireRate": {
+        "min": 0.4,
+        "max": 1.125
+      },
+      "enemySpeed": {
+        "min": 120,
+        "max": 178
+      },
+      "amplitude": {
+        "min": 12,
+        "max": 26.5
+      },
+      "layoutCells": {
+        "min": 4,
+        "max": 12
+      }
+    },
+    "novelty": [
+      {
+        "level": 1,
+        "elements": [
+          "behavior:patrol",
+          "enemy:scout",
+          "enemy:sensor",
+          "shoot",
+          "weapon:beam",
+          "weapon:slow"
+        ],
+        "baseline": true
+      },
+      {
+        "level": 2,
+        "elements": [
+          "behavior:burst",
+          "enemy:burst",
+          "weapon:drones",
+          "weapon:magnet"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 3,
+        "elements": [
+          "behavior:fast",
+          "enemy:fast"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 4,
+        "elements": [
+          "behavior:shield",
+          "enemy:shield",
+          "weapon:bounce"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 5,
+        "elements": [
+          "guardian:1"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 6,
+        "elements": [
+          "respite"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 7,
+        "elements": [
+          "behavior:miner",
+          "enemy:miner"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 10,
+        "elements": [
+          "behavior:split",
+          "enemy:split",
+          "guardian:2"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 13,
+        "elements": [
+          "behavior:spiral",
+          "enemy:spiral"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 15,
+        "elements": [
+          "guardian:3"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 16,
+        "elements": [
+          "behavior:turret",
+          "enemy:turret",
+          "weapon:charge"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 19,
+        "elements": [
+          "behavior:rescue"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 20,
+        "elements": [
+          "guardian:4"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 22,
+        "elements": [
+          "behavior:mirror",
+          "enemy:mirror"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 25,
+        "elements": [
+          "behavior:column",
+          "enemy:armor",
+          "guardian:5"
+        ],
+        "baseline": false
+      },
+      {
+        "level": 30,
+        "elements": [
+          "behavior:command",
+          "command-two-phases",
+          "guardian:6"
+        ],
+        "baseline": false
+      }
+    ],
+    "noveltyCount": 15,
+    "noveltyLevels": [
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      10,
+      13,
+      15,
+      16,
+      19,
+      20,
+      22,
+      25,
+      30
+    ],
+    "maxGapWithoutNovelty": 4,
+    "cloneShare": 0,
+    "clones": [],
+    "transitions": [
+      {
+        "from": 1,
+        "to": 2,
+        "parameterDistance": 0.021551724137931043,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 2,
+        "to": 3,
+        "parameterDistance": 0.021551724137931022,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 3,
+        "to": 4,
+        "parameterDistance": 0.021551724137931043,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 4,
+        "to": 5,
+        "parameterDistance": 0.021551724137931036,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 5,
+        "to": 6,
+        "parameterDistance": 0.07363505747126438,
+        "layoutDistance": 1,
+        "distance": 0.5368175287356322,
+        "clone": false
+      },
+      {
+        "from": 6,
+        "to": 7,
+        "parameterDistance": 0.06842672413793102,
+        "layoutDistance": 1,
+        "distance": 0.5342133620689655,
+        "clone": false
+      },
+      {
+        "from": 7,
+        "to": 8,
+        "parameterDistance": 0.02155172413793105,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 8,
+        "to": 9,
+        "parameterDistance": 0.05280172413793102,
+        "layoutDistance": 1,
+        "distance": 0.5264008620689655,
+        "clone": false
+      },
+      {
+        "from": 9,
+        "to": 10,
+        "parameterDistance": 0.021551724137931022,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 10,
+        "to": 11,
+        "parameterDistance": 0.08926005747126439,
+        "layoutDistance": 1,
+        "distance": 0.5446300287356322,
+        "clone": false
+      },
+      {
+        "from": 11,
+        "to": 12,
+        "parameterDistance": 0.08405172413793102,
+        "layoutDistance": 1,
+        "distance": 0.5420258620689655,
+        "clone": false
+      },
+      {
+        "from": 12,
+        "to": 13,
+        "parameterDistance": 0.021551724137931043,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 13,
+        "to": 14,
+        "parameterDistance": 0.021551724137931057,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 14,
+        "to": 15,
+        "parameterDistance": 0.021551724137931022,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 15,
+        "to": 16,
+        "parameterDistance": 0.08926005747126439,
+        "layoutDistance": 1,
+        "distance": 0.5446300287356322,
+        "clone": false
+      },
+      {
+        "from": 16,
+        "to": 17,
+        "parameterDistance": 0.09967672413793101,
+        "layoutDistance": 1,
+        "distance": 0.5498383620689655,
+        "clone": false
+      },
+      {
+        "from": 17,
+        "to": 18,
+        "parameterDistance": 0.09967672413793104,
+        "layoutDistance": 1,
+        "distance": 0.5498383620689655,
+        "clone": false
+      },
+      {
+        "from": 18,
+        "to": 19,
+        "parameterDistance": 0.02155172413793105,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 19,
+        "to": 20,
+        "parameterDistance": 0.021551724137931008,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 20,
+        "to": 21,
+        "parameterDistance": 0.058010057471264406,
+        "layoutDistance": 1,
+        "distance": 0.5290050287356322,
+        "clone": false
+      },
+      {
+        "from": 21,
+        "to": 22,
+        "parameterDistance": 0.021551724137931008,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 22,
+        "to": 23,
+        "parameterDistance": 0.052801724137931036,
+        "layoutDistance": 1,
+        "distance": 0.5264008620689655,
+        "clone": false
+      },
+      {
+        "from": 23,
+        "to": 24,
+        "parameterDistance": 0.11530172413793108,
+        "layoutDistance": 1,
+        "distance": 0.5576508620689655,
+        "clone": false
+      },
+      {
+        "from": 24,
+        "to": 25,
+        "parameterDistance": 0.11530172413793101,
+        "layoutDistance": 1,
+        "distance": 0.5576508620689655,
+        "clone": false
+      },
+      {
+        "from": 25,
+        "to": 26,
+        "parameterDistance": 0.05801005747126434,
+        "layoutDistance": 1,
+        "distance": 0.5290050287356322,
+        "clone": false
+      },
+      {
+        "from": 26,
+        "to": 27,
+        "parameterDistance": 0.021551724137931078,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 27,
+        "to": 28,
+        "parameterDistance": 0.02155172413793105,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 28,
+        "to": 29,
+        "parameterDistance": 0.021551724137931064,
+        "layoutDistance": 1,
+        "distance": 0.5107758620689655,
+        "clone": false
+      },
+      {
+        "from": 29,
+        "to": 30,
+        "parameterDistance": 0.08926005747126428,
+        "layoutDistance": 1,
+        "distance": 0.5446300287356322,
+        "clone": false
+      }
+    ],
+    "plateaus": [
+      {
+        "from": 26,
+        "to": 28,
+        "length": 3
+      },
+      {
+        "from": 27,
+        "to": 29,
+        "length": 3
+      }
+    ],
+    "longestPlateau": 3,
+    "plateauBasis": "normalized configuration proxy; not a measured human difficulty plateau",
+    "score": 15.5,
+    "levels": [
+      {
+        "level": 1,
+        "parameters": {
+          "waves": 2,
+          "count": 6,
+          "diveRate": 0.3,
+          "diveSpeed": 180,
+          "fireRate": 0.4,
+          "enemySpeed": 120,
+          "amplitude": 12,
+          "layoutCells": 6
+        },
+        "elements": [
+          "behavior:patrol",
+          "enemy:scout",
+          "enemy:sensor",
+          "shoot",
+          "weapon:beam",
+          "weapon:slow"
+        ],
+        "layout": [
+          "55,110:sensor",
+          "105,110:scout",
+          "155,110:scout",
+          "205,110:scout",
+          "255,110:scout",
+          "305,110:scout"
+        ],
+        "normalizedParameters": {
+          "waves": 0,
+          "count": 0,
+          "diveRate": 0,
+          "diveSpeed": 0,
+          "fireRate": 0,
+          "enemySpeed": 0,
+          "amplitude": 0,
+          "layoutCells": 0.25
+        },
+        "newElements": [
+          "behavior:patrol",
+          "enemy:scout",
+          "enemy:sensor",
+          "shoot",
+          "weapon:beam",
+          "weapon:slow"
+        ]
+      },
+      {
+        "level": 2,
+        "parameters": {
+          "waves": 2,
+          "count": 6,
+          "diveRate": 0.32,
+          "diveSpeed": 183,
+          "fireRate": 0.42500000000000004,
+          "enemySpeed": 122,
+          "amplitude": 12.5,
+          "layoutCells": 6
+        },
+        "elements": [
+          "behavior:burst",
+          "enemy:burst",
+          "enemy:sensor",
+          "shoot",
+          "weapon:drones",
+          "weapon:magnet"
+        ],
+        "layout": [
+          "205,90:sensor",
+          "155,90:burst",
+          "228,118:burst",
+          "132,118:burst",
+          "251,146:burst",
+          "109,146:burst"
+        ],
+        "normalizedParameters": {
+          "waves": 0,
+          "count": 0,
+          "diveRate": 0.034482758620689696,
+          "diveSpeed": 0.034482758620689655,
+          "fireRate": 0.03448275862068969,
+          "enemySpeed": 0.034482758620689655,
+          "amplitude": 0.034482758620689655,
+          "layoutCells": 0.25
+        },
+        "newElements": [
+          "behavior:burst",
+          "enemy:burst",
+          "weapon:drones",
+          "weapon:magnet"
+        ]
+      },
+      {
+        "level": 3,
+        "parameters": {
+          "waves": 2,
+          "count": 6,
+          "diveRate": 0.33999999999999997,
+          "diveSpeed": 186,
+          "fireRate": 0.45,
+          "enemySpeed": 124,
+          "amplitude": 13,
+          "layoutCells": 6
+        },
+        "elements": [
+          "behavior:fast",
+          "enemy:fast",
+          "enemy:sensor",
+          "shoot",
+          "weapon:beam",
+          "weapon:slow"
+        ],
+        "layout": [
+          "70,90:sensor",
+          "290,90:fast",
+          "70,126:fast",
+          "290,126:fast",
+          "70,162:fast",
+          "290,162:fast"
+        ],
+        "normalizedParameters": {
+          "waves": 0,
+          "count": 0,
+          "diveRate": 0.0689655172413793,
+          "diveSpeed": 0.06896551724137931,
+          "fireRate": 0.0689655172413793,
+          "enemySpeed": 0.06896551724137931,
+          "amplitude": 0.06896551724137931,
+          "layoutCells": 0.25
+        },
+        "newElements": [
+          "behavior:fast",
+          "enemy:fast"
+        ]
+      },
+      {
+        "level": 4,
+        "parameters": {
+          "waves": 2,
+          "count": 6,
+          "diveRate": 0.36,
+          "diveSpeed": 189,
+          "fireRate": 0.47500000000000003,
+          "enemySpeed": 126,
+          "amplitude": 13.5,
+          "layoutCells": 6
+        },
+        "elements": [
+          "behavior:shield",
+          "enemy:sensor",
+          "enemy:shield",
+          "shoot",
+          "weapon:bounce",
+          "weapon:drones"
+        ],
+        "layout": [
+          "295,180:sensor",
+          "237.5,249.28203230275508:shield",
+          "122.50000000000003,249.2820323027551:shield",
+          "65,180:shield",
+          "122.49999999999994,110.71796769724492:shield",
+          "237.5,110.71796769724492:shield"
+        ],
+        "normalizedParameters": {
+          "waves": 0,
+          "count": 0,
+          "diveRate": 0.10344827586206899,
+          "diveSpeed": 0.10344827586206896,
+          "fireRate": 0.10344827586206898,
+          "enemySpeed": 0.10344827586206896,
+          "amplitude": 0.10344827586206896,
+          "layoutCells": 0.25
+        },
+        "newElements": [
+          "behavior:shield",
+          "enemy:shield",
+          "weapon:bounce"
+        ]
+      },
+      {
+        "level": 5,
+        "parameters": {
+          "waves": 2,
+          "count": 6,
+          "diveRate": 0.38,
+          "diveSpeed": 192,
+          "fireRate": 0.5,
+          "enemySpeed": 128,
+          "amplitude": 14,
+          "layoutCells": 6
+        },
+        "elements": [
+          "behavior:burst",
+          "behavior:shield",
+          "enemy:burst",
+          "enemy:sensor",
+          "enemy:shield",
+          "guardian:1",
+          "shoot",
+          "weapon:bounce",
+          "weapon:drones"
+        ],
+        "layout": [
+          "105,85:sensor",
+          "255,85:burst",
+          "105,127:shield",
+          "255,127:burst",
+          "105,169:shield",
+          "255,169:burst"
+        ],
+        "normalizedParameters": {
+          "waves": 0,
+          "count": 0,
+          "diveRate": 0.13793103448275867,
+          "diveSpeed": 0.13793103448275862,
+          "fireRate": 0.1379310344827586,
+          "enemySpeed": 0.13793103448275862,
+          "amplitude": 0.13793103448275862,
+          "layoutCells": 0.25
+        },
+        "newElements": [
+          "guardian:1"
+        ]
+      },
+      {
+        "level": 6,
+        "parameters": {
+          "waves": 2,
+          "count": 7,
+          "diveRate": 0.4,
+          "diveSpeed": 195,
+          "fireRate": 0.525,
+          "enemySpeed": 130,
+          "amplitude": 14.5,
+          "layoutCells": 4
+        },
+        "elements": [
+          "behavior:patrol",
+          "enemy:scout",
+          "enemy:sensor",
+          "respite",
+          "shoot",
+          "weapon:beam",
+          "weapon:slow"
+        ],
+        "layout": [
+          "205,90:sensor",
+          "155,90:scout",
+          "228,118:scout",
+          "132,118:scout"
+        ],
+        "normalizedParameters": {
+          "waves": 0,
+          "count": 0.16666666666666666,
+          "diveRate": 0.17241379310344837,
+          "diveSpeed": 0.1724137931034483,
+          "fireRate": 0.1724137931034483,
+          "enemySpeed": 0.1724137931034483,
+          "amplitude": 0.1724137931034483,
+          "layoutCells": 0
+        },
+        "newElements": [
+          "respite"
+        ]
+      },
+      {
+        "level": 7,
+        "parameters": {
+          "waves": 2,
+          "count": 7,
+          "diveRate": 0.42,
+          "diveSpeed": 198,
+          "fireRate": 0.55,
+          "enemySpeed": 132,
+          "amplitude": 15,
+          "layoutCells": 7
+        },
+        "elements": [
+          "behavior:miner",
+          "enemy:miner",
+          "enemy:sensor",
+          "shoot",
+          "weapon:drones",
+          "weapon:magnet"
+        ],
+        "layout": [
+          "70,90:sensor",
+          "290,90:miner",
+          "70,126:miner",
+          "290,126:miner",
+          "70,162:miner",
+          "290,162:miner",
+          "70,198:miner"
+        ],
+        "normalizedParameters": {
+          "waves": 0,
+          "count": 0.16666666666666666,
+          "diveRate": 0.20689655172413798,
+          "diveSpeed": 0.20689655172413793,
+          "fireRate": 0.20689655172413796,
+          "enemySpeed": 0.20689655172413793,
+          "amplitude": 0.20689655172413793,
+          "layoutCells": 0.375
+        },
+        "newElements": [
+          "behavior:miner",
+          "enemy:miner"
+        ]
+      },
+      {
+        "level": 8,
+        "parameters": {
+          "waves": 2,
+          "count": 7,
+          "diveRate": 0.44,
+          "diveSpeed": 201,
+          "fireRate": 0.5750000000000001,
+          "enemySpeed": 134,
+          "amplitude": 15.5,
+          "layoutCells": 7
+        },
+        "elements": [
+          "behavior:miner",
+          "behavior:shield",
+          "enemy:miner",
+          "enemy:sensor",
+          "enemy:shield",
+          "shoot",
+          "weapon:bounce",
+          "weapon:drones"
+        ],
+        "layout": [
+          "55,110:sensor",
+          "105,110:miner",
+          "155,110:shield",
+          "205,110:miner",
+          "255,110:shield",
+          "305,110:miner",
+          "55,154:shield"
+        ],
+        "normalizedParameters": {
+          "waves": 0,
+          "count": 0.16666666666666666,
+          "diveRate": 0.24137931034482768,
+          "diveSpeed": 0.2413793103448276,
+          "fireRate": 0.24137931034482765,
+          "enemySpeed": 0.2413793103448276,
+          "amplitude": 0.2413793103448276,
+          "layoutCells": 0.375
+        },
+        "newElements": []
+      },
+      {
+        "level": 9,
+        "parameters": {
+          "waves": 3,
+          "count": 7,
+          "diveRate": 0.45999999999999996,
+          "diveSpeed": 204,
+          "fireRate": 0.6000000000000001,
+          "enemySpeed": 136,
+          "amplitude": 16,
+          "layoutCells": 7
+        },
+        "elements": [
+          "behavior:burst",
+          "behavior:fast",
+          "enemy:burst",
+          "enemy:fast",
+          "enemy:sensor",
+          "shoot",
+          "weapon:drones",
+          "weapon:magnet"
+        ],
+        "layout": [
+          "295,180:sensor",
+          "251.70132721375438,242.5465185974424:fast",
+          "154.41009259502385,257.99423297454587:burst",
+          "76.3885801912218,214.71069912940465:fast",
+          "76.38858019122179,145.28930087059535:burst",
+          "154.41009259502383,102.0057670254541:fast",
+          "251.70132721375433,117.4534814025576:burst"
+        ],
+        "normalizedParameters": {
+          "waves": 0.25,
+          "count": 0.16666666666666666,
+          "diveRate": 0.2758620689655173,
+          "diveSpeed": 0.27586206896551724,
+          "fireRate": 0.27586206896551735,
+          "enemySpeed": 0.27586206896551724,
+          "amplitude": 0.27586206896551724,
+          "layoutCells": 0.375
+        },
+        "newElements": []
+      },
+      {
+        "level": 10,
+        "parameters": {
+          "waves": 3,
+          "count": 7,
+          "diveRate": 0.48,
+          "diveSpeed": 207,
+          "fireRate": 0.625,
+          "enemySpeed": 138,
+          "amplitude": 16.5,
+          "layoutCells": 7
+        },
+        "elements": [
+          "behavior:split",
+          "enemy:sensor",
+          "enemy:split",
+          "guardian:2",
+          "shoot",
+          "weapon:beam",
+          "weapon:slow"
+        ],
+        "layout": [
+          "105,85:sensor",
+          "255,85:split",
+          "105,127:split",
+          "255,127:split",
+          "105,169:split",
+          "255,169:split",
+          "105,211:split"
+        ],
+        "normalizedParameters": {
+          "waves": 0.25,
+          "count": 0.16666666666666666,
+          "diveRate": 0.31034482758620696,
+          "diveSpeed": 0.3103448275862069,
+          "fireRate": 0.31034482758620685,
+          "enemySpeed": 0.3103448275862069,
+          "amplitude": 0.3103448275862069,
+          "layoutCells": 0.375
+        },
+        "newElements": [
+          "behavior:split",
+          "enemy:split",
+          "guardian:2"
+        ]
+      },
+      {
+        "level": 11,
+        "parameters": {
+          "waves": 3,
+          "count": 8,
+          "diveRate": 0.5,
+          "diveSpeed": 210,
+          "fireRate": 0.65,
+          "enemySpeed": 140,
+          "amplitude": 17,
+          "layoutCells": 4
+        },
+        "elements": [
+          "behavior:patrol",
+          "behavior:split",
+          "enemy:scout",
+          "enemy:sensor",
+          "enemy:split",
+          "respite",
+          "shoot",
+          "weapon:beam",
+          "weapon:slow"
+        ],
+        "layout": [
+          "205,90:sensor",
+          "155,90:split",
+          "228,118:scout",
+          "132,118:split"
+        ],
+        "normalizedParameters": {
+          "waves": 0.25,
+          "count": 0.3333333333333333,
+          "diveRate": 0.3448275862068967,
+          "diveSpeed": 0.3448275862068966,
+          "fireRate": 0.3448275862068966,
+          "enemySpeed": 0.3448275862068966,
+          "amplitude": 0.3448275862068966,
+          "layoutCells": 0
+        },
+        "newElements": []
+      },
+      {
+        "level": 12,
+        "parameters": {
+          "waves": 3,
+          "count": 8,
+          "diveRate": 0.52,
+          "diveSpeed": 213,
+          "fireRate": 0.675,
+          "enemySpeed": 142,
+          "amplitude": 17.5,
+          "layoutCells": 8
+        },
+        "elements": [
+          "behavior:fast",
+          "behavior:split",
+          "enemy:fast",
+          "enemy:sensor",
+          "enemy:split",
+          "shoot",
+          "weapon:beam",
+          "weapon:slow"
+        ],
+        "layout": [
+          "70,90:sensor",
+          "290,90:fast",
+          "70,126:split",
+          "290,126:fast",
+          "70,162:split",
+          "290,162:fast",
+          "70,198:split",
+          "290,198:fast"
+        ],
+        "normalizedParameters": {
+          "waves": 0.25,
+          "count": 0.3333333333333333,
+          "diveRate": 0.37931034482758635,
+          "diveSpeed": 0.3793103448275862,
+          "fireRate": 0.37931034482758624,
+          "enemySpeed": 0.3793103448275862,
+          "amplitude": 0.3793103448275862,
+          "layoutCells": 0.5
+        },
+        "newElements": []
+      },
+      {
+        "level": 13,
+        "parameters": {
+          "waves": 3,
+          "count": 8,
+          "diveRate": 0.54,
+          "diveSpeed": 216,
+          "fireRate": 0.7000000000000001,
+          "enemySpeed": 144,
+          "amplitude": 18,
+          "layoutCells": 8
+        },
+        "elements": [
+          "behavior:spiral",
+          "enemy:sensor",
+          "enemy:spiral",
+          "shoot",
+          "weapon:beam",
+          "weapon:slow"
+        ],
+        "layout": [
+          "295,180:sensor",
+          "261.31727983645294,236.5685424949238:spiral",
+          "180,260:spiral",
+          "98.68272016354705,236.5685424949238:spiral",
+          "65,180:spiral",
+          "98.68272016354702,123.4314575050762:spiral",
+          "179.99999999999997,100:spiral",
+          "261.31727983645294,123.43145750507618:spiral"
+        ],
+        "normalizedParameters": {
+          "waves": 0.25,
+          "count": 0.3333333333333333,
+          "diveRate": 0.413793103448276,
+          "diveSpeed": 0.41379310344827586,
+          "fireRate": 0.4137931034482759,
+          "enemySpeed": 0.41379310344827586,
+          "amplitude": 0.41379310344827586,
+          "layoutCells": 0.5
+        },
+        "newElements": [
+          "behavior:spiral",
+          "enemy:spiral"
+        ]
+      },
+      {
+        "level": 14,
+        "parameters": {
+          "waves": 3,
+          "count": 8,
+          "diveRate": 0.56,
+          "diveSpeed": 219,
+          "fireRate": 0.7250000000000001,
+          "enemySpeed": 146,
+          "amplitude": 18.5,
+          "layoutCells": 8
+        },
+        "elements": [
+          "behavior:miner",
+          "behavior:spiral",
+          "enemy:miner",
+          "enemy:sensor",
+          "enemy:spiral",
+          "shoot",
+          "weapon:drones",
+          "weapon:magnet"
+        ],
+        "layout": [
+          "55,110:sensor",
+          "105,110:miner",
+          "155,110:spiral",
+          "205,110:miner",
+          "255,110:spiral",
+          "305,110:miner",
+          "55,154:spiral",
+          "105,154:miner"
+        ],
+        "normalizedParameters": {
+          "waves": 0.25,
+          "count": 0.3333333333333333,
+          "diveRate": 0.44827586206896575,
+          "diveSpeed": 0.4482758620689655,
+          "fireRate": 0.44827586206896564,
+          "enemySpeed": 0.4482758620689655,
+          "amplitude": 0.4482758620689655,
+          "layoutCells": 0.5
+        },
+        "newElements": []
+      },
+      {
+        "level": 15,
+        "parameters": {
+          "waves": 3,
+          "count": 8,
+          "diveRate": 0.5800000000000001,
+          "diveSpeed": 222,
+          "fireRate": 0.75,
+          "enemySpeed": 148,
+          "amplitude": 19,
+          "layoutCells": 8
+        },
+        "elements": [
+          "behavior:burst",
+          "behavior:spiral",
+          "enemy:burst",
+          "enemy:sensor",
+          "enemy:spiral",
+          "guardian:3",
+          "shoot",
+          "weapon:drones",
+          "weapon:magnet"
+        ],
+        "layout": [
+          "205,90:sensor",
+          "155,90:spiral",
+          "228,118:burst",
+          "132,118:spiral",
+          "251,146:burst",
+          "109,146:spiral",
+          "274,174:burst",
+          "86,174:spiral"
+        ],
+        "normalizedParameters": {
+          "waves": 0.25,
+          "count": 0.3333333333333333,
+          "diveRate": 0.4827586206896554,
+          "diveSpeed": 0.4827586206896552,
+          "fireRate": 0.48275862068965514,
+          "enemySpeed": 0.4827586206896552,
+          "amplitude": 0.4827586206896552,
+          "layoutCells": 0.5
+        },
+        "newElements": [
+          "guardian:3"
+        ]
+      },
+      {
+        "level": 16,
+        "parameters": {
+          "waves": 4,
+          "count": 9,
+          "diveRate": 0.6,
+          "diveSpeed": 225,
+          "fireRate": 0.775,
+          "enemySpeed": 150,
+          "amplitude": 19.5,
+          "layoutCells": 9
+        },
+        "elements": [
+          "behavior:turret",
+          "enemy:sensor",
+          "enemy:turret",
+          "shoot",
+          "weapon:charge",
+          "weapon:drones"
+        ],
+        "layout": [
+          "105,85:sensor",
+          "255,85:turret",
+          "105,127:turret",
+          "255,127:turret",
+          "105,169:turret",
+          "255,169:turret",
+          "105,211:turret",
+          "255,211:turret",
+          "105,253:turret"
+        ],
+        "normalizedParameters": {
+          "waves": 0.5,
+          "count": 0.5,
+          "diveRate": 0.517241379310345,
+          "diveSpeed": 0.5172413793103449,
+          "fireRate": 0.5172413793103449,
+          "enemySpeed": 0.5172413793103449,
+          "amplitude": 0.5172413793103449,
+          "layoutCells": 0.625
+        },
+        "newElements": [
+          "behavior:turret",
+          "enemy:turret",
+          "weapon:charge"
+        ]
+      },
+      {
+        "level": 17,
+        "parameters": {
+          "waves": 4,
+          "count": 9,
+          "diveRate": 0.62,
+          "diveSpeed": 228,
+          "fireRate": 0.8,
+          "enemySpeed": 152,
+          "amplitude": 20,
+          "layoutCells": 4
+        },
+        "elements": [
+          "behavior:patrol",
+          "behavior:turret",
+          "enemy:scout",
+          "enemy:sensor",
+          "enemy:turret",
+          "respite",
+          "shoot",
+          "weapon:drones",
+          "weapon:magnet"
+        ],
+        "layout": [
+          "70,90:sensor",
+          "290,90:turret",
+          "70,126:scout",
+          "290,126:turret"
+        ],
+        "normalizedParameters": {
+          "waves": 0.5,
+          "count": 0.5,
+          "diveRate": 0.5517241379310346,
+          "diveSpeed": 0.5517241379310345,
+          "fireRate": 0.5517241379310345,
+          "enemySpeed": 0.5517241379310345,
+          "amplitude": 0.5517241379310345,
+          "layoutCells": 0
+        },
+        "newElements": []
+      },
+      {
+        "level": 18,
+        "parameters": {
+          "waves": 4,
+          "count": 9,
+          "diveRate": 0.64,
+          "diveSpeed": 231,
+          "fireRate": 0.8250000000000001,
+          "enemySpeed": 154,
+          "amplitude": 20.5,
+          "layoutCells": 9
+        },
+        "elements": [
+          "behavior:shield",
+          "behavior:turret",
+          "enemy:sensor",
+          "enemy:shield",
+          "enemy:turret",
+          "shoot",
+          "weapon:bounce",
+          "weapon:drones"
+        ],
+        "layout": [
+          "295,180:sensor",
+          "268.0951109586825,231.42300877492315:shield",
+          "199.969540431697,258.78462024097666:turret",
+          "122.50000000000003,249.2820323027551:shield",
+          "71.93534860962055,207.36161146605352:turret",
+          "71.93534860962053,152.6383885339465:shield",
+          "122.49999999999994,110.71796769724492:turret",
+          "199.96954043169694,101.21537975902335:shield",
+          "268.0951109586824,128.57699122507682:turret"
+        ],
+        "normalizedParameters": {
+          "waves": 0.5,
+          "count": 0.5,
+          "diveRate": 0.5862068965517243,
+          "diveSpeed": 0.5862068965517241,
+          "fireRate": 0.5862068965517242,
+          "enemySpeed": 0.5862068965517241,
+          "amplitude": 0.5862068965517241,
+          "layoutCells": 0.625
+        },
+        "newElements": []
+      },
+      {
+        "level": 19,
+        "parameters": {
+          "waves": 4,
+          "count": 9,
+          "diveRate": 0.6599999999999999,
+          "diveSpeed": 234,
+          "fireRate": 0.8500000000000001,
+          "enemySpeed": 156,
+          "amplitude": 21,
+          "layoutCells": 9
+        },
+        "elements": [
+          "behavior:burst",
+          "behavior:rescue",
+          "enemy:burst",
+          "enemy:scout",
+          "enemy:sensor",
+          "shoot",
+          "weapon:drones",
+          "weapon:magnet"
+        ],
+        "layout": [
+          "205,90:sensor",
+          "155,90:burst",
+          "228,118:scout",
+          "132,118:burst",
+          "251,146:scout",
+          "109,146:burst",
+          "274,174:scout",
+          "86,174:burst",
+          "297,202:scout"
+        ],
+        "normalizedParameters": {
+          "waves": 0.5,
+          "count": 0.5,
+          "diveRate": 0.6206896551724138,
+          "diveSpeed": 0.6206896551724138,
+          "fireRate": 0.6206896551724139,
+          "enemySpeed": 0.6206896551724138,
+          "amplitude": 0.6206896551724138,
+          "layoutCells": 0.625
+        },
+        "newElements": [
+          "behavior:rescue"
+        ]
+      },
+      {
+        "level": 20,
+        "parameters": {
+          "waves": 4,
+          "count": 9,
+          "diveRate": 0.6799999999999999,
+          "diveSpeed": 237,
+          "fireRate": 0.875,
+          "enemySpeed": 158,
+          "amplitude": 21.5,
+          "layoutCells": 9
+        },
+        "elements": [
+          "behavior:rescue",
+          "behavior:turret",
+          "enemy:scout",
+          "enemy:sensor",
+          "enemy:turret",
+          "guardian:4",
+          "shoot",
+          "weapon:charge",
+          "weapon:magnet"
+        ],
+        "layout": [
+          "55,110:sensor",
+          "105,110:turret",
+          "155,110:scout",
+          "205,110:turret",
+          "255,110:scout",
+          "305,110:turret",
+          "55,154:scout",
+          "105,154:turret",
+          "155,154:scout"
+        ],
+        "normalizedParameters": {
+          "waves": 0.5,
+          "count": 0.5,
+          "diveRate": 0.6551724137931035,
+          "diveSpeed": 0.6551724137931034,
+          "fireRate": 0.6551724137931034,
+          "enemySpeed": 0.6551724137931034,
+          "amplitude": 0.6551724137931034,
+          "layoutCells": 0.625
+        },
+        "newElements": [
+          "guardian:4"
+        ]
+      },
+      {
+        "level": 21,
+        "parameters": {
+          "waves": 4,
+          "count": 10,
+          "diveRate": 0.7,
+          "diveSpeed": 240,
+          "fireRate": 0.9,
+          "enemySpeed": 160,
+          "amplitude": 22,
+          "layoutCells": 10
+        },
+        "elements": [
+          "behavior:miner",
+          "behavior:rescue",
+          "enemy:miner",
+          "enemy:scout",
+          "enemy:sensor",
+          "shoot",
+          "weapon:drones",
+          "weapon:magnet"
+        ],
+        "layout": [
+          "70,90:sensor",
+          "290,90:miner",
+          "70,126:scout",
+          "290,126:miner",
+          "70,162:scout",
+          "290,162:miner",
+          "70,198:scout",
+          "290,198:miner",
+          "70,234:scout",
+          "290,234:miner"
+        ],
+        "normalizedParameters": {
+          "waves": 0.5,
+          "count": 0.6666666666666666,
+          "diveRate": 0.6896551724137933,
+          "diveSpeed": 0.6896551724137931,
+          "fireRate": 0.6896551724137931,
+          "enemySpeed": 0.6896551724137931,
+          "amplitude": 0.6896551724137931,
+          "layoutCells": 0.75
+        },
+        "newElements": []
+      },
+      {
+        "level": 22,
+        "parameters": {
+          "waves": 4,
+          "count": 10,
+          "diveRate": 0.72,
+          "diveSpeed": 243,
+          "fireRate": 0.925,
+          "enemySpeed": 162,
+          "amplitude": 22.5,
+          "layoutCells": 10
+        },
+        "elements": [
+          "behavior:mirror",
+          "enemy:mirror",
+          "enemy:sensor",
+          "shoot",
+          "weapon:beam",
+          "weapon:slow"
+        ],
+        "layout": [
+          "295,180:sensor",
+          "273.036954353119,227.02282018339787:mirror",
+          "215.53695435311897,256.0845213036123:mirror",
+          "144.46304564688106,256.0845213036123:mirror",
+          "86.96304564688106,227.02282018339787:mirror",
+          "65,180:mirror",
+          "86.96304564688104,132.97717981660216:mirror",
+          "144.46304564688103,103.91547869638772:mirror",
+          "215.53695435311892,103.91547869638771:mirror",
+          "273.036954353119,132.97717981660213:mirror"
+        ],
+        "normalizedParameters": {
+          "waves": 0.5,
+          "count": 0.6666666666666666,
+          "diveRate": 0.7241379310344829,
+          "diveSpeed": 0.7241379310344828,
+          "fireRate": 0.7241379310344828,
+          "enemySpeed": 0.7241379310344828,
+          "amplitude": 0.7241379310344828,
+          "layoutCells": 0.75
+        },
+        "newElements": [
+          "behavior:mirror",
+          "enemy:mirror"
+        ]
+      },
+      {
+        "level": 23,
+        "parameters": {
+          "waves": 5,
+          "count": 10,
+          "diveRate": 0.74,
+          "diveSpeed": 246,
+          "fireRate": 0.9500000000000001,
+          "enemySpeed": 164,
+          "amplitude": 23,
+          "layoutCells": 10
+        },
+        "elements": [
+          "behavior:mirror",
+          "behavior:split",
+          "enemy:mirror",
+          "enemy:sensor",
+          "enemy:split",
+          "shoot",
+          "weapon:beam",
+          "weapon:slow"
+        ],
+        "layout": [
+          "105,85:sensor",
+          "255,85:split",
+          "105,127:mirror",
+          "255,127:split",
+          "105,169:mirror",
+          "255,169:split",
+          "105,211:mirror",
+          "255,211:split",
+          "105,253:mirror",
+          "255,253:split"
+        ],
+        "normalizedParameters": {
+          "waves": 0.75,
+          "count": 0.6666666666666666,
+          "diveRate": 0.7586206896551726,
+          "diveSpeed": 0.7586206896551724,
+          "fireRate": 0.7586206896551725,
+          "enemySpeed": 0.7586206896551724,
+          "amplitude": 0.7586206896551724,
+          "layoutCells": 0.75
+        },
+        "newElements": []
+      },
+      {
+        "level": 24,
+        "parameters": {
+          "waves": 5,
+          "count": 10,
+          "diveRate": 0.76,
+          "diveSpeed": 249,
+          "fireRate": 0.9750000000000001,
+          "enemySpeed": 166,
+          "amplitude": 23.5,
+          "layoutCells": 4
+        },
+        "elements": [
+          "behavior:patrol",
+          "behavior:rescue",
+          "enemy:scout",
+          "enemy:sensor",
+          "respite",
+          "shoot",
+          "weapon:drones",
+          "weapon:magnet"
+        ],
+        "layout": [
+          "205,90:sensor",
+          "155,90:scout",
+          "228,118:scout",
+          "132,118:scout"
+        ],
+        "normalizedParameters": {
+          "waves": 0.75,
+          "count": 0.6666666666666666,
+          "diveRate": 0.7931034482758623,
+          "diveSpeed": 0.7931034482758621,
+          "fireRate": 0.7931034482758622,
+          "enemySpeed": 0.7931034482758621,
+          "amplitude": 0.7931034482758621,
+          "layoutCells": 0
+        },
+        "newElements": []
+      },
+      {
+        "level": 25,
+        "parameters": {
+          "waves": 5,
+          "count": 10,
+          "diveRate": 0.78,
+          "diveSpeed": 252,
+          "fireRate": 1,
+          "enemySpeed": 168,
+          "amplitude": 24,
+          "layoutCells": 10
+        },
+        "elements": [
+          "behavior:column",
+          "enemy:armor",
+          "enemy:sensor",
+          "guardian:5",
+          "shoot",
+          "weapon:charge",
+          "weapon:drones"
+        ],
+        "layout": [
+          "105,85:sensor",
+          "255,85:armor",
+          "105,127:armor",
+          "255,127:armor",
+          "105,169:armor",
+          "255,169:armor",
+          "105,211:armor",
+          "255,211:armor",
+          "105,253:armor",
+          "255,253:armor"
+        ],
+        "normalizedParameters": {
+          "waves": 0.75,
+          "count": 0.6666666666666666,
+          "diveRate": 0.827586206896552,
+          "diveSpeed": 0.8275862068965517,
+          "fireRate": 0.8275862068965517,
+          "enemySpeed": 0.8275862068965517,
+          "amplitude": 0.8275862068965517,
+          "layoutCells": 0.75
+        },
+        "newElements": [
+          "behavior:column",
+          "enemy:armor",
+          "guardian:5"
+        ]
+      },
+      {
+        "level": 26,
+        "parameters": {
+          "waves": 5,
+          "count": 11,
+          "diveRate": 0.8,
+          "diveSpeed": 255,
+          "fireRate": 1.025,
+          "enemySpeed": 170,
+          "amplitude": 24.5,
+          "layoutCells": 11
+        },
+        "elements": [
+          "behavior:column",
+          "behavior:mirror",
+          "enemy:armor",
+          "enemy:mirror",
+          "enemy:sensor",
+          "shoot",
+          "weapon:charge",
+          "weapon:drones"
+        ],
+        "layout": [
+          "55,110:sensor",
+          "105,110:mirror",
+          "155,110:armor",
+          "205,110:mirror",
+          "255,110:armor",
+          "305,110:mirror",
+          "55,154:armor",
+          "105,154:mirror",
+          "155,154:armor",
+          "205,154:mirror",
+          "255,154:armor"
+        ],
+        "normalizedParameters": {
+          "waves": 0.75,
+          "count": 0.8333333333333334,
+          "diveRate": 0.8620689655172417,
+          "diveSpeed": 0.8620689655172413,
+          "fireRate": 0.8620689655172412,
+          "enemySpeed": 0.8620689655172413,
+          "amplitude": 0.8620689655172413,
+          "layoutCells": 0.875
+        },
+        "newElements": []
+      },
+      {
+        "level": 27,
+        "parameters": {
+          "waves": 5,
+          "count": 11,
+          "diveRate": 0.8200000000000001,
+          "diveSpeed": 258,
+          "fireRate": 1.05,
+          "enemySpeed": 172,
+          "amplitude": 25,
+          "layoutCells": 11
+        },
+        "elements": [
+          "behavior:miner",
+          "behavior:shield",
+          "behavior:turret",
+          "enemy:miner",
+          "enemy:sensor",
+          "enemy:shield",
+          "enemy:turret",
+          "shoot",
+          "weapon:bounce",
+          "weapon:drones"
+        ],
+        "layout": [
+          "70,90:sensor",
+          "290,90:shield",
+          "70,126:turret",
+          "290,126:miner",
+          "70,162:shield",
+          "290,162:turret",
+          "70,198:miner",
+          "290,198:shield",
+          "70,234:turret",
+          "290,234:miner",
+          "70,270:shield"
+        ],
+        "normalizedParameters": {
+          "waves": 0.75,
+          "count": 0.8333333333333334,
+          "diveRate": 0.8965517241379313,
+          "diveSpeed": 0.896551724137931,
+          "fireRate": 0.896551724137931,
+          "enemySpeed": 0.896551724137931,
+          "amplitude": 0.896551724137931,
+          "layoutCells": 0.875
+        },
+        "newElements": []
+      },
+      {
+        "level": 28,
+        "parameters": {
+          "waves": 5,
+          "count": 11,
+          "diveRate": 0.8400000000000001,
+          "diveSpeed": 261,
+          "fireRate": 1.0750000000000002,
+          "enemySpeed": 174,
+          "amplitude": 25.5,
+          "layoutCells": 11
+        },
+        "elements": [
+          "behavior:fast",
+          "behavior:rescue",
+          "behavior:spiral",
+          "enemy:fast",
+          "enemy:scout",
+          "enemy:sensor",
+          "enemy:spiral",
+          "shoot",
+          "weapon:magnet",
+          "weapon:slow"
+        ],
+        "layout": [
+          "295,180:sensor",
+          "276.74415627558585,223.25126539644782:spiral",
+          "227.77272649521694,252.77055962836147:fast",
+          "163.63379359857223,259.18571535047465:scout",
+          "104.69101559629223,240.45996594834065:spiral",
+          "69.6583080343328,202.53860454731438:fast",
+          "69.65830803433279,157.46139545268565:scout",
+          "104.6910155962922,119.54003405165935:spiral",
+          "163.6337935985722,100.81428464952539:fast",
+          "227.7727264952169,107.22944037163852:scout",
+          "276.74415627558585,136.7487346035522:spiral"
+        ],
+        "normalizedParameters": {
+          "waves": 0.75,
+          "count": 0.8333333333333334,
+          "diveRate": 0.931034482758621,
+          "diveSpeed": 0.9310344827586207,
+          "fireRate": 0.9310344827586209,
+          "enemySpeed": 0.9310344827586207,
+          "amplitude": 0.9310344827586207,
+          "layoutCells": 0.875
+        },
+        "newElements": []
+      },
+      {
+        "level": 29,
+        "parameters": {
+          "waves": 5,
+          "count": 11,
+          "diveRate": 0.8600000000000001,
+          "diveSpeed": 264,
+          "fireRate": 1.1,
+          "enemySpeed": 176,
+          "amplitude": 26,
+          "layoutCells": 11
+        },
+        "elements": [
+          "behavior:burst",
+          "behavior:mirror",
+          "behavior:split",
+          "enemy:burst",
+          "enemy:mirror",
+          "enemy:sensor",
+          "enemy:split",
+          "shoot",
+          "weapon:drones",
+          "weapon:magnet"
+        ],
+        "layout": [
+          "205,90:sensor",
+          "155,90:burst",
+          "228,118:split",
+          "132,118:mirror",
+          "251,146:burst",
+          "109,146:split",
+          "274,174:mirror",
+          "86,174:burst",
+          "297,202:split",
+          "63,202:mirror",
+          "320,230:burst"
+        ],
+        "normalizedParameters": {
+          "waves": 0.75,
+          "count": 0.8333333333333334,
+          "diveRate": 0.9655172413793107,
+          "diveSpeed": 0.9655172413793104,
+          "fireRate": 0.9655172413793105,
+          "enemySpeed": 0.9655172413793104,
+          "amplitude": 0.9655172413793104,
+          "layoutCells": 0.875
+        },
+        "newElements": []
+      },
+      {
+        "level": 30,
+        "parameters": {
+          "waves": 6,
+          "count": 12,
+          "diveRate": 0.8799999999999999,
+          "diveSpeed": 267,
+          "fireRate": 1.125,
+          "enemySpeed": 178,
+          "amplitude": 26.5,
+          "layoutCells": 12
+        },
+        "elements": [
+          "behavior:burst",
+          "behavior:command",
+          "behavior:shield",
+          "command-two-phases",
+          "enemy:burst",
+          "enemy:scout",
+          "enemy:sensor",
+          "enemy:shield",
+          "guardian:6",
+          "shoot",
+          "weapon:charge",
+          "weapon:drones"
+        ],
+        "layout": [
+          "105,85:sensor",
+          "255,85:shield",
+          "105,127:burst",
+          "255,127:scout",
+          "105,169:shield",
+          "255,169:burst",
+          "105,211:scout",
+          "255,211:shield",
+          "105,253:burst",
+          "255,253:scout",
+          "105,295:shield",
+          "255,295:burst"
+        ],
+        "normalizedParameters": {
+          "waves": 1,
+          "count": 1,
+          "diveRate": 1,
+          "diveSpeed": 1,
+          "fireRate": 1,
+          "enemySpeed": 1,
+          "amplitude": 1,
+          "layoutCells": 1
+        },
+        "newElements": [
+          "behavior:command",
+          "command-two-phases",
+          "guardian:6"
+        ]
+      }
+    ]
+  },
+  "pilot": [
+    {
+      "seed": 458,
+      "levels": [
+        {
+          "level": 1,
+          "frames": 618,
+          "lives": 3,
+          "score": 180
+        },
+        {
+          "level": 2,
+          "frames": 519,
+          "lives": 3,
+          "score": 160
+        },
+        {
+          "level": 3,
+          "frames": 924,
+          "lives": 3,
+          "score": 140
+        },
+        {
+          "level": 4,
+          "frames": 1359,
+          "lives": 3,
+          "score": 180
+        },
+        {
+          "level": 5,
+          "frames": 1607,
+          "lives": 3,
+          "score": 439
+        },
+        {
+          "level": 6,
+          "frames": 276,
+          "lives": 3,
+          "score": 100
+        },
+        {
+          "level": 7,
+          "frames": 882,
+          "lives": 3,
+          "score": 180
+        },
+        {
+          "level": 8,
+          "frames": 1714,
+          "lives": 2,
+          "score": 220
+        },
+        {
+          "level": 9,
+          "frames": 814,
+          "lives": 3,
+          "score": 270
+        },
+        {
+          "level": 10,
+          "frames": 4721,
+          "lives": 2,
+          "score": 1376
+        },
+        {
+          "level": 11,
+          "frames": 1266,
+          "lives": 3,
+          "score": 420
+        },
+        {
+          "level": 12,
+          "frames": 3884,
+          "lives": 3,
+          "score": 780
+        },
+        {
+          "level": 13,
+          "frames": 1770,
+          "lives": 3,
+          "score": 250
+        },
+        {
+          "level": 14,
+          "frames": 910,
+          "lives": 3,
+          "score": 340
+        },
+        {
+          "level": 15,
+          "frames": 2282,
+          "lives": 3,
+          "score": 575
+        },
+        {
+          "level": 16,
+          "frames": 2381,
+          "lives": 2,
+          "score": 420
+        },
+        {
+          "level": 17,
+          "frames": 1159,
+          "lives": 3,
+          "score": 260
+        },
+        {
+          "level": 18,
+          "frames": 4682,
+          "lives": 2,
+          "score": 540
+        },
+        {
+          "level": 19,
+          "frames": 1392,
+          "lives": 3,
+          "score": 1250
+        },
+        {
+          "level": 20,
+          "frames": 4045,
+          "lives": 2,
+          "score": 1272
+        },
+        {
+          "level": 21,
+          "frames": 1387,
+          "lives": 3,
+          "score": 1400
+        },
+        {
+          "level": 22,
+          "frames": 3169,
+          "lives": 3,
+          "score": 560
+        },
+        {
+          "level": 23,
+          "frames": 6056,
+          "lives": 1,
+          "score": 1760
+        },
+        {
+          "level": 24,
+          "frames": 929,
+          "lives": 3,
+          "score": 1320
+        },
+        {
+          "level": 25,
+          "frames": 2640,
+          "lives": 3,
+          "score": 1159
+        },
+        {
+          "level": 26,
+          "frames": 2933,
+          "lives": 3,
+          "score": 850
+        },
+        {
+          "level": 27,
+          "frames": 8364,
+          "lives": 3,
+          "score": 950
+        },
+        {
+          "level": 28,
+          "frames": 2261,
+          "lives": 3,
+          "score": 1870
+        },
+        {
+          "level": 29,
+          "frames": 2640,
+          "lives": 3,
+          "score": 1670
+        },
+        {
+          "level": 30,
+          "frames": 9287,
+          "lives": 3,
+          "score": 1234
+        }
+      ]
+    },
+    {
+      "seed": 28,
+      "levels": [
+        {
+          "level": 1,
+          "frames": 1038,
+          "lives": 3,
+          "score": 160
+        },
+        {
+          "level": 2,
+          "frames": 380,
+          "lives": 3,
+          "score": 160
+        },
+        {
+          "level": 3,
+          "frames": 918,
+          "lives": 3,
+          "score": 140
+        },
+        {
+          "level": 4,
+          "frames": 2389,
+          "lives": 2,
+          "score": 180
+        },
+        {
+          "level": 5,
+          "frames": 1199,
+          "lives": 3,
+          "score": 494
+        },
+        {
+          "level": 6,
+          "frames": 258,
+          "lives": 3,
+          "score": 100
+        },
+        {
+          "level": 7,
+          "frames": 673,
+          "lives": 3,
+          "score": 200
+        },
+        {
+          "level": 8,
+          "frames": 1171,
+          "lives": 3,
+          "score": 200
+        },
+        {
+          "level": 9,
+          "frames": 791,
+          "lives": 3,
+          "score": 310
+        },
+        {
+          "level": 10,
+          "frames": 4639,
+          "lives": 2,
+          "score": 1417
+        },
+        {
+          "level": 11,
+          "frames": 474,
+          "lives": 3,
+          "score": 460
+        },
+        {
+          "level": 12,
+          "frames": 3212,
+          "lives": 3,
+          "score": 860
+        },
+        {
+          "level": 13,
+          "frames": 2376,
+          "lives": 3,
+          "score": 250
+        },
+        {
+          "level": 14,
+          "frames": 845,
+          "lives": 3,
+          "score": 360
+        },
+        {
+          "level": 15,
+          "frames": 3369,
+          "lives": 3,
+          "score": 557
+        },
+        {
+          "level": 16,
+          "frames": 2278,
+          "lives": 3,
+          "score": 540
+        },
+        {
+          "level": 17,
+          "frames": 1334,
+          "lives": 3,
+          "score": 280
+        },
+        {
+          "level": 18,
+          "frames": 6828,
+          "lives": 3,
+          "score": 560
+        },
+        {
+          "level": 19,
+          "frames": 1203,
+          "lives": 3,
+          "score": 1240
+        },
+        {
+          "level": 20,
+          "frames": 1691,
+          "lives": 3,
+          "score": 1654
+        },
+        {
+          "level": 21,
+          "frames": 1295,
+          "lives": 3,
+          "score": 1210
+        },
+        {
+          "level": 22,
+          "frames": 3036,
+          "lives": 3,
+          "score": 500
+        },
+        {
+          "level": 23,
+          "frames": 5052,
+          "lives": 2,
+          "score": 1800
+        },
+        {
+          "level": 24,
+          "frames": 970,
+          "lives": 3,
+          "score": 1280
+        },
+        {
+          "level": 25,
+          "frames": 3633,
+          "lives": 3,
+          "score": 1012
+        },
+        {
+          "level": 26,
+          "frames": 2771,
+          "lives": 2,
+          "score": 870
+        },
+        {
+          "level": 27,
+          "frames": 10127,
+          "lives": 1,
+          "score": 990
+        },
+        {
+          "level": 28,
+          "frames": 1843,
+          "lives": 3,
+          "score": 1770
+        },
+        {
+          "level": 29,
+          "frames": 2208,
+          "lives": 3,
+          "score": 1790
+        },
+        {
+          "level": 30,
+          "frames": 7543,
+          "lives": 3,
+          "score": 1279
+        }
+      ]
+    }
+  ],
+  "mutations": [
+    {
+      "name": "overheat disabled",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 106,
+      "killed": true,
+      "error": "Error: overheat at full heat"
+    },
+    {
+      "name": "zero bounces",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 79,
+      "killed": true,
+      "error": "Error: Missing fixture item"
+    },
+    {
+      "name": "no drone interception",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 178,
+      "killed": true,
+      "error": "Error: intercepted"
+    },
+    {
+      "name": "wave factor one",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 5,
+      "killed": true,
+      "error": "Error: enemy time factor"
+    },
+    {
+      "name": "no magnetic return",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 170,
+      "killed": true,
+      "error": "Error: returned toward enemy"
+    },
+    {
+      "name": "charge has no effect",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 67,
+      "killed": true,
+      "error": "Error: full charge dimensions"
+    },
+    {
+      "name": "all levels equal level one",
+      "file": "src/engines/essaim/engine.ts",
+      "line": 23,
+      "killed": true,
+      "error": "Error: E-DIV-01: eight generated novelties"
+    }
+  ]
+}

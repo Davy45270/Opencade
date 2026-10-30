@@ -1,7 +1,9 @@
-import { Engine } from './engine';
+import { Engine, TICK } from './engine';
 import { demo } from '../shared/demo';
+import { pilot } from './pilot';
 export function createDemo(seed = 28) {
-    return demo(new Engine(), seed, (e, frame) => {
-        e.moveTo(180 + Math.sin(frame / 22) * 125); e.holdFire(true);
-    }, e => { e.step(1000 / 15); });
+    let tick = 0;
+    return demo(new Engine(), seed, (_e, frame) => { tick = frame * 6; }, e => {
+        for (let i = 0; i < 6 && e.status === 'playing'; i++) { pilot(e, tick++); e.step(TICK); }
+    });
 }

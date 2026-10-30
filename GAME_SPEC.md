@@ -1081,48 +1081,82 @@ appliquées séparément : chacune fait échouer son oracle, puis code restauré
 
 ## Essaim
 
-Aire logique 360×640. Le vaisseau est à y=552 ; la zone de glissement tactile commence à y=586 (ligne visible à y=590) et permet de poser le doigt vers y=618, au moins 34 pixels sous le vaisseau. Le doigt reste ainsi sous la zone d’action. Flèches/A/D déplacent le vaisseau ; Espace maintient le tir. Souris : guider puis cliquer ; toucher : glisser en bas tire tant que le doigt reste posé. Les boutons gauche/droite et Tir complètent ce contrôle. Tir auto facultatif mémorisé. Écran prêt et pause communs ; aucune progression du moteur pendant la pause.
+Passe 53, partie 1. Aire logique 360×640 ; vaisseau à y=552. Le glissement tactile commence à y=586, sous la ligne visible y=590. Flèches/A/D déplacent ; Espace ou bouton Tir maintenu tire. Les zones gauche/droite de 56 px et Tir de 64 px sont conservées. Tir auto facultatif mémorisé, pause commune sans progression. La sauvegarde de progression et les clés existantes restent compatibles ; les anciens états moteur reçoivent les valeurs par défaut des nouveaux champs.
 
-Entrée paramétrique de 1500 ms, échelonnée de 100 ms par ennemi : x=homeX+sin(πt)×courbe, y=-30+(homeY+30)×t. La courbe est tirée dans [-80,80[ par le PRNG partagé. Arrivée exactement sur la place, puis oscillation sin(ticks/90)×amplitude. Un piqué sélectionne uniformément un ennemi en formation, mémorise la position du joueur, descend de 560 pixels avec une courbe latérale sinusoïdale puis revient en entrée. Les tirs ennemis sont verticaux et plafonnés à huit pour préserver la lisibilité.
+Le moteur utilise le PRNG partagé (graine par défaut 458), un pas fixe de 1000/60 ms et aucune horloge externe. Entrée de 1500 ms échelonnée de 100 ms par ennemi, courbes déterministes ; oscillation calculée sur l'âge local, donc ralentie par l'onde. Piqués vers la position mémorisée du joueur. Trois vies, invulnérabilité de 1000 ms, 10 points par ennemi (30 en piqué). Un capteur par vague conserve la silhouette de nacelle et libère une arme à ramasser. Le champ historique de double canon reste lisible dans les anciens états, mais les nouvelles parties ne le distribuent plus ; ramasser une nouvelle arme le remplace.
 
-Trois vies, une seconde d'invulnérabilité. Tir joueur à 600 px/s, cadence 150 ms, trois projectiles simultanés maximum même en double canon. Blindé : deux impacts. Scindeur : un impact libère deux fragments à un point de vie, qui ne se divisent plus. Ennemi détruit : 10 points en entrée/formation, 30 en piqué. Collision avec le vaisseau ou projectile ennemi : une vie.
+### Six armes ramassables
 
-Choix de règle : un capteur par vague transporte dès l'entrée une nacelle capturée, visible sous son corps. Aucune apparition aléatoire ni position bonus séparée : ce choix garantit une occasion de bonus à chaque vague, sans cumul incontrôlé. Sa destruction libère la nacelle et active deux projectiles espacés de 12 px pendant 8000 ms ; un nouveau bonus réinitialise cette durée. Pas de nouvelle vie ni de capture du joueur.
+Chaque arme dure 14000 ms, avec secondes restantes dans le HUD. Une caisse initiale propose l'arme du niveau ; une seconde caisse propose un soutien. Les caisses descendent à 150 px/s et se ramassent à moins de 30 px du vaisseau. Deux armes actives au maximum : même arme = durée renouvelée, troisième arme différente = remplacement de la plus ancienne. Le tir normal continue pendant une charge ; un appui de moins de 300 ms ne produit aucun projectile chargé et conserve le tir ordinaire. Le relâchement du bouton Tir ou d'Espace libère la charge, sans modifier les dimensions tactiles.
 
-Générateur des trente niveaux, indice l=0…29 :
+| Arme | Mécanique et jauge | Formation visée / façon de jouer |
+| --- | --- | --- |
+| Rayon continu | Remplace le tir ordinaire ; contact toutes les 6 images. Chaleur +1,4/image, blocage à 100, refroidissement −0,8/image jusqu'à zéro ; chaleur et blocage affichés. | Scindeurs et miroir : rester aligné, interrompre pour refroidir. |
+| Rebond | Vitesse (420,−350) px/s ; exactement deux rebonds sur les bords latéraux x=8 et 352. | Les escortes frontales bloquent les tirs directs ; les tirs ayant rebondi contournent leur protection. Viser un bord plutôt que l'ennemi. |
+| Drones | Deux drones en orbite de rayons (42,32), collision balayée de rayon 17 avec les tirs ennemis ; durée affichée. | Tireurs en rafale : placer une orbite sur la trajectoire menaçante. |
+| Onde | Disque de rayon 125, centre 140 px devant le vaisseau ; temps local des ennemis et déplacement/temporisateurs de leurs tirs multipliés par **0,35**. | Essaims rapides et spirales : se placer sous leur trajectoire pour les retenir dans le disque. |
+| Aimant | À moins de 145 px, les tirs ennemis deviennent alliés et visent l'ennemi visible le plus proche (sinon le boss) à 600 px/s ; une mine renvoyée ne libère plus de tirs ennemis. | Rafales et mines : approcher les projectiles pour les retourner. |
+| Charge | Maintenir jusqu'à 1500 ms puis relâcher ; rayon 4+14×charge, perçage 1+floor(4×charge), charge normalisée à 0…1 ; jauge affichée. Chaque cible ne peut être touchée qu'une fois par projectile. | Blindés alignés : traverser plusieurs coques dans une colonne et contourner le cœur fermé des boss. |
 
-| Paramètre | Formule |
-| --- | --- |
-| Vagues | 2+floor(4l/29) |
-| Ennemis/vague | 6+floor(6l/29) |
-| Piqués/seconde | 0,3+0,02l |
-| Vitesse piqué | 180+3l px/s |
-| Tirs ennemis/seconde | 0,4+0,025l |
-| Vitesse tir ennemi | 120+2l px/s |
-| Probabilité blindé | l/100 |
-| Probabilité scindeur | l/140 |
-| Amplitude formation | 12+l/2 px |
+Combinaison explicite rayon + onde : tant que le rayon est allumé, le facteur du disque passe de 0,35 à **0,2**. Drones + aimant donne priorité au renvoi dans la zone magnétique ; les drones restent une défense lorsque l'aimant expire. Un tir renvoyé est allié et n'est plus intercepté. Rebond + drones protège le vaisseau pendant le trajet indirect. Charge + drones protège la tenue de charge. Rayon et rebond ensemble conservent le rayon comme tir principal ; la charge reste libérable. Les autres effets se composent selon leurs zones, sans augmenter le nombre de places d'armes.
 
-Places : six colonnes espacées de 50 px, deux rangées au maximum à y=110 et 154. Le premier ennemi est le capteur ; les autres types sont tirés à graine. Chaque cinquième niveau est un défi sans tirs ennemis (exception explicite à la cadence nominale monotone). Bonus de précision à la victoire : round(200×impacts/projectiles émis), zéro sans tir. Les impacts sur le blindage comptent. Toutes les vagues détruites donnent la victoire ; zéro vie donne la défaite. Le socle gère sauvegarde, score cumulé, restauration sur défaite et déblocage.
+### Formations et boss
 
-| Oracle | Preuve moteur (`tests/essaim.test.ts`) |
-| --- | --- |
-| G01 | Entrée déterministe et arrivée exacte |
-| G02 | Oscillation bornée |
-| G03 | Sélection, cible mémorisée, trajet et retour |
-| G04 | Collisions, blindage, score formation/piqué |
-| G05 | Plafond trois, y compris double canon |
-| G06 | Tir ennemi, vie, invulnérabilité et expiration |
-| G07 | Capteur garanti, nacelle, durée et double canon |
-| G08 | Deux fragments sans récursion ; fréquence des types sur 200 graines |
-| G09 | Défi sans tir, bonus calculé |
-| G10 | Victoire et défaite ; politique simulée |
-| G11 | Chaque paramètre nominal monotone et strictement croissant aux extrêmes |
-| G12 | Entrées horodatées, cadences différentes, témoin graine et sérialisation |
+Les trente plans sont dans `src/engines/essaim/levels.ts`. Cinq géométries réelles : rangées, chevron, colonnes, pinces et anneau. Les mélanges tournent entre les vagues. Les nouveautés de comportement ne sont pas des changements de quantité ou de PV : rafales en éventail, parcours elliptique rapide, protection frontale, mines qui éclatent après 1400 ms, scission en deux fragments sans récursion, spirale d'approche qui quitte la vague après son attaque, tourelles portées lançant des tirs guidés jusqu'à y=300, allié à protéger, copie horizontale du joueur et colonnes traversables par charge. Les escortes ouvrent leur bouclier 500 ms toutes les 6000 ms ; le rebond permet d'éviter cette attente. Une collision de kamikaze le détruit. Les tourelles disparaissent avec leur porteur. L'allié absorbe quatre impacts ; sa perte coûte une vie, son sauvetage vaut 50 points par PV restant.
 
-La politique de jouabilité vise l'ennemi le plus proche, tire continuellement et esquive tirs proches et piqués bas. Sur trois graines (11, 458, 2026), elle doit gagner au moins une partie aux niveaux 1, 15 et 30, dans une limite de 24000 pas par partie. Elle utilise les règles ordinaires, sans état construit.
+Mini-boss à la dernière vague des niveaux 5/10/15/20/25 ; commandement au 30. Cœur fermé pendant 1800 ms puis exposé 1200 ms dans chaque cycle de 3000 ms. Faiblesse commune : les tirs ordinaires et le rayon blessent le cœur exposé ; rebonds, tirs renvoyés et charges perçantes contournent la fermeture et retirent deux PV. Un boss a 10 PV, le commandement 24. Au seuil de 12 PV, le commandement passe de l'éventail à une visée du joueur avec cadence de 45 images au lieu de 75. Chaque boss détruit rapporte 200 points. Le bonus de précision des défis est plafonné à 200 pour tenir compte du perçage et des renvois.
 
-L'E2E desktop/mobile vérifie victoire et défaite par vraies entrées après chargement d'états presque terminés, reprise, sélection, pause, nettoyage, absence de crochet hors test, et absence de chevauchement des commandes avec le canevas. Les états construits ne modifient aucune règle. Les effets synthétisés utilisent le son global. Aucun asset externe ni dépendance ajoutée.
+| Niveau | Motif | Faiblesse / arme conseillée |
+| ---: | --- | --- |
+| 5 | Pince convergente à deux flancs | Rebond pendant la fermeture, tir direct à l'ouverture |
+| 10 | Mines déposées sur l'axe du joueur puis éclatement différé | Rayon pendant l'ouverture ; onde pour ralentir les mines |
+| 15 | Tir visant la position du joueur au départ | Aimant pour renvoyer sa propre attaque |
+| 20 | Tirs qui inversent leur dérive horizontale à y=300 | Charge à travers le cœur fermé, drones pendant la tenue |
+| 25 | Projectiles guidés jusqu'à y=300, puis trajectoire figée | Charge ; esquiver après la fin du guidage |
+| 30 | Phase 1 : éventail ; phase 2 : tir visé plus fréquent | Charge contre le cœur fermé dans les deux phases |
+
+Vagues de respiration : 6, 11, 17 et 24 (quatre ennemis, pas de tir ordinaire ; les comportements présents restent actifs). La victoire exige toutes les vagues et le boss éventuel détruits. Le nombre de vagues reste 2+floor(4l/29), celui des ennemis 6+floor(6l/29) hors respiration. Les cadences nominales historiques sont conservées ; les mélanges et les géométries sont désormais décrits explicitement au lieu de probabilités de types.
+
+| Niveau | Vague | Nouveauté / situation | Arme proposée |
+| ---: | --- | --- | --- |
+| 1 | Patrouille | Prise en main du rayon | Rayon |
+| 2 | Rafales | Tireurs en rafale ; drones | Drones |
+| 3 | Course | Essaim rapide à trajectoire elliptique ; onde | Onde |
+| 4 | Escortes | Boucliers frontaux ; rebonds | Rebond |
+| 5 | Gardien des flancs | Mini-boss : pince convergente | Rebond |
+| 6 | Escale | Respiration sans tir ordinaire | Rayon |
+| 7 | Champs de mines | Mines à explosion différée ; aimant | Aimant |
+| 8 | Boucliers et mines | Combinaison des deux menaces | Rebond |
+| 9 | Rafales croisées | Rafales + essaim rapide | Drones |
+| 10 | Scission | Deux fragments par scindeur ; gardien mineur | Rayon |
+| 11 | Halte | Respiration avec scindeurs | Rayon |
+| 12 | Éclats rapides | Scission + essaim rapide | Onde |
+| 13 | Spirales | Kamikazes en spirale | Onde |
+| 14 | Spirales minées | Spirales + mines | Aimant |
+| 15 | Gardien des rafales | Mini-boss : visée de la position du joueur | Aimant |
+| 16 | Tourelles portées | Lanceurs guidés portés ; charge | Charge |
+| 17 | Répit | Respiration avec tourelles | Drones |
+| 18 | Convoi protégé | Tourelles + boucliers | Rebond |
+| 19 | Sauvetage | Vaisseau allié à protéger | Drones |
+| 20 | Gardien du convoi | Mini-boss : tirs qui inversent leur dérive | Charge |
+| 21 | Secours sous mines | Sauvetage + mines | Aimant |
+| 22 | Miroir | Copie du déplacement horizontal | Rayon |
+| 23 | Reflets scindés | Miroir + scission | Rayon |
+| 24 | Dernière halte | Respiration avec sauvetage | Drones |
+| 25 | Blindés alignés | Colonnes blindées ; gardien à tirs guidés | Charge |
+| 26 | Blindage miroir | Colonnes blindées + miroir | Charge |
+| 27 | Mines et escorte | Mines + boucliers + tourelles | Rebond |
+| 28 | Convoi en spirale | Sauvetage + spirales + essaim rapide | Onde |
+| 29 | Reflets de rafale | Miroir + rafales + scission | Aimant |
+| 30 | Commandement | Vaisseau final : éventail puis tir visé | Charge |
+
+### Preuves exécutables
+
+`tests/essaim-behavior.ts` expose les scénarios en littéraux réutilisés par `tests/essaim.test.ts` et par `nice -n 19 ionice -c3 node scripts/validate-essaim.js`. E-WPN-01…06 couvrent les six mécaniques ; E-WPN-07 mesure le temps pour détruire trois escortes, avec un rapport tir normal/rebond d'au moins 1,5 ; E-WPN-08 couvre la limite de deux et le facteur combiné 0,2. E-BOSS vérifie fermeture, faiblesse, cinq motifs et transition du commandement. E-WAVE couvre mines, scission, missiles portés, miroir, kamikazes et sauvetage. E-PICKUP vérifie les six ramassages, renouvellements et expirations. E-DET vérifie cadence, graines et anciens états. E-DIV-01 applique la fonction partagée du rapport au vrai générateur : huit nouveautés au minimum, écarts de cinq niveaux maximum jusqu'au 25, clones sous 25 %.
+
+Le pilote utilise uniquement déplacement et maintien/relâchement du tir, en observant chaque pas fixe. Le validateur exige une victoire pour chacun des trente niveaux sur les graines 458 et 28, sous 18000 images par niveau. Il écrit les résultats, les temps simulés, vies et scores ainsi que les sept mutations rejetées avec leurs lignes dans `docs/essaim-validation.json`. La démo et le rapport utilisent le même pilote, six observations par avance de 100 ms.
+
+`tests/e2e/essaim.spec.ts` conserve les contrôles de progression, pause, disposition et nettoyage ; il écrit les captures `essaim-weapon-1` à `essaim-weapon-6` avec exactement une arme active, vérifie le maintien tactile de la charge et sa libération, et capture `essaim-level30` avec le commandement en phase 2. Ces scénarios sont écrits pour l'orchestrateur sur l'hôte de test ; aucun navigateur ni Vitest lancé pendant cette passe. Le rendu existant est conservé avec seuls repères fonctionnels (rayon, disques, orbites, jauges, bouclier, tourelle et cœur).
 
 ## Dédale
 

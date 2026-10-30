@@ -125,7 +125,30 @@ test('G12 crochet inerte sans test et nettoyage à la sortie', async ({ page }, 
 test('G11 G10 niveau 30 et mise en page', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium'; await open(page);
     await tap(page, '#resume', mobile); await tap(page, '#pause', mobile);
-    await page.evaluate(() => { window.__ESSAIM_TEST__?.loadLevel(29, 457); });
+    await page.evaluate(() => { window.__ESSAIM_TEST__?.command(); });
     await tap(page, '#pause', mobile); await layout(page);
     await page.screenshot({ path: `test-results/screenshots/essaim-level30-${info.project.name}.png` });
 });
+
+for (const [index, kind] of (['beam','bounce','drones','slow','magnet','charge'] as const).entries()) {
+    test(`E-WPN capture essaim-weapon-${String(index+1)}`, async ({ page }, info) => {
+        const mobile = info.project.name === 'mobile-chromium'; await open(page);
+        await tap(page, '#resume', mobile); await tap(page, '#pause', mobile);
+        await page.evaluate(weapon => { window.__ESSAIM_TEST__?.weapon(weapon); }, kind);
+        await tap(page, '#pause', mobile);
+        const touch = mobile ? await page.context().newCDPSession(page) : null;
+        if (touch) {
+            const box = await page.locator('#essaim-fire').boundingBox(); if (!box) throw new Error('Tir absent');
+            await touch.send('Input.dispatchTouchEvent', { type:'touchStart', touchPoints:[{ x:box.x+32,y:box.y+32 }] });
+        } else await page.keyboard.down('Space');
+        await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(900); });
+        const state = await read(page); expect(state?.weapons.map(w => w.kind)).toEqual([kind]);
+        if (kind === 'charge') expect(state?.charge).toBeGreaterThan(800);
+        if (kind === 'beam') expect(state?.heat).toBeGreaterThan(0);
+        await page.screenshot({ path: `test-results/screenshots/essaim-weapon-${String(index+1)}-${info.project.name}.png` });
+        if (touch) { await touch.send('Input.dispatchTouchEvent', { type:'touchEnd', touchPoints:[] }); await touch.detach(); }
+        else await page.keyboard.up('Space');
+        await page.evaluate(() => { window.__ESSAIM_TEST__?.advance(17); });
+        if (kind === 'charge') expect((await read(page))?.shots.some(p => (p.radius ?? 0) > 10)).toBe(true);
+    });
+}

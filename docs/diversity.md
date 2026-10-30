@@ -1,6 +1,6 @@
-# Level diversity audit — pass 51
+# Level diversity audit — pass 53
 
-Ferraille is updated for pass 51; Bubble Lab retains its pass 49 correction. Other game implementations are unchanged. Run from the repository root:
+Essaim is updated for pass 53; Ferraille retains passes 51–52 and Bubble Lab its pass 49 correction. Other game implementations are unchanged. Run from the repository root:
 
 ```sh
 nice -n 19 ionice -c3 node scripts/diversity-report.js
@@ -14,9 +14,9 @@ For each game, use `difficulty(level)` and summaries of generated data: occupied
 
 For parameter k, normalize over existing levels: z(k,l) = (x(k,l) − min(k)) / (max(k) − min(k)); constant parameters become zero and are excluded from parameter distance. P is the mean absolute difference over varying parameters. Every game uses the same clone rule: D = (P + L) / 2, clone iff D < **0.08**. No threshold is tuned per game. These are near-clones under the chosen descriptors, not claims of identical play.
 
-L is Jaccard distance, 1 − |A ∩ B| / |A ∪ B| (zero for two empty signatures), except Dérapage. Signatures are colored bubble cells; typed brick positions; occupied Empilo cells with tile value; Serpentin obstacle cells; Orbite row/column formation cells; Essaim home formation cells; Dédale walkable maze indices; typed walls/targets/boxes in Caisses; Ferraille solid terrain cells, platform and cage positions in world coordinates; and Traverse lane row/type/direction/phase/diver tuples. Alunir samples interpolated terrain every 12 screen pixels and quantizes height into fixed 12-pixel bins. Dérapage uses the existing `shapeSignature` and `signatureDistance` curvature histogram, divided by two to put its L1 distance in 0..1; the existing turn list is retained in JSON but is not part of that engine distance. Layouts are initial layouts, never pilot-damaged boards. Empty layouts are legitimate, not missing data. Jaccard can emphasize cell changes and ignore strategic equivalence; the curvature histogram can miss order differences.
+L is Jaccard distance, 1 − |A ∩ B| / |A ∪ B| (zero for two empty signatures), except Dérapage. Signatures are colored bubble cells; typed brick positions; occupied Empilo cells with tile value; Serpentin obstacle cells; Orbite row/column formation cells; Essaim typed home formation cells; Dédale walkable maze indices; typed walls/targets/boxes in Caisses; Ferraille solid terrain cells, platform and cage positions in world coordinates; and Traverse lane row/type/direction/phase/diver tuples. Alunir samples interpolated terrain every 12 screen pixels and quantizes height into fixed 12-pixel bins. Dérapage uses the existing `shapeSignature` and `signatureDistance` curvature histogram, divided by two to put its L1 distance in 0..1; the existing turn list is retained in JSON but is not part of that engine distance. Layouts are initial layouts, never pilot-damaged boards. Empty layouts are legitimate, not missing data. Jaccard can emphasize cell changes and ignore strategic equivalence; the curvature histogram can miss order differences.
 
-Ferraille observes controls at every fixed simulation tick, including inside its six-tick demo advance. The script reuses demo policy source in memory, transpiled with the existing compiler, replacing only the shared wrapper so it can load each requested level and run without attract-mode resets. Dérapage uses the same ordinary controller directly. Caisses uses its existing exact solver and replays the inputs through the engine. No state is injected and no rule is bypassed. Stop at the first terminal outcome or 1,800 policy iterations. Most iterations advance 1/15 second; Ferraille advances six fixed ticks (1/10 second), Alunir advances four 1/60 steps, Traverse one flow quantum, and Caisses one input per 1/15 second. Thus the cap is a policy-step budget, not a common time limit. The midpoint is halfway through the **observed attempt**, replayed deterministically; it is not a claim to represent half of a victorious game.
+Essaim and Ferraille observe controls at every fixed simulation tick, including inside their six-tick demo advances. The script reuses demo policy source in memory, transpiled with the existing compiler, replacing only the shared wrapper so it can load each requested level and run without attract-mode resets. Dérapage uses the same ordinary controller directly. Caisses uses its existing exact solver and replays the inputs through the engine. No state is injected and no rule is bypassed. Stop at the first terminal outcome or 1,800 policy iterations. Most iterations advance 1/15 second; Essaim and Ferraille advance six fixed ticks (1/10 second), Alunir advances four 1/60 steps, Traverse one flow quantum, and Caisses one input per 1/15 second. Thus the cap is a policy-step budget, not a common time limit. The midpoint is halfway through the **observed attempt**, replayed deterministically; it is not a claim to represent half of a victorious game.
 
 Completion time is simulated requested time, at policy-step resolution, only for a win; otherwise it is null. Actions count ordinary API calls (including repeated hold/move calls and unsuccessful inputs), not physical button transitions, and should only be compared within a game. Failures count a terminal loss (0 or 1 per attempt); lives lost are separate where exposed. A still-playing outcome is censored, not a failure or a victory. These curves describe this seed and this policy, not human difficulty or optimal play. Full snapshots let another analysis use different descriptors.
 
@@ -33,7 +33,6 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Game | Score | Novelties (count; levels) | Clone share | Longest flat plateau | What actually varies |
 | --- | ---: | --- | ---: | ---: | --- |
 | Dédale | 100 | 0; none | 100.0% | 3 | Seeded maze loops and corridors, pursuit timing and vulnerability duration. |
-| Essaim | 81.9 | 6; 2, 3, 4, 5, 6, 8 | 86.2% | 3 | Enemy mixture, formation size, wave count, dive cadence and every-fifth-level challenge. |
 | Briqueterie | 79.3 | 3; 8, 11, 14 | 86.2% | 3 | Brick masks, density, solid bricks, hit points, ball speed and paddle width. |
 | Orbite | 78.4 | 3; 6, 10, 15 | 86.2% | 3 | Formation dimensions, armor, movement tier, fire cadence and shot allowance. |
 | Serpentin | 62.1 | 3; 2, 5, 6 | 37.9% | 3 | Obstacle placement and patterns, boundary wrapping, speed and apple target. |
@@ -43,6 +42,7 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | Traverse | 41.4 | 1; 10 | 0.0% | 3 | Lane placement, direction and phase, diving logs, shelters and flow speed. |
 | Dérapage | 38.8 | 4; 3, 24, 29, 30 | 0.0% | 0 | Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning. |
 | Bulles | 25.9 | 7; 2, 11, 14, 17, 20, 23, 26 | 0.0% | 0 | Thirty seeded layouts with increasing density and pressure; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers. |
+| Essaim | 15.5 | 15; 2, 3, 4, 5, 6, 7, 10, 13, 15, 16, 19, 20, 22, 25, 30 | 0.0% | 3 | Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship. |
 | Ferraille | 11.2 | 19; 2, 4, 5, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 20, 21, 24, 25, 26, 30 | 0.0% | 0 | Ascending/descending routes, wagon rides, hostage rescues, six enemy behaviors, three special weapons, five guardian patterns and a three-phase reactor. |
 
 “Flat” in the table refers to the configuration proxy above. A zero means no qualifying window, not proof of continuous experiential difficulty growth. The JSON carries the exact ranges and pairs.
@@ -53,7 +53,7 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 | --- | ---: | ---: | ---: |
 | Dédale | 10 | 20 | 0 |
 | Ferraille | 30 | 0 | 0 |
-| Essaim | 10 | 20 | 0 |
+| Essaim | 30 | 0 | 0 |
 | Briqueterie | 2 | 1 | 27 |
 | Orbite | 0 | 30 | 0 |
 | Serpentin | 12 | 10 | 8 |
@@ -66,9 +66,9 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 
 For Orbite and Empilo no completion time is measured at any level. Briqueterie is mostly censored. Those curves require a stronger ordinary-input policy before completion-time comparisons become useful. Caisses times reflect the chosen replay cadence, not puzzle-solving time. Dédale scores 100 under this descriptor because all adjacent layouts remain near enough to the fixed threshold and no new element type is observed; this does not mean its mazes are identical.
 
-## Campaign plans and Bubble Lab implementation
+## Campaign plans and implementations
 
-The remaining proposals introduce something every 3–5 levels, include recovery levels, a challenge or boss every five levels, and a distinctive final level. Bubble Lab below describes its implemented extension; the other entries remain design suggestions.
+The remaining proposals introduce something every 3–5 levels, include recovery levels, a challenge or boss every five levels, and a distinctive final level. Bubble Lab, Essaim and Ferraille below describe their implemented extensions; the other entries remain design suggestions.
 
 ### Bulles
 
@@ -98,7 +98,47 @@ Introduce shield-repair pickups at 4, shield-piercing scouts at 8, lateral laser
 
 ### Essaim
 
-Introduce rescue tethers at 4, shield escorts at 8, mine layers at 12, linked diving pairs at 16, decoy swarms at 20, rotating armor at 24 and a capturable command ship at 28. Use 6/11/17/22/27 as sparse rescue waves. Keep the every-five challenge rhythm, give each a distinct target, and make 30 a command-ship battle with rescue and dive phases.
+Implemented in pass 53, part 1. Before: **81.9**, six novelty-bearing levels
+(2/3/4/5/6/8), **86.2%** adjacent clones. After: **15.5**,
+**15** novelty-bearing levels (2/3/4/5/6/7/10/13/15/16/19/20/22/25/30) and
+**0.0%** adjacent clones, using the same metric and clone threshold.
+There is no gap longer than five levels through 25; the last first appearance
+is the two-phase command ship at 30. Ten formation/behavior discoveries include
+burst shooters, elliptical fast swarms, frontal shields, mines, splitting,
+spiral kamikazes, carried guided turrets, rescue ships, movement mirrors and
+armored columns. Four recovery stages are 6/11/17/24.
+
+The shared adapter in `scripts/essaim-diversity.js` reads typed home positions,
+generated enemies and actual pickup/active-weapon kinds. It also reads the
+same stage rules the generator consumes for mixed behaviors, rescue objectives,
+recovery fire suppression and the final-wave guardian motif. This includes
+scheduled bosses that initial and midpoint snapshots might miss. Guardian
+indices describe implemented behaviors (convergence, delayed mines, initial
+position aim, horizontal reversal and guidance); names, level numbers, visual
+colors and arbitrary identifiers do not count. The typed layout descriptor
+replaces the previous untyped grid; this is a disclosed descriptor change,
+not proof of equivalent human difficulty. Clone threshold 0.08 and score
+formula are unchanged.
+
+Six finite collectible weapons change positioning, aiming, timing or defense;
+up to two compose, including the beam/slow-field factor 0.2 versus 0.35 alone.
+The normal-input pilot wins all thirty levels on both default seed 458 and
+seed 28, within 18000 fixed ticks per level. The report uses this policy too
+(30 wins, 0 losses, 0 censored at seed 28); snapshots and midpoint are
+still observed attempts. Save keys and touch target sizes are unchanged.
+
+Run `nice -n 19 ionice -c3 node scripts/validate-essaim.js` for E-WPN-01…08,
+E-BOSS, E-WAVE, E-PICKUP, E-DET, E-DIV-01, both campaigns and seven source
+mutations. `essaim-validation.json` records the concrete mutation lines and
+all 60 outcomes. E-WPN-07 uses a fixed three-escort scenario and requires a
+normal-shot/ricochet completion-time ratio of at least 1.5. The thirty-stage
+wave/novelty/proposed-weapon table is in `GAME_SPEC.md`.
+
+Weapon captures `essaim-weapon-1` through `essaim-weapon-6` (one active weapon)
+and `essaim-level30` (command phase 2), including mobile charge hold/release,
+are written in `tests/e2e/essaim.spec.ts` for the orchestrator on the test host.
+No browser or Vitest is launched during this pass. Presentation beyond the
+functional weapon and boss markers remains part 2.
 
 ### Dédale
 
