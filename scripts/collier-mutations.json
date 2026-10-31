@@ -136,5 +136,17 @@
     "file": "src/games/collier/scene.ts",
     "before": "const tap = Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) < 10;",
     "after": "const tap = Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) < 10 && p.upTime - down.time < 250;"
+  },
+  {
+    "name": "tireur-30px",
+    "file": "src/games/collier/presentation.ts",
+    "before": "const size = 88 / scale;",
+    "after": "const size = 42 / scale;"
+  },
+  {
+    "name": "perle-sans-reflet",
+    "file": "src/games/collier/scene.ts",
+    "before": "        g.fillStyle(0xffffff, .85);\n        g.fillEllipse(x - radius * .32, y - radius * .48, radius * .48, radius * .24);\n        g.fillStyle(0xffffff, .45);\n        g.fillCircle(x + radius * .42, y + radius * .5, radius * .12);",
+    "after": "        g.fillStyle(0xffffff, 0);"
   }
 ]

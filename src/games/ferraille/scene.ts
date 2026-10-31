@@ -1,9 +1,12 @@
+import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
-import { ActionPaint } from '../../characters/action-phaser';
+import { FerraillePaint as ActionPaint } from './paint';
 import type { FighterView } from '../../characters/arcade-art';
-import { pistonClosed, pistonBox } from '../../engines/ferraille/modules';
-import { scenery } from './scenery';
+import { drawModule } from './modules-art';
+import { enemyArt, weaponArt } from './actors-art';
+import { DecorCache } from './decor-cache';
+import { scenery, sceneryThemes, sceneryTheme, sceneryMotion } from './scenery';
 import { bossAppearance, PALETTES, backdropX } from '../../engines/ferraille/appearance';
 import { Engine, LEVELS, TILE, type Input } from '../../engines/ferraille/engine';
 import { Inputs, renderTouchControls, virtualJoystick, type TouchButton } from '../../shell/input';
@@ -19,8 +22,9 @@ export const ferrailleButtons: readonly TouchButton[] = [
     { id: 'ferraille-fire', label: 'Tir', ariaLabel: 'Tirer', size: 64, placement: 'right', mode: 'hold' },
 ];
 const HUD = { x: 10, y: 8, width: 340, height: 98 };
-const VIEW = { scale: 1.4, worldTop: 112, width: 360, height: 640 };
+const VIEW = { scale: 2.6, worldTop: 112, width: 360, height: 640 };
 export interface FerrailleHook {
+    performance(): { frames: number; gameMs: number };
     layout(): {
         world: { x: number; y: number; width: number; height: number };
         hud: { x: number; y: number; width: number; height: number };
@@ -30,10 +34,11 @@ export interface FerrailleHook {
     advance(ms: number): void;
     hudText(): string;
     art(): ReturnType<ActionPaint['stats']>;
+    bake(): { ms: number; textures: number };
     rendering(): FerrailleScene['rendering'];
     inspect(change: { heroX?: number; weapon?: Engine['state']['weapon']; ammo?: number; score?: number; bossHp?: number; bossClock?: number }): void;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; controls: ReturnType<Engine['snapshot']>['input'] }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger' | 'showcase'): void;
 }
@@ -48,6 +53,7 @@ export class FerrailleScene extends Phaser.Scene {
     private testManual = false;
     private testAdvancing = false;
     private art?: ActionPaint;
+    private decor?: DecorCache;
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: Phaser.GameObjects.Text;
     private discovery?: Phaser.GameObjects.Text;
@@ -73,12 +79,21 @@ export class FerrailleScene extends Phaser.Scene {
         if (!this.session.paused && !this.selecting && this.engine.special()) { sound.playEffect('bonus'); this.draw(); }
     }
     create(): void {
+        const receipts = fingerReceipts(this.inputs);
         this.specialGraphics = this.add.graphics().setDepth(4);
         document.body.classList.add('ferraille');
-        const cleanup = (): void => { this.inputs.dispose(); this.art?.destroy(); document.body.classList.remove('ferraille'); delete window.__FERRAILLE_TEST__; sound.stop(); };
+        const cleanup = (): void => { this.inputs.dispose(); this.art?.destroy(); this.decor?.destroy(); document.body.classList.remove('ferraille'); delete window.__FERRAILLE_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.graphics = this.add.graphics();
         this.art = new ActionPaint(this, 224);
+        this.decor = new DecorCache(this, 20);
+        for (const theme of sceneryThemes) for (let part = 0; part < 6; part++) {
+            const width = part >= 1 && part <= 3 ? (104 - (part - 1) * 12) * 2 : part === 5 ? 152 : 360;
+            this.decor.bake(`ferraille-118-${theme}-${String(part)}`, width, 640, g => {
+                if (part === 0) { g.fillStyle(PALETTES[theme === 'furnace' ? 'factory' : theme][0]); g.fillRoundedRect(0, 0, 360, 640, 16); }
+                scenery(g, theme === 'furnace' ? 23 : 0, 0, 0, true, theme, part);
+            });
+        }
         this.discovery = this.add.text(HUD.x + 12, HUD.y + 68, '', { fontFamily: 'system-ui', fontSize: '10px', color: '#a6cccf' });
         this.hud = this.add.text(14, 16, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 6 }).setDepth(5);
         const activate = (): void => { if (this.session.state === 'ready') this.session.send('start'); };
@@ -97,13 +112,9 @@ export class FerrailleScene extends Phaser.Scene {
         this.game.canvas.setAttribute('aria-label', 'Ferraille : aventurier dans les ateliers suspendus');
         if (new URLSearchParams(location.search).get('test') === '1') window.__FERRAILLE_TEST__ = {
             advance: ms => { this.advanceTest(ms); },
-            layout: () => ({
-                world: { x: 0, y: VIEW.worldTop, width: VIEW.width, height: VIEW.height - VIEW.worldTop },
-                hud: { ...HUD },
-                ground: { x: 0, y: 16 * TILE * VIEW.scale + VIEW.worldTop, width: VIEW.width, height: 4 * TILE * VIEW.scale },
-                visibleWorldBottom: (VIEW.height - VIEW.worldTop) / VIEW.scale,
-            }),
+            layout: () => this.layout(),
             art: () => { if (!this.art) throw new Error('Atlas absent'); return this.art.stats(); },
+            bake: () => ({ ms: this.decor?.bakeMs ?? 0, textures: this.decor?.baked ?? 0 }),
             hudText: () => this.hud?.text ?? '',
             rendering: () => structuredClone(this.rendering),
             inspect: change => {
@@ -119,7 +130,8 @@ export class FerrailleScene extends Phaser.Scene {
                 this.draw();
             },
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
-            read: () => ({ character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.state.ticks * 1000 / 60 }),
+            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, controls: this.controls() }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 if (name === 'showcase') {
@@ -174,28 +186,43 @@ export class FerrailleScene extends Phaser.Scene {
         this.flash = Math.max(0, this.flash - delta / 300); if (!this.testAdvancing) { this.panels(); this.draw(); }
     }
     rendering: { palette: number[]; layers: { factor: number; x: number }[]; camera: number; boss: ReturnType<typeof bossAppearance> | null; reducedMotion: boolean } = { palette: [], layers: [], camera: 0, boss: null, reducedMotion: false };
+    private layout() {
+        const top = Math.max(88, this.engine.state.hero.y - 146);
+        const groundTop = Math.max(VIEW.worldTop, Math.min(VIEW.height, (16 * TILE - top) * VIEW.scale + VIEW.worldTop));
+        const groundBottom = Math.max(groundTop, Math.min(VIEW.height, (20 * TILE - top) * VIEW.scale + VIEW.worldTop));
+        return {
+            world: { x: 0, y: VIEW.worldTop, width: VIEW.width, height: VIEW.height - VIEW.worldTop },
+            hud: { ...HUD },
+            ground: { x: 0, y: groundTop, width: VIEW.width, height: groundBottom - groundTop },
+            // Camera reach at the physical fall threshold, including the standing body.
+            visibleWorldBottom: Math.max(88, 340 - 146) + (VIEW.height - VIEW.worldTop) / VIEW.scale,
+        };
+    }
     private draw(): void {
         const g = this.graphics; if (!g) return;
-        const s = this.engine.state, h = s.hero, camera = Math.max(0, Math.min(s.columns * TILE - VIEW.width / VIEW.scale, h.x - 76));
-        const xx = (x: number): number => (x - camera) * VIEW.scale, yy = (y: number): number => y * VIEW.scale + VIEW.worldTop;
+        const s = this.engine.state, h = s.hero, camera = Math.max(0, Math.min(s.columns * TILE - VIEW.width / VIEW.scale, h.x - 42));
+        const top = Math.max(88, h.y - 146);
+        const xx = (x: number): number => (x - camera) * VIEW.scale, yy = (y: number): number => (y - top) * VIEW.scale + VIEW.worldTop;
         const palette = PALETTES[s.theme];
         const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         this.rendering = { palette, camera, layers: [], boss: s.boss ? bossAppearance(s.boss, s.ticks, reducedMotion) : null, reducedMotion };
+        const stride = !reducedMotion && h.vx && s.grounded ? Math.sin(s.ticks * .55) * 3 : 0;
+        if (this.art) { this.art.clock = s.ticks; this.art.firing = s.input.fire; this.art.running = Boolean(h.vx && s.grounded); this.art.reduced = reducedMotion; }
         this.art?.begin();
-        g.clear(); g.fillStyle(palette[0]); g.fillRoundedRect(0, 0, 360, 640, 16);
+        g.clear(); if (!this.decor) { g.fillStyle(palette[0]); g.fillRoundedRect(0, 0, 360, 640, 16); }
         g.fillStyle(0x142a3d); g.fillRoundedRect(HUD.x, HUD.y, HUD.width, HUD.height, 10);
-        for (const layer of [0.15, 0.3, 0.55]) {
-            g.fillStyle(palette[1], layer === 0.15 ? 0.5 : layer === 0.3 ? 1 : 0.35);
-            for (let i = 0; i < 8; i++) {
-                const x = backdropX(i, camera, layer), y = 210 + (i + (s.scenerySeed ?? 0) % 3) % 3 * 23;
-                if (i === 0) this.rendering.layers.push({ factor: layer, x });
-                if (s.theme === 'desert') g.fillTriangle(x - 30, 500, x + 35, y, x + 110, 500);
-                else if (s.theme === 'jungle') { g.fillRect(x + 20, y, 10, 300); g.fillCircle(x + 25, y, 38); }
-                else { g.fillRect(x, y, 46, 300); if (s.theme === 'night') { g.fillStyle(0xd5dbaa); g.fillRect(x + 12, y + 18, 5, 12); g.fillStyle(palette[1]); } else g.fillRect(x + 10, y - 48, 12, 50); }
+        for (const factor of [.15, .3, .55]) this.rendering.layers.push({ factor, x: backdropX(0, camera, factor) });
+        if (this.decor) {
+            this.decor.begin();
+            const theme = sceneryTheme(this.engine.level, s.theme);
+            for (let part = 0; part < 6; part++) {
+                const width = part >= 1 && part <= 3 ? (104 - (part - 1) * 12) * 2 : part === 5 ? 152 : 360;
+                const factor = part === 5 ? .7 : [.15, .3, .55][part - 1] ?? 0;
+                const shift = camera * factor % width;
+                for (let x = -shift; x < 360; x += width) this.decor.draw(`ferraille-118-${theme}-${String(part)}`, x, 0, width, 640, -6 + part * .1);
             }
-        }
-        scenery(g, this.engine.level, camera, s.ticks, reducedMotion);
-        g.lineStyle(1, 0x3d6970); g.lineBetween(0, 512, 360, 512);
+            sceneryMotion(g, this.engine.level, camera, s.ticks, reducedMotion, s.theme);
+        } else scenery(g, this.engine.level, camera, s.ticks, reducedMotion, s.theme);
         const first = Math.max(0, Math.floor(camera / TILE)), last = Math.min(s.columns, first + Math.ceil(VIEW.width / (TILE * VIEW.scale)) + 1);
         for (let y = 0; y < 20; y++) for (let x = first; x < last; x++) if (s.tiles[y * s.columns + x]) {
             g.fillStyle(y === 16 || !s.tiles[(y - 1) * s.columns + x] ? palette[2] : palette[1]); g.fillRoundedRect(xx(x * TILE), yy(y * TILE), TILE * VIEW.scale - 1, TILE * VIEW.scale - 1, 3);
@@ -203,40 +230,10 @@ export class FerrailleScene extends Phaser.Scene {
         }
         for (const m of s.modules ?? []) {
             if (m.x + m.w < camera || m.x > camera + 280) continue;
-            const x = xx(m.x), y = yy(m.y), w = m.w * VIEW.scale;
-            g.lineStyle(2, m.preview ? 0x74f1c7 : 0xffd16b);
-            g.strokeRoundedRect(x, y - 80, w, 82, 5);
-            if (m.kind === 'conveyor' || m.kind === 'rails') {
-                g.fillStyle(0x343746); g.fillRect(x, y - 4, w, 12);
-                for (let i = 0; i < 6; i++) { const dx = i * 21 + (reducedMotion ? 0 : s.ticks % 20); g.lineBetween(x + dx, y, x + dx + 9, y - 5); }
-                if (m.kind === 'rails') { g.lineBetween(x + w / 2, y, x + w, y - 48); }
-            } else if (m.kind === 'piston') {
-                g.fillStyle(pistonClosed(s.ticks) ? 0xff537b : 0xa6cccf);
-                const box = pistonBox(m);
-                g.fillRect(xx(box.x), yy(box.y), box.w * VIEW.scale, (pistonClosed(s.ticks) ? box.h : 12) * VIEW.scale);
-            } else if (m.kind === 'bridge') {
-                g.fillStyle(0xb08050); if (!m.value) for (let i = 0; i < 8; i++) g.fillRect(x + i * w / 8, y - 4, w / 8 - 2, 7);
-            } else if (m.kind === 'gate' || m.kind === 'secret') {
-                g.fillStyle(m.kind === 'secret' ? 0x857a8a : 0x67e9c8);
-                if (m.value < (m.kind === 'gate' ? 18 : 30)) g.fillRect(x + 63, y - 82, 22, 82);
-                g.fillCircle(x + 8, y - 46, 6);
-            } else if (m.kind === 'crate') {
-                g.fillStyle(0xb08050); g.fillRect(xx(m.x + 24 + m.value), y - 32, 32, 32);
-                g.lineBetween(xx(m.x + 24 + m.value), y - 32, xx(m.x + 24 + m.value) + 32, y);
-            } else if (m.kind === 'spotlight') {
-                g.fillStyle(0x050616, .55); g.fillRect(x, y - 110, w, 110);
-                g.fillStyle(0xfff0b2, m.value ? .4 : .08); g.fillTriangle(x + w / 2, y - 110, x, y, x + w, y);
-            } else if (m.kind === 'lava') {
-                g.fillStyle(0xff643b, .8); g.fillRect(x, yy(296 - m.value), w, (24 + m.value) * VIEW.scale);
-            } else if (m.kind === 'wind') {
-                for (let i = 0; i < 5; i++) { const dx = reducedMotion ? 0 : s.ticks % 35; g.lineBetween(x + i * 21 - dx, y - 24 - i * 9, x + i * 21 + 18 - dx, y - 24 - i * 9); }
-            } else if (m.kind === 'spring') {
-                for (let i = 0; i < 5; i++) g.strokeTriangle(x + i * 16, y, x + i * 16 + 8, y - 15, x + i * 16 + 16, y);
-            } else if (m.kind === 'tower' || m.kind === 'hut') {
-                g.fillStyle(0x75613f, .6); g.fillRect(x + 30, y - (m.kind === 'tower' ? 110 : 55), 50, m.kind === 'tower' ? 110 : 55);
-                g.fillTriangle(x + 20, y - 55, x + 55, y - 80, x + 90, y - 55);
-            }
+            const platform = m.kind === 'lift' || m.kind === 'chain' ? s.platforms.find(p => p.originX === m.x - 32) : undefined;
+            drawModule(g, platform ? { ...m, x: platform.x, y: platform.y, w: platform.w } : m, xx, yy, VIEW.scale, s.ticks, reducedMotion);
         }
+
         for (const p of s.platforms) {
             if (p.originY !== undefined || s.modules?.some(m => m.kind === 'chain' && p.originX === m.x - 32)) { g.lineStyle(2, 0xd4bd87, .6); for (const dx of [6, p.w - 6]) { g.lineBetween(xx(p.x + dx), yy(70), xx(p.x + dx), yy(p.y)); for (let j = 90; j < p.y; j += 14) g.strokeCircle(xx(p.x + dx), yy(j), 2); } }
             g.fillStyle(0x283749); g.fillRoundedRect(xx(p.x) - 2, yy(p.y) - 2, p.w * VIEW.scale + 4, 16, 5);
@@ -258,19 +255,11 @@ export class FerrailleScene extends Phaser.Scene {
             g.fillStyle(cage.rescued ? 0x74f1c7 : 0xffde93); g.fillCircle(x + 16, y + 18, 7);
             if (!cage.rescued) { g.lineStyle(2, 0xa6cccf); g.strokeRect(x, y, 34, 44); for (let bar = 1; bar < 4; bar++) g.lineBetween(x + bar * 8, y, x + bar * 8, y + 44); }
         }
-        if (s.vehicle) this.art?.craft('vehicles', s.facing < 0 ? 'gauche' : 'droite', xx(h.x + h.w / 2), yy(h.y + h.h) - 13, 94, 82);
+        if (s.vehicle) this.art?.craft('vehicles', s.facing < 0 ? 'gauche' : 'droite', xx(h.x + h.w / 2), yy(h.y + h.h) - 45, 148, 126);
         for (const e of s.enemies) {
-            const x = xx(e.x), y = yy(e.y);
-            g.fillStyle(e.kind === 'crawler' ? 0xffb266 : e.kind === 'turret' ? 0xf789ad : 0xba9bff);
-            if (e.kind === 'drone') { g.fillEllipse(x + 10, y + 10, 30, 16); g.lineStyle(2, 0xdfceff); g.lineBetween(x - 8, y, x + 30, y); }
-            else { g.fillRoundedRect(x, y, 21, 21, e.kind === 'crawler' ? 8 : 2); g.fillStyle(0x182e43); g.fillRect(x + 3, y + 17, 15, 5); }
-            if (e.kind === 'armored') { g.fillStyle(e.turned ? 0x74f1c7 : 0xa6cccf); g.fillRect(x + ((e.facing ?? -1) < 0 ? -4 : 17), y - 2, 7, 26); }
-            if (e.kind === 'kamikaze') { g.lineStyle(3, 0xff6b8b); g.lineBetween(x - 4, y - 6, x + 20, y + 20); }
-            if (e.kind === 'shooter' || e.kind === 'turret') { g.lineStyle(4, e.clock > 600 ? 0xffde93 : 0xa6cccf); g.lineBetween(x + 8, y + 8, x + 8 + Math.cos(e.aim ?? 0) * 22, y + 8 + Math.sin(e.aim ?? 0) * 22); }
-            g.lineStyle(2, 0x252d40); g.strokeRoundedRect(x - 1, y - 2, 24, 25, 7);
-            g.fillStyle(0x3d4a55); g.fillRoundedRect(x + 1, y + 2, 19, 10, 5);
-            g.fillStyle(0xfff0b2); g.fillEllipse(x + 7, y + 7, 5, 6); g.fillEllipse(x + 15, y + 7, 5, 6);
-            g.fillStyle(0xffffff); g.fillCircle(x + 6, y + 5, 1.5);
+            if (e.x + e.w < camera || e.x > camera + VIEW.width / VIEW.scale) continue;
+            const x = xx(e.x) - 10, y = yy(e.y) - 10;
+            enemyArt(g, e.kind, x, y);
         }
         const b = s.boss;
         const appearance = this.rendering.boss;
@@ -295,13 +284,18 @@ export class FerrailleScene extends Phaser.Scene {
             else { g.fillStyle(0x302135); g.fillCircle(xx(p.x) + 3, yy(p.y) + 3, 7); g.fillStyle(0xff537b); g.fillCircle(xx(p.x) + 3, yy(p.y) + 3, 5); g.fillStyle(0xfff1cb); g.fillCircle(xx(p.x) + 2, yy(p.y) + 2, 2); }
         }
         if (!s.vehicle && (reducedMotion || !(s.grace > 0 && s.ticks % 8 < 3))) {
-            const view: FighterView = s.crouched ? s.facing < 0 ? 'accroupi-gauche' : 'accroupi' : !s.grounded ? s.facing < 0 ? 'saut-gauche' : 'saut' : s.input.fire ? s.facing < 0 ? 'gauche' : 'tir' : h.vx ? s.facing < 0 ? 'gauche' : 'marche' : s.input.y < 0 ? 'dos' : 'face';
-            this.art?.fighter(view, xx(h.x + h.w / 2), yy(h.y + h.h / 2) - 4, 57);
+            const view: FighterView = s.crouched ? s.facing < 0 ? 'accroupi-gauche' : 'accroupi' : !s.grounded ? s.facing < 0 ? 'saut-gauche' : 'saut' : h.vx ? s.facing < 0 ? 'gauche' : 'marche' : s.input.fire ? s.facing < 0 ? 'gauche' : 'tir' : s.input.y < 0 ? 'dos' : s.facing < 0 ? 'gauche' : 'droite';
+            this.art?.fighter(view, xx(h.x + h.w / 2), yy(h.y + h.h) - 48 + stride, 128);
             if (s.shield) { g.lineStyle(2, 0x89f8ff); g.strokeEllipse(xx(h.x + h.w / 2), yy(h.y + h.h / 2), 43, 55); }
         }
         g.fillStyle(0x3b6070); g.fillRect(HUD.x + 12, HUD.y + 58, HUD.width - 24, 5); g.fillStyle(0x74f1c7); g.fillRect(HUD.x + 12, HUD.y + 58, (HUD.width - 24) * Math.min(1, h.x / s.door), 5);
         if (this.flash && !reducedMotion) { g.lineStyle(3, 0xffe8ad, this.flash); g.strokeRoundedRect(3, 3, 354, 634, 16); }
         this.specialGraphics?.clear();
+        let aimX = Math.sign(s.input.x), aimY = Math.sign(s.input.y);
+        if (!aimX && !aimY) aimX = s.facing;
+        if ((!s.grounded || s.crouched) && aimX && aimY) aimY = 0;
+        const weaponAngle = s.weapon === 'grenade' ? Math.atan2(-260, (aimX || s.facing) * 170) : Math.atan2(aimY, aimX);
+        if (!s.vehicle && this.art && this.specialGraphics) weaponArt(this.specialGraphics, this.art.id, xx(h.x + h.w / 2), yy(h.y + h.h) - 37 + stride, s.facing, s.input.fire, s.ticks, reducedMotion, weaponAngle);
         this.hero.advance(0, this.session.paused, this.engine.status, (s.specialTicks ?? 0) > 0);
         if ((s.specialTicks ?? 0) > 0 && this.specialGraphics) this.hero.drawEffect(this.specialGraphics, xx(h.x + h.w / 2 + s.facing * 35) - 47.5, yy(h.y + h.h / 2) - 47.5, 95);
         const config = LEVELS[this.engine.level];

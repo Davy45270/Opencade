@@ -5,6 +5,16 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0-beta.3] — 2026-10-31
+
+Preview build: new games Marmaille (lead a troop with roles, 30 levels), Bombercade (bombs and breakable mazes, 30 levels, thumb-playable) and Les Artificiers (turn-based artillery on destructible ground, 30 levels); new art for Ferraille, Briqueterie and Alunir; Gourmandises grows to 180 levels with a richer look; Dérapage karts drawn from the character sheets and themed scenery on every circuit; noisy-thumb checks now run on a stepped game clock and give the same result on every machine.
+
+- Bombercade : recherche du pilote sur trois secondes, prévision des bombes glissantes, téléportation limitée à trois cases, engagement accru au niveau 19 et neuf mutations supplémentaires couvertes par les oracles.
+
+- Bombercade : nouveau labyrinthe de bombes en solo, trente niveaux, quatre arènes, compagnons et commandes tactiles ; moteur déterministe et validation Node.
+- Bombercade : fuite commune face aux bombes, collisions des glaçons, objectif doré partagé et oracles renforcés avec huit mutations exécutées.
+- Bombercade : partie au doigt bruitée stable (niveaux 1 et 4 gagnés, zéro appui perdu) ; la croix est décollée du bas de l’écran et garde les appuis près de ses bords, que le navigateur détournait vers la zone de jeu ; arène statique cuite en textures.
+
 ## [0.4.0-beta.2] — 2026-10-31
 
 Preview build: Dérapage is now playable on phones (all six reference circuits finish under a noisy thumb), the Kart catalogue circuits and an optional 3D view; new games Gourmandises (match-3, 120 levels) and Pépites (mine digger, 30 mines); Alunir rewritten. Known gaps: the noisy-finger end-to-end checks of a few games are still being rebuilt on a stepped clock; new art for Ferraille, Briqueterie and Alunir is still in progress.
@@ -17,10 +27,56 @@ Preview build: Dérapage is now playable on phones (all six reference circuits f
 - Vue pseudo-3D en option, sur le même moteur, avec repli automatique en vue de dessus sous 30 images/s.
 - Volcan Turbo : tremplin déplacé sur la ligne droite, réception élargie, contournement pris dans le sens de course et karts IA écartés autour du saut ; il n'y a plus de kart retourné à contresens.
 - Partie au doigt bruitée en navigateur mobile : les six circuits mesurés se terminent (1, 5, 10, Bambou Express, Feuilles Folles, Volcan Turbo), de 0 à 7 % hors piste, sans arrêt.
+- Partie au doigt bruitée en navigateur mobile : circuits 1, 5, 10, Bambou Express et Feuilles Folles gagnés, de 0 à 4 % hors piste, sans arrêt.
+- Connu : Volcan Turbo — course non terminée au doigt, correction en cours.
+- Gourmandises : transport du tapis découpé sur chaque bande, puis chutes des cascades séquencées avec les pièces des événements. Oracles des quatre directions, du bouclage et des spéciaux ; terrains 121–180, fleurs et château verrouillés, scénario tactile renforcé et treize mutations supplémentaires.
+### Passe 118 — Ferraille, Briqueterie et Alunir
+
+- Ferraille : `layout()` utilise la caméra verticale réelle et rapporte l’intersection visible du sol avec le monde, au lieu des quatre rangées intégrales après zoom 2,6. Le corps debout de 22 unités reste entièrement visible au seuil de chute ; contrôle Node des niveaux 1, 3 et 30 en 390×844, 360×640 et 1280×720.
+- Décors précalculés en textures réutilisées, avec pools d’images fixes : profondeurs parallaxes de Ferraille et Briqueterie, jardin et surfaces des briques, ciel et cratères d’Alunir. Les petits effets animés restent vivants ; les strates suivent toujours le terrain physique, y compris les quais mobiles. Aucune génération de texture pendant le jeu ni au changement de niveau, et réutilisation au redémarrage.
+- Mesure déterministe, panda au niveau 1 (HEAD → passe 118) : Ferraille 1 071 → 322 appels Graphics et 649 → 161 chemins ; Briqueterie 766 → 44 et 477 → 21 ; Alunir 693 → 214 et 355 → 107. Zéro texture générée par image. À la création : respectivement 10 442/5 658/84, 6 529/3 927/153 et 566/280/18 appels/chemins/textures ; coût initial amorti et réutilisé ensuite.
+- Validateur Node : compteurs de création et d’image (appels Graphics, chemins, textures), références HEAD et plafond littéral de 40 % par image pour les trois jeux ; raster des textures réellement soumises avec découpe aux limites du canvas. Seuils visuels et mutations des passes précédentes conservés.
+
+- Suite Node sous verrou : 42/43 validateurs réussis (inventaire actuel : 43). L’unique échec hors périmètre est `validate-character-scenes-2.js` : Bubble importe le registre, puis le CSS de Gourmandises, non chargeable par Node. Le port CSS vide testé isolément rend ce validateur vert ; aucun fichier de ces jeux ni leur validateur n’a été modifié. Typecheck réussi ; lint et build finaux non achevés avant le plafond, leurs créneaux du verrou commun restant occupés.
 
 ## [0.4.0-beta.1] — 2026-10-30
 
 Preview build so the new art and levels can be played on a phone tonight. Known gaps: some noisy-finger end-to-end checks are still being rebuilt on a stepped clock; Ferraille, Briqueterie and Alunir art passes are still in progress.
+### Ferraille — passe 115
+
+- Tourelle physique visible dès l’entrée des niveaux 1–30, à x=108 : première salve à 2 s, un point de vie, détruite par une réponse frontale. Seule cette entité échappe au gel d’introduction et à celui du projecteur ; marqueur optionnel compatible avec les sauvegardes anciennes.
+- 180 rejeux de niveaux et six rejeux R01–R03 réenregistrés ; témoins Ferraille communs actualisés. Contrôle des 900 parties avec cinq personnages, trois graines et deux modes de spécial.
+- Répétition verte sur 435 paires : 16 modules rencontrés, similarité maximale de modules 50 % pour chacune des six campagnes graine/spécial ; mesure historique 0 (plafond 11,2).
+- Contrôle Node de 90 entrées : ennemi à ses coordonnées physiques, trois projectiles visibles à la frame 120, délai de réaction et réponse sans perte de vie ; anciens états non marqués toujours gelés. Quatre mutations supplémentaires couvrent présence, exception sélective et tirs visibles.
+
+- Validation finale sous verrou commun : lint, typecheck, build et quatre validateurs Node verts (Ferraille moteur/niveaux, catalogue, campagnes communes), 68,97 s avec un seul validateur à la fois. Mutations des passes 103, 104 et 114 toujours tuées ; sauvegarde historique rechargée. Aucun commit, navigateur ni Vitest.
+
+### Ferraille — passe 114 (correction partielle)
+
+- Suppression de l’aperçu ennemi sans interaction et de son étincelle périodique ; dessin aux coordonnées physiques uniquement.
+- Arme et flamme orientées selon la visée réelle ; suppression du canon horizontal intégré aux textures ; course avec tir combinant jambes animées et haut du corps de tir.
+- Contrôles Node des géométries de course, coordonnées ennemies, canon/flamme, directions des projectiles, identité des robots et états visuels des modules. Les huit mutations de relecture sont tuées ; couverture calculée après les recouvrements opaques (83,8–88,5 %, 61–112 silhouettes visibles).
+- Reste bloqué : ennemi actif au départ et réenregistrement des rejeux. `startingEnemyChecks` échoue au niveau 1 ; le gel global d’IA avant x=256 nécessite une exception dans `engine.ts`, hors périmètre moteur autorisé. Aucun niveau ni témoin moteur modifié.
+
+### Ferraille — passe 112
+
+- Cadrage 2,6 avec suivi vertical, héros équipé agrandi (85,1 px mesurés par Node en 390×844), armes renforcées, quatre phases de course par direction et véhicules agrandis.
+- Seize mécanismes dessinés sans cadre vide ; trois plans opaques et lumineux dans tous les thèmes, caisses et machine en feu, portes de forteresse, presse et lave de l’usine. Ennemis détaillés et aperçu de la menace lointaine sur une passerelle arrière, sans déplacer les collisions.
+- Validation Node des entrées : couverture 83,8–88,5 %, 62–152 silhouettes majeures sur les six niveaux demandés, ennemis, cache stable, mouvement réduit et quatre mutations visuelles. Moteur, témoins et solveurs inchangés ; aucun navigateur utilisé.
+### Briqueterie et Alunir — passe 116
+
+- Briqueterie : corps de 32 unités sans recouvrement, zoom 1,3 du mur et retour progressif au cadrage normal vers la raquette ; 41,37 px réellement visibles contre 33,81 px auparavant, après occultation et découpe au canevas.
+- Grilles jouables 1/A01, 6, 18/A02 et 15/A03 densifiées : surfaces 32,55 %, 31,30 %, 32,65 % et 34,30 %. Les mécaniques restent présentes, 60 campagnes gagnantes avec le pilote inchangé ; huit rejeux réenregistrés.
+- Validateurs : seuil de surface `wallCoverage >= .30`, occultation, absence de recouvrement, quatre couleurs A01 et cristaux A03 ; module Alunir identifié par composant, flamme en poussée/à sec, cinq strates visibles, chiffres des quais et jets du geyser aux frontières de phase. Quais et module comptés seulement s'ils sont peints. Les huit mutations adverses sont exécutées et rejetées, avec cinq mutations supplémentaires (recouvrement, zoom, grille ajourée, coque et quais).
+- Aucun asset, dépendance, commit, navigateur ni Vitest. Le rendu et le moteur d'Alunir restent inchangés.
+
+### Briqueterie et Alunir — passe 113
+
+- Briqueterie : cadrage vertical des rangées, habillage de briques de 41,77 px sur téléphone, blocs alimentaires colorés A01, feuilles A02, cristaux/étoiles A03, portails à anneaux et indestructibles rivetés. Cinq balles signatures avec motifs dans un cadre de 23,87 px ; raquettes conservées.
+- Alunir : module complet de 59,06 px avec pilote sous verrière, pieds, tuyère et flamme ; Terre, trois plans étoilés, montagnes, régolithe stratifié et cratères. Sol plein 21,04 %, mécaniques illustrées et multiplicateurs vectoriels sur les quais.
+- Validateur Node des vraies scènes pour les cinq compagnons et les niveaux demandés : union raster, bornes, éléments, motifs de balle, cache des textures, réserve fixe, snapshots et mouvement réduit. Aucun moteur, niveau, solveur ou rejeu modifié ; aucun asset image ni dépendance.
+- Écart conservé avec la planche : les grilles ajourées ne sont pas des murs pleins. Enveloppe 35,23–49,84 %, mais briques seules 9,47–19,13 % ; le seuil de 35 % de surface pleine reste non atteint, notamment les dix briques du niveau 6. Mesures avant/après détaillées dans GAME_SPEC.
+
 ### Alunir et Essaim — passe 110
 
 - Migration explicite des snapshots de passe 107 avec mission : catalogue historique, objectifs, amplitude mobile et issue conservés. Témoin Node produit directement depuis les deux modules de `eecddb7`, continuations des trente niveaux et cas adverse gagnant.
@@ -56,10 +112,27 @@ Preview build so the new art and levels can be played on a phone tonight. Known 
 - E2E mobile écrit (sept captures, doigt bruité aux niveaux 1 et 10), exécution réservée à l’orchestrateur.
 ### Gourmandises
 
+- Mondes 7 à 9 : 180 niveaux, chocolat solide qui s’étend, fleurs à libérer et tapis bouclés après les cascades ; trois finales à deux objectifs.
+- Château et fontaine de chocolat, prairie fleurie et canyon ocre dessinés par le code ; flèches animées avec respect du mouvement réduit.
+- Équilibre des 60 nouveaux niveaux mesuré sur cinq graines, empreinte des états 1–120 conservée, G26–G29 et six mutations supplémentaires ; E2E niveau 180 et tapis écrits.
+
 - Pictogrammes et compteurs contenus dans les trois boutons tactiles, avec police commune de 16 px.
 - Objets livrés animés jusqu’à la sortie malgré le remplissage de leur destination.
 - Pilote glouton donnant strictement priorité à l’objectif ; monde de la rivière recalibré sur cinq graines.
 - Oracles Node renforcés pour les silhouettes, les couches de glace, les sorties et les éléments des décors ; mutations vérifiées en mémoire.
+### Corrections du doigt piloté — passe 111
+
+- Preuve de réception nouvelle pour chaque événement et chaque doigt : relevé pointeur en lecture seule dans les douze scènes, contrôlé avec les effets de commande existants ; détection des touchers et relâchements perdus même après une commande identique réussie.
+- Latence de 150 ms de jeu avant les relâchements décidés séparément, y compris le tir de Bubble (les paires tap et les remplacements déjà différés partagent leur décision) ; `until()` observe aussi la condition après son dernier pas autorisé.
+- Empilo : ratio de performance fondé sur le temps de jeu cumulé de la scène, indépendant du chronomètre facultatif du niveau. Ratio et avertissement sous 30 i/s calculés par une fonction pure commune au spec et au test Node.
+- Test Node de l'aide ajouté à `test:node` : pertes partielles en multitouch, glissement et relâchement, bruit X/Y, ratés du rapport, empreinte sensible à l'état final et à chaque entrée, protocole d'horloge et bornes. Les huit mutations de la relecture sont tuées par ce test, sans navigateur.
+
+### Tests au doigt — passe 109
+
+- Aide commune `finger-stepped.ts` : horloge A11 manuelle, latence de 150 ms de jeu, vrais touchers CDP multitouch, bruit de ±12 px à graine fixe et vérification de réception par la scène.
+- Parties des douze jeux en temps piloté, niveaux 1 et 10 et ateliers supplémentaires conservés ; rapports JSON avec pas, positions voulues et réelles, bruit, ratés, issue et empreinte décimale. Les répétitions de boutons du navigateur sont figées pendant les parties pilotées.
+- Performance séparée : cinq secondes réelles par jeu, images/s, ratio jeu/réel, machine et rendu ; avertissement sous 30 i/s, bloquant seulement avec `PERF=1`.
+- Test Node sans navigateur : répétabilité des entrées et de l'empreinte, latence simulée et rejet d'un toucher perdu (`node --import ./scripts/ts-loader.js --test tests/e2e/finger-stepped.node.ts`).
 
 ### Corrections E2E — passe 105
 
@@ -380,3 +453,13 @@ A measured repetitiveness score (`docs/diversity.md`, lower is more varied):
 [0.3.0]: https://github.com/Davy45270/Opencade/releases/tag/v0.3.0
 [0.2.0]: https://github.com/Davy45270/Opencade/releases/tag/v0.2.0
 [0.1.0]: https://github.com/Davy45270/Opencade/releases/tag/v0.1.0
+
+### Les Artificiers
+
+- Nouveau jeu `artificiers` : trente cartes originales, terrain destructible,
+  six armes, compagnons, vent, grappin, caisses, eau montante et duel local.
+- Moteur déterministe, trente victoires enregistrées, contrôles tactiles bruités,
+  tests partagés Node/Vitest et scénario E2E à exécuter sur l’hôte navigateur.
+- Missions de démolition verrouillées à 80 %, lâcher de corde gratuit,
+  panneau hors du terrain ; décors et poses en cache, plafond de 500 appels
+  Graphics, budgets de travail comptés et huit mutations vérifiées en Node.

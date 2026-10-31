@@ -1,4 +1,8 @@
 import { CollierScene, collierButtons } from './collier/scene';
+import { MarmailleScene, marmailleButtons } from './marmaille/scene';
+import { marmailleEffects } from './marmaille/sound';
+import { createThumbnail as marmailleThumbnail, createDemo as marmailleDemo } from './marmaille/thumbnail';
+import { GAME_NAME as MARMAILLE_NAME, LEVELS as MARMAILLE_LEVELS } from '../engines/marmaille/levels';
 import { collierEffects } from './collier/sound';
 import { createThumbnail as collierThumbnail, createDemo as collierDemo } from './collier/thumbnail';
 import { GAME_NAME as COLLIER_NAME } from '../engines/collier/levels';
@@ -10,6 +14,10 @@ import { GourmandisesScene, gourmandisesButtons } from './gourmandises/scene';
 import { gourmandisesEffects } from './gourmandises/sound';
 import { createThumbnail as gourmandisesThumbnail, createDemo as gourmandisesDemo } from './gourmandises/thumbnail';
 import { GAME_NAME } from '../engines/gourmandises/levels';
+import { BombercadeScene, bombercadeButtons } from './bombercade/scene';
+import { bombercadeEffects } from './bombercade/sound';
+import { createThumbnail as bombercadeThumbnail, createDemo as bombercadeDemo } from './bombercade/thumbnail';
+import { GAME_NAME as BOMBERCADE_NAME } from '../engines/bombercade/levels';
 import { DerapageScene, derapageButtons } from './derapage/scene';
 import { derapageEffects } from './derapage/sound';
 import { createThumbnail as derapageThumbnail, createDemo as derapageDemo } from './derapage/thumbnail';
@@ -82,6 +90,7 @@ export const bubbleButtons: readonly TouchButton[] = [
 ];
 export const games: readonly GameDefinition[] = [
     { thumbnail: collierThumbnail, demo: collierDemo, id: 'collier', name: COLLIER_NAME, levelCount: 30, realtime: true, keyboardHelp: '← → : viser · Espace : tirer · X : échanger · P/Échap : pause', touchHelp: 'Viser partout puis relâcher · Tap sur le tireur ou ⇄ : échanger', createScene: session => new CollierScene(session), effects: collierEffects, testHook: () => window.__COLLIER_TEST__, touchControls: collierButtons },
+    { thumbnail: bombercadeThumbnail, demo: bombercadeDemo, id: 'bombercade', name: BOMBERCADE_NAME, levelCount: 30, realtime: true, keyboardHelp: 'Flèches / ZQSD : marcher · Espace : bombe · X : pouvoir · P/Échap : pause', touchHelp: 'Pavé : maintenir la direction · Glisser dans l’arène : marcher · Tap dans l’arène ou Bombe : poser · ✦ : pouvoir', createScene: session => new BombercadeScene(session), effects: bombercadeEffects, testHook: () => window.__BOMBERCADE_TEST__, touchControls: bombercadeButtons },
     { thumbnail: derapageThumbnail, demo: derapageDemo, id: 'derapage', name: 'Dérapage', levelCount: 30, realtime: true, keyboardHelp: '← → : braquer · Espace/Maj : dérapage · X/Ctrl : bonus · C : élan · P/Échap : pause', touchHelp: 'Maintenir ◀ ▶ et Glisse (Dérapage) · Bonus : utiliser · Inclinaison et souris en option', createScene: session => new DerapageScene(session), effects: derapageEffects, testHook: () => window.__DERAPAGE_TEST__, touchControls: derapageButtons },
     { thumbnail: traverseThumbnail, demo: traverseDemo, id: 'traverse', name: 'Traverse', levelCount: 30, realtime: true, keyboardHelp: 'Flèches ou ZQSD : un pas · P/Échap : pause', touchHelp: 'Toucher : monter · Glisser ou croix : un pas · Attendre les fenêtres de passage', createScene: session => new TraverseScene(session), effects: traverseEffects, testHook: () => window.__TRAVERSE_TEST__, touchControls: traverseButtons },
     { thumbnail: caissesThumbnail, demo: caissesDemo, id: 'caisses', name: 'Caisses', levelCount: 30, realtime: false, keyboardHelp: 'Flèches / QSD / Maj+Z : déplacer · Z ou Retour arrière : annuler · R : recommencer', touchHelp: 'Glisser ou croix : un pas · ↶ : annuler · Recommencer dans ☰', createScene: session => new CaissesScene(session), effects: caissesEffects, testHook: () => window.__CAISSES_TEST__, touchControls: caissesButtons },
@@ -100,7 +109,7 @@ export const games: readonly GameDefinition[] = [
         demo: gourmandisesDemo,
         id: 'gourmandises',
         name: GAME_NAME,
-        levelCount: 120,
+        levelCount: 180,
         realtime: false,
         keyboardHelp: 'Flèches : curseur · Espace : choisir puis flèche : permuter · 1/2/3 : outils · P/Échap : pause',
         touchHelp: 'Glisser vers une voisine ou toucher deux pièces · Outil puis case · Indice après 5 s en Découverte',
@@ -109,4 +118,10 @@ export const games: readonly GameDefinition[] = [
         testHook: () => window.__GOURMANDISES_TEST__,
         touchControls: gourmandisesButtons,
     },
+    { thumbnail: marmailleThumbnail, demo: marmailleDemo, id: 'marmaille', name: MARMAILLE_NAME, levelCount: MARMAILLE_LEVELS.length, realtime: true, keyboardHelp: '1 2 3 : choisir un rôle · clic sur un enfant : le lui donner · V : accélérer · P/Échap : pause', touchHelp: 'Toucher un rôle, puis un enfant · » : accélérer', createScene: session => new MarmailleScene(session), effects: marmailleEffects, testHook: () => window.__MARMAILLE_TEST__, touchControls: marmailleButtons },
+    { thumbnail: artificiersThumbnail, demo: artificiersDemo, id: 'artificiers', name: 'Les Artificiers', levelCount: 30, realtime: true, keyboardHelp: '← → : marcher · ↑ ↓ : angle · W/S : puissance · Espace : tir · J : saut · G : grappin · X : arme · P/Échap : pause', touchHelp: 'Glisser du héros et relâcher · Marche, Saut, Arme, Corde · 1 / 2 : solo ou duel local', createScene: session => new ArtificiersScene(session), effects: artificiersEffects, testHook: () => window.__ARTIFICIERS_TEST__, touchControls: artificiersButtons },
 ];
+
+import { ArtificiersScene, artificiersButtons } from './artificiers/scene';
+import { artificiersEffects } from './artificiers/sound';
+import { createThumbnail as artificiersThumbnail, createDemo as artificiersDemo } from './artificiers/thumbnail';

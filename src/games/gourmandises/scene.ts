@@ -1,8 +1,10 @@
 import Phaser from 'phaser';
 import { Random } from '../../engines/shared/random';
 import { GameCharacter } from '../../characters/game';
+import { drawList } from '../../characters/model';
+import { renderCharacter } from '../../characters/canvas';
 import { selectedCharacter } from '../../characters/selection';
-import { Engine, greedyMove, type Mode, type Tool, type State } from '../../engines/gourmandises/engine';
+import { Engine, greedyMove, type Mode, type Tool, type State, type Piece } from '../../engines/gourmandises/engine';
 import { GAME_NAME, LEVELS } from '../../engines/gourmandises/levels';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
@@ -12,7 +14,7 @@ import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { drawPiece } from './thumbnail';
-import { drawDrop, drawIce, boardLayout, presentation, drawScenery, drawTool, card, WORLDS } from './presentation';
+import { drawChocolate, drawHedge, drawBelt, drawDrop, drawIce, boardLayout, presentation, drawScenery, drawTool, card, drawObjective, drawWorldRibbon, drawScoreGauge } from './presentation';
 export const gourmandisesButtons: readonly TouchButton[] = [
     { id: 'gourmandises-hammer', label: '', ariaLabel: 'Marteau : une case', size: 56, placement: 'center', mode: 'tap' },
     { id: 'gourmandises-rocket', label: '', ariaLabel: 'Fusée : une ligne', size: 56, placement: 'center', mode: 'tap' },
@@ -22,14 +24,20 @@ const MODE_KEY = 'arcade-lab:gourmandises:mode:v1';
 const RUN_KEY = 'arcade-lab:gourmandises:run:v1';
 export interface GourmandisesHook {
     read(): State & { armedTool: Tool | null; stars: number; characterView: ReturnType<GameCharacter['snapshot']> };
+    transport(): { from: number; to: number; piece: Piece }[];
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
     loadLevel(index: number, seed?: number): void;
-    scenario(name: 'finish' | 'loss' | 'drop'): [number, number] | null;
+    scenario(name: 'finish' | 'loss' | 'drop' | 'belt'): [number, number] | null;
     bestMove(): [number, number] | null;
     board(): { x: number; y: number; unit: number; width: number; height: number };
 }
 declare global { interface Window { __GOURMANDISES_TEST__?: GourmandisesHook } }
+interface TransportFrame {
+    pieces: (Piece | null)[];
+    falls: Map<number, number>;
+    belts: { from: number; to: number; piece: Piece }[];
+}
 export class GourmandisesScene extends Phaser.Scene {
     private hero = new GameCharacter(selectedCharacter());
     private engine = new Engine(readValue(browserStorage(), MODE_KEY) === 'arcade' ? 'arcade' : 'discovery', this.hero.id);
@@ -43,14 +51,17 @@ export class GourmandisesScene extends Phaser.Scene {
     private animation = 0;
     private falls = new Map<number, number>();
     private deliveries: { from: number; to: number }[] = [];
+    private beltClock = 0;
+    private motionOrigin: (Piece | null)[] = [];
+    private transportFrames: TransportFrame[] = [];
+    private beltMoves: { from: number; to: number; piece: NonNullable<State['cells'][number]['piece']> }[] = [];
     private combo = 0;
     private shake = false;
     private burstColors: number[] = [];
     private particles: { x: number; y: number; color: number }[] = [];
-    private graphics?: Phaser.GameObjects.Graphics;
     private texture?: Phaser.Textures.CanvasTexture;
-    private scenery?: HTMLCanvasElement;
-    private sceneryWorld = -1;
+    private scenery?: Phaser.Textures.CanvasTexture;
+    private sceneryLevel = -1;
     private reducedMotion = false;
     private hud?: Phaser.GameObjects.Text;
     private modeButton?: HTMLButtonElement;
@@ -74,6 +85,10 @@ export class GourmandisesScene extends Phaser.Scene {
         this.tool = null;
         this.selecting = false;
         this.animation = 0;
+        this.transportFrames = [];
+        this.beltMoves = [];
+        this.falls.clear();
+        this.deliveries = [];
         this.sync();
     }
     private blocked(): boolean { return this.ready || this.session.paused || this.selecting || this.animation > 0; }
@@ -82,6 +97,7 @@ export class GourmandisesScene extends Phaser.Scene {
         this.burstColors = this.engine.state.cells.map(cell => cell.piece?.color ?? 0);
         this.shake = this.engine.state.cells[a]?.piece?.special === 'color'
             && this.engine.state.cells[b]?.piece?.special === 'color';
+        this.motionOrigin = this.engine.state.cells.map(cell => cell.piece ? { ...cell.piece } : null);
         this.engine.swap(a, b);
         this.selected = -1;
         this.feedback();
@@ -94,17 +110,69 @@ export class GourmandisesScene extends Phaser.Scene {
         if (this.tool) {
             this.burstColors = this.engine.state.cells.map(cell => cell.piece?.color ?? 0);
             this.shake = false;
+            this.motionOrigin = this.engine.state.cells.map(cell => cell.piece ? { ...cell.piece } : null);
             this.engine.useTool(this.tool, i);
             this.tool = null;
             this.feedback();
         } else if (this.selected >= 0 && this.engine.adjacent(this.selected, i)) this.act(this.selected, i);
         else this.selected = i;
     }
+    /** Replay the event pieces, keeping transport ahead of the cascades it causes. */
+    private prepareTransport(): void {
+        this.transportFrames = [];
+        if (!this.engine.events.some(event => event.type === 'belt') || !this.motionOrigin.length) return;
+        const pieces = this.motionOrigin.map(piece => piece ? { ...piece } : null);
+        const events = this.engine.events;
+        let transported = false;
+        for (let index = 0; index < events.length; index++) {
+            const event = required(events[index]);
+            if (event.type === 'swap') {
+                const [a, b] = event.cells;
+                if (a !== undefined && b !== undefined) [pieces[a], pieces[b]] = [pieces[b] ?? null, pieces[a] ?? null];
+            }
+            if (event.type === 'match' || event.type === 'drop' || event.type === 'grow') {
+                for (const i of event.cells) pieces[i] = null;
+            }
+            if (event.type === 'special' && event.piece) {
+                for (const i of event.cells) pieces[i] = { ...event.piece };
+            }
+            if (event.type === 'shuffle' && event.pieces) {
+                pieces.splice(0, pieces.length, ...event.pieces.map(piece => piece ? { ...piece } : null));
+                if (transported) this.transportFrames.push({ pieces: [...pieces], falls: new Map(), belts: [] });
+            }
+            if (!['belt', 'fall', 'fill'].includes(event.type)) continue;
+            const belt = event.type === 'belt';
+            const motions = [];
+            while (index < events.length) {
+                const next = required(events[index]);
+                if (belt ? next.type !== 'belt' : next.type !== 'fall' && next.type !== 'fill') break;
+                motions.push(next);
+                index++;
+            }
+            index--;
+            // All sources of a belt move simultaneously. Gravity events are
+            // emitted bottom first, so their source can be removed in order.
+            if (belt) for (const move of motions) if (move.from !== undefined) pieces[move.from] = null;
+            const frame: TransportFrame = { pieces: [], falls: new Map(), belts: [] };
+            for (const move of motions) {
+                if (move.to === undefined || move.from === undefined) continue;
+                if (!belt && move.type === 'fall') pieces[move.from] = null;
+                pieces[move.to] = move.piece ? { ...move.piece } : null;
+                if (belt && move.piece) frame.belts.push({ from: move.from, to: move.to, piece: { ...move.piece } });
+                else frame.falls.set(move.to, (move.to - move.from) / this.engine.state.width);
+            }
+            transported ||= belt;
+            frame.pieces = pieces.map(piece => piece ? { ...piece } : null);
+            if (transported) this.transportFrames.push(frame);
+        }
+    }
     private feedback(): void {
+        this.prepareTransport();
         const board = this.board();
         this.particles = [];
         this.falls.clear();
         this.deliveries = [];
+        this.beltMoves = [];
         const cargo = new Map<number, number>();
         for (const event of this.engine.events) {
             if (['swap', 'refused', 'match', 'special', 'cascade', 'obstacle'].includes(event.type)) sound.playEffect(event.type, event.multiplier);
@@ -115,6 +183,9 @@ export class GourmandisesScene extends Phaser.Scene {
                     cargo.delete(event.from);
                     cargo.set(event.to, origin);
                 }
+            }
+            if (event.type === 'belt' && event.from !== undefined && event.to !== undefined && event.piece) {
+                this.beltMoves.push({ from: event.from, to: event.to, piece: event.piece });
             }
             if (event.type === 'drop') {
                 for (const to of event.cells) {
@@ -135,6 +206,8 @@ export class GourmandisesScene extends Phaser.Scene {
             this.animation = 280;
             this.hero.move(0, true);
         }
+        if (this.transportFrames.length) this.animation = this.transportFrames.length * 280;
+        this.motionOrigin = [];
         if (this.engine.events.some(e => e.type === 'obstacle')) sound.playEffect('life');
         this.sync();
     }
@@ -219,10 +292,11 @@ export class GourmandisesScene extends Phaser.Scene {
             this.ready = false;
             if (pausePanel) pausePanel.hidden = true;
         });
-        this.graphics = this.add.graphics();
+        this.sceneryLevel = -1;
+        this.scenery = this.textures.createCanvas('gourmandises-scenery', 360, 640) ?? undefined;
+        this.add.image(0, 0, 'gourmandises-scenery').setOrigin(0);
         this.texture = this.textures.createCanvas('gourmandises-board', 360, 640) ?? undefined;
         this.add.image(0, 0, 'gourmandises-board').setOrigin(0);
-        this.children.bringToTop(this.graphics);
         this.hud = this.add.text(0, 0, '', { fontSize: '1px' }).setVisible(false);
         this.modeButton = document.createElement('button');
         this.modeButton.id = 'gourmandises-mode';
@@ -312,13 +386,14 @@ export class GourmandisesScene extends Phaser.Scene {
                 if (pausePanel) pausePanel.hidden = true;
                 this.start(index, seed, true);
             },
+            transport: () => this.beltMoves.map(move => ({ ...move, piece: { ...move.piece } })),
             bestMove: () => greedyMove(this.engine),
             board: () => this.board(),
             scenario: name => {
                 this.ready = false;
                 if (pausePanel) pausePanel.hidden = true;
                 this.setMode('arcade');
-                this.start(name === 'drop' ? 60 : name === 'finish' ? 0 : 59, name === 'drop' ? 8 : 6, true);
+                this.start(name === 'belt' ? 160 : name === 'drop' ? 60 : name === 'finish' ? 0 : 59, name === 'drop' ? 8 : 6, true);
                 const policy = new Random(65);
                 let final: [number, number] | null = null;
                 // Reach a near terminal state through ordinary, legal permutations only.
@@ -328,7 +403,8 @@ export class GourmandisesScene extends Phaser.Scene {
                     if (!move) break;
                     const probe = this.engine.clone();
                     probe.swap(...move);
-                    if (name === 'drop' ? probe.events.some(e => e.type === 'drop') : probe.status !== 'playing') {
+                    if (name === 'belt' ? probe.events.some(e => e.type === 'belt')
+                        : name === 'drop' ? probe.events.some(e => e.type === 'drop') : probe.status !== 'playing') {
                         final = move;
                         break;
                     }
@@ -344,6 +420,7 @@ export class GourmandisesScene extends Phaser.Scene {
             this.modeButton?.remove();
             delete window.__GOURMANDISES_TEST__;
             this.textures.remove('gourmandises-board');
+            this.textures.remove('gourmandises-scenery');
             sound.stop();
         };
         this.events.once('shutdown', cleanup);
@@ -355,6 +432,7 @@ export class GourmandisesScene extends Phaser.Scene {
         const paused = this.ready || this.session.paused || this.selecting;
         if (!paused) {
             this.engine.advance(delta);
+            if (!this.reducedMotion) this.beltClock = (this.beltClock + delta) % 1200;
             this.animation = Math.max(0, this.animation - delta);
         }
         const special = this.animation > 0 && (this.combo > 1 || this.engine.events.some(e => e.type === 'special'));
@@ -372,47 +450,26 @@ export class GourmandisesScene extends Phaser.Scene {
             }
         }
     }
-    private drawHud(c: CanvasRenderingContext2D): void {
+    /** Fixed level furniture is rasterized with the scenery, never per frame. */
+    private drawStaticHud(c: CanvasRenderingContext2D): void {
         const s = this.engine.state;
         const view = presentation(s, this.tool);
+        c.save();
         c.textAlign = 'center';
         card(c, 10, 10, 66, 83, '#ff5ba7');
         card(c, 82, 10, 194, 83, '#fff1d6');
-        card(c, 282, 10, 68, 83, view.movesColor);
         c.fillStyle = '#633953';
         c.font = 'bold 13px system-ui';
         c.fillText('Niveau', 43, 31);
         c.fillText('Objectif', 179, 29);
-        c.fillText('Coups', 316, 31);
         c.font = 'bold 32px system-ui';
         c.fillStyle = '#ffffff';
         c.fillText(String(s.level + 1), 43, 72);
-        c.fillText(view.moves, 316, 72);
-        s.objectives.forEach((o, i) => {
-            const x = 82 + 194 * (i + 0.5) / s.objectives.length;
-            const icon = view.objectives[i]?.icon;
-            if (icon === 'drop') drawDrop(c, x, 55, 12);
-            else if (typeof icon === 'number') drawPiece(c, x, 50, 14, icon);
-            else {
-                c.fillStyle = '#825130';
-                c.font = 'bold 14px system-ui';
-                c.fillText(icon === 'score' ? '★' : icon === 'ice' ? '◇' : '▧', x, 55);
-            }
-            c.fillStyle = '#563749';
-            c.font = 'bold 13px system-ui';
-            const done = this.engine.progress(o);
-            c.fillText(`${String(done)}/${String(o.target)}${done >= o.target ? ' ✓' : ''}`, x, 81);
+        view.objectives.forEach((o, i) => {
+            const x = 82 + 194 * (i + .5) / s.objectives.length;
+            drawObjective(c, o.icon, x, 51);
         });
-        c.fillStyle = '#fff7ce';
-        c.strokeStyle = '#865328';
-        c.lineWidth = 3;
-        c.font = 'bold 14px system-ui';
-        c.strokeText(WORLDS[view.world] ?? WORLDS[0], 120, 116);
-        c.fillText(WORLDS[view.world] ?? WORLDS[0], 120, 116);
-        for (let i = 0; i < 3; i++) drawPiece(c, 88 + i * 32, 138, 12, 1, i < view.stars ? undefined : 'empty');
-        c.fillStyle = '#64472c';
-        c.font = 'bold 11px system-ui';
-        c.fillText(`Score ${String(s.score)}`, 120, 160);
+        drawWorldRibbon(c, view.world);
         card(c, 16, 165, 222, 25);
         c.fillStyle = '#fff5df';
         c.beginPath();
@@ -420,10 +477,40 @@ export class GourmandisesScene extends Phaser.Scene {
         c.lineTo(255, 162);
         c.lineTo(235, 184);
         c.fill();
+        c.restore();
+    }
+    private drawHud(c: CanvasRenderingContext2D): void {
+        const s = this.engine.state;
+        const view = presentation(s, this.tool);
+        c.textAlign = 'center';
+        card(c, 282, 10, 68, 83, view.movesColor);
+        c.fillStyle = '#633953';
+        c.font = 'bold 13px system-ui';
+        c.fillText('Coups', 316, 31);
+        c.font = 'bold 32px system-ui';
+        c.fillStyle = '#ffffff';
+        c.fillText(view.moves, 316, 72);
+        s.objectives.forEach((o, i) => {
+            const x = 82 + 194 * (i + 0.5) / s.objectives.length;
+            c.fillStyle = '#563749';
+            c.font = 'bold 13px system-ui';
+            const done = this.engine.progress(o);
+            c.fillText(`${String(done)}/${String(o.target)}${done >= o.target ? ' ✓' : ''}`, x, 81);
+        });
+        drawScoreGauge(c, view.stars);
+        c.fillStyle = '#64472c';
+        c.font = 'bold 11px system-ui';
+        c.fillText(`Score ${String(s.score)}`, 120, 160);
         c.fillStyle = '#654329';
         c.font = `bold ${String(this.combo > 1 ? Math.min(24, 14 + this.combo * 2) + this.animation / 140 : 12)}px system-ui`;
         c.fillText(this.combo > 1 ? `Cascade ×${String(this.combo)} !` : s.status === 'won' ? 'Bravo !' : s.status === 'lost' ? 'On essaie encore ?' : 'À toi de jouer !', 127, 182);
         c.textAlign = 'left';
+    }
+    private drawHero(c: CanvasRenderingContext2D): void {
+        // The actor is animated; draw its current pose on the dynamic canvas.
+        // Static scenery lives in its own texture and never enters a Graphics buffer.
+        renderCharacter(c, drawList(this.hero.id, this.hero.pose, this.hero.expression,
+            this.hero.animation, this.hero.time, this.reducedMotion ? 'reduce' : 'full'), 264, 105, 84);
     }
     private draw(): void {
         const c = this.texture?.context;
@@ -434,38 +521,48 @@ export class GourmandisesScene extends Phaser.Scene {
         }
         const b = this.board();
         const s = this.engine.state;
+        const frameIndex = this.transportFrames.length - Math.ceil(this.animation / 280);
+        const frame = this.animation > 0 && !this.reducedMotion ? this.transportFrames[frameIndex] : undefined;
+        const animation = frame ? this.animation - (this.transportFrames.length - frameIndex - 1) * 280 : this.animation;
+        const beltMoves = frame?.belts ?? (this.transportFrames.length ? [] : this.beltMoves);
+        const falls = frame?.falls ?? this.falls;
         c.clearRect(0, 0, 360, 640);
         const view = presentation(s, this.tool);
-        if (this.sceneryWorld !== view.world) {
-            this.scenery = document.createElement('canvas');
-            this.scenery.width = 360;
-            this.scenery.height = 640;
-            const context = this.scenery.getContext('2d');
-            if (context) drawScenery(context, view.world);
-            this.sceneryWorld = view.world;
+        if (this.scenery && this.sceneryLevel !== s.level) {
+            const background = this.scenery.context;
+            drawScenery(background, view.world);
+            this.drawStaticHud(background);
+            background.shadowColor = '#254834';
+            background.shadowBlur = 12;
+            background.shadowOffsetY = 6;
+            card(background, b.x - 8, b.y - 8, b.width + 16, b.height + 16, '#b77d49');
+            background.shadowBlur = 0;
+            background.shadowOffsetY = 0;
+            card(background, b.x - 4, b.y - 4, b.width + 8, b.height + 8, '#d9f7ed');
+            s.cells.forEach((cell, i) => {
+                if (!cell.active) return;
+                const x = i % s.width, y = Math.floor(i / s.width);
+                background.fillStyle = (x + y) % 2 ? '#b6e3d9' : '#d2f0e4';
+                background.fillRect(b.x + x * b.unit + 1, b.y + y * b.unit + 1, b.unit - 2, b.unit - 2);
+            });
+            this.scenery.refresh();
+            this.sceneryLevel = s.level;
         }
-        if (this.scenery) c.drawImage(this.scenery, 0, 0);
-        c.shadowColor = '#254834';
-        c.shadowBlur = 12;
-        c.shadowOffsetY = 6;
-        card(c, b.x - 8, b.y - 8, b.width + 16, b.height + 16, '#b77d49');
-        c.shadowBlur = 0;
-        c.shadowOffsetY = 0;
-        card(c, b.x - 4, b.y - 4, b.width + 8, b.height + 8, '#d9f7ed');
         const hint = this.engine.hint();
         c.save();
-        if (this.shake && this.animation > 0 && !this.reducedMotion) {
-            c.translate(Math.sin(this.animation / 18) * 3, 0);
+        if (this.shake && animation > 0 && !this.reducedMotion) {
+            c.translate(Math.sin(animation / 18) * 3, 0);
         }
         c.beginPath();
         c.rect(b.x, b.y, b.width, b.height);
         c.clip();
-        s.cells.forEach((cell, i) => {
+        s.cells.forEach((terrain, i) => {
+            const cell = frame ? { ...terrain, piece: frame.pieces[i] ?? null } : terrain;
             if (!cell.active) return;
             const x = b.x + i % s.width * b.unit;
             const y = b.y + Math.floor(i / s.width) * b.unit;
-            c.fillStyle = (i % s.width + Math.floor(i / s.width)) % 2 ? '#b6e3d9' : '#d2f0e4';
-            c.fillRect(x + 1, y + 1, b.unit - 2, b.unit - 2);
+            if (cell.belt) drawBelt(c, x, y, b.unit, cell.belt.direction, this.reducedMotion ? 0 : this.beltClock / 1200);
+            if (cell.chocolate) drawChocolate(c, x, y, b.unit);
             if (cell.crate) {
                 c.fillStyle = cell.crate > 1 ? '#ad7547' : '#dba363';
                 c.fillRect(x + 3, y + 3, b.unit - 6, b.unit - 6);
@@ -496,12 +593,14 @@ export class GourmandisesScene extends Phaser.Scene {
                     c.fill();
                 }
             }
-            if (cell.piece) {
-                const distance = this.falls.get(i) ?? 0;
-                const offset = this.animation > 0 && !this.reducedMotion ? -Math.pow(this.animation / 280, 2) * b.unit * distance : 0;
+            const transported = animation > 0 && !this.reducedMotion && beltMoves.some(move => move.to === i);
+            if (cell.piece && !transported) {
+                const distance = falls.get(i) ?? 0;
+                const offset = animation > 0 && !this.reducedMotion ? -Math.pow(animation / 280, 2) * b.unit * distance : 0;
                 if (cell.piece.drop) drawDrop(c, x + b.unit / 2, y + b.unit / 2 + offset, b.unit * 0.34);
                 else drawPiece(c, x + b.unit / 2, y + b.unit / 2 + offset, b.unit * 0.37, cell.piece.color, cell.piece.special);
             }
+            if (cell.hedge) drawHedge(c, x, y, b.unit);
             if (cell.ice) drawIce(c, x, y, b.unit, cell.ice);
             if (cell.exit) {
                 c.strokeStyle = '#fff0a0';
@@ -523,10 +622,42 @@ export class GourmandisesScene extends Phaser.Scene {
                 c.strokeRect(x + 2, y + 2, b.unit - 4, b.unit - 4);
             }
         });
+        if (animation > 0 && !this.reducedMotion) {
+            const remaining = Math.pow(animation / 280, 2);
+            for (const move of beltMoves) {
+                const band = s.cells[move.from]?.belt?.band;
+                const indices = s.cells.flatMap((cell, i) => cell.belt?.band === band ? [i] : []);
+                const columns = indices.map(i => i % s.width);
+                const rows = indices.map(i => Math.floor(i / s.width));
+                c.save();
+                c.beginPath();
+                c.rect(b.x + Math.min(...columns) * b.unit, b.y + Math.min(...rows) * b.unit,
+                    (Math.max(...columns) - Math.min(...columns) + 1) * b.unit,
+                    (Math.max(...rows) - Math.min(...rows) + 1) * b.unit);
+                c.clip();
+                const fromX = move.from % s.width;
+                const fromY = Math.floor(move.from / s.width);
+                const toX = move.to % s.width;
+                const toY = Math.floor(move.to / s.width);
+                const direction = s.cells[move.from]?.belt?.direction;
+                const dx = direction === 'right' ? 1 : direction === 'left' ? -1 : 0;
+                const dy = direction === 'down' ? 1 : direction === 'up' ? -1 : 0;
+                const wrap = Math.abs(toX - fromX) + Math.abs(toY - fromY) > 1;
+                const positions = wrap ? [
+                    [fromX + dx * (1 - remaining), fromY + dy * (1 - remaining)],
+                    [toX - dx * remaining, toY - dy * remaining],
+                ] : [[toX + (fromX - toX) * remaining, toY + (fromY - toY) * remaining]];
+                for (const [column = 0, row = 0] of positions) {
+                    drawPiece(c, b.x + (column + .5) * b.unit, b.y + (row + .5) * b.unit,
+                        b.unit * .37, move.piece.color, move.piece.special);
+                }
+                c.restore();
+            }
+        }
         // Delivered cargo has left the final board; draw the event's gold piece
         // separately so a refill at the same destination cannot replace it.
-        if (this.animation > 0 && !this.reducedMotion) {
-            const remaining = Math.pow(this.animation / 280, 2);
+        if (animation > 0 && !this.reducedMotion) {
+            const remaining = Math.pow(animation / 280, 2);
             for (const delivery of this.deliveries) {
                 const x = b.x + (delivery.to % s.width + 0.5) * b.unit;
                 const y = b.y + (Math.floor(delivery.to / s.width) + 0.5
@@ -535,8 +666,8 @@ export class GourmandisesScene extends Phaser.Scene {
             }
         }
         c.restore();
-        if (this.animation > 0 && !this.reducedMotion) {
-            const t = 1 - this.animation / 280;
+        if (animation > 0 && !this.reducedMotion) {
+            const t = 1 - animation / 280;
             for (const event of this.engine.events.filter(event => event.type === 'special')) {
                 for (const index of event.cells) {
                     const x = b.x + (index % s.width + 0.5) * b.unit;
@@ -562,7 +693,8 @@ export class GourmandisesScene extends Phaser.Scene {
         const pieceNames = ['fraises', 'étoiles', 'gouttes', 'feuilles', 'fleurs', 'cœurs', 'oranges'];
         const targets = s.objectives.map(o => {
             const label = o.kind === 'collect' ? pieceNames[o.color] ?? 'pièces'
-                : o.kind === 'drop' ? 'gouttes sorties' : o.kind;
+                : o.kind === 'drop' ? 'gouttes sorties'
+                    : o.kind === 'flower' ? 'fleurs libérées' : o.kind === 'chocolate' ? 'chocolats cassés' : o.kind;
             return `${label} ${String(this.engine.progress(o))}/${String(o.target)}`;
         }).join(' · ');
         const budget = s.mode === 'arcade' ? `/${String(s.budget)}` : ' · Découverte';
@@ -577,9 +709,8 @@ export class GourmandisesScene extends Phaser.Scene {
         c.fillStyle = '#fff2ce';
         c.font = '14px system-ui';
         this.drawHud(c);
+        this.drawHero(c);
         this.texture?.refresh();
-        this.graphics?.clear();
-        if (this.graphics) this.hero.draw(this.graphics, 264, 105, 84);
         const status = document.querySelector('#status');
         if (status) status.textContent = text;
         this.syncTools();

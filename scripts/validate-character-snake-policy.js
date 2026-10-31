@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 const { Engine } = await import('../src/engines/serpentin/engine.ts');
 const { snakePlan } = await import('../tests/e2e/character-snake-policy.ts');
 const source = readFileSync('tests/e2e/character-finger-2.spec.ts', 'utf8');
-assert.doesNotMatch(source, /__SERPENTIN_TEST__(?:\?\.|\.)advance/, 'snake finger E2E never controls scene time');
+assert.doesNotMatch(source, /__SERPENTIN_TEST__(?:\?\.|\.)advance\((?!0\))/, 'snake finger E2E never controls scene time');
 const results = [];
 // Pass 401: room 14 (prey, portals, torus) replaces room 10, which now holds gates.
 for (const level of [0, 13]) for (const cadence of [150, 155, 160, 170, 180]) {

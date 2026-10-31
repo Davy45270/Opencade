@@ -4,438 +4,438 @@
       {
         "level": 1,
         "special": false,
-        "score": 800,
+        "score": 900,
         "lives": 3,
-        "frames": 839
+        "frames": 854
       },
       {
         "level": 1,
         "special": true,
-        "score": 800,
+        "score": 900,
         "lives": 3,
-        "frames": 839
+        "frames": 854
       },
       {
         "level": 2,
         "special": false,
-        "score": 800,
+        "score": 900,
         "lives": 3,
-        "frames": 978
+        "frames": 1159
       },
       {
         "level": 2,
         "special": true,
-        "score": 800,
+        "score": 900,
         "lives": 3,
-        "frames": 978
+        "frames": 1159
       },
       {
         "level": 3,
         "special": false,
-        "score": 825,
+        "score": 925,
         "lives": 1,
-        "frames": 1192
+        "frames": 1207
       },
       {
         "level": 3,
         "special": true,
-        "score": 825,
+        "score": 925,
         "lives": 1,
-        "frames": 1192
+        "frames": 1207
       },
       {
         "level": 4,
         "special": false,
-        "score": 900,
+        "score": 1000,
         "lives": 2,
-        "frames": 1382
+        "frames": 1381
       },
       {
         "level": 4,
         "special": true,
-        "score": 900,
+        "score": 1000,
         "lives": 2,
-        "frames": 1382
+        "frames": 1381
       },
       {
         "level": 5,
         "special": false,
-        "score": 960,
+        "score": 1060,
         "lives": 2,
         "frames": 1840
       },
       {
         "level": 5,
         "special": true,
-        "score": 960,
+        "score": 1060,
         "lives": 2,
         "frames": 1840
       },
       {
         "level": 6,
         "special": false,
-        "score": 700,
+        "score": 800,
         "lives": 3,
-        "frames": 943
+        "frames": 958
       },
       {
         "level": 6,
         "special": true,
-        "score": 700,
+        "score": 800,
         "lives": 3,
-        "frames": 943
+        "frames": 958
       },
       {
         "level": 7,
         "special": false,
-        "score": 1100,
+        "score": 1200,
         "lives": 2,
-        "frames": 1066
+        "frames": 1078
       },
       {
         "level": 7,
         "special": true,
-        "score": 1100,
+        "score": 1200,
         "lives": 2,
-        "frames": 1066
+        "frames": 1078
       },
       {
         "level": 8,
         "special": false,
-        "score": 1025,
+        "score": 1125,
         "lives": 3,
-        "frames": 992
+        "frames": 1007
       },
       {
         "level": 8,
         "special": true,
-        "score": 1025,
+        "score": 1125,
         "lives": 3,
-        "frames": 992
+        "frames": 1007
       },
       {
         "level": 9,
         "special": false,
-        "score": 725,
+        "score": 825,
         "lives": 3,
-        "frames": 938
+        "frames": 953
       },
       {
         "level": 9,
         "special": true,
-        "score": 725,
+        "score": 825,
         "lives": 3,
-        "frames": 938
+        "frames": 953
       },
       {
         "level": 10,
         "special": false,
-        "score": 1380,
+        "score": 1480,
         "lives": 1,
-        "frames": 1498
+        "frames": 1513
       },
       {
         "level": 10,
         "special": true,
-        "score": 1380,
+        "score": 1480,
         "lives": 1,
-        "frames": 1498
+        "frames": 1513
       },
       {
         "level": 11,
         "special": false,
-        "score": 750,
+        "score": 850,
         "lives": 3,
         "frames": 966
       },
       {
         "level": 11,
         "special": true,
-        "score": 750,
+        "score": 850,
         "lives": 3,
         "frames": 966
       },
       {
         "level": 12,
         "special": false,
-        "score": 1100,
+        "score": 1200,
         "lives": 3,
-        "frames": 425
+        "frames": 426
       },
       {
         "level": 12,
         "special": true,
-        "score": 1100,
+        "score": 1200,
         "lives": 3,
         "frames": 425
       },
       {
         "level": 13,
         "special": false,
-        "score": 900,
+        "score": 1000,
         "lives": 2,
-        "frames": 1137
+        "frames": 1152
       },
       {
         "level": 13,
         "special": true,
+        "score": 1000,
+        "lives": 2,
+        "frames": 1152
+      },
+      {
+        "level": 14,
+        "special": false,
+        "score": 1400,
+        "lives": 3,
+        "frames": 897
+      },
+      {
+        "level": 14,
+        "special": true,
+        "score": 1400,
+        "lives": 3,
+        "frames": 897
+      },
+      {
+        "level": 15,
+        "special": false,
+        "score": 1225,
+        "lives": 3,
+        "frames": 1969
+      },
+      {
+        "level": 15,
+        "special": true,
+        "score": 1225,
+        "lives": 3,
+        "frames": 2254
+      },
+      {
+        "level": 16,
+        "special": false,
+        "score": 1300,
+        "lives": 3,
+        "frames": 881
+      },
+      {
+        "level": 16,
+        "special": true,
+        "score": 1300,
+        "lives": 3,
+        "frames": 881
+      },
+      {
+        "level": 17,
+        "special": false,
         "score": 900,
         "lives": 2,
-        "frames": 1137
-      },
-      {
-        "level": 14,
-        "special": false,
-        "score": 1300,
-        "lives": 3,
-        "frames": 882
-      },
-      {
-        "level": 14,
-        "special": true,
-        "score": 1300,
-        "lives": 3,
-        "frames": 882
-      },
-      {
-        "level": 15,
-        "special": false,
-        "score": 1125,
-        "lives": 3,
-        "frames": 1954
-      },
-      {
-        "level": 15,
-        "special": true,
-        "score": 1125,
-        "lives": 3,
-        "frames": 1954
-      },
-      {
-        "level": 16,
-        "special": false,
-        "score": 1200,
-        "lives": 3,
-        "frames": 866
-      },
-      {
-        "level": 16,
-        "special": true,
-        "score": 1200,
-        "lives": 3,
-        "frames": 866
-      },
-      {
-        "level": 17,
-        "special": false,
-        "score": 800,
-        "lives": 2,
-        "frames": 505
+        "frames": 506
       },
       {
         "level": 17,
         "special": true,
-        "score": 800,
+        "score": 900,
         "lives": 2,
         "frames": 505
       },
       {
         "level": 18,
         "special": false,
-        "score": 2325,
+        "score": 2425,
         "lives": 3,
-        "frames": 1077
+        "frames": 1091
       },
       {
         "level": 18,
         "special": true,
-        "score": 2325,
+        "score": 2425,
         "lives": 3,
-        "frames": 1077
+        "frames": 1091
       },
       {
         "level": 19,
         "special": false,
-        "score": 1000,
+        "score": 1100,
         "lives": 3,
-        "frames": 988
+        "frames": 1003
       },
       {
         "level": 19,
         "special": true,
-        "score": 1000,
+        "score": 1100,
         "lives": 3,
-        "frames": 988
+        "frames": 1003
       },
       {
         "level": 20,
         "special": false,
-        "score": 1020,
+        "score": 1120,
         "lives": 2,
-        "frames": 1088
+        "frames": 1217
       },
       {
         "level": 20,
         "special": true,
-        "score": 1020,
+        "score": 1120,
         "lives": 2,
-        "frames": 1088
+        "frames": 1217
       },
       {
         "level": 21,
         "special": false,
-        "score": 825,
+        "score": 925,
         "lives": 3,
-        "frames": 840
+        "frames": 1022
       },
       {
         "level": 21,
         "special": true,
-        "score": 825,
+        "score": 925,
         "lives": 3,
-        "frames": 840
+        "frames": 1020
       },
       {
         "level": 22,
         "special": false,
-        "score": 1650,
+        "score": 1750,
         "lives": 3,
-        "frames": 838
+        "frames": 844
       },
       {
         "level": 22,
         "special": true,
-        "score": 1650,
+        "score": 1750,
         "lives": 3,
-        "frames": 838
+        "frames": 844
       },
       {
         "level": 23,
         "special": false,
         "score": 1000,
         "lives": 3,
-        "frames": 423
+        "frames": 424
       },
       {
         "level": 23,
         "special": true,
-        "score": 1000,
+        "score": 1100,
         "lives": 3,
         "frames": 423
       },
       {
         "level": 24,
         "special": false,
-        "score": 825,
+        "score": 925,
         "lives": 3,
-        "frames": 852
+        "frames": 1004
       },
       {
         "level": 24,
         "special": true,
-        "score": 825,
+        "score": 925,
         "lives": 3,
-        "frames": 852
+        "frames": 1004
       },
       {
         "level": 25,
         "special": false,
-        "score": 1200,
+        "score": 1300,
         "lives": 3,
-        "frames": 1491
+        "frames": 1461
       },
       {
         "level": 25,
         "special": true,
-        "score": 1200,
+        "score": 1300,
         "lives": 3,
-        "frames": 1491
+        "frames": 1461
       },
       {
         "level": 26,
         "special": false,
-        "score": 2500,
+        "score": 2600,
         "lives": 3,
-        "frames": 901
+        "frames": 916
       },
       {
         "level": 26,
         "special": true,
-        "score": 2500,
+        "score": 2600,
         "lives": 3,
         "frames": 901
       },
       {
         "level": 27,
         "special": false,
-        "score": 700,
+        "score": 800,
         "lives": 3,
         "frames": 949
       },
       {
         "level": 27,
         "special": true,
-        "score": 700,
+        "score": 800,
         "lives": 3,
         "frames": 949
       },
       {
         "level": 28,
         "special": false,
-        "score": 825,
+        "score": 925,
         "lives": 3,
-        "frames": 420
+        "frames": 421
       },
       {
         "level": 28,
         "special": true,
-        "score": 825,
+        "score": 925,
         "lives": 3,
         "frames": 420
       },
       {
         "level": 29,
         "special": false,
-        "score": 2200,
+        "score": 2300,
         "lives": 3,
-        "frames": 985
+        "frames": 1000
       },
       {
         "level": 29,
         "special": true,
-        "score": 2200,
+        "score": 2300,
         "lives": 3,
-        "frames": 985
+        "frames": 1000
       },
       {
         "level": 30,
         "special": false,
-        "score": 1545,
+        "score": 1645,
         "lives": 2,
-        "frames": 2191
+        "frames": 2206
       },
       {
         "level": 30,
         "special": true,
-        "score": 1545,
+        "score": 1645,
         "lives": 2,
-        "frames": 2191
+        "frames": 2206
       }
     ],
     "briqueterie": [
       {
         "level": 1,
         "special": false,
-        "score": 720,
+        "score": 1140,
         "lives": 3,
-        "frames": 2516
+        "frames": 1912
       },
       {
         "level": 1,
         "special": true,
-        "score": 720,
+        "score": 1140,
         "lives": 3,
-        "frames": 7872
+        "frames": 6245
       },
       {
         "level": 2,
@@ -496,16 +496,16 @@
       {
         "level": 6,
         "special": false,
-        "score": 300,
+        "score": 1320,
         "lives": 3,
-        "frames": 1683
+        "frames": 2130
       },
       {
         "level": 6,
         "special": true,
-        "score": 300,
+        "score": 1320,
         "lives": 3,
-        "frames": 989
+        "frames": 7575
       },
       {
         "level": 7,
@@ -622,16 +622,16 @@
       {
         "level": 15,
         "special": false,
-        "score": 650,
+        "score": 1250,
         "lives": 3,
-        "frames": 3427
+        "frames": 16128
       },
       {
         "level": 15,
         "special": true,
-        "score": 640,
+        "score": 1120,
         "lives": 3,
-        "frames": 1972
+        "frames": 2173
       },
       {
         "level": 16,
@@ -664,16 +664,16 @@
       {
         "level": 18,
         "special": false,
-        "score": 450,
+        "score": 1380,
         "lives": 3,
-        "frames": 1971
+        "frames": 1608
       },
       {
         "level": 18,
         "special": true,
-        "score": 450,
+        "score": 1380,
         "lives": 3,
-        "frames": 1096
+        "frames": 2960
       },
       {
         "level": 19,
@@ -1270,35 +1270,35 @@
   "mutations": [
     {
       "file": "src/engines/ferraille/engine.ts",
-      "line": 136,
+      "line": 137,
       "before": "enemy.hp -= 3;",
       "after": "enemy.hp -= 0;",
       "killed": true
     },
     {
       "file": "src/engines/ferraille/engine.ts",
-      "line": 136,
+      "line": 137,
       "before": "enemy.hp -= 3; s.score += 100;",
       "after": "enemy.hp -= 3; s.score += 0;",
       "killed": true
     },
     {
       "file": "src/engines/ferraille/engine.ts",
-      "line": 138,
+      "line": 139,
       "before": "cage.hp = Math.max(0, cage.hp - 3);",
       "after": "cage.hp = Math.max(0, cage.hp - 0);",
       "killed": true
     },
     {
       "file": "src/engines/ferraille/engine.ts",
-      "line": 140,
+      "line": 141,
       "before": "s.score += Math.min(3, s.boss.hp) * 20;",
       "after": "s.score += 0;",
       "killed": true
     },
     {
       "file": "src/engines/ferraille/engine.ts",
-      "line": 129,
+      "line": 130,
       "before": "s.specialCooldown = 600; s.specialTicks = 18;",
       "after": "s.specialCooldown = 600; s.specialTicks = 1;",
       "killed": true
@@ -1326,7 +1326,7 @@
     },
     {
       "file": "src/engines/ferraille/engine.ts",
-      "line": 128,
+      "line": 129,
       "before": "(s.specialCooldown ?? 0) > 0",
       "after": "false",
       "killed": true

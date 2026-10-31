@@ -1,0 +1,1012 @@
+{
+  "complete": true,
+  "campaignSeed": 28,
+  "balanceLevels": [
+    4,
+    12,
+    20,
+    30
+  ],
+  "balanceSeeds": [
+    6,
+    16,
+    28
+  ],
+  "campaign": [
+    {
+      "level": 1,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 24750,
+      "at": 31,
+      "rivals": [],
+      "blocks": 12,
+      "specials": 0
+    },
+    {
+      "level": 2,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 61000.00000000001,
+      "at": 56,
+      "rivals": [],
+      "blocks": 6,
+      "specials": 0
+    },
+    {
+      "level": 3,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 17000,
+      "at": 106,
+      "rivals": [],
+      "blocks": 20,
+      "specials": 0
+    },
+    {
+      "level": 4,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 64250.00000000001,
+      "at": 38,
+      "rivals": [],
+      "blocks": 6,
+      "specials": 3
+    },
+    {
+      "level": 5,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 42000,
+      "at": 73,
+      "rivals": [],
+      "blocks": 3,
+      "specials": 4
+    },
+    {
+      "level": 6,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 19133.333333333336,
+      "at": 27,
+      "rivals": [],
+      "blocks": 20,
+      "specials": 2
+    },
+    {
+      "level": 7,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 21500,
+      "at": 89,
+      "rivals": [],
+      "blocks": 18,
+      "specials": 0
+    },
+    {
+      "level": 8,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 16750,
+      "at": 95,
+      "rivals": [],
+      "blocks": 30,
+      "specials": 0
+    },
+    {
+      "level": 9,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 56250.00000000001,
+      "at": 105,
+      "rivals": [],
+      "blocks": 17,
+      "specials": 2
+    },
+    {
+      "level": 10,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 41250,
+      "at": 129,
+      "rivals": [],
+      "blocks": 21,
+      "specials": 3
+    },
+    {
+      "level": 11,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 19500,
+      "at": 129,
+      "rivals": [],
+      "blocks": 26,
+      "specials": 3
+    },
+    {
+      "level": 12,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 32500.000000000004,
+      "at": 115,
+      "rivals": [],
+      "blocks": 13,
+      "specials": 0
+    },
+    {
+      "level": 13,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 25333.333333333336,
+      "at": 119,
+      "rivals": [],
+      "blocks": 14,
+      "specials": 1
+    },
+    {
+      "level": 14,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 26750.000000000004,
+      "at": 105,
+      "rivals": [],
+      "blocks": 20,
+      "specials": 0
+    },
+    {
+      "level": 15,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 24750,
+      "at": 119,
+      "rivals": [],
+      "blocks": 27,
+      "specials": 1
+    },
+    {
+      "level": 16,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 31250.000000000004,
+      "at": 113,
+      "rivals": [],
+      "blocks": 11,
+      "specials": 0
+    },
+    {
+      "level": 17,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 40000,
+      "at": 45,
+      "rivals": [],
+      "blocks": 11,
+      "specials": 2
+    },
+    {
+      "level": 18,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 46250,
+      "at": 62,
+      "rivals": [],
+      "blocks": 14,
+      "specials": 0
+    },
+    {
+      "level": 19,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 65250.00000000001,
+      "at": 119,
+      "rivals": [],
+      "blocks": 2,
+      "specials": 0
+    },
+    {
+      "level": 20,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 62750.00000000001,
+      "at": 117,
+      "rivals": [],
+      "blocks": 2,
+      "specials": 0
+    },
+    {
+      "level": 21,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 35000,
+      "at": 71,
+      "rivals": [],
+      "blocks": 14,
+      "specials": 1
+    },
+    {
+      "level": 22,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 38250,
+      "at": 19,
+      "rivals": [
+        100,
+        31,
+        124
+      ],
+      "blocks": 2,
+      "specials": 0
+    },
+    {
+      "level": 23,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 23500,
+      "at": 93,
+      "rivals": [],
+      "blocks": 18,
+      "specials": 2
+    },
+    {
+      "level": 24,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 22016.666666666668,
+      "at": 20,
+      "rivals": [],
+      "blocks": 15,
+      "specials": 1
+    },
+    {
+      "level": 25,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 61000.00000000001,
+      "at": 64,
+      "rivals": [],
+      "blocks": 3,
+      "specials": 0
+    },
+    {
+      "level": 26,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 36500,
+      "at": 97,
+      "rivals": [
+        119
+      ],
+      "blocks": 3,
+      "specials": 1
+    },
+    {
+      "level": 27,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 18016.666666666668,
+      "at": 128,
+      "rivals": [
+        130,
+        40
+      ],
+      "blocks": 16,
+      "specials": 0
+    },
+    {
+      "level": 28,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 50750,
+      "at": 84,
+      "rivals": [],
+      "blocks": 2,
+      "specials": 0
+    },
+    {
+      "level": 29,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 44250,
+      "at": 15,
+      "rivals": [],
+      "blocks": 9,
+      "specials": 1
+    },
+    {
+      "level": 30,
+      "pilot": "won",
+      "idle": "lost",
+      "time": 34483.333333333336,
+      "at": 27,
+      "rivals": [],
+      "blocks": 5,
+      "specials": 1
+    }
+  ],
+  "balance": [
+    {
+      "character": "panda",
+      "wins": 10,
+      "games": 12,
+      "rate": 0.8333333333333334,
+      "specials": 11
+    },
+    {
+      "character": "pandaroux",
+      "wins": 11,
+      "games": 12,
+      "rate": 0.9166666666666666,
+      "specials": 4
+    },
+    {
+      "character": "dragon",
+      "wins": 11,
+      "games": 12,
+      "rate": 0.9166666666666666,
+      "specials": 12
+    },
+    {
+      "character": "singe",
+      "wins": 11,
+      "games": 12,
+      "rate": 0.9166666666666666,
+      "specials": 14
+    },
+    {
+      "character": "licorne",
+      "wins": 11,
+      "games": 12,
+      "rate": 0.9166666666666666,
+      "specials": 10
+    }
+  ],
+  "balanceGames": [
+    {
+      "character": "panda",
+      "level": 4,
+      "seed": 6,
+      "status": "won",
+      "time": 25750.000000000004,
+      "seconds": 0.9283866369999887
+    },
+    {
+      "character": "panda",
+      "level": 4,
+      "seed": 16,
+      "status": "won",
+      "time": 11533.333333333334,
+      "seconds": 0.4612575280000019
+    },
+    {
+      "character": "panda",
+      "level": 4,
+      "seed": 28,
+      "status": "won",
+      "time": 64250.00000000001,
+      "seconds": 0,
+      "reusedCampaign": true
+    },
+    {
+      "character": "panda",
+      "level": 12,
+      "seed": 6,
+      "status": "won",
+      "time": 20750,
+      "seconds": 0.7979857790000097
+    },
+    {
+      "character": "panda",
+      "level": 12,
+      "seed": 16,
+      "status": "lost",
+      "time": 128000.00000000001,
+      "seconds": 3.5153957519999968
+    },
+    {
+      "character": "panda",
+      "level": 12,
+      "seed": 28,
+      "status": "won",
+      "time": 32500.000000000004,
+      "seconds": 0,
+      "reusedCampaign": true
+    },
+    {
+      "character": "panda",
+      "level": 20,
+      "seed": 6,
+      "status": "won",
+      "time": 31750.000000000004,
+      "seconds": 1.7294709639999928
+    },
+    {
+      "character": "panda",
+      "level": 20,
+      "seed": 16,
+      "status": "won",
+      "time": 24000,
+      "seconds": 1.236474866000004
+    },
+    {
+      "character": "panda",
+      "level": 20,
+      "seed": 28,
+      "status": "won",
+      "time": 62750.00000000001,
+      "seconds": 0,
+      "reusedCampaign": true
+    },
+    {
+      "character": "panda",
+      "level": 30,
+      "seed": 6,
+      "status": "lost",
+      "time": 14850.000000000002,
+      "seconds": 6.103065738000005
+    },
+    {
+      "character": "panda",
+      "level": 30,
+      "seed": 16,
+      "status": "won",
+      "time": 22200,
+      "seconds": 3.4079791749999857
+    },
+    {
+      "character": "panda",
+      "level": 30,
+      "seed": 28,
+      "status": "won",
+      "time": 34483.333333333336,
+      "seconds": 0,
+      "reusedCampaign": true
+    },
+    {
+      "character": "pandaroux",
+      "level": 4,
+      "seed": 6,
+      "status": "won",
+      "time": 26250.000000000004,
+      "seconds": 1.1475253949999897
+    },
+    {
+      "character": "pandaroux",
+      "level": 4,
+      "seed": 16,
+      "status": "won",
+      "time": 21000,
+      "seconds": 1.0021445349999996
+    },
+    {
+      "character": "pandaroux",
+      "level": 4,
+      "seed": 28,
+      "status": "won",
+      "time": 39000,
+      "seconds": 1.6880939309999958
+    },
+    {
+      "character": "pandaroux",
+      "level": 12,
+      "seed": 6,
+      "status": "won",
+      "time": 20750,
+      "seconds": 0.9325654740000027
+    },
+    {
+      "character": "pandaroux",
+      "level": 12,
+      "seed": 16,
+      "status": "lost",
+      "time": 128000.00000000001,
+      "seconds": 3.381892797000008
+    },
+    {
+      "character": "pandaroux",
+      "level": 12,
+      "seed": 28,
+      "status": "won",
+      "time": 32500.000000000004,
+      "seconds": 1.4746695270000054
+    },
+    {
+      "character": "pandaroux",
+      "level": 20,
+      "seed": 6,
+      "status": "won",
+      "time": 67750,
+      "seconds": 3.35542830900001
+    },
+    {
+      "character": "pandaroux",
+      "level": 20,
+      "seed": 16,
+      "status": "won",
+      "time": 25583.333333333336,
+      "seconds": 1.45698004699999
+    },
+    {
+      "character": "pandaroux",
+      "level": 20,
+      "seed": 28,
+      "status": "won",
+      "time": 62750.00000000001,
+      "seconds": 3.1760992470000056
+    },
+    {
+      "character": "pandaroux",
+      "level": 30,
+      "seed": 6,
+      "status": "won",
+      "time": 30000.000000000004,
+      "seconds": 10.702370727999995
+    },
+    {
+      "character": "pandaroux",
+      "level": 30,
+      "seed": 16,
+      "status": "won",
+      "time": 22200,
+      "seconds": 3.6257206300000107
+    },
+    {
+      "character": "pandaroux",
+      "level": 30,
+      "seed": 28,
+      "status": "won",
+      "time": 36500,
+      "seconds": 8.013292772999995
+    },
+    {
+      "character": "dragon",
+      "level": 4,
+      "seed": 6,
+      "status": "won",
+      "time": 27000.000000000004,
+      "seconds": 1.0067858439999982
+    },
+    {
+      "character": "dragon",
+      "level": 4,
+      "seed": 16,
+      "status": "won",
+      "time": 9516.666666666668,
+      "seconds": 0.43235726600000635
+    },
+    {
+      "character": "dragon",
+      "level": 4,
+      "seed": 28,
+      "status": "won",
+      "time": 61766.66666666667,
+      "seconds": 2.278452647999977
+    },
+    {
+      "character": "dragon",
+      "level": 12,
+      "seed": 6,
+      "status": "won",
+      "time": 20750,
+      "seconds": 0.8841188750000146
+    },
+    {
+      "character": "dragon",
+      "level": 12,
+      "seed": 16,
+      "status": "lost",
+      "time": 128000.00000000001,
+      "seconds": 3.440758677999984
+    },
+    {
+      "character": "dragon",
+      "level": 12,
+      "seed": 28,
+      "status": "won",
+      "time": 32500.000000000004,
+      "seconds": 1.0825416120000009
+    },
+    {
+      "character": "dragon",
+      "level": 20,
+      "seed": 6,
+      "status": "won",
+      "time": 37500,
+      "seconds": 1.7485542459999852
+    },
+    {
+      "character": "dragon",
+      "level": 20,
+      "seed": 16,
+      "status": "won",
+      "time": 24000,
+      "seconds": 1.2648412620000018
+    },
+    {
+      "character": "dragon",
+      "level": 20,
+      "seed": 28,
+      "status": "won",
+      "time": 62750.00000000001,
+      "seconds": 2.3524632940000156
+    },
+    {
+      "character": "dragon",
+      "level": 30,
+      "seed": 6,
+      "status": "won",
+      "time": 32250.000000000004,
+      "seconds": 7.961740334000002
+    },
+    {
+      "character": "dragon",
+      "level": 30,
+      "seed": 16,
+      "status": "won",
+      "time": 22200,
+      "seconds": 3.528087231999991
+    },
+    {
+      "character": "dragon",
+      "level": 30,
+      "seed": 28,
+      "status": "won",
+      "time": 32250.000000000004,
+      "seconds": 7.5605278009999894
+    },
+    {
+      "character": "singe",
+      "level": 4,
+      "seed": 6,
+      "status": "won",
+      "time": 26500.000000000004,
+      "seconds": 1.4091589099999984
+    },
+    {
+      "character": "singe",
+      "level": 4,
+      "seed": 16,
+      "status": "won",
+      "time": 16500,
+      "seconds": 0.7030903099999996
+    },
+    {
+      "character": "singe",
+      "level": 4,
+      "seed": 28,
+      "status": "won",
+      "time": 42250,
+      "seconds": 2.15421400800001
+    },
+    {
+      "character": "singe",
+      "level": 12,
+      "seed": 6,
+      "status": "won",
+      "time": 20750,
+      "seconds": 0.9477237339999992
+    },
+    {
+      "character": "singe",
+      "level": 12,
+      "seed": 16,
+      "status": "lost",
+      "time": 128000.00000000001,
+      "seconds": 3.3477463010000066
+    },
+    {
+      "character": "singe",
+      "level": 12,
+      "seed": 28,
+      "status": "won",
+      "time": 32500.000000000004,
+      "seconds": 1.2265998649999965
+    },
+    {
+      "character": "singe",
+      "level": 20,
+      "seed": 6,
+      "status": "won",
+      "time": 35000,
+      "seconds": 1.731557832999999
+    },
+    {
+      "character": "singe",
+      "level": 20,
+      "seed": 16,
+      "status": "won",
+      "time": 54250.00000000001,
+      "seconds": 2.7047267089999805
+    },
+    {
+      "character": "singe",
+      "level": 20,
+      "seed": 28,
+      "status": "won",
+      "time": 62750.00000000001,
+      "seconds": 3.1765907730000036
+    },
+    {
+      "character": "singe",
+      "level": 30,
+      "seed": 6,
+      "status": "won",
+      "time": 30366.666666666668,
+      "seconds": 11.575989973999997
+    },
+    {
+      "character": "singe",
+      "level": 30,
+      "seed": 16,
+      "status": "won",
+      "time": 22200,
+      "seconds": 3.5711063909999794
+    },
+    {
+      "character": "singe",
+      "level": 30,
+      "seed": 28,
+      "status": "won",
+      "time": 46250,
+      "seconds": 10.12029959899999
+    },
+    {
+      "character": "licorne",
+      "level": 4,
+      "seed": 6,
+      "status": "won",
+      "time": 28750.000000000004,
+      "seconds": 1.0638461750000132
+    },
+    {
+      "character": "licorne",
+      "level": 4,
+      "seed": 16,
+      "status": "won",
+      "time": 15000.000000000002,
+      "seconds": 0.5624456239999854
+    },
+    {
+      "character": "licorne",
+      "level": 4,
+      "seed": 28,
+      "status": "won",
+      "time": 48500,
+      "seconds": 1.354781216000003
+    },
+    {
+      "character": "licorne",
+      "level": 12,
+      "seed": 6,
+      "status": "won",
+      "time": 20750,
+      "seconds": 0.8210126210000017
+    },
+    {
+      "character": "licorne",
+      "level": 12,
+      "seed": 16,
+      "status": "lost",
+      "time": 128000.00000000001,
+      "seconds": 3.2958291910000264
+    },
+    {
+      "character": "licorne",
+      "level": 12,
+      "seed": 28,
+      "status": "won",
+      "time": 32500.000000000004,
+      "seconds": 1.3729498620000087
+    },
+    {
+      "character": "licorne",
+      "level": 20,
+      "seed": 6,
+      "status": "won",
+      "time": 64000.00000000001,
+      "seconds": 2.9627400839999902
+    },
+    {
+      "character": "licorne",
+      "level": 20,
+      "seed": 16,
+      "status": "won",
+      "time": 30750.000000000004,
+      "seconds": 1.244370670000004
+    },
+    {
+      "character": "licorne",
+      "level": 20,
+      "seed": 28,
+      "status": "won",
+      "time": 62750.00000000001,
+      "seconds": 2.886976277000009
+    },
+    {
+      "character": "licorne",
+      "level": 30,
+      "seed": 6,
+      "status": "won",
+      "time": 31750.000000000004,
+      "seconds": 7.681871052000003
+    },
+    {
+      "character": "licorne",
+      "level": 30,
+      "seed": 16,
+      "status": "won",
+      "time": 22200,
+      "seconds": 3.1604017320000275
+    },
+    {
+      "character": "licorne",
+      "level": 30,
+      "seed": 28,
+      "status": "won",
+      "time": 92000,
+      "seconds": 10.765795289000001
+    }
+  ],
+  "selfDeaths": [],
+  "latency": [
+    {
+      "level": 1,
+      "status": "won"
+    },
+    {
+      "level": 4,
+      "status": "won"
+    }
+  ],
+  "randomBombs": [
+    {
+      "level": 26,
+      "status": "lost"
+    },
+    {
+      "level": 27,
+      "status": "lost"
+    },
+    {
+      "level": 28,
+      "status": "lost"
+    },
+    {
+      "level": 29,
+      "status": "lost"
+    },
+    {
+      "level": 30,
+      "status": "lost"
+    }
+  ],
+  "mutations": [
+    {
+      "name": "bouclier_deux_fois_plus_court",
+      "oracle": "B08 cinq pouvoirs exacts",
+      "killed": true
+    },
+    {
+      "name": "teleportation_ignore_danger",
+      "oracle": "B08 destinations sûres et collision glissante",
+      "killed": true
+    },
+    {
+      "name": "bombes_glissantes_traversent_personnages",
+      "oracle": "B08 destinations sûres et collision glissante",
+      "killed": true
+    },
+    {
+      "name": "bonus_special_insensible_au_feu",
+      "oracle": "B07 bonus plafonds et destruction",
+      "killed": true
+    },
+    {
+      "name": "score_elimination_nul",
+      "oracle": "B11 fins et anneaux",
+      "killed": true
+    },
+    {
+      "name": "bonus_temps_nul",
+      "oracle": "B11 fins et anneaux",
+      "killed": true
+    },
+    {
+      "name": "explosions_toutes_panda",
+      "oracle": "B08 destinations sûres et collision glissante",
+      "killed": true
+    },
+    {
+      "name": "anneaux_chaque_seconde",
+      "oracle": "B11 fins et anneaux",
+      "killed": true
+    },
+    {
+      "name": "boubou_bombes_portee_un",
+      "oracle": "B08 cinq pouvoirs exacts",
+      "killed": true
+    },
+    {
+      "name": "bombes_glissantes_plus_rapides",
+      "oracle": "B08 cinq pouvoirs exacts",
+      "killed": true
+    },
+    {
+      "name": "teleportation_distance_cinq",
+      "oracle": "B08 distance et prévision des bombes glissantes",
+      "killed": true
+    },
+    {
+      "name": "portail_ignore_sortie_occupee",
+      "oracle": "B16 mécanismes exacts",
+      "killed": true
+    },
+    {
+      "name": "tapis_ignore_sortie_occupee",
+      "oracle": "B16 mécanismes exacts",
+      "killed": true
+    },
+    {
+      "name": "ia_ne_recherche_plus_les_bonus",
+      "oracle": "B10 fuite et absence de suicide sur vingt essais",
+      "killed": true
+    },
+    {
+      "name": "destruction_ia_ne_revele_aucun_bonus",
+      "oracle": "B10 fuite et absence de suicide sur vingt essais",
+      "killed": true
+    },
+    {
+      "name": "blocs_casses_par_ia_rapportent_des_points",
+      "oracle": "B10 fuite et absence de suicide sur vingt essais",
+      "killed": true
+    },
+    {
+      "name": "glacon_ignore_les_rivaux",
+      "oracle": "B16 mécanismes exacts",
+      "killed": true
+    },
+    {
+      "name": "horizon_reduit_a_1500_ms",
+      "oracle": "B12 contrat de recherche, cadence et récompenses",
+      "killed": true
+    },
+    {
+      "name": "recherche_limitee_a_une_action",
+      "oracle": "B12 contrat de recherche, cadence et récompenses",
+      "killed": true
+    },
+    {
+      "name": "decision_toutes_les_500_ms",
+      "oracle": "B12 contrat de recherche, cadence et récompenses",
+      "killed": true
+    },
+    {
+      "name": "accepte_les_simulations_perdant_un_coeur",
+      "oracle": "B12 contrat de recherche, cadence et récompenses",
+      "killed": true
+    },
+    {
+      "name": "supprime_le_terme_blocs_du_score",
+      "oracle": "B12 contrat de recherche, cadence et récompenses",
+      "killed": true
+    },
+    {
+      "name": "supprime_le_terme_eliminations_du_score",
+      "oracle": "B12 contrat de recherche, cadence et récompenses",
+      "killed": true
+    },
+    {
+      "name": "prevision_glissante_limitee_a_1500_ms",
+      "oracle": "B08 déplacement réel, longue mèche et restauration du cache",
+      "killed": true
+    },
+    {
+      "name": "cache_glissant_ignore_la_resistance_des_blocs",
+      "oracle": "B08 déplacement réel, longue mèche et restauration du cache",
+      "killed": true
+    }
+  ],
+  "campaignSeconds": 69.508673929,
+  "passed": true,
+  "failures": []
+}

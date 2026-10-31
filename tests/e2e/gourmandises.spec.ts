@@ -108,3 +108,40 @@ test('palais givré et sortie réelle d’un objet', async ({ page, isMobile }) 
     await page.screenshot({ path: `${captures}/gourmandises-drop-after.png` });
     expect(errors).toEqual([]);
 });
+
+test('canyon des flèches, boucle et permutation réelle sur le tapis', async ({ page, isMobile }) => {
+    const captures = `test-results/screenshots/${isMobile ? 'mobile' : 'desktop'}`;
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    await page.goto('/?test=1#/gourmandises');
+    await ready(page, isMobile);
+    await page.evaluate(() => window.__GOURMANDISES_TEST__?.loadLevel(179, 8));
+    const finale = await page.evaluate(() => window.__GOURMANDISES_TEST__?.read());
+    expect(finale?.objectives).toHaveLength(2);
+    expect(finale?.cells.some(cell => cell.belt)).toBe(true);
+    await page.screenshot({ path: `${captures}/gourmandises-level180.png` });
+    const pair = await page.evaluate(() => window.__GOURMANDISES_TEST__?.scenario('belt'));
+    if (!pair) throw new Error('Permutation sur le tapis absente');
+    const before = await page.evaluate(() => window.__GOURMANDISES_TEST__?.read());
+    await swap(page, pair, isMobile);
+    await expect.poll(() => page.evaluate(() => window.__GOURMANDISES_TEST__?.read().moves)).toBe((before?.moves ?? 0) + 1);
+    const after = await page.evaluate(() => window.__GOURMANDISES_TEST__?.read());
+    expect(after?.cells.map(cell => cell.belt)).toEqual(before?.cells.map(cell => cell.belt));
+    const transport = await page.evaluate(() => window.__GOURMANDISES_TEST__?.transport());
+    expect(transport?.length).toBeGreaterThan(0);
+    if (!before || !transport) throw new Error('Transport absent');
+    for (const move of transport) {
+        const belt = before.cells[move.from]?.belt;
+        expect(belt).toBeTruthy();
+        const band = before.cells.flatMap((cell, i) => cell.belt?.band === belt?.band ? [i] : []);
+        const step = belt?.direction === 'left' || belt?.direction === 'up' ? -1 : 1;
+        const expected = band[(band.indexOf(move.from) + step + band.length) % band.length];
+        expect(move.to).toBe(expected);
+        expect(move.piece).toBeTruthy();
+    }
+    // A swap alone emits no transport; each band must rotate all its occupied cells.
+    expect(new Set(transport.map(move => move.from)).size).toBe(transport.length);
+    expect(new Set(transport.map(move => move.to))).toEqual(new Set(transport.map(move => move.from)));
+    await page.screenshot({ path: `${captures}/gourmandises-belt-after.png` });
+    expect(errors).toEqual([]);
+});

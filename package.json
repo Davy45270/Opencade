@@ -1,6 +1,6 @@
 {
   "name": "opencade",
-  "version": "0.4.0-beta.2",
+  "version": "0.4.0-beta.3",
   "private": true,
   "description": "Twelve original HTML5 arcade games (Phaser 3, TypeScript), playable by touch, mouse and keyboard.",
   "license": "MIT",
@@ -35,6 +35,7 @@
     "test:pwa": "node --test scripts/test-pwa.js",
     "test:e2e": "node scripts/build-pwa-fixture.js && playwright test",
     "test:node": "node scripts/test-node.js",
+    "audit:gourmandises": "node --import ./scripts/ts-loader.js scripts/audit-gourmandises.js",
     "audit:derapage": "node scripts/audit-derapage-mutations.js"
   },
   "dependencies": {

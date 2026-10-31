@@ -4,6 +4,7 @@ import type { Enemy, Weapon, Boss } from './engine';
 export type Theme = 'factory' | 'desert' | 'jungle' | 'night';
 export type Structure = 'corridor' | 'ascent' | 'descent' | 'vehicle' | 'rescue' | 'arena';
 export interface Level {
+    openingEnemy?: Enemy;
     star: ModuleKind; sequence: readonly ModuleKind[];
     name: string; theme: Theme; structure: Structure; enemies: Enemy['kind'][];
     weapon: Exclude<Weapon, 'single'>; recovery: boolean; boss?: Boss['pattern']; discovery: string;
@@ -12,7 +13,7 @@ const c: Enemy['kind'][] = ['crawler'], s: Enemy['kind'][] = ['shooter', 'crawle
 const k: Enemy['kind'][] = ['kamikaze', 'shooter'], t: Enemy['kind'][] = ['turret', 'kamikaze'];
 const f: Enemy['kind'][] = ['drone', 'shooter'], a: Enemy['kind'][] = ['armored', 'drone', 'kamikaze'];
 function level(theme: Theme, structure: Structure, enemies: Enemy['kind'][], weapon: Level['weapon'], discovery = '', recovery = false, boss?: Boss['pattern']): Level {
-    return { star: 'conveyor', sequence: [], name: discovery || `${theme} · ${structure}`, theme, structure, enemies, weapon, discovery, recovery, boss };
+    return { openingEnemy: enemies.length ? { kind: 'turret', x: 108, y: 242, w: 14, h: 14, vx: 0, vy: 0, hp: 1, clock: 0, originY: 242, phase: 0, aim: Math.PI, opening: true } : undefined, star: 'conveyor', sequence: [], name: discovery || `${theme} · ${structure}`, theme, structure, enemies, weapon, discovery, recovery, boss };
 }
 export const LEVELS: readonly Level[] = [
     level('factory', 'corridor', c, 'fan', 'Patrouilles'),

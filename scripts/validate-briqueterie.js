@@ -89,3 +89,6 @@ const testTimings = [];
 for (const [name, run] of cases) { const t = performance.now(); run(); const ms = performance.now() - t; testTimings.push({ name, ms }); }
 if (!process.argv.includes('--checks-only')) writeFileSync('docs/briqueterie-validation.json', JSON.stringify({ pass: 63, cpuCount: availableParallelism(), victories: records.length, replayMs, testTimings, diversity: { score: diversity.score, noveltyLevels: diversity.noveltyLevels, cloneShare: diversity.cloneShare }, mutations, campaigns: records.map(r => ({ level: r.level, seed: r.seed, frames: r.frames, lives: r.lives, score: r.score, witnesses: r.witnesses })) }, null, 2) + '\n');
 console.log(`K-MEC-01…17, K-DIV-01, K-PILOT: ${records.length} victories; replay ${replayMs.toFixed(1)} ms; score ${diversity.score}; clones ${diversity.cloneShare}; ${mutations.length} mutations rejected`);
+
+const { sceneMeasurements } = await import('./validate-briqueterie-scene.js');
+await sceneMeasurements('briqueterie');

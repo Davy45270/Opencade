@@ -1,5 +1,6 @@
 /* global console */
 import assert from 'node:assert/strict';
+import { scenerySprites } from '../src/games/derapage/scenery.ts';
 import { FAR, projectPoint } from '../src/games/derapage/view3d.ts';
 export function graphicsBudget(actual,reference) {
     assert(actual<=Math.min(800,Math.floor(reference*1.5)),`3D Graphics budget: ${actual} <= ${Math.min(800,Math.floor(reference*1.5))}`);
@@ -12,6 +13,16 @@ export function render3dFrames(h, topMaximum, level) {
         Object.assign(h.engine.karts[0],p);h.frame();
         maximum=Math.max(maximum,h.calls.length);
         assert(h.graphicsObjects.some(g=>g.depth===1000),'HUD stays above 3D props');
+        const decor=h.images.filter(i=>i.placements.setVisible?.[0] && i.texture.key.includes('-roadside-'));
+        const visible=scenerySprites(h.engine.track).map(item=>({item,q:projectPoint(item,h.engine.karts[0])})).filter(({item,q})=>q && q.x+item.radius*q.scale>=0 && q.x-item.radius*q.scale<=360 && q.y>=96 && q.y-(5+item.radius)*q.scale<=640);
+        assert.equal(decor.length,visible.length,'only visible roadside sprites submitted');
+        assert(h.scene.paint.stats().used<h.scene.paint.stats().capacity,'sprite pool has room');
+        for(const {item,q} of visible) {
+            const sprite=decor.find(i=>i.texture.key.endsWith(`-roadside-${item.kind}`) && Math.abs(i.placements.setPosition[0]-q.x)<1e-7 && Math.abs(i.placements.setPosition[1]-(q.y-item.radius*q.scale))<1e-7);
+            assert(sprite,'theme art sprite follows perspective projection');
+            assert.deepEqual(sprite.placements.setDisplaySize,[item.radius*2*q.scale,item.radius*2*q.scale]);
+            assert.deepEqual(sprite.placements.setDepth,[FAR-q.depth+2],'roadside and karts share depth order');
+        }
         const images=h.images.filter(i=>i.placements.setVisible?.[0] && i.texture.key.includes('-rear-'));
         for(const image of images) {
             const [x,y]=image.placements.setPosition;

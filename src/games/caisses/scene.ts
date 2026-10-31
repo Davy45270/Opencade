@@ -1,3 +1,4 @@
+import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { pullRecords } from '../../engines/caisses/records';
 import { GameCharacter } from '../../characters/game';
@@ -20,8 +21,10 @@ export const caissesButtons: readonly TouchButton[] = [
     { compactMenu: true, id: 'caisses-undo', label: '↶', ariaLabel: 'Annuler', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface CaissesHook {
+    performance(): { frames: number; gameMs: number };
+    advance(ms: number): void;
     bounds(): { hero: { x: number; y: number; width: number; height: number } };
-    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; pulling: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
@@ -34,6 +37,7 @@ export class CaissesScene extends Phaser.Scene {
     private progress = new Progression(readSave(browserStorage(), 'caisses', 30), 30);
     private inputs = new Inputs();
     private selecting = false;
+    private testManual = false;
     private pulling = false;
     private heroBounds = { x: 0, y: 0, width: 0, height: 0 };
     private graphics?: Phaser.GameObjects.Graphics;
@@ -44,6 +48,7 @@ export class CaissesScene extends Phaser.Scene {
         this.pulling = false; this.progress.start(index, fresh); this.engine.loadLevel(index, seed); this.selecting = false; this.sync();
     }
     create(): void {
+        const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('caisses');
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('caisses'); delete window.__CAISSES_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
@@ -83,8 +88,15 @@ export class CaissesScene extends Phaser.Scene {
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         this.game.canvas.setAttribute('aria-label', 'Caisses : pousser les caisses dorées sur les cibles turquoise');
         if (new URLSearchParams(location.search).get('test') === '1') window.__CAISSES_TEST__ = {
+            advance: ms => {
+                if (!Number.isFinite(ms) || ms < 0) throw new RangeError('Temps invalide');
+                this.testManual = true;
+                const step = 1000 / 60;
+                for (let i = 0; i < Math.ceil(ms / step); i++) this.tick(Math.min(step, ms - i * step));
+            },
             bounds: () => ({ hero: { ...this.heroBounds } }),
-            read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            performance: () => ({ frames: this.game.loop.frame, gameMs: this.hero.time }),
+            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, pulling: this.pulling }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             hudText: () => this.hud?.text ?? '', usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             scenario: name => {
@@ -98,6 +110,9 @@ export class CaissesScene extends Phaser.Scene {
     }
     updatePaused(): void { this.draw(); }
     update(_time: number, delta: number): void {
+        this.tick(this.testManual ? 0 : delta);
+    }
+    private tick(delta: number): void {
         const paused = this.session.paused || this.selecting;
         if (!paused) this.engine.advance(delta);
         this.hero.advance(delta, paused, this.engine.status, this.engine.specialMs > 0);

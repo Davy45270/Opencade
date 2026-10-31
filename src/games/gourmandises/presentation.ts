@@ -1,3 +1,4 @@
+import type { Objective } from '../../engines/gourmandises/levels';
 import type { State, Tool } from '../../engines/gourmandises/engine';
 import { drawPiece } from './thumbnail';
 
@@ -43,7 +44,7 @@ export function card(c: CanvasRenderingContext2D, x: number, y: number, w: numbe
 /** Cached scenery: no animation, randomness or image resources. */
 export function drawScenery(c: CanvasRenderingContext2D, world: number): void {
     const sky = c.createLinearGradient(0, 0, 0, 640);
-    sky.addColorStop(0, ['#67d9ff', '#8776cd', '#55bba2', '#45cce8', '#6fa6d9', '#8784d1'][world % 6] ?? '#67d9ff');
+    sky.addColorStop(0, ['#67d9ff', '#8776cd', '#55bba2', '#45cce8', '#6fa6d9', '#8784d1', '#e8af88', '#7cdef1', '#edb26e'][world % 9] ?? '#67d9ff');
     sky.addColorStop(1, '#eff7a0');
     c.fillStyle = sky;
     c.fillRect(0, 0, 360, 640);
@@ -51,7 +52,71 @@ export function drawScenery(c: CanvasRenderingContext2D, world: number): void {
     for (let i = 0; i < 6; i++) {
         disc(c, i * 78, 380 + i % 2 * 60, 150, i % 2 ? '#77c94e' : '#46af76');
     }
-    if (world === 3) {
+    if (world === 6) {
+        // Chocolate ramparts, square towers and a flowing fountain.
+        c.fillStyle = '#82503a';
+        c.fillRect(0, 170, 360, 120);
+        for (const x of [8, 300]) {
+            card(c, x, 110, 52, 470, '#79452e');
+            for (let y = 100; y < 560; y += 48) {
+                c.fillStyle = '#a87048';
+                c.fillRect(x + 4, y, 44, 7);
+            }
+            for (const dx of [0, 20, 40]) c.fillRect(x + dx, 90, 12, 30);
+        }
+        c.fillStyle = '#633725';
+        c.beginPath();
+        c.ellipse(180, 180, 64, 15, 0, 0, Math.PI * 2);
+        c.fill();
+        c.strokeStyle = '#b4784f';
+        c.lineWidth = 12;
+        for (const dx of [-24, 0, 24]) {
+            c.beginPath();
+            c.moveTo(180, 110);
+            c.quadraticCurveTo(180 + dx, 105, 180 + dx * 2, 175);
+            c.stroke();
+        }
+        disc(c, 180, 112, 9, '#e7b67b');
+    } else if (world === 7) {
+        c.fillStyle = '#7cc855';
+        c.fillRect(0, 190, 360, 450);
+        for (let i = 0; i < 30; i++) {
+            const x = i % 2 ? 10 + i % 3 * 13 : 324 + i % 3 * 10;
+            const y = 200 + i * 14;
+            c.strokeStyle = '#347e48';
+            c.lineWidth = 3;
+            c.beginPath();
+            c.moveTo(x, y + 15);
+            c.lineTo(x, y);
+            c.stroke();
+            drawPiece(c, x, y, 9, 4);
+        }
+        for (const x of [85, 180, 275]) {
+            card(c, x - 25, 157, 50, 17, '#438e4c');
+            card(c, x - 8, 140, 16, 50, '#438e4c');
+            drawPiece(c, x, 165, 12, 4);
+        }
+    } else if (world === 8) {
+        c.fillStyle = '#dc984e';
+        c.fillRect(0, 170, 360, 470);
+        for (const x of [-25, 300]) {
+            c.fillStyle = '#ba7041';
+            c.beginPath();
+            c.moveTo(x, 140);
+            c.lineTo(x + 70, 200);
+            c.lineTo(x + 90, 640);
+            c.lineTo(x - 10, 640);
+            c.fill();
+            c.strokeStyle = '#e8b574';
+            c.lineWidth = 5;
+            for (let y = 230; y < 640; y += 55) {
+                c.beginPath();
+                c.moveTo(x, y);
+                c.lineTo(x + 80, y + 16);
+                c.stroke();
+            }
+        }
+    } else if (world === 3) {
         // A winding river, pale pebbles and a bright waterfall.
         c.strokeStyle = '#218fcc';
         c.lineWidth = 100;
@@ -113,17 +178,17 @@ export function drawScenery(c: CanvasRenderingContext2D, world: number): void {
             c.fillStyle = '#ffffff99';
             c.fillRect(x - 4, 202, 3, 370);
         }
-        for (const x of [70, 180, 290]) {
+        for (const x of [252, 294, 336]) {
             c.strokeStyle = '#fff2b7';
             c.lineWidth = 3;
             c.beginPath();
             c.moveTo(x, 0);
-            c.lineTo(x, 144);
-            c.moveTo(x - 30, 128);
-            c.quadraticCurveTo(x, 165, x + 30, 128);
+            c.lineTo(x, 95);
+            c.moveTo(x - 16, 94);
+            c.quadraticCurveTo(x, 100, x + 16, 94);
             c.stroke();
-            for (const dx of [-24, 0, 24]) {
-                drawPiece(c, x + dx, 150 + (dx === 0 ? 16 : 0), 8, 2);
+            for (const dx of [-10, 0, 10]) {
+                drawPiece(c, x + dx, 99 + (dx === 0 ? 2 : 0), 3, 2);
             }
         }
     } else if (world === 0) {
@@ -245,4 +310,93 @@ export function drawIce(c: CanvasRenderingContext2D, x: number, y: number, unit:
         c.lineTo(x + unit - 4, y + unit * 0.3);
     }
     c.stroke();
+}
+
+/** The square divisions distinguish solid chocolate from the wooden crates. */
+export function drawChocolate(c: CanvasRenderingContext2D, x: number, y: number, unit: number): void {
+    card(c, x + 2, y + 2, unit - 4, unit - 4, '#653725');
+    for (const dx of [0.14, 0.54]) for (const dy of [0.14, 0.54]) {
+        c.fillStyle = '#a96d43';
+        c.fillRect(x + dx * unit, y + dy * unit, unit * .3, unit * .3);
+        c.fillStyle = '#d69b65';
+        c.fillRect(x + dx * unit, y + dy * unit, unit * .25, unit * .045);
+    }
+}
+export function drawHedge(c: CanvasRenderingContext2D, x: number, y: number, unit: number): void {
+    for (let i = 0; i < 8; i++) {
+        const angle = i * Math.PI / 4;
+        disc(c, x + unit * (.5 + Math.cos(angle) * .32), y + unit * (.5 + Math.sin(angle) * .32), unit * .16,
+            i % 2 ? '#388047' : '#65ad4f');
+    }
+    drawPiece(c, x + unit / 2, y + unit / 2, unit * .18, 4);
+}
+export function drawBelt(c: CanvasRenderingContext2D, x: number, y: number, unit: number,
+    direction: 'right' | 'left' | 'down' | 'up', phase: number): void {
+    c.save();
+    c.translate(x + unit / 2, y + unit / 2);
+    const angle = direction === 'right' ? 0 : direction === 'left' ? Math.PI : direction === 'down' ? Math.PI / 2 : -Math.PI / 2;
+    c.rotate(angle);
+    c.beginPath();
+    c.rect(-unit * .48, -unit * .46, unit * .96, unit * .92);
+    c.clip();
+    c.fillStyle = '#735c46';
+    c.fillRect(-unit * .48, -unit * .46, unit * .96, unit * .92);
+    c.strokeStyle = '#ffe59b99';
+    c.lineWidth = Math.max(2, unit * .06);
+    for (const offset of [-.28, .05]) {
+        const dx = (offset + phase * .15) * unit;
+        c.beginPath();
+        c.moveTo(dx - unit * .1, -unit * .32);
+        c.lineTo(dx + unit * .04, -unit * .2);
+        c.lineTo(dx - unit * .1, -unit * .08);
+        c.stroke();
+    }
+    c.restore();
+}
+
+/** Opaque cream and dark plum keep the label readable over every world. */
+export const WORLD_RIBBON = { background: '#fff1d6', foreground: '#563749', x: 16, y: 98, width: 222, height: 27 } as const;
+export const SCORE_STAR_RADIUS = 15;
+export const CHANDELIER_BOTTOM = 104;
+
+export function drawWorldRibbon(c: CanvasRenderingContext2D, world: number): void {
+    const r = WORLD_RIBBON;
+    c.save();
+    c.textAlign = 'center';
+    card(c, r.x, r.y, r.width, r.height, r.background);
+    c.fillStyle = r.foreground;
+    c.font = 'bold 14px system-ui';
+    c.fillText(WORLDS[world] ?? WORLDS[0], r.x + r.width / 2, r.y + 18);
+    c.restore();
+}
+
+export function drawScoreGauge(c: CanvasRenderingContext2D, stars: number): void {
+    for (let i = 0; i < 3; i++) {
+        drawPiece(c, 88 + i * 38, 140, SCORE_STAR_RADIUS, 1, i < stars ? undefined : 'empty');
+    }
+}
+
+/** Exhaustive objective renderer: text is reserved for labels and counters. */
+export function drawObjective(c: CanvasRenderingContext2D, icon: number | Exclude<Objective['kind'], 'collect'>,
+    x: number, y: number): void {
+    if (typeof icon === 'number') drawPiece(c, x, y, 14, icon);
+    else if (icon === 'score') drawPiece(c, x, y, 14, 1);
+    else if (icon === 'ice') {
+        card(c, x - 12, y - 12, 24, 24, '#78cbea');
+        drawIce(c, x - 13, y - 13, 26, 2);
+    } else if (icon === 'drop') drawDrop(c, x, y, 12);
+    else if (icon === 'flower') drawHedge(c, x - 13, y - 13, 26);
+    else if (icon === 'chocolate') drawChocolate(c, x - 12, y - 12, 24);
+    else {
+        card(c, x - 12, y - 12, 24, 24, '#bd7b3d');
+        c.strokeStyle = '#704322';
+        c.lineWidth = 2;
+        c.strokeRect(x - 8, y - 8, 16, 16);
+        c.beginPath();
+        c.moveTo(x - 8, y - 8);
+        c.lineTo(x + 8, y + 8);
+        c.moveTo(x + 8, y - 8);
+        c.lineTo(x - 8, y + 8);
+        c.stroke();
+    }
 }

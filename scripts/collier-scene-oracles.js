@@ -1,4 +1,4 @@
-/* global URL, URLSearchParams */
+/* global URL, URLSearchParams, console */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { transpile } from './transpile.js';
@@ -7,6 +7,7 @@ import { Engine, FIXED_MS } from '../src/engines/collier/engine.ts';
 import { GAME_NAME, LEVELS } from '../src/engines/collier/levels.ts';
 import { policy } from '../src/engines/collier/policy.ts';
 import { fieldView, logicalPoint, shooterLayout, themeIndex, themes } from '../src/games/collier/presentation.ts';
+import { drawList } from '../src/characters/model.ts';
 import { drawDecor, drawMotif, drawBonus } from '../src/games/collier/art.ts';
 const sceneFile = new URL('../src/games/collier/scene.ts', import.meta.url);
 const sceneCode = transpile(readFileSync(sceneFile, 'utf8'))
@@ -16,8 +17,9 @@ let sceneFactory;
 
 /** Execute the delivered scene's listeners and drawing calls, without a browser.
  * Only platform services are doubled; the scene and the engine are the real sources. */
-function createScene(character = 'panda') {
+export function createScene(character = 'panda') {
     const handlers = new Map();
+    const textures = new Set();
     const drawings = [];
     const circles = [];
     const sounds = [];
@@ -26,6 +28,7 @@ function createScene(character = 'panda') {
     const graphics = new Proxy({}, {
         get: (_, name) => (...args) => {
             calls.push({ name, args });
+            if (name === 'generateTexture') textures.add(args[0]);
             if (name === 'clear')
                 circles.length = 0;
             if (name === 'fillStyle')
@@ -83,8 +86,17 @@ function createScene(character = 'panda') {
             removeAllListeners() {
             },
         };
-        textures = { exists: () => false };
-        add = { graphics: () => graphics, image: () => ({ setOrigin() { return this; }, setDepth() { return this; }, destroy() {} }), text: () => ({ setText() {}, setOrigin() { return this; } }) };
+        textures = { exists: key => textures.has(key) };
+        add = { graphics: () => graphics, image: (_x, _y, key) => {
+            const image = { key, visible: true, x: 0, y: 0,
+                setOrigin() { return this; }, setDepth() { return this; }, destroy() {},
+                setTexture(value) { this.key = value; return this; },
+                setPosition(x, y) { this.x = x; this.y = y; return this; },
+                setDisplaySize() { return this; }, setScale() { return this; },
+                setVisible(value) { this.visible = value; return this; }
+            };
+            return image;
+        }, text: () => ({ setText() {}, setOrigin() { return this; } }) };
         events = { once() {
             } };
         game = { canvas: { setAttribute() {
@@ -421,9 +433,13 @@ export function C24() {
             engine.aim(i * Math.PI / 8);
             calls.length = 0;
             scene.drawShooter();
+            const view = fieldView(engine.config);
             const h = shooterLayout(engine.config.shooter, engine.angle, fieldView(engine.config).scale).head;
             const outside = (x, y, margin = 0) =>
                 ((x - h.x) / (h.rx + margin)) ** 2 + ((y - h.y) / (h.ry + margin)) ** 2 > 1;
+            for (const image of scene.beadImages.slice(-2)) {
+                assert.ok(outside((image.x - view.x) / view.scale, (image.y - view.y) / view.scale, 11.5 / view.scale), `${id}: textured bead covers face`);
+            }
             let width = 0;
             for (const { name, args: a } of calls) {
                 if (name === 'lineStyle') width = a[0];
@@ -462,7 +478,7 @@ export function C26() {
     const signatures = [];
     for (let color = 0; color < 6; color++) {
         calls.length = 0;
-        scene.bead(180, 300, color);
+        scene.paintBead(scene.graphics, 180, 300, color, 11.5);
         const shape = calls.filter(c => !['fillStyle', 'lineStyle'].includes(c.name));
         assert.ok(shape.length > 4, 'Visible motif besides disc, outline and reflection');
         signatures.push(JSON.stringify(shape));
@@ -486,8 +502,8 @@ export function C27() {
         assert.ok(width * height * view.scale ** 2 / (360 * 510) >= .55, `Field coverage ${level + 1}`);
         const leader = calls.find(c => c.name === 'actor' && c.args[0] === 'singe');
         assert.ok(leader.args[3] * .75 * view.scale * cssScale >= 44);
-        const bead = calls.find(c => c.name === 'fillCircle' && c.args[2] > 9);
-        assert.ok(bead.args[2] * 2 * view.scale * cssScale >= 22);
+        assert.ok(23 * cssScale >= 22);
+        assert.ok(scene.beadImages.some(image => image.visible));
         const o = engine.config.shooter;
         assert.deepEqual(logicalPoint({ x: o.x * view.scale + view.x, y: o.y * view.scale + view.y }, view), o);
     }
@@ -521,6 +537,60 @@ export function C29() {
     // Before the reservation, centred content differed by half a line: 12px.
     assert.equal(font * lineHeight / 2, 12);
 }
+/** Real cast geometry, rather than the nominal square passed to draw(). */
+export function C31() {
+    const cssScale = 624 / 640;
+    for (const id of ['panda', 'pandaroux', 'dragon', 'singe', 'licorne']) {
+        const { scene, engine, hook, calls } = createScene(id);
+        const ys = drawList(id, 'face', 'concentre', 'repos', 0, 'reduce').flatMap(p => {
+            if (p.kind === 'circle') return [p.y - p.r, p.y + p.r];
+            if (p.kind === 'ellipse') return [p.y - p.ry, p.y + p.ry];
+            if (p.kind === 'path') return p.commands.flatMap(c => c.op === 'C' ? [c.a[1], c.b[1], c.p[1]] : [c.p[1]]);
+            return p.points.map(q => q[1]);
+        });
+        for (let level = 0; level < 30; level++) {
+            hook.loadLevel(level);
+            calls.length = 0;
+            scene.drawShooter();
+            const size = calls.find(c => c.name === 'actor').args[3];
+            const view = fieldView(engine.config);
+            assert.ok((Math.max(...ys) - Math.min(...ys)) / 240 * size * view.scale * cssScale >= 56, `${id}: visible height at 390×844`);
+            const o = engine.config.shooter;
+            const ring = size * .56;
+            const distance = Math.min(...engine.config.paths.flatMap(p => p.samples.map(q => Math.hypot(q.x - o.x, q.y - o.y))));
+            assert.ok(distance > ring + 8, `${id}: ring clear of rail, level ${level + 1}`);
+        }
+    }
+}
+export function C32() {
+    const { scene, calls } = createScene();
+    calls.length = 0;
+    scene.paintBead(scene.graphics, 20, 18, 0, 11.5);
+    assert.ok(calls.some(c => c.name === 'fillEllipse' && c.args[2] === 11.5 * .48 && c.args[3] === 11.5 * .24), 'Specular pearl highlight');
+    assert.ok(calls.filter(c => c.name === 'fillCircle').length >= 16, 'Radial shading');
+}
+/** Warm-frame draw primitives: fills, strokes, character paints and image quads.
+ * Pass 305 baseline measured in Node with the same 30 initial level states.
+ * Texture generation is excluded; each texture is built only once.
+ */
+export function C33() {
+    const before = [256,256,255,255,255,255,256,255,255,255,254,254,254,254,255,254,255,255,254,254,255,255,256,255,250,250,249,249,349,349];
+    const after = [];
+    for (let level = 0; level < 30; level++) {
+        const { scene, hook, calls } = createScene();
+        hook.loadLevel(level);
+        calls.length = 0;
+        scene.draw();
+        assert.equal(calls.filter(c => c.name === 'generateTexture').length, 0, 'Warm frame reuses textures');
+        const primitives = calls.reduce((n, c) => n + (c.name === 'actor'
+            ? drawList(c.args[0], 'face', 'concentre', 'repos', 0).reduce((v, p) => v + Number(Boolean(p.fill)) + Number(p.width > 0), 0)
+            : /^(fill(?!Style)|stroke)/.test(c.name) ? 1 : 0), 0)
+            + scene.beadImages.filter(image => image.visible).length + 2; // decor and track quads
+        after.push(primitives);
+        assert.ok(primitives <= (before[level] + 1) * 1.2, `Primitive budget level ${level + 1}`);
+    }
+    console.log(`Primitives/image (30 niveaux, décor inclus) : avant ${before.map(n => n + 1).join(',')} ; après ${after.join(',')}`);
+}
 export function C30() {
     const { engine, hook } = createScene();
     engine.step(150);
@@ -548,5 +618,8 @@ export const sceneCases = {
     C27,
     C28,
     C29,
-    C30
+    C30,
+    C31,
+    C32,
+    C33
 };

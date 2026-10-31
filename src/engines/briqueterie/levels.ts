@@ -1,12 +1,12 @@
 import { levelCatalogue } from '../../content/level-catalogue';
 /** Ten columns; dots are intentional empty aiming lanes. Symbols are playable tiles. */
 export const designs: { name: string; shape: string; rows: string[]; rest?: boolean }[] = [
-    { name: '01 · Ailes', shape: 'bambous et bao', rows: ['.xx....xx.', '.xx....xx.', '.xx.xx.xx.', '.x.xxxx.x.', '.x..xx..x.'] },
+    { name: '01 · Ailes', shape: 'bambous et bao', rows: ['.xxxxxxxx.', '.xxxxxxxx.', '.xxxxxxxx.', '.xxxxxxxx.', '.xxx..xxx.'] },
     { name: '02 · Arche', shape: 'arche', rows: ['...xxxx...', '..x....x..', '.x......x.', 'x........x', 'x........x'] },
     { name: '03 · Damier troué', shape: 'damier', rows: ['x.x.x.x.x.', '.x.x.x.x.x', 'x.x...x.x.', '.x.....x.x'] },
     { name: '04 · Coulisse', shape: 'chevrons mobiles', rows: ['..x....x..', '.x.x..x.x.', 'm.m.mm.m.m', '...x..x...'] },
     { name: '05 · Défi chicane', shape: 'chicane', rows: ['xxxx..xxxx', '.#....#...', '.#....#...', '...#....#.', 'x..#....#x', '....mm....'] },
-    { name: '06 · Souffle', shape: 'îlots', rest: true, rows: ['..........', '.xx....xx.', '.xx....xx.', '....mm....'] },
+    { name: '06 · Souffle', shape: 'îlots', rest: true, rows: ['.xxxxxxxx.', '.xxxxxxxx.', '.xxxxxxxx.', '.xxxxxxxx.', '.xxxxxxxx.', '...mmmm...'] },
     { name: '07 · Étincelle', shape: 'croix creuse', rows: ['....xx....', '....ee....', 'xxee..eexx', '....ee....', '....xx....'] },
     { name: '08 · Cratères', shape: 'anneaux jumeaux', rows: ['.xxx..xxx.', '.x.x..x.x.', '.xex..xex.', '...m..m...'] },
     { name: '09 · Ruban', shape: 'ruban diagonal', rows: ['xx........', '.xex......', '...xex....', '.....xex..', '.......xx.'] },
@@ -15,10 +15,10 @@ export const designs: { name: string; shape: string; rows: string[]; rest?: bool
     { name: '12 · Spirale', shape: 'spirale ouverte', rows: ['.xxxxxxx..', '.x.....x..', '.x.xxx.x..', '.x.x.r.x..', '.x.e...x..', '.xxxxxxx..'] },
     { name: '13 · Passage', shape: 'portes jumelles', rows: ['.xxx..xxx.', '.x......x.', '.p......p.', '.x..mm..x.'] },
     { name: '14 · Orbital', shape: 'satellites', rows: ['....xx....', '.px....xp.', '.xx....xx.', '....ee....', '....xx....'] },
-    { name: '15 · Défi relais', shape: 'constellations et portails', rows: ['.x..xx..x.', 'xxx.xx.xxx', 'px.r..r.xp', '..##..##..', '..e....e..'] },
+    { name: '15 · Défi relais', shape: 'constellations et portails', rows: ['.xxxxxxxx.', '.xxxxxxxx.', '.pxrxxrxp.', '.x##xx##x.', '.xexxxexx.'] },
     { name: '16 · Prismes', shape: 'éventail incliné', rows: ['....xx....', '...a..a...', '..a....a..', '.a..ee..a.', 'a........a'] },
     { name: '17 · Éclats', shape: 'constellation', rest: true, rows: ['..x....x..', '....a.....', '.a......a.', '....xx....'] },
-    { name: '18 · Zigzag', shape: 'zigzag mobile et miroirs', rows: ['mmmmm.....', '...a......', '..a.......', '.a........', 'xxxxx.....', '.....pp...'] },
+    { name: '18 · Zigzag', shape: 'zigzag mobile et miroirs', rows: ['..mmmmmm..', '.xxaxxxxx.', '.xaxxxxxx.', '.axxxxxxx.', '.xxxxxxxx.', '.xxpxxpxx.'] },
     { name: '19 · Clef de voûte', shape: 'coffre', rows: ['..LLLLLL..', '..L....L..', '..LLLLLL..', '...a..a...', '....kk....'] },
     { name: '20 · Défi citadelle', shape: 'citadelle', rows: ['LLL....LLL', 'L.L....L.L', 'LLL....LLL', '..#....#..', '..#....#..', '.p.ekke.p.'] },
     { name: '21 · Serrure', shape: 'serrure en sablier', rows: ['..LLLLLL..', '...LLLL...', '....LL....', '...a..a...', '..k....k..', '.m......m.'] },

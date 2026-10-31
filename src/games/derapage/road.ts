@@ -1,3 +1,4 @@
+import { scenerySprites, drawScenery, groundTexture } from './scenery';
 import { kartLandscape, kartRoadArt, kartTree } from './kart-art';
 import type Phaser from 'phaser';
 import { nearest } from '../../engines/derapage/track';
@@ -74,13 +75,14 @@ export class RoadLayer {
     draw(t: Track, project: (x: number, y: number) => Vec, scale: number, rotation: number): void {
         if (this.track !== t) {
             this.destroy();
-            const margin = t.circuit.theme.kart ? 32 : Math.max(...t.widths) / 2 + 4;
+            const margin = Math.max(32, Math.max(...t.widths) / 2 + 20);
             this.left = Math.min(...t.points.map(p => p.x)) - margin;
             this.top = Math.min(...t.points.map(p => p.y)) - margin;
             const width = Math.ceil((Math.max(...t.points.map(p => p.x)) + margin - this.left) * 5);
             const height = Math.ceil((Math.max(...t.points.map(p => p.y)) + margin - this.top) * 5);
             const g = this.scene.make.graphics({ x: 0, y: 0 });
             const projectStatic = (x: number, y: number): Vec => ({ x: (x - this.left) * 5, y: (y - this.top) * 5 });
+            groundTexture(g,t,projectStatic);
             kartLandscape(g,t,projectStatic,5,0,true);
             drawRoad(g, t, (x, y) => ({ x: (x - this.left) * 5, y: (y - this.top) * 5 }), 5);
             drawUrban(g, t, (x, y) => ({ x: (x - this.left) * 5, y: (y - this.top) * 5 }), 5);
@@ -88,6 +90,7 @@ export class RoadLayer {
             const theme=t.circuit.theme.kart;
             if (theme) for (const tree of t.trees)
                 kartTree(g,theme,projectStatic(tree.x,tree.y),tree.radius,5,0,true);
+            for (const item of scenerySprites(t)) drawScenery(g,item,projectStatic(item.x,item.y),5);
             g.generateTexture(this.key, width, height);
             g.destroy();
             this.image = this.scene.add.image(0, 0, this.key).setOrigin(0, 0);

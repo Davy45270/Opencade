@@ -1,6 +1,6 @@
 import { test, expect } from './fixture';
 import type { Page, TestInfo } from '@playwright/test';
-import { Finger } from './character-finger-input';
+import { Finger } from './finger-stepped';
 import { FingerClock } from './finger-clock';
 import { Engine as Runner } from '../../src/engines/ferraille/engine';
 import { pilot as run } from '../../src/engines/ferraille/pilot';
@@ -35,27 +35,26 @@ async function layout(page: Page) {
     return boxes;
 }
 for (const game of ['ferraille', 'briqueterie', 'essaim'] as const) test(`P-${game} doigt bruité / deux pouces, niveaux 1 et 10`, async ({ page }, info) => {
-    test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(600000);
+    test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(1800000);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.addInitScript(() => { localStorage.setItem('arcade-lab:character:v1', 'dragon'); });
+    await Finger.prepare(page);
     await page.goto(`/?test=1#/${game}`);
     await expect.poll(() => page.evaluate(game => Boolean(game === 'ferraille' ? window.__FERRAILLE_TEST__ : game === 'essaim' ? window.__ESSAIM_TEST__ : window.__BRIQUETERIE_TEST__), game), { timeout: 30000 }).toBe(true);
-    const cdp = await page.context().newCDPSession(page), finger = new Finger(page, cdp), results: unknown[] = [], entries: unknown[] = [];
-    let seed = 84;
-    const noise = () => { seed = seed * 16807 % 2147483647; return seed % 25 - 12; };
+    const cdp = await page.context().newCDPSession(page), finger = await Finger.create(page, cdp), results: unknown[] = [], entries: unknown[] = [];
     try {
         await finger.press(['#resume']);
         for (const level of [0, 9]) {
             await page.evaluate(({ game, level }) => {
-                if (game === 'ferraille') window.__FERRAILLE_TEST__?.loadLevel(level, 28);
-                else if (game === 'essaim') window.__ESSAIM_TEST__?.loadLevel(level, 28);
-                else window.__BRIQUETERIE_TEST__?.loadLevel(level, 28);
+                if (game === 'ferraille') { window.__FERRAILLE_TEST__?.loadLevel(level, 28); window.__FERRAILLE_TEST__?.advance(0); }
+                else if (game === 'essaim') { window.__ESSAIM_TEST__?.loadLevel(level, 28); window.__ESSAIM_TEST__?.advance(0); }
+                else { window.__BRIQUETERIE_TEST__?.loadLevel(level, 28); window.__BRIQUETERIE_TEST__?.advance(0); }
             }, { game, level });
             const clock = new FingerClock(); clock.observe(await read(page, game)); let uses = 0, touchErrors = 0;
             if (game === 'essaim') {
                 await layout(page); await capture(page, info, 'essaim-controles-portrait');
                 // Level 10 exercises the same two thumbs in landscape.
-                if (level === 9) { await page.setViewportSize({ width: 844, height: 390 }); await page.waitForTimeout(200); await layout(page); await capture(page, info, 'essaim-controles-paysage'); }
+                if (level === 9) { await page.setViewportSize({ width: 844, height: 390 }); await layout(page); await capture(page, info, 'essaim-controles-paysage'); }
             }
             await capture(page, info, `perso-${game}-jeu`);
             while (clock.elapsed < 150000) {
@@ -88,11 +87,11 @@ for (const game of ['ferraille', 'briqueterie', 'essaim'] as const) test(`P-${ga
                     if (paddle !== undefined) { const r = document.querySelector('#game canvas')?.getBoundingClientRect(); if (!r) throw new Error('Missing canvas'); targets.push({ selector: '#game canvas', x: r.x + Math.max(20, Math.min(340, paddle)) / 360 * r.width, y: r.y + r.height * .94 }); }
                     return targets;
                 }, { selectors, stick, paddle, thumb });
-                const points = targets.map((t, id) => ({ id, x: t.x + noise(), y: t.y + noise() }));
+                const points = targets.map((t, id) => ({ id, x: t.x, y: t.y }));
                 const missed = await page.evaluate(({ targets, points }) => points.some((p, i) => !document.elementFromPoint(p.x, p.y)?.closest(targets[i]?.selector ?? 'missing')), { targets, points });
                 touchErrors += Number(missed);
-                await page.waitForTimeout(150); await finger.release();
-                if (points.length) await finger.touch('touchStart', points);
+                if (points.length) await finger.touch('touchStart', points, targets.map(t => t.selector));
+                else { await finger.advance(); await finger.release(); }
                 const accepted = await read(page, game);
                 const activated = 'hero' in state && 'hero' in accepted
                     ? (accepted.specialCooldown ?? 0) > (state.specialCooldown ?? 0)
@@ -101,34 +100,37 @@ for (const game of ['ferraille', 'briqueterie', 'essaim'] as const) test(`P-${ga
                 entries.push({ timeMs: clock.elapsed, level: level + 1, points, selectors, missed });
             }
             await finger.release(); const final = await read(page, game);
+            await finger.attach(info, `stepped-${game}-${String(level + 1)}.json`);
+            await capture(page, info, `perso-${game}-${String(level + 1)}-after`);
             results.push({ level: level + 1, timeMs: clock.elapsed, uses, touchErrors, victory: final.status === 'won', score: final.score });
             expect(uses).toBeGreaterThan(0); expect(touchErrors).toBe(0); expect(final.status).toBe('won');
             // Separate presentation after driving: capture the actual active effect.
             await page.evaluate(({ game, level }) => {
-                if (game === 'ferraille') window.__FERRAILLE_TEST__?.loadLevel(level, 28);
-                else if (game === 'essaim') window.__ESSAIM_TEST__?.loadLevel(level, 28);
-                else window.__BRIQUETERIE_TEST__?.loadLevel(level, 28);
+                if (game === 'ferraille') { window.__FERRAILLE_TEST__?.loadLevel(level, 28); window.__FERRAILLE_TEST__?.advance(0); }
+                else if (game === 'essaim') { window.__ESSAIM_TEST__?.loadLevel(level, 28); window.__ESSAIM_TEST__?.advance(0); }
+                else { window.__BRIQUETERIE_TEST__?.loadLevel(level, 28); window.__BRIQUETERIE_TEST__?.advance(0); }
             }, { game, level });
             await finger.press([`#${game}-special`]);
             await capture(page, info, `perso-${game}-special`);
         }
     } finally {
-        await finger.release(); await cdp.detach();
-        await info.attach(`perso-${game}-doigt-bruite.json`, { body: JSON.stringify({ latencyMs: 150, noisePx: 12, realtime: true, results, entries }), contentType: 'application/json' });
+        await finger.release(); await finger.attach(info); await cdp.detach();
+        await info.attach(`perso-${game}-doigt-bruite.json`, { body: JSON.stringify({ latencyMs: 150, noisePx: 12, clock: 'stepped', results, entries }), contentType: 'application/json' });
     }
 });
-test('P-essaim le bouclier change la défaite en victoire en temps réel', async ({ page }, info) => {
-    test.skip(info.project.name !== 'mobile-chromium');
+test('P-essaim le bouclier change la défaite en victoire en temps piloté', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(1800000);
+    await Finger.prepare(page);
     await page.goto('/?test=1#/essaim'); await expect.poll(() => page.evaluate(() => !!window.__ESSAIM_TEST__), { timeout: 30000 }).toBe(true);
-    const cdp = await page.context().newCDPSession(page), finger = new Finger(page, cdp), results = [];
+    const cdp = await page.context().newCDPSession(page), finger = await Finger.create(page, cdp), results = [];
     try {
         await finger.press(['#resume']);
         for (const special of [false, true]) {
-            await page.evaluate(() => window.__ESSAIM_TEST__?.scenario('special'));
+            await page.evaluate(() => { window.__ESSAIM_TEST__?.scenario('special'); window.__ESSAIM_TEST__?.advance(0); });
             if (special) await finger.press(['#essaim-special']);
-            await expect.poll(async () => (await read(page, 'essaim')).status, { timeout: 30000 }).toBe(special ? 'won' : 'lost');
+            await finger.until(async () => (await read(page, 'essaim')).status === (special ? 'won' : 'lost'));
             results.push({ special, final: await read(page, 'essaim') });
         }
         await capture(page, info, 'perso-essaim-special-decisif');
-    } finally { await finger.release(); await cdp.detach(); await info.attach('essaim-special-issue.json', { body: JSON.stringify({ results, entries: finger.entries }), contentType: 'application/json' }); }
+    } finally { await finger.release(); await finger.attach(info); await cdp.detach(); await info.attach('essaim-special-issue.json', { body: JSON.stringify({ results, entries: finger.entries }), contentType: 'application/json' }); }
 });

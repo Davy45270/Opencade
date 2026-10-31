@@ -1,5 +1,6 @@
 // Explicit inventory of executable fast checks; see docs/node-tests.md for helpers/tools.
 export const nodeChecks = [
+    ['../tests/e2e/finger-stepped.node.ts'],
     // Start the longest replays first so neither worker leaves a long serial tail.
     ...['derapage', 'character-games-2', 'orbite', 'essaim', 'ferraille',
         'caisses', 'briqueterie', 'character-scenes-2', 'characters',
@@ -12,6 +13,8 @@ export const nodeChecks = [
     ['check-derapage-3d.js'],
     ['check-derapage-cadence.js'],
     ['check-level-catalogue-kart.js'],
+    ['validate-marmaille.js'],
+    ['validate-bombercade.js'],
     ['check-essaim-art.js'],
     ['check-essaim-signature-art.js'],
     ['check-essaim-geometry.js'],
@@ -23,4 +26,5 @@ export const nodeChecks = [
     ['measure-thumbnails.js'],
     // bubble-input-check and validate-derapage-historical are imported above.
     // Dérapage mutation audits are explicit offline commands.
+    ['validate-artificiers.js'],
 ];

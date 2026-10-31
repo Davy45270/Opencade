@@ -43,6 +43,7 @@ const { selectCharacter } = await import('../src/characters/selection.ts');
 const { ids } = await import('../src/characters/model.ts');
 const { bindSessionUpdate } = await import('../src/shell/scene-update.ts');
 const { PlaySession } = await import('../src/shell/pause.ts');
+const { brickView } = await import('../src/games/briqueterie/presentation.ts');
 const { levelCatalogue } = await import('../src/content/level-catalogue.ts');
 let elements = new Map();
 class Element extends EventTarget {
@@ -164,7 +165,7 @@ for (const game of ['ferraille', 'briqueterie', 'essaim']) for (const id of ids)
         assert(!e.state.grounded); assert.equal(e.state.facing, -1);
         const fighter = one('fighter-' + id + '-saut-gauche');
         const h = e.state.hero;
-        geometry(fighter, (h.x + h.w / 2 - scene.rendering.camera) * 1.4, (h.y + h.h / 2) * 1.4 + 108, 57, 57);
+        geometry(fighter, (h.x + h.w / 2 - scene.rendering.camera) * 2.6, (h.y + h.h - Math.max(88, h.y - 146)) * 2.6 + 112 - 48, 128, 128);
         assert(e.state.shots.some(p => p.friendly && p.vx < 0));
         // Land on the starting floor through physics, then crouch and fire left.
         e.input({ x: 0, jump: false, fire: false }); e.step(800);
@@ -172,7 +173,7 @@ for (const game of ['ferraille', 'briqueterie', 'essaim']) for (const id of ids)
         assert(e.state.crouched); one('fighter-' + id + '-accroupi-gauche');
         e.input({ x: 1, y: 0, jump: true }); e.step(1000 / 60); scene.draw(); one('fighter-' + id + '-saut');
         for (const [input, view] of [
-            [{ x: 0, y: 0, fire: false }, 'face'], [{ x: 0, y: -1 }, 'dos'],
+            [{ x: 0, y: 0, fire: false }, 'droite'], [{ x: 0, y: -1 }, 'dos'],
             [{ x: 1, y: 0, fire: false }, 'marche'], [{ x: 1, fire: true }, 'tir'],
             [{ x: -1, fire: true }, 'gauche'], [{ x: 1, y: 1, fire: false }, 'accroupi'],
         ]) {
@@ -180,26 +181,28 @@ for (const game of ['ferraille', 'briqueterie', 'essaim']) for (const id of ids)
             one('fighter-' + id + '-' + view);
         }
         hook.loadLevel(13, 28);
-        // Catalogue scenery has four independently scrolling planes.
+        // Three opaque scenery planes move independently.
         e.state.hero.x = 200; calls.length = 0; scene.draw();
         const layersBefore = scene.rendering.layers.map(l => l.x);
         assert.deepEqual(scene.rendering.layers.map(l => l.factor), [.15, .3, .55]);
-        const before = calls.filter(c => c[0] === 'fillRoundedRect' && c[3] === 16 && c[4] === 285).map(c => c[1]);
+        const sceneryPlanes = () => [1,2,3].map(part => visible(`ferraille-118-jungle-${part}`).sort((a,b)=>a.x-b.x)[0].x);
+        const before = sceneryPlanes();
         e.input({ x: 1 }); e.step(100); calls.length = 0; scene.draw();
-        const after = calls.filter(c => c[0] === 'fillRoundedRect' && c[3] === 16 && c[4] === 285).map(c => c[1]);
+        const after = sceneryPlanes();
+        assert(!calls.some(c=>c[0]==='fillRect'&&c[3]===18&&c[4]===456),'static trees are never redrawn');
         const shifts = scene.rendering.layers.map((l, i) => l.x - layersBefore[i]);
         assert(shifts.every(x => x !== 0)); assert.equal(new Set(shifts).size, 3);
-        assert.equal(before.length, 24); assert.equal(after.length, 24);
-        assert.equal(new Set([0, 6, 12, 18].map(i => Math.round((after[i] - before[i]) * 1e6))).size, 4);
+        assert.equal(before.length, 3); assert.equal(after.length, 3);
+        assert.equal(new Set([0, 1, 2].map(i => Math.round((after[i] - before[i]) * 1e6))).size, 3);
     }
     if (game === 'briqueterie') {
         for (const level of [18, 24, 29]) {
             hook.loadLevel(level, 28); hook.power('wide'); hook.advance(1000);
             const s = scene.engine.state; assert(s.wideUntil > 0); assert(s.width <= 110); assert.equal(s.balls.length, 1);
-            const b = s.balls[0]; geometry(one('-ball-'), b.x, b.y, 16, 16);
+            const b = s.balls[0]; geometry(one('-ball-'), b.x, brickView(level).y(b.y), 16, 16);
             const ballMotifs = kind => visible('emblem-' + kind).filter(i => i.w === 18 || i.alpha < .4);
             const motif = ballMotifs(scene.art.theme.special); assert.equal(motif.length, 4);
-            geometry(motif.at(-1), b.x, b.y, 18, 18);
+            geometry(motif.at(-1), b.x, brickView(level).y(b.y), 18, 18);
             geometry(one('-paddles-'), s.paddle, 584, s.width * 1.08, 72);
             // Expiry comes from the engine timer, and changes the drawn motif.
             s.ready = true; s.bonuses = []; scene.engine.step(10000); scene.draw(); assert.equal(s.wideUntil, 0);
@@ -211,11 +214,14 @@ for (const game of ['ferraille', 'briqueterie', 'essaim']) for (const id of ids)
         for (const [left, right, view] of [[true, false, 'gauche'], [false, true, 'droite'], [false, false, 'face']]) {
             scene.left = left; scene.right = right; scene.tick(16); one('-paddles-' + id + '-' + view);
         }
-        const planes = () => calls.filter(c => c[0] === 'fillStyle' && [0.05, 0.085, 0.12000000000000001].includes(c[2]));
-        calls.length = 0; scene.draw(); assert.equal(planes().length, 3);
-        const first = calls.filter(c => ['fillRoundedRect', 'fillTriangle', 'fillEllipse'].includes(c[0]));
-        hook.advance(100); calls.length = 0; scene.draw(); assert.equal(planes().length, 3);
-        assert.notDeepEqual(calls.filter(c => ['fillRoundedRect', 'fillTriangle', 'fillEllipse'].includes(c[0])), first);
+        const planes = () => [1,2,3].map(part => visible(`brick-118-${id}-0-${part}`).sort((a,b)=>a.x-b.x)[0]);
+        calls.length = 0; scene.draw(); assert(planes().every(Boolean));
+        const first = planes().map(p=>p.x);
+        hook.advance(100); calls.length = 0; scene.draw(); assert(planes().every(Boolean));
+        const next=planes().map(p=>p.x);
+        assert(next.every((x,i)=>x!==first[i]));
+        assert.equal(new Set(next.map((x,i)=>Math.round((x-first[i])*1e6))).size,3,'three cached planes move independently');
+        assert(!calls.some(c=>c[0]==='fillStyle'&&[.05,.085,.12000000000000001].includes(c[2])),'static backdrop is never redrawn');
     }
     if (game === 'essaim') {
         hook.loadLevel(14, 28); hook.lastWave();
@@ -274,8 +280,8 @@ for (const game of ['ferraille', 'briqueterie', 'essaim']) for (const id of ids)
     const e = scene.engine, s = e.state;
     const size = game === 'ferraille' ? 95 : game === 'briqueterie' ? 65 : 92;
     const camera = game === 'ferraille' ? scene.rendering.camera : 0;
-    const x = game === 'ferraille' ? (s.hero.x + s.hero.w / 2 + s.facing * 35 - camera) * 1.4 : game === 'briqueterie' ? s.balls[0].x : s.cannon;
-    const y = game === 'ferraille' ? (s.hero.y + s.hero.h / 2) * 1.4 + 112 : game === 'briqueterie' ? s.balls[0].y : 552;
+    const x = game === 'ferraille' ? (s.hero.x + s.hero.w / 2 + s.facing * 35 - camera) * 2.6 : game === 'briqueterie' ? s.balls[0].x : s.cannon;
+    const y = game === 'ferraille' ? (s.hero.y + s.hero.h / 2 - Math.max(88, s.hero.y - 146)) * 2.6 + 112 : game === 'briqueterie' ? brickView(e.level).y(s.balls[0].y) : 552;
     renderCharacter(port, drawList(id, 'face', 'joie', 'special', scene.hero.time).filter(p => p.effect), x - size / 2, y - size / 2, size);
     assert.deepEqual(effectCalls, expected, 'P-01 chosen effect centered on actual hero/ball/discharge');
     // Check the drawn effect throughout its engine lifetime, not just activation.

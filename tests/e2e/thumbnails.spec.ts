@@ -7,10 +7,16 @@ async function pixels(page: Page, id: string) {
         return Array.from(c.getImageData(0, 0, canvas.width, canvas.height).data);
     });
 }
-test('V04–V05 quinze vignettes non vides et animées', async ({ page }) => {
+test('V04–V05 une vignette non vide et animée par jeu enregistré', async ({ page }) => {
     await page.goto('/?test=1#/');
+    // One card per registered game; each card must carry exactly one thumbnail (no hand-kept game count).
+    const cards = page.locator('#game-cards .game-card');
+    await expect(cards.first()).toBeVisible();
+    const cardCount = await cards.count();
+    expect(cardCount).toBeGreaterThan(0);
     const canvases = page.locator('.game-thumbnail');
-    await expect(canvases).toHaveCount(15);
+    await expect(canvases).toHaveCount(cardCount);
+    await expect(page.locator('#game-cards .game-card:not(:has(.game-thumbnail))')).toHaveCount(0);
     for (const canvas of await canvases.all()) {
         await canvas.scrollIntoViewIfNeeded();
         await canvas.evaluate(element => new Promise<void>(resolve => {

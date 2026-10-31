@@ -1,3 +1,4 @@
+import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
 import { Engine, LEVELS, SHIELD_Y, CANNON_Y } from '../../engines/orbite/engine';
@@ -16,11 +17,12 @@ export const orbiteButtons: readonly TouchButton[] = [
     { id: 'orbite-fire', label: 'Tir', ariaLabel: 'Tir', size: 64, placement: 'right', mode: 'hold' },
 ];
 export interface OrbiteHook {
+    performance(): { frames: number; gameMs: number };
     advance(ms: number): void;
     hudText(): string;
     renderedProbeIds(): number[];
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number; autoFire: boolean };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; firing: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number; autoFire: boolean };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger'): void;
 }
@@ -56,6 +58,7 @@ export class OrbiteScene extends Phaser.Scene {
         if (!this.session.paused && !this.selecting && held && this.engine.fire()) sound.playEffect('fire');
     }
     create(): void {
+        const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('orbite');
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('orbite'); delete window.__ORBITE_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
@@ -113,7 +116,8 @@ export class OrbiteScene extends Phaser.Scene {
             hudText: () => this.hud?.text ?? '',
             renderedProbeIds: () => [...this.renderedProbes],
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
-            read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state, autoFire: this.autoFire }),
+            performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.state.ticks * 1000 / 60 }),
+            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, firing: this.firing }, ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state, autoFire: this.autoFire }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 this.start(0, 457, true);

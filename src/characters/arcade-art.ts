@@ -102,6 +102,10 @@ function wings(p: Pen, top: boolean): void {
 }
 
 export function vehicleDrawing(id: CharacterId, view: VehicleView | 'action', expression: Expression = 'joie'): Primitive[] {
+    return drawVehicle(id,view,expression,true);
+}
+
+function drawVehicle(id: CharacterId, view: VehicleView | 'action', expression: Expression, racing: boolean): Primitive[] {
     const p = new Pen(), l = liveries[id], top = view === 'dessus', side = view === 'gauche' || view === 'droite' || view === 'action', rear = view === 'arriere';
     p.ellipse(120, 191, 100, 17, '#243145', 0);
     if (id === 'licorne') wings(p, top);
@@ -155,6 +159,54 @@ export function vehicleDrawing(id: CharacterId, view: VehicleView | 'action', ex
     if (id === 'licorne') {
         for (const [i, color] of rainbow.entries()) p.line([[84 + i * 13, top ? 193 : 177], [91 + i * 11, top ? 217 : 186]], color, 5);
         icon(p, 'etoile', top ? 120 : 140, top ? 49 : 148, 57);
+    }
+    // Large bonnet badges and exposed contours remain readable at racing scale.
+    if (racing && (top || rear)) {
+        if (id === 'panda') {
+            const y = top ? 65 : 156;
+            for (const x of [97, 143]) p.ellipse(x, y - 21, 12, 12, ink, 0);
+            p.ellipse(120, y, 32, 27, white, 2);
+            for (const x of [107, 133]) {
+                p.ellipse(x, y, 8, 11, ink, 0, ink, x < 120 ? .4 : -.4);
+                p.ellipse(x, y - 2, 2, 3, white, 0);
+            }
+            p.ellipse(120, y + 11, 5, 4, ink, 0);
+        }
+        if (id === 'dragon') {
+            // Folded membranes extend past the chassis; horns frame the snout.
+            for (const side of [-1, 1]) {
+                p.poly([[120 + side * 53, 95], [120 + side * 96, 65], [120 + side * 83, 153], [120 + side * 58, 133]], '#b8222a', 4, l.trim);
+                p.line([[120 + side * 57, 103], [120 + side * 83, 83], [120 + side * 72, 135]], l.light, 4);
+            }
+            if (top) {
+            const y = 53;
+            p.poly([[82, y + 9], [87, y - 23], [103, y - 36], [120, y - 24], [137, y - 36], [153, y - 23], [158, y + 9], [142, y + 35], [120, y + 43], [98, y + 35]], l.body, 3, l.trim);
+            for (const side of [-1, 1]) {
+                p.poly([[120 + side * 24, y - 22], [120 + side * 35, y - 44], [120 + side * 39, y - 10]], '#fff1b0', 2);
+                p.ellipse(120 + side * 18, y, 8, 10, '#fff1b0', 2);
+                p.ellipse(120 + side * 18, y + 2, 3, 6, ink, 0);
+                p.ellipse(120 + side * 11, y + 27, 4, 3, ink, 0);
+            }
+            } else {
+                p.poly([[107,139],[133,139],[133,176],[157,197],[145,220],[124,201],[113,182],[107,160]],l.light,3,l.trim);
+                for (const y of [144,160,176]) p.poly([[110,y],[120,y-16],[130,y]],l.trim,2);
+                for (const side of [-1,1]) p.poly([[120+side*28,128],[120+side*38,100],[120+side*44,134]],'#fff1b0',2);
+            }
+        }
+        if (id === 'pandaroux') for (const side of [-1, 1])
+            icon(p, 'feuille', 120 + side * 70, top ? 103 : 151, 75);
+        if (id === 'singe' && top) {
+            for (let i = 0; i < 12; i++) {
+                const a = i * Math.PI / 6;
+                p.ellipse(120 + Math.cos(a) * 68, 120 + Math.sin(a) * 75, 15, 24, i % 2 ? '#ffb9e6' : '#f375c0', 2, '#b42a84', a - Math.PI / 2);
+            }
+            icon(p, 'coeur', 120, 52, 70);
+        }
+        if (id === 'licorne') {
+            wings(p, top);
+            p.ellipse(120, top ? 63 : 153, 37, 36, '#4b90e5', 3, l.trim);
+            icon(p, 'etoile', 120, top ? 63 : 153, 75);
+        }
     }
     if (view === 'action') {
         for (let i = 0; i < 3; i++) p.line([[8, 150 + i * 16], [29, 143 + i * 16]], l.trim, 5);
@@ -287,7 +339,7 @@ export function fighterDrawing(id: CharacterId, view: FighterView): Primitive[] 
 }
 
 export function actionVehicleDrawing(id: CharacterId, view: CraftView): Primitive[] {
-    if (id === 'pandaroux') return vehicleDrawing(id, view === 'face' ? 'avant' : view === 'dos' ? 'arriere' : view);
+    if (id === 'pandaroux') return drawVehicle(id, view === 'face' ? 'avant' : view === 'dos' ? 'arriere' : view, 'joie', false);
     const p = new Pen(), l = liveries[id], side = view === 'gauche' || view === 'droite', rear = view === 'dos';
     if (id === 'panda') {
         for (const x of side ? [72, 160] : [55, 185]) {

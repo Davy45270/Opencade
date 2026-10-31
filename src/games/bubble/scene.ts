@@ -1,3 +1,4 @@
+import { fingerReceipts } from '../finger-receipts';
 import { GameCharacter } from '../../characters/game';
 import { arcadeArt, emblems, liveries, launcherViews, launcherDrawing, aimBarrelDrawing } from '../../characters/arcade-art';
 import { expressions } from '../../characters/model';
@@ -38,6 +39,7 @@ interface Effect {
     fall: boolean;
 }
 export interface TestHook {
+    performance(): { frames: number; gameMs: number };
     art(): string[];
     load: (grid: Cell[], next?: Color, seed?: number) => void;
     setNext: (color: Color) => void;
@@ -48,7 +50,7 @@ export interface TestHook {
     visuals(): { guide: ReturnType<Engine['trace']>['segments']; falling: number; ghost: Cell | null; settling: Point | null; drawn: Drawn };
     usefulArea(): { x: number; y: number; width: number; height: number };
     lastAttached(): Cell | null;
-    read: () => ReturnType<Engine['snapshot']> & { character: ReturnType<GameCharacter['snapshot']>; cumulativeScore: number; progression: string };
+    read: () => ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; aimingPointer: number | null }; character: ReturnType<GameCharacter['snapshot']>; cumulativeScore: number; progression: string };
 }
 declare global {
     interface Window {
@@ -93,6 +95,7 @@ export class LabScene extends Phaser.Scene {
         super('lab');
     }
     create(): void {
+        const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('bubble');
         try { this.storage = window.localStorage; } catch { /* Unavailable storage. */ }
         const cleanup = (): void => {
@@ -207,7 +210,8 @@ export class LabScene extends Phaser.Scene {
                 lastAttached: () => this.engine.last.attached ? { ...this.engine.last.attached } : null,
                 visuals: () => ({ guide: this.guide(), falling: this.effects.filter(e => e.fall).length, ghost: this.ghost(), settling: this.settling(), drawn: { ...this.drawn } }),
                 usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
-                read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+                performance: () => ({ frames: this.game.loop.frame, gameMs: this.hero.time }),
+                read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, aimingPointer: this.aimingPointer }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             };
         }
     }

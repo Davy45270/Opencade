@@ -1,3 +1,4 @@
+import { scenerySprites, type Scenery } from './scenery';
 import type Phaser from 'phaser';
 import type { Engine } from '../../engines/derapage/engine';
 import { nearest, onBoost, kartFootprint, onShortcut, type Vec } from '../../engines/derapage/track';
@@ -48,7 +49,7 @@ export class Cadence {
 }
 export interface RenderCost { lines: number; samples: number; segmentChecks: number; boostChecks: number; sprites: number }
 /** Fixed grid: 107 lines × 30 samples. Each sample visits the 96 segments plus the initial hint. */
-export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engine['snapshot']>, kart: (id: number, x: number, y: number, size: number, rotation: number, depth: number) => void, layer?: (depth: number) => Phaser.GameObjects.Graphics): RenderCost {
+export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engine['snapshot']>, kart: (id: number, x: number, y: number, size: number, rotation: number, depth: number) => void, layer?: (depth: number) => Phaser.GameObjects.Graphics, scenery?: (item: Scenery, screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => void): RenderCost {
     const g=graphics;
     const p=e.karts[0];
     const cost={lines:0,samples:0,segmentChecks:0,boostChecks:0,sprites:0};
@@ -115,15 +116,16 @@ export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engi
         g.lineBetween(a.x,a.y,a.x,a.y-7*a.scale); g.lineBetween(b.x,b.y,b.x,b.y-7*b.scale);
         g.lineBetween(a.x,a.y-7*a.scale,b.x,b.y-7*b.scale);
     }
-    const sprites=[...t.trees.map(tree=>({...tree,kind:'tree' as const})),...e.karts.map(k=>({...k,kind:'kart' as const})),...e.crates.filter(c=>c.cooldown===0).map(c=>({...c,kind:'crate' as const})),...e.puddles.map(c=>({...c,kind:'puddle' as const}))]
+    const sprites=[...((scenery && !theme.kart) ? [] : t.trees).map(tree=>({...tree,kind:'tree' as const})),...(scenery ? scenerySprites(t).map(item=>({...item,art:item.kind,kind:'scenery' as const})) : []),...e.karts.map(k=>({...k,kind:'kart' as const})),...e.crates.filter(c=>c.cooldown===0).map(c=>({...c,kind:'crate' as const})),...e.puddles.map(c=>({...c,kind:'puddle' as const}))]
         .map(item=>({item,screen:projectPoint(item,p)})).filter(v=>v.screen!==null).sort((a,b)=>(b.screen?.depth ?? 0)-(a.screen?.depth ?? 0));
     for(const {item,screen:a} of sprites) {
         if(!a) continue;
-        const half=item.kind==='kart' ? Math.min(90,4*a.scale)/2 : item.kind==='tree' ? item.radius*a.scale : 1.5*a.scale;
-        const height=item.kind==='kart' ? Math.min(90,4*a.scale) : item.kind==='tree' ? (5+item.radius)*a.scale : item.kind==='crate' ? 3*a.scale : a.scale;
+        const half=item.kind==='kart' ? Math.min(90,4*a.scale)/2 : (item.kind==='tree' || item.kind==='scenery') ? item.radius*a.scale : 1.5*a.scale;
+        const height=item.kind==='kart' ? Math.min(90,4*a.scale) : (item.kind==='tree' || item.kind==='scenery') ? (5+item.radius)*a.scale : item.kind==='crate' ? 3*a.scale : a.scale;
         if(a.x+half<0 || a.x-half>360 || a.y<96 || a.y-height>640) continue;
         cost.sprites++;
-        if(item.kind==='kart') { kart(item.id,a.x,a.y-(item.jumpHeight ?? 0)*a.scale,Math.min(90,4*a.scale),item.angle-p.angle,FAR-a.depth+2); }
+        if(item.kind==='scenery') { scenery?.({...item,kind:item.art},a,FAR-a.depth+2); }
+        else if(item.kind==='kart') { kart(item.id,a.x,a.y-(item.jumpHeight ?? 0)*a.scale,Math.min(90,4*a.scale),item.angle-p.angle,FAR-a.depth+2); }
         else {
         const g=layer?.(FAR-a.depth+2) ?? graphics;
         if(item.kind==='tree') {

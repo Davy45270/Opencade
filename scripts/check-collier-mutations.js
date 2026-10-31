@@ -54,6 +54,8 @@ console.log('Témoin sans mutation : PASS');
 for (const line of baseline.stdout.split('\n'))
     if (/^C(?:19|20):|^Politique doigt/.test(line)) console.log(line);
 const expected = {
+    'tireur-30px': 'C31',
+    'perle-sans-reflet': 'C32',
     'canon-sur-la-tete': 'C24',
     'decor-identique': 'C25',
     'motif-supprime': 'C26',

@@ -1,11 +1,11 @@
-/** Compact authored campaign; six worlds playable, later worlds reserved.
+/** Compact authored campaign; nine worlds playable, later worlds reserved.
  * Targets and target-colour weights are measured on five seeds, without tools.
  * Every other colour has weight 1. The same bag fills both modes and all heroes.
  */
 export const GAME_NAME = 'Gourmandises';
 export type ObstacleKind = 'crate' | 'ice' | 'vine' | 'chocolate' | 'drop' | 'belt' | 'portal' | 'honey' | 'lock' | 'key';
 export type Objective = { kind: 'collect'; color: number; target: number }
-    | { kind: 'crate' | 'ice' | 'score' | 'drop'; target: number };
+    | { kind: 'crate' | 'ice' | 'score' | 'drop' | 'chocolate' | 'flower'; target: number };
 export interface Level {
     name: string;
     width: number;
@@ -85,7 +85,7 @@ export const WORLDS = Array.from({ length: 15 }, (_, index) => ({
     id: index + 1,
     first: index * 20 + 1,
     last: index * 20 + 20,
-    playable: index < 6,
+    playable: index < 9,
 }));
 const firstLevels: readonly Level[] = rows.map(([name, width, height, target, moves, seed, targetWeight], index) => ({
     name,
@@ -116,13 +116,22 @@ export function difficulty(index: number) {
     return {
         pressure: level.objectives.reduce((sum, o) => sum + o.target, 0) / level.moves,
         colors: level.colors,
-        obstacles: cells.reduce((sum, c) => sum + c.crate + c.ice, 0),
+        obstacles: cells.reduce((sum, c) => sum + c.crate + c.ice + (c.chocolate ? 1 : 0) + (c.hedge ? 1 : 0), 0),
         absent: cells.filter(c => !c.active).length,
         objectives: level.objectives.length,
     };
 }
-export interface Terrain { active: boolean; crate: number; ice: number; exit?: boolean }
+export interface Terrain {
+    active: boolean;
+    crate: number;
+    ice: number;
+    exit?: boolean;
+    chocolate?: boolean;
+    hedge?: boolean;
+    belt?: { band: number; direction: 'right' | 'left' | 'down' | 'up' };
+}
 export function terrain(level: Level): Terrain[] {
+    if (level.world >= 7) return gardenTerrain(level);
     if (level.world >= 4) return extendedTerrain(level);
     const { width: w, height: h, world, layout } = level;
     const middleX = Math.floor(w / 2);
@@ -251,8 +260,85 @@ const laterLevels: Level[] = laterRows.map(([name, width, height, target, moves,
         : { kind: 'ice', target: terrain(level).reduce((sum, cell) => sum + cell.ice, 0) });
     return level;
 });
+/** Nine-world campaign: dimensions, budgets and silhouettes follow the design cards. */
+const gardenRows: readonly (readonly [string, number, number, number, number, number, number])[] = [
+    ["Découverte", 8, 7, 66, 26, 958199, 2],
+    ["Première collecte", 8, 7, 99, 26, 966118, 2.5],
+    ["Virage", 8, 7, 29, 25, 974037, 2],
+    ["Croisement", 8, 7, 41, 25, 981956, 2],
+    ["Duo", 8, 7, 84, 24, 989875, 2.5],
+    ["Raccourci", 8, 7, 63, 24, 997794, 2],
+    ["Blocage", 8, 7, 48, 23, 1005713, 2],
+    ["Cascade", 8, 8, 67, 23, 1013632, 2],
+    ["Détour", 8, 8, 55, 22, 1021551, 2],
+    ["Palier", 8, 8, 99, 22, 1029470, 2.5],
+    ["Symétrie", 8, 8, 55, 21, 1037389, 2],
+    ["Séparation", 8, 8, 36, 21, 1045308, 2],
+    ["Ouverture", 8, 8, 50, 20, 1053227, 2],
+    ["Chaîne", 8, 8, 69, 20, 1061146, 2.5],
+    ["Choix", 9, 8, 60, 19, 1069065, 2],
+    ["Pression douce", 9, 8, 66, 19, 1076984, 2],
+    ["Récompense", 9, 8, 55, 18, 1084903, 2],
+    ["Maîtrise", 9, 8, 40, 18, 1092822, 1.5],
+    ["Avant-finale", 9, 8, 65, 17, 1100741, 2.5],
+    ["Finale", 9, 8, 116, 17, 1108660, 3],
+    ["Découverte", 8, 7, 39, 26, 1116579, 1.5],
+    ["Première collecte", 8, 7, 37, 25, 1124498, 1],
+    ["Virage", 8, 7, 17, 12, 1132417, 1.5],
+    ["Croisement", 8, 7, 16, 12, 1140336, 1],
+    ["Duo", 8, 7, 37, 24, 1148255, 1],
+    ["Raccourci", 8, 7, 37, 24, 1156174, 1.5],
+    ["Blocage", 8, 7, 33, 15, 1164093, 1],
+    ["Cascade", 8, 8, 34, 13, 1172012, 1],
+    ["Détour", 8, 8, 34, 20, 1179931, 1.5],
+    ["Palier", 8, 8, 38, 16, 1187850, 1],
+    ["Symétrie", 8, 8, 35, 16, 1195769, 1],
+    ["Séparation", 8, 8, 28, 21, 1203688, 1],
+    ["Ouverture", 8, 8, 34, 13, 1211607, 1],
+    ["Chaîne", 8, 8, 34, 20, 1219526, 1.5],
+    ["Choix", 9, 8, 46, 19, 1227445, 2],
+    ["Pression douce", 9, 8, 46, 19, 1235364, 2],
+    ["Récompense", 9, 8, 43, 18, 1243283, 2],
+    ["Maîtrise", 9, 8, 42, 18, 1251202, 1],
+    ["Avant-finale", 9, 8, 42, 15, 1259121, 1.5],
+    ["Finale", 9, 8, 49, 13, 1267040, 2],
+    ["Découverte", 8, 7, 119, 26, 1274959, 2],
+    ["Première collecte", 8, 7, 107, 26, 1282878, 2],
+    ["Virage", 8, 7, 53, 25, 1290797, 2],
+    ["Croisement", 8, 7, 83, 25, 1298716, 2.5],
+    ["Duo", 8, 7, 151, 24, 1306635, 2.5],
+    ["Raccourci", 8, 7, 114, 24, 1314554, 2],
+    ["Blocage", 8, 7, 64, 23, 1322473, 1.5],
+    ["Cascade", 8, 8, 95, 23, 1330392, 2],
+    ["Détour", 8, 8, 89, 22, 1338311, 2],
+    ["Palier", 8, 8, 115, 22, 1346230, 2],
+    ["Symétrie", 8, 8, 149, 21, 1354149, 2.5],
+    ["Séparation", 8, 8, 59, 21, 1362068, 2.5],
+    ["Ouverture", 8, 8, 85, 20, 1369987, 2],
+    ["Chaîne", 8, 8, 68, 20, 1377906, 1.5],
+    ["Choix", 9, 8, 157, 19, 1385825, 2.5],
+    ["Pression douce", 9, 8, 95, 19, 1393744, 2],
+    ["Récompense", 9, 8, 145, 18, 1401663, 2.5],
+    ["Maîtrise", 9, 8, 95, 18, 1409582, 2],
+    ["Avant-finale", 9, 8, 95, 17, 1417501, 2],
+    ["Finale", 9, 8, 104, 17, 1425420, 2],
+];
+const gardenLevels: Level[] = gardenRows.map(([name, width, height, target, moves, seed, targetWeight], index) => {
+    const world = 7 + Math.floor(index / 20);
+    const layout = index % 20;
+    const level: Level = {
+        name, width, height, moves, seed, world, layout, targetWeight,
+        colors: world === 8 ? 7 : 6, finale: layout === 19,
+        objectives: world === 8 ? [{ kind: 'flower', target }]
+            : [{ kind: 'collect', color: world === 7 ? 0 : 2, target }],
+    };
+    if (level.finale) level.objectives.push(world === 7 ? { kind: 'chocolate', target: 6 }
+        : { kind: 'collect', color: world === 8 ? 4 : 1, target: 24 });
+    return level;
+});
+
 // Appending cannot change the original level objects or their random streams.
-export const LEVELS: readonly Level[] = [...firstLevels, ...laterLevels];
+export const LEVELS: readonly Level[] = [...firstLevels, ...laterLevels, ...gardenLevels];
 
 function extendedTerrain(level: Level): Terrain[] {
     const { width: w, height: h, world, layout } = level;
@@ -265,7 +351,9 @@ function extendedTerrain(level: Level): Terrain[] {
         if (layout === 2) active = Math.abs(x - mx) <= 1 || y === 0 || y === h - 1;
         if (layout === 3) active = Math.abs(x - mx) <= 1 || Math.abs(y - my) <= 1;
         if (layout === 11) active = x !== mx || y === my;
-        if (layout === 6 && y === my && (x === 1 || x === w - 2)) active = false;
+        if (layout === 6 && y === my && (x === 1 || x === w - 2)) {
+            active = false;
+        }
         if (layout % 5 === 2 && x === 0 && y === 0) active = false;
         if (layout % 5 === 3 && y === 0 && (x < 2 || x >= w - 2)) active = false;
         // Every open vertical segment has a marked outlet at its lower end.
@@ -280,5 +368,43 @@ function extendedTerrain(level: Level): Terrain[] {
         const frozen = active && (world === 5 ? y >= 1 && y <= h - 2
             : level.finale ? x === mx - 1 || x === mx : x % 3 !== 0);
         return { active, crate: 0, ice: frozen ? (world === 6 ? 2 : 1) : 0 };
+    });
+}
+
+function gardenTerrain(level: Level): Terrain[] {
+    const { width: w, height: h, world, layout } = level;
+    const mx = Math.floor(w / 2);
+    const my = Math.floor(h / 2);
+    return Array.from({ length: w * h }, (_, i): Terrain => {
+        const x = i % w;
+        const y = Math.floor(i / w);
+        let active = true;
+        if (layout === 2) active = Math.abs(x - mx) <= 1 || y === 0 || y === h - 1;
+        if (layout === 3) active = Math.abs(x - mx) <= 1 || Math.abs(y - my) <= 1;
+        if (layout === 11) active = x !== mx || y === my;
+        if (layout === 6 && y === my && (x === 1 || x === w - 2)) active = false;
+        if (layout % 5 === 2 && x === 0 && y === 0) active = false;
+        if (layout % 5 === 3 && y === 0 && (x < 2 || x >= w - 2)) active = false;
+        const cell: Terrain = { active, crate: 0, ice: 0 };
+        if (!active) return cell;
+        if (world === 7) {
+            // Broken ramparts leave a broad route; narrow boards keep their neck clear.
+            cell.chocolate = (x === 0 || x === w - 1) && y % 2 === 1
+                || (layout >= 7 || layout === 2) && y === h - 1 && x % 3 === 0;
+        }
+        if (world === 8) {
+            // Each flower bed is a cross; flowers are liberated from their own hedge.
+            cell.hedge = x % 3 === 1 || y % 3 === 1
+                || x === 0 || x === w - 1 || y === 0 || y === h - 1;
+        }
+        if (world === 9) {
+            // Vertical bands survive narrow silhouettes; horizontal bands loop within rooms.
+            if (layout === 2 || layout === 11) {
+                if (x === mx - 1 || x === mx + 1) cell.belt = { band: x, direction: x < mx ? 'down' : 'up' };
+            } else if (y === my || y === my + 1) {
+                cell.belt = { band: y, direction: y === my ? 'right' : 'left' };
+            }
+        }
+        return cell;
     });
 }

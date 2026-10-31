@@ -40,7 +40,7 @@ export function presentationChecks(module) {
     }
     const drawings = [];
     const scenery = [];
-    for (let world = 0; world < 6; world++) {
+    for (let world = 0; world < 9; world++) {
         const commands = [];
         const context = new Proxy({}, { get(target, key) {
             if (key === 'createLinearGradient') return () => ({ addColorStop: (...args) => commands.push(args) });
@@ -50,11 +50,11 @@ export function presentationChecks(module) {
         scenery.push(commands);
         drawings.push(JSON.stringify(commands));
     }
-    assert.equal(new Set(drawings).size, 6, 'Six décors distincts');
+    assert.equal(new Set(drawings).size, 9, 'Neuf décors distincts');
     assert.equal(scenery[3].filter(c => c[0] === 'quadraticCurveTo' && c[2] === 210).length, 7, 'Sept filets de cascade');
     assert.equal(scenery[3].filter(c => c[0] === 'arc' && c[3] === 9).length, 24, 'Galets de rayon visible');
     assert.equal(scenery[4].filter(c => c[0] === 'moveTo' && [420, 450, 480, 510].includes(c[2])).length, 16, 'Quatre étages pour chaque sapin');
-    assert.equal(scenery[5].filter(c => c[0] === 'ellipse' && c[3] === 8 * .28 && c[4] === 8 * .15).length, 9, 'Neuf cristaux visibles');
+    assert.equal(scenery[5].filter(c => c[0] === 'ellipse' && c[3] === 3 * .28 && c[4] === 3 * .15).length, 9, 'Neuf cristaux visibles');
     state.objectives = [{ kind: 'drop', target: 3 }];
     assert.equal(module.presentation(state, null).objectives[0].icon, 'drop');
     const iceDrawings = [];
@@ -71,6 +71,70 @@ export function presentationChecks(module) {
         'Glace double pleine, simple craquelée');
     }
     assert.notEqual(...iceDrawings, 'Glace pleine et glace craquelée distinctes');
+    assert.equal(scenery[6].filter(c => c[0] === 'quadraticCurveTo').length, 3, 'Fontaine chocolat');
+    assert.ok(scenery[6].some(c => JSON.stringify(c) === JSON.stringify(['fillRect', 0, 170, 360, 120])), 'Mur du château visible');
+    const hedge = [];
+    const hedgeContext = new Proxy({}, { get(target, key) {
+        if (key === 'createLinearGradient') return () => ({ addColorStop() {} });
+        return target[key] ?? ((...args) => hedge.push([key, ...args]));
+    } });
+    module.drawHedge(hedgeContext, 10, 20, 40);
+    assert.ok(hedge.some(c => c[0] === 'translate' && c[1] === 30 && c[2] === 40), 'Fleur au centre de la haie');
+    assert.equal(hedge.filter(c => c[0] === 'arc' && c[3] === 40 * .18 * .5).length, 5, 'Cinq pétales visibles');
+    assert.ok(scenery[7].filter(c => c[0] === 'ellipse').length >= 30, 'Prairie fleurie');
+    assert.equal(scenery[8].filter(c => c[0] === 'rotate').length, 0, 'Aucun badge hors plateau');
+    const belt = phase => {
+        const commands = [];
+        const context = new Proxy({}, { get: (target, key) => key === 'createLinearGradient' ? () => ({ addColorStop() {} }) : target[key] ?? ((...args) => commands.push([key, ...args])) });
+        module.drawBelt(context, 0, 0, 40, 'right', phase);
+        return commands;
+    };
+    assert.notDeepEqual(belt(0), belt(.5), 'Flèches réellement déplacées');
+    // Exercise every objective renderer, including kinds absent in the current HUD.
+    for (const icon of [0, 1, 2, 3, 4, 5, 6, 'score', 'crate', 'ice', 'drop', 'flower', 'chocolate']) {
+        const commands = [];
+        const context = new Proxy({}, { get: (target, key) => key === 'createLinearGradient' ? () => ({ addColorStop() {} }) : target[key] ?? ((...args) => commands.push([key, ...args])) });
+        module.drawObjective(context, icon, 100, 51);
+        assert.ok(commands.some(c => c[0] === 'fill'), `Objectif dessiné : ${icon}`);
+        assert.ok(!commands.some(c => ['fillText', 'strokeText'].includes(c[0])), 'Aucun objectif par glyphe');
+        if (icon === 'ice') assert.ok(commands.some(c => c[0] === 'strokeRect'), 'Glaçon avec reflets');
+    }
+    const luminance = hex => {
+        const channels = hex.slice(1).match(/../g).map(h => Number.parseInt(h, 16) / 255)
+            .map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
+        return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
+    };
+    for (let world = 0; world < 9; world++) {
+        const commands = [];
+        const context = new Proxy({}, { get: (target, key) => key === 'createLinearGradient' ? () => ({ addColorStop() {} }) : target[key] ?? ((...args) => commands.push([key, ...args, target.fillStyle])) });
+        module.drawWorldRibbon(context, world);
+        const text = commands.find(c => c[0] === 'fillText');
+        assert.equal(text[1], module.WORLDS[world]);
+        const background = commands.find(c => c[0] === 'fill').at(-1);
+        const a = luminance(background), b = luminance(text.at(-1));
+        assert.ok((Math.max(a, b) + .05) / (Math.min(a, b) + .05) >= 4.5, 'Contraste ruban ≥ 4,5');
+    }
+    for (const stars of [0, 1, 2, 3]) {
+        const commands = [];
+        const context = new Proxy({}, { get: (target, key) => key === 'createLinearGradient' ? () => ({ addColorStop() {} }) : target[key] ?? ((...args) => commands.push([key, ...args, target.fillStyle])) });
+        module.drawScoreGauge(context, stars);
+        assert.equal(commands.filter(c => c[0] === 'translate').length, 3, 'Jauge de trois étoiles');
+        assert.ok(module.SCORE_STAR_RADIUS * 2 >= 20, 'Étoiles au moins 20 px');
+        assert.equal(commands.filter(c => c[0] === 'fill' && c.at(-1) === '#aaa4a4').length, 3 - stars, 'Remplissage selon score');
+    }
+    assert.ok(module.CHANDELIER_BOTTOM < 105, 'Cristaux au-dessus du personnage');
+    const crystals = scenery[5].filter(c => c[0] === 'translate' && [242, 252, 262, 284, 294, 304, 326, 336, 346].includes(c[1]));
+    assert.equal(crystals.length, 9);
+    assert.ok(crystals.every(c => c[1] - 3 > 238 && c[2] - 3 > 93 && c[2] + 3 < 105), 'Cristaux hors des cartes HUD et du ruban');
+    for (const direction of ['right', 'left', 'down', 'up']) for (const phase of [0, .5, 1]) {
+        const commands = [];
+        const context = new Proxy({}, { get: (target, key) => target[key] ?? ((...args) => commands.push([key, ...args, target.strokeStyle])) });
+        module.drawBelt(context, 10, 20, 40, direction, phase);
+        const clip = commands.findIndex(c => c[0] === 'clip');
+        assert.ok(clip >= 0 && clip < commands.findIndex(c => c[0] === 'stroke'), 'Chevrons découpés dans la bande');
+        assert.deepEqual(commands.find(c => c[0] === 'rect').slice(1, 5), [-19.2, -18.400000000000002, 38.4, 36.800000000000004]);
+        assert.ok(commands.filter(c => c[0] === 'stroke').every(c => c.at(-1) === '#ffe59b99'), 'Chevrons translucides');
+    }
     assert.equal(module.WORLDS.length, 15);
 }
 
@@ -121,14 +185,14 @@ export function sceneListeners(module) {
     let scene;
     try {
         scene = new module.GourmandisesScene();
-        scene.add = { graphics: () => ({ clear() {} }), image: () => ({ setOrigin() {} }),
+        scene.add = { graphics: () => ({ clear() {}, generateTexture() {} }), image: () => ({ setOrigin() {}, setTexture() {} }),
             text: () => ({ setVisible() {}, setText() {} }) };
         scene.textures = { createCanvas: () => ({ context, refresh() {} }), remove() {} };
         scene.children = { bringToTop() {} };
         scene.input = { on: (event, listener) => pointerHandlers.set(event, listener) };
         scene.events = { once() {} };
         scene.game = { canvas: new Element() };
-        scene.hero.draw = () => {};
+        scene.drawHero = () => {};
         scene.create();
         // Ready gate is real: click its actual listener before keyboard input.
         doc.querySelector('#resume').click();
@@ -161,8 +225,8 @@ export function sceneListeners(module) {
         hook.loadLevel(119, 8);
         assert.equal(hook.read().objectives.length, 2);
         assert.ok(hook.read().cells.some(cell => cell.ice === 2));
-        for (const gesture of ['drag', 'two taps']) {
-            const pair = hook.scenario('drop');
+        for (const scenario of ['drop', 'belt']) for (const gesture of ['drag', 'two taps']) {
+            const pair = hook.scenario(scenario);
             assert.ok(pair, 'Sortie atteignable par permutations ordinaires');
             const before = hook.read();
             const b = hook.board();
@@ -179,9 +243,20 @@ export function sceneListeners(module) {
                     up(point(index));
                 }
             }
-            assert.ok(hook.read().dropped > (before.dropped ?? 0), gesture);
+            if (scenario === 'drop') assert.ok(hook.read().dropped > (before.dropped ?? 0), gesture);
+            else {
+                assert.deepEqual(hook.read().cells.map(c => c.belt), before.cells.map(c => c.belt));
+                const transport = hook.transport();
+                assert.ok(transport.length > 0, 'Le geste déclenche le tapis');
+                for (const move of transport) {
+                    const belt = before.cells[move.from].belt;
+                    const band = before.cells.flatMap((cell, i) => cell.belt?.band === belt.band ? [i] : []);
+                    const step = belt.direction === 'left' || belt.direction === 'up' ? -1 : 1;
+                    assert.equal(move.to, band[(band.indexOf(move.from) + step + band.length) % band.length], 'Rotation réelle après geste');
+                }
+            }
             assert.equal(hook.read().moves, before.moves + 1);
-            assert.ok(scene.engine.events.some(event => event.type === 'drop'));
+            assert.ok(scene.engine.events.some(event => event.type === scenario));
         }
     } finally {
         scene?.inputs.dispose();

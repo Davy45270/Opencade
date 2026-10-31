@@ -477,3 +477,24 @@ Fichiers modifiés : `package.json`, `docs/node-tests.md`,
 `scripts/audit-derapage-mutations.js`, `scripts/derapage-graphics-checks.js`,
 `tests/derapage.test.ts`, `tests/derapage-complete-replay.ts`,
 `tests/level-catalogue-kart.test.ts`, `src/games/derapage/view3d.ts`.
+
+`validate-bombercade.js` exécute B01–B16 depuis les mêmes corps que Vitest,
+puis la campagne solo de trente niveaux et trente témoins d'inaction perdante.
+`validate-artificiers.js` partage `tests/artificiers-cases.ts` et
+`tests/artificiers-replay.ts` avec Vitest : physique, armes, IA, duo, missions,
+diversité, sérialisation, budget Graphics et trente bandes gagnantes. Le pilote
+au doigt exerce `AimDriver`, utilisé par la scène, avec 150 ms de latence à
+chaque paquet et bruit entier ±12 px. Aucun oracle ne dépend de l’horloge.
+`record-artificiers.js` est un outil de calibration hors tests : il écrit les
+commandes ordinaires gagnantes, sans modifier le moteur ni les états initiaux.
+
+Artificiers : tous les cas utilisent `tests/artificiers-budget.ts` (images,
+cellules et appels, trois contrôles négatifs) ; 15 000 ms est uniquement le
+filet Vitest. Le validateur inclut huit mutations en mémoire, la géométrie et
+les valeurs du HUD, l’oracle IA sous vent signé, le clavier complet et l’annonce
+de l’équipe 2. Chaque image des trente rejeux respecte 500 appels Graphics et
+la séparation corps/vies/panneau. `audit-artificiers-mutations.js` peut aussi
+s’exécuter séparément sous Node, sans modifier les sources sur disque.
+
+Validation finale : 47 validateurs réussis en 217,96 s ; Artificiers 15,61 s,
+huit mutations tuées, 37 842 images de rejeu sous le plafond Graphics.

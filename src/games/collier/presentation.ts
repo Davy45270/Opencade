@@ -34,12 +34,12 @@ export function logicalPoint(point: Point, view: ReturnType<typeof fieldView>): 
 }
 /** The aim ring sits outside the entire face; held beads stay below it. */
 export function shooterLayout(o: Point, angle: number, scale: number) {
-    const size = 60 / scale;
+    const size = 88 / scale;
     return {
         size,
         head: { x: o.x, y: o.y - size * .13, rx: size * .38, ry: size * .35 },
-        arrow: { x: o.x + Math.cos(angle) * size * .85, y: o.y + Math.sin(angle) * size * .85 },
-        current: { x: o.x - size * .22, y: o.y + size * .55 },
+        arrow: { x: o.x + Math.cos(angle) * size * .72, y: o.y + Math.sin(angle) * size * .72 },
+        current: { x: o.x - size * .22, y: o.y + size * .43 },
         next: { x: o.x + 44, y: o.y + 35 },
         radius: 11.5 / scale
     };

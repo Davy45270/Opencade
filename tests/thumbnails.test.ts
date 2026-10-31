@@ -23,8 +23,11 @@ function recording() {
     }) as CanvasRenderingContext2D;
     return { calls, context };
 }
-test('V01 quinze rendus déterministes sur contexte 2D', () => {
-    expect(games).toHaveLength(15);
+test('V01 rendus déterministes de chaque jeu enregistré sur contexte 2D', () => {
+    // The expected count comes from the registry: adding a game never means editing a number here.
+    expect(games.length).toBeGreaterThan(0);
+    expect(new Set(games.map(game => game.id)).size).toBe(games.length);
+    for (const game of games) { expect(typeof game.thumbnail, game.id).toBe('function'); expect(typeof game.demo, game.id).toBe('function'); }
     for (const game of games) {
         expect(game.demo(28)).toBeDefined();
         const a = game.thumbnail(28), b = game.thumbnail(28);

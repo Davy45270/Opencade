@@ -14,12 +14,14 @@ export function sceneFeedback(module) {
     sound.playEffect = name => { sounds.push(name); };
     try {
         const scene = new module.GourmandisesScene();
+        // Board feedback is independent of the actor, measured by graphicsReplayChecks.
+        scene.drawHero = () => {};
         scene.engine = fixture();
         scene.ready = false;
         const commands = [];
         const context = new Proxy({}, {
             get(target, key) {
-                if (key === 'createLinearGradient') return () => ({ addColorStop() {} });
+                if (key === 'createLinearGradient') return () => ({ addColorStop: (...args) => commands.push({ op: 'colorStop', args }) });
                 if (key in target) return target[key];
                 return (...args) => { commands.push({ op: key, args, stroke: target.strokeStyle, fill: target.fillStyle, width: target.lineWidth }); };
             },
@@ -114,6 +116,135 @@ export function sceneFeedback(module) {
         assert.ok(commands.some(c => c.op === 'strokeRect' && c.width === 1
             && c.args[0] === b.x + 2 * b.unit + 4), 'Glace simple transmise au dessin');
         assert.ok(commands.some(c => c.op === 'stroke' && c.stroke === '#fff0a0' && c.width === 4), 'Sortie visible');
+        scene.engine = fixture();
+        scene.engine.state.cells[18].chocolate = true;
+        scene.engine.state.cells[18].piece = null;
+        scene.engine.state.cells[19].hedge = true;
+        scene.engine.state.cells[20].belt = { band: 0, direction: 'right' };
+        commands.length = 0;
+        scene.draw();
+        assert.ok(commands.some(c => c.op === 'fill' && c.fill === '#653725'), 'Chocolat dessiné');
+        assert.ok(commands.some(c => c.op === 'fill' && c.fill === '#388047'), 'Haie dessinée');
+        assert.ok(commands.some(c => c.op === 'stroke' && c.stroke === '#ffe59b99'), 'Flèche dessinée');
+        const arrows = reduced => {
+            scene.reducedMotion = reduced;
+            scene.beltClock = 600;
+            commands.length = 0;
+            scene.draw();
+            return commands.filter(c => c.op === 'moveTo' && c.stroke === '#ffe59b99').map(c => c.args);
+        };
+        assert.notDeepEqual(arrows(false), arrows(true), 'Flèches fixes en mouvement réduit');
+        scene.reducedMotion = false;
+        scene.ready = false;
+        scene.beltClock = 0;
+        scene.update(0, 300);
+        assert.equal(scene.beltClock, 300, 'update avance les flèches');
+        scene.update(300, 1000);
+        assert.equal(scene.beltClock, 100, 'Horloge cyclique');
+        scene.reducedMotion = true;
+        scene.update(1300, 200);
+        assert.equal(scene.beltClock, 100, 'Horloge fixe en mouvement réduit');
+        scene.reducedMotion = false;
+
+        // Four literal bands cover both axes, both signs and the two wrap copies.
+        for (const direction of ['right', 'left', 'down', 'up']) {
+            scene.engine = fixture();
+            const horizontal = direction === 'right' || direction === 'left';
+            const indices = horizontal ? [12, 13, 14, 15, 16, 17] : [2, 8, 14, 20, 26, 32];
+            const step = direction === 'left' || direction === 'up' ? -1 : 1;
+            for (const i of indices) {
+                scene.engine.state.cells[i].belt = { band: 0, direction };
+                scene.engine.state.cells[i].piece = { color: 4, special: 'row' };
+            }
+            scene.motionOrigin = scene.engine.state.cells.map(cell => cell.piece);
+            scene.engine.events = indices.map((from, offset) => ({ type: 'belt', cells: [], multiplier: 1,
+                from, to: indices[(offset + step + indices.length) % indices.length], piece: { color: 4, special: 'row' } }));
+            scene.feedback();
+            for (const remaining of [1, .25, .0625]) {
+                scene.animation = 280 * Math.sqrt(remaining);
+                commands.length = 0;
+                scene.draw();
+                const clips = commands.flatMap((command, i) => command.op === 'clip' && commands[i - 1].args[0] >= 0 ? [i] : []).slice(1);
+                assert.equal(clips.length, 6, 'Chaque transport est découpé sur sa bande');
+                const rect = horizontal ? [b.x, b.y + 2 * b.unit, 6 * b.unit, b.unit]
+                    : [b.x + 2 * b.unit, b.y, b.unit, 6 * b.unit];
+                for (const [offset, clip] of clips.entries()) {
+                    assert.deepEqual(commands[clip - 1].args, rect, 'Découpe limitée à la bande');
+                    let depth = 1;
+                    let end = clip + 1;
+                    for (; end < commands.length; end++) {
+                        if (commands[end].op === 'save') depth++;
+                        if (commands[end].op === 'restore') depth--;
+                        if (depth === 0) break;
+                    }
+                    const segment = commands.slice(clip + 1, end);
+                    const from = indices[offset];
+                    const to = indices[(offset + step + indices.length) % indices.length];
+                    const wrap = Math.abs(to - from) > (horizontal ? 1 : 6);
+                    const start = wrap ? from : to;
+                    const displacement = wrap ? step * (1 - remaining) : -step * remaining;
+                    const position = [b.x + (start % 6 + .5 + (horizontal ? displacement : 0)) * b.unit,
+                        b.y + (Math.floor(start / 6) + .5 + (horizontal ? 0 : displacement)) * b.unit];
+                    const positions = segment.filter(c => c.op === 'translate').map(c => c.args);
+                    assert.deepEqual(positions[0], position, `${direction} : position interpolée`);
+                    assert.equal(positions.length, wrap ? 2 : 1, 'Deux copies seulement au bouclage');
+                    if (wrap) assert.deepEqual(positions[1], [
+                        b.x + (to % 6 + .5 - (horizontal ? step * remaining : 0)) * b.unit,
+                        b.y + (Math.floor(to / 6) + .5 - (horizontal ? 0 : step * remaining)) * b.unit]);
+                    assert.equal(segment.filter(c => c.op === 'stroke' && c.stroke === '#ffffff' && c.width === 3).length,
+                        wrap ? 2 : 1, 'Rayures conservées pendant le trajet');
+                }
+            }
+            scene.animation = 0;
+            commands.length = 0;
+            scene.draw();
+            assert.equal(commands.filter((c, i) => c.op === 'clip' && commands[i - 1].args[0] >= 0).length, 1, 'Transport terminé');
+            scene.reducedMotion = true;
+            scene.animation = 280;
+            commands.length = 0;
+            scene.draw();
+            assert.equal(commands.filter((c, i) => c.op === 'clip' && commands[i - 1].args[0] >= 0).length, 1, 'Transport fixe en mouvement réduit');
+            scene.reducedMotion = false;
+        }
+
+        // Adverse reproduction: the second ordinary move causes matches after the belt.
+        scene.engine.loadLevel(160, 8, 'discovery');
+        scene.animation = 0;
+        scene.act(...scene.engine.validMoves()[0]);
+        scene.animation = 0;
+        scene.act(...scene.engine.validMoves()[0]);
+        const frames = scene.transportFrames;
+        assert.ok(frames.length >= 3, 'Transport puis deux cascades animées');
+        assert.equal(frames[0].pieces[27].color, 4);
+        assert.equal(frames[0].pieces[35].color, 4);
+        assert.notEqual(scene.engine.state.cells[27].piece.color, 4);
+        assert.deepEqual(frames.at(-1).pieces, scene.engine.state.cells.map(cell => cell.piece), 'Dernière chute fidèle au plateau final');
+        for (let i = 1; i < frames.length; i++) {
+            const frame = frames[i];
+            assert.equal(frame.belts.length, 0, 'Anciennes pièces retirées après transport');
+            const [to, distance] = [...frame.falls].find(([to, distance]) => distance > 0 && !frame.pieces[to]?.special);
+            const unit = scene.board().unit;
+            scene.animation = (frames.length - i - 1) * 280 + 140;
+            commands.length = 0;
+            scene.draw();
+            const x = scene.board().x + (to % 8 + .5) * unit;
+            const y = scene.board().y + (Math.floor(to / 8) + .5 - distance * .25) * unit;
+            const at = commands.findIndex(c => c.op === 'translate' && c.args[0] === x && c.args[1] === y);
+            assert.ok(at >= 0, 'Nouvelle pièce en chute après transport');
+            assert.ok(commands.slice(at + 1, at + 8).some(c => c.op === 'colorStop'
+                && c.args[0] === .25 && c.args[1] === ['#f85a79', '#ffd75e', '#64cde9', '#70ce8c', '#b58af2', '#f48bc4', '#ffac59'][frame.pieces[to].color]),
+            'Couleur de la pièce de chute, sans substitution');
+        }
+        // A dead board can reshuffle before or after transport. Its inventory
+        // must also be replayed, including cells outside the moving bands.
+        scene.engine.loadLevel(162, 8, 'discovery');
+        for (let step = 0; step < 5; step++) {
+            scene.animation = 0;
+            scene.act(...scene.engine.validMoves()[0]);
+            assert.deepEqual(scene.transportFrames.at(-1).pieces, scene.engine.state.cells.map(cell => cell.piece),
+                'Rebattage et transport conservent tout le plateau visuel');
+        }
+        assert.ok(scene.engine.events.some(event => event.type === 'shuffle'), 'Rebattage réellement exercé');
     } finally {
         sound.playEffect = playEffect;
         if (previous) Object.defineProperty(globalThis, 'document', previous);

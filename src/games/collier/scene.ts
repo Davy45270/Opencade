@@ -71,7 +71,10 @@ export class CollierScene extends Phaser.Scene {
         moved: number;
     } | null = null;
     private background?: Phaser.GameObjects.Image;
+    private track?: Phaser.GameObjects.Image;
     private universe = -1;
+    private beadImages: Phaser.GameObjects.Image[] = [];
+    private beadCount = 0;
     private reducedMotion = false;
     private comboLabel?: Phaser.GameObjects.Text;
     private visualTime = 0;
@@ -95,7 +98,13 @@ export class CollierScene extends Phaser.Scene {
     }
     create(): void {
         this.reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        this.beadImages = [];
+        this.track = undefined;
         this.graphics = this.add.graphics();
+        // Prepare the small atlas before the first frame, including bonus variants.
+        for (let color = 0; color < palette.length; color++)
+            for (const bonus of [undefined, 'slow', 'reverse', 'bomb', 'aim'] as const)
+                this.beadTexture(color, bonus);
         this.comboLabel = this.add.text(180, 505, '', { fontFamily: 'system-ui', fontSize: '24px', color: '#fff4bc', stroke: '#482147', strokeThickness: 5 }).setOrigin(.5);
         this.hud = this.add.text(14, 558, '', {
             fontFamily: 'system-ui',
@@ -340,8 +349,9 @@ export class CollierScene extends Phaser.Scene {
         if (!g)
             return;
         g.clear();
+        for (const image of this.beadImages) image.setVisible(false);
+        this.beadCount = 0;
         const universe = themeIndex(e.level);
-        const theme = themes[universe] ?? themes[0];
         if (universe !== this.universe) {
             this.universe = universe;
             this.background?.destroy();
@@ -360,52 +370,20 @@ export class CollierScene extends Phaser.Scene {
         if (!this.reducedMotion && e.combo > 1 && e.bursts.length)
             g.setPosition(view.x + Math.sin(this.visualTime / 30) * 2, view.y);
         this.comboLabel?.setText(e.combo > 1 && e.bursts.length ? `Combo ×${String(e.combo)}` : '');
+        // Relief is baked with the course, not tessellated again every frame.
+        const trackKey = `collier-track-${String(e.level)}-${String(e.danger)}`;
+        for (const danger of [false, true]) {
+            const key = `collier-track-${String(e.level)}-${String(danger)}`;
+            if (!this.textures.exists(key)) {
+                const texture = this.add.graphics();
+                this.paintTrack(texture, danger);
+                texture.generateTexture(key, 360, 640);
+                texture.destroy();
+            }
+        }
+        this.track ??= this.add.image(0, 0, trackKey).setOrigin(0).setDepth(-.5);
+        this.track.setTexture(trackKey).setPosition(view.x, view.y).setScale(view.scale);
         e.config.paths.forEach((path, ci) => {
-            g.lineStyle(16, 0x291d45, .65);
-            g.beginPath();
-            const first = path.samples[0];
-            if (first) g.moveTo(first.x, first.y);
-            for (let i = 1; i < path.samples.length; i++) {
-                const a = path.samples[i - 1], b = path.samples[i];
-                if (a && b)
-                    g.lineTo(b.x, b.y);
-            }
-            g.strokePath();
-            for (const [width, color] of [[11, theme.light], [5, theme.accent]] as const) {
-                g.lineStyle(width, color, .95);
-                g.beginPath();
-                if (first) g.moveTo(first.x, first.y);
-                for (let i = 1; i < path.samples.length; i++) {
-                    const a = path.samples[i - 1], b = path.samples[i];
-                    if (a && b) g.lineTo(b.x, b.y);
-                }
-                g.strokePath();
-            }
-            const hole = path.pointAt(path.length);
-            g.fillStyle(theme.accent);
-            if (universe === 1) {
-                g.fillEllipse(hole.x, hole.y + 8, 44, 30);
-                g.lineStyle(2, theme.light);
-                for (let x = -14; x <= 14; x += 7)
-                    g.lineBetween(hole.x + x, hole.y, hole.x + x, hole.y + 18);
-            } else if (universe === 2) {
-                g.fillRoundedRect(hole.x - 18, hole.y - 2, 36, 26, 4);
-                g.fillEllipse(hole.x, hole.y + 21, 58, 12);
-                g.fillStyle(theme.light);
-                g.fillRect(hole.x - 18, hole.y + 12, 36, 5);
-            } else if (universe === 3) {
-                g.fillStyle(theme.light);
-                g.fillCircle(hole.x - 17, hole.y + 9, 13);
-                g.fillCircle(hole.x + 17, hole.y + 9, 13);
-                g.fillEllipse(hole.x, hole.y + 9, 44, 32);
-            } else {
-                g.fillRoundedRect(hole.x - 21, hole.y - 8, 42, 28, 6);
-                g.lineStyle(3, theme.light);
-                g.strokeRoundedRect(hole.x - 21, hole.y - 8, 42, 28, 6);
-                g.lineBetween(hole.x - 21, hole.y - (e.danger ? 26 : 14), hole.x + 21, hole.y - (e.danger ? 26 : 14));
-            }
-            g.fillStyle(0x241735);
-            g.fillEllipse(hole.x, hole.y - 7, 40, e.danger ? 34 : 14);
             const chain = e.chains[ci];
             if (!chain)
                 return;
@@ -416,12 +394,7 @@ export class CollierScene extends Phaser.Scene {
                 if (e.status === 'lost' && s >= path.length)
                     continue;
                 const p = path.pointAt(s);
-                this.bead(p.x, p.y, b.color);
-                if (b.bonus) {
-                    g.fillStyle(palette[b.color] ?? 0xffffff);
-                    g.fillCircle(p.x, p.y, 9 / view.scale);
-                    drawBonus(g, p.x, p.y, b.bonus);
-                }
+                this.bead(p.x, p.y, b.color, b.bonus);
             }
             for (const [a, b] of e.config.tunnels) {
                 g.lineStyle(26, 0x3e5354);
@@ -459,7 +432,7 @@ export class CollierScene extends Phaser.Scene {
             }
         }
         this.drawShooter();
-        if (e.flight && Math.hypot(e.flight.x - o.x, e.flight.y - o.y) > 45 / view.scale)
+        if (e.flight && Math.hypot(e.flight.x - o.x, e.flight.y - o.y) > 60 / view.scale)
             this.bead(e.flight.x, e.flight.y, e.flight.color);
         for (const b of e.bursts) {
             const age = (e.time - b.time) / 500;
@@ -488,6 +461,62 @@ export class CollierScene extends Phaser.Scene {
         if (status)
             status.textContent = `Score : ${String(e.score)} · ${e.status === 'won' ? 'Victoire' : e.status === 'lost' ? 'Défaite' : 'En jeu'}`;
     }
+    private paintTrack(g: Phaser.GameObjects.Graphics, danger: boolean): void {
+        const universe = themeIndex(this.engine.level);
+        const theme = themes[universe] ?? themes[0];
+        for (const path of this.engine.config.paths) {
+            g.lineStyle(16, 0x291d45, .65);
+            g.beginPath();
+            const first = path.samples[0];
+            if (first) g.moveTo(first.x, first.y);
+            for (let i = 1; i < path.samples.length; i++) {
+                const a = path.samples[i - 1], b = path.samples[i];
+                if (a && b)
+                    g.lineTo(b.x, b.y);
+            }
+            g.strokePath();
+            for (const [width, color] of [[13, 0x57304f], [11, theme.light], [7, theme.accent], [2, theme.light]] as const) {
+                g.lineStyle(width, color, .95);
+                g.beginPath();
+                if (first) g.moveTo(first.x, first.y);
+                for (let i = 1; i < path.samples.length; i++) {
+                    const a = path.samples[i - 1], b = path.samples[i];
+                    if (a && b) g.lineTo(b.x, b.y);
+                }
+                g.strokePath();
+            }
+            const hole = path.pointAt(path.length);
+            g.fillStyle(theme.accent);
+            if (universe === 1) {
+                g.fillEllipse(hole.x, hole.y + 8, 44, 30);
+                g.lineStyle(2, theme.light);
+                for (let x = -14; x <= 14; x += 7)
+                    g.lineBetween(hole.x + x, hole.y, hole.x + x, hole.y + 18);
+            } else if (universe === 2) {
+                g.fillRoundedRect(hole.x - 18, hole.y - 2, 36, 26, 4);
+                g.fillEllipse(hole.x, hole.y + 21, 58, 12);
+                g.fillStyle(theme.light);
+                g.fillRect(hole.x - 18, hole.y + 12, 36, 5);
+            } else if (universe === 3) {
+                g.fillStyle(theme.light);
+                g.fillCircle(hole.x - 17, hole.y + 9, 13);
+                g.fillCircle(hole.x + 17, hole.y + 9, 13);
+                g.fillEllipse(hole.x, hole.y + 9, 44, 32);
+            } else {
+                g.fillRoundedRect(hole.x - 21, hole.y - 8, 42, 28, 6);
+                g.lineStyle(3, theme.light);
+                g.strokeRoundedRect(hole.x - 21, hole.y - 8, 42, 28, 6);
+                g.lineBetween(hole.x - 21, hole.y - (danger ? 26 : 14), hole.x + 21, hole.y - (danger ? 26 : 14));
+            }
+            // Recessed mouth: pale lip, dark cavity and a soft inner rim.
+            g.fillStyle(theme.light, .8);
+            g.fillEllipse(hole.x, hole.y - 6, 44, danger ? 38 : 18);
+            g.fillStyle(0x241735);
+            g.fillEllipse(hole.x, hole.y - 7, 40, danger ? 34 : 14);
+            g.fillStyle(0x090e24, .6);
+            g.fillEllipse(hole.x, hole.y - 9, 32, danger ? 24 : 8);
+        }
+    }
     private drawShooter(): void {
         const g = this.graphics;
         if (!g) return;
@@ -495,8 +524,12 @@ export class CollierScene extends Phaser.Scene {
         const view = fieldView(e.config);
         const theme = themes[themeIndex(e.level)] ?? themes[0];
         const layout = shooterLayout(o, e.angle, view.scale);
-        g.lineStyle(2 / view.scale, theme.light, .8);
-        g.strokeCircle(o.x, o.y, layout.size * .8);
+        g.lineStyle(5 / view.scale, 0x36213e, .7);
+        g.strokeCircle(o.x, o.y + 1 / view.scale, layout.size * .56);
+        g.lineStyle(3 / view.scale, theme.light, .95);
+        g.strokeCircle(o.x, o.y, layout.size * .56);
+        g.lineStyle(1 / view.scale, theme.accent);
+        g.strokeCircle(o.x, o.y, layout.size * .56 - 2 / view.scale);
         g.fillStyle(theme.accent);
         const a = layout.arrow, t = e.angle;
         g.fillTriangle(a.x + Math.cos(t) * 9, a.y + Math.sin(t) * 9,
@@ -506,17 +539,58 @@ export class CollierScene extends Phaser.Scene {
         this.bead(layout.current.x, layout.current.y, e.current);
         this.bead(layout.next.x, layout.next.y, e.next);
     }
-    private bead(x: number, y: number, color: number): void {
+    private bead(x: number, y: number, color: number, bonus?: Parameters<typeof drawBonus>[3]): void {
         const g = this.graphics;
         if (!g)
             return;
-        const radius = 11.5 / fieldView(this.engine.config).scale;
-        g.fillStyle(palette[color] ?? 0xffffff);
-        g.fillCircle(x, y, radius);
+        const view = fieldView(this.engine.config);
+        const key = this.beadTexture(color, bonus);
+        let image = this.beadImages[this.beadCount++];
+        if (!image) {
+            image = this.add.image(0, 0, key).setOrigin(.5, .45).setDepth(1);
+            this.beadImages.push(image);
+        }
+        image.setTexture(key).setPosition(x * view.scale + view.x, y * view.scale + view.y)
+            .setDisplaySize(40, 40).setVisible(true);
+    }
+    private beadTexture(color: number, bonus?: Parameters<typeof drawBonus>[3]): string {
+        const key = `collier-pearl-${String(color)}-${bonus ?? 'plain'}`;
+        if (!this.textures.exists(key)) {
+            const texture = this.add.graphics();
+            this.paintBead(texture, 20, 18, color, 11.5);
+            if (bonus) {
+                texture.fillStyle(palette[color] ?? 0xffffff);
+                texture.fillCircle(20, 18, 9);
+                drawBonus(texture, 20, 18, bonus);
+            }
+            texture.generateTexture(key, 40, 40);
+            texture.destroy();
+        }
+        return key;
+    }
+    /** Radial shading and soft shadow are rasterised once, never per frame. */
+    private paintBead(g: Phaser.GameObjects.Graphics, x: number, y: number, color: number, radius: number): void {
+        for (const [spread, alpha] of [[1.2, .06], [1, .1], [.8, .13]] as const) {
+            g.fillStyle(0x16142e, alpha);
+            g.fillEllipse(x + 1, y + radius * .7, radius * 2.2 * spread, radius * spread);
+        }
+        const base = palette[color] ?? 0xffffff;
+        // Nested off-centre discs sample a radial gradient from shade to light.
+        for (let i = 0; i < 16; i++) {
+            const t = i / 15;
+            const channel = (shift: number): number => {
+                const c = (base >> shift) & 255;
+                return Math.round(c * (.55 + .45 * t) + (255 - c) * t * .28);
+            };
+            g.fillStyle((channel(16) << 16) | (channel(8) << 8) | channel(0));
+            g.fillCircle(x - t * radius * .27, y - t * radius * .3, radius * (1 - t * .72));
+        }
         g.lineStyle(1, 0x152532, .7);
         g.strokeCircle(x, y, radius);
         drawMotif(g, x, y, color, radius);
-        g.fillStyle(0xffffff, .7);
-        g.fillCircle(x - 3, y - 3, 2.5);
+        g.fillStyle(0xffffff, .85);
+        g.fillEllipse(x - radius * .32, y - radius * .48, radius * .48, radius * .24);
+        g.fillStyle(0xffffff, .45);
+        g.fillCircle(x + radius * .42, y + radius * .5, radius * .12);
     }
 }

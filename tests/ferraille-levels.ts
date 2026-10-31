@@ -74,6 +74,8 @@ export function introductions(E = Engine): void {
             s.hero.y = 242; s.hero.h = 14; assert.equal(move(s, s.hero, 'x', 8), false);
         }
         if (kind === 'tower' || kind === 'spotlight') assert(s.enemies.some(enemy => enemy.x === (kind === 'tower' ? 218 : 193)));
+        // Isolate the safe mechanism demonstration from the separately tested opening fight.
+        s.enemies = s.enemies.filter(enemy => !enemy.opening);
         // Stay in the introduction longer than every hazardous cycle.
         s.vehicle = false; s.hero.x = 168; s.hero.y = 234; s.hero.h = 22; s.hero.vx = s.hero.vy = 0;
         s.grounded = true; s.crouched = false; e.input({ x: 0, y: kind === 'tunnel' ? 1 : 0, fire: false, jump: false });

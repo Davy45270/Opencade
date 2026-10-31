@@ -1,4 +1,7 @@
+import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
+import { DecorCache } from '../ferraille/decor-cache';
+import { brickView, brickGarden, brickBackdrop, brickParticles, drawBrickBody, brickKey } from './presentation';
 import { GameCharacter } from '../../characters/game';
 import { ActionPaint, actionBackdrop } from '../../characters/action-phaser';
 import { designs } from '../../engines/briqueterie/levels';
@@ -17,12 +20,13 @@ export const briqueterieButtons: readonly TouchButton[] = [
     { id: 'briqueterie-right', label: '→', ariaLabel: 'Raquette à droite', size: 56, placement: 'right', mode: 'hold' },
 ];
 export interface BriqueterieHook {
+    performance(): { frames: number; gameMs: number };
     advance(ms: number): void;
     hudText(): string;
     art(): ReturnType<ActionPaint['stats']>;
     power(kind: 'wide' | 'multi' | 'life'): void;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'fall'): void;
 }
@@ -38,6 +42,7 @@ export class BriqueterieScene extends Phaser.Scene {
     private testAdvancing = false;
     private art?: ActionPaint;
     private artClock = 0;
+    private decor?: DecorCache;
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: Phaser.GameObjects.Text;
     private prompt?: Phaser.GameObjects.Text;
@@ -57,11 +62,29 @@ export class BriqueterieScene extends Phaser.Scene {
         if (!this.session.paused && !this.selecting && this.engine.special()) { sound.playEffect('bonus'); this.draw(); }
     }
     create(): void {
+        const receipts = fingerReceipts(this.inputs);
         this.specialGraphics = this.add.graphics().setDepth(4);
-        const cleanup = (): void => { this.inputs.dispose(); this.art?.destroy(); delete window.__BRIQUETERIE_TEST__; sound.stop(); };
+        const cleanup = (): void => { this.inputs.dispose(); this.art?.destroy(); this.decor?.destroy(); delete window.__BRIQUETERIE_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.graphics = this.add.graphics();
         this.art = new ActionPaint(this, 160);
+        this.decor = new DecorCache(this, 160);
+        for (const id of [this.art.id, 'licorne', 'pandaroux'] as const) for (let band = 0; band < 5; band++) for (let part = 0; part < 5; part++) {
+            if (id !== this.art.id && band !== 2) continue;
+            this.decor.bake(`brick-118-${id}-${String(band)}-${String(part)}`, part >= 1 && part <= 3 ? 440 : 360, 640, g => { brickBackdrop(g, id, band, 0, true, part); });
+        }
+        for (const theme of [this.art.id, 'feast', 'autumn', 'stars']) this.decor.bake(`garden-118-${theme}`, 360, 640, g => { brickGarden(g, theme); });
+        const preview = new Engine();
+        const color = Number.parseInt(this.art.colors.light.slice(1), 16);
+        for (let level = 0; level < 30; level++) {
+            preview.loadLevel(level, 28);
+            const view = brickView(level), catalogue = level === 0 ? 'feast' : level === 17 ? 'autumn' : level === 14 ? 'stars' : '';
+            for (const source of preview.state.bricks) for (const hp of source.kind === 'regen' ? [1, 2] : [source.hp]) for (const healAt of source.kind === 'regen' ? [0, 1] : [0]) {
+                const b = { ...source, hp, healAt, x: 2, y: 8, w: view.width, h: view.y(source.y + source.h) - view.y(source.y) };
+                this.decor.bake(brickKey(b, source, catalogue, color), 48, Math.ceil(b.h + 16), g => { drawBrickBody(g, b, source, catalogue, color); });
+            }
+        }
+
         this.hud = this.add.text(14, 14, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', wordWrap: { width: 332 } }).setDepth(5);
         this.prompt = this.add.text(180, 500, '', { fontFamily: 'system-ui', fontSize: '14px', wordWrap: { width: 330 }, color: '#ffe0b5', align: 'center' }).setOrigin(0.5).setDepth(5);
         renderTouchControls(this.inputs, briqueterieButtons, (id, held) => { if (id.endsWith('special')) { if (held) this.special(); } else if (id.endsWith('launch')) { if (held) this.launch(); } else if (id.endsWith('left')) this.left = held; else this.right = held; });
@@ -91,7 +114,8 @@ export class BriqueterieScene extends Phaser.Scene {
             power: kind => { this.engine.spawnBonus(this.engine.state.paddle, 470, kind); this.draw(); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
-            read: () => ({ character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.snapshot().ticks * 1000 / 60 }),
+            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 this.start(0, 455, true);
@@ -137,16 +161,30 @@ export class BriqueterieScene extends Phaser.Scene {
     private draw(): void {
         const g = this.graphics; if (!g) return;
         const s = this.engine.state;
+        const view = brickView(this.engine.level, s.balls[0]?.x ?? s.paddle);
         this.art?.begin();
         const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-        g.clear(); actionBackdrop(g, this.engine.level === 14 ? 'licorne' : this.engine.level === 17 ? 'pandaroux' : this.art?.id ?? 'panda', Math.floor(this.engine.level / 6), this.artClock, reduced);
+        g.clear();
+        if (this.decor) {
+            this.decor.begin();
+            const id = this.engine.level === 14 ? 'licorne' : this.engine.level === 17 ? 'pandaroux' : this.art?.id ?? 'panda';
+            for (let part = 0; part < 5; part++) {
+                const width = part >= 1 && part <= 3 ? 440 : 360;
+                const shift = reduced || part === 0 || part === 4 ? 0 : this.artClock / 1000 * part * 2 % width;
+                for (let x = -shift; x < 360; x += width) this.decor.draw(`brick-118-${id}-${String(Math.floor(this.engine.level / 6))}-${String(part)}`, x, 0, width, 640, -6 + part * .1);
+            }
+        } else actionBackdrop(g, this.engine.level === 14 ? 'licorne' : this.engine.level === 17 ? 'pandaroux' : this.art?.id ?? 'panda', Math.floor(this.engine.level / 6), this.artClock, reduced);
+        if (this.decor) brickParticles(g, this.engine.level === 14 ? 'licorne' : this.engine.level === 17 ? 'pandaroux' : this.art?.id ?? 'panda', Math.floor(this.engine.level / 6), this.artClock, reduced);
         g.lineStyle(2, 0x70cfff); g.strokeRoundedRect(2, 2, 356, 636, 14);
-        for (const b of s.bricks.filter(b => b.kind === 'gravity')) {
-            g.fillStyle(0x68d9ff, 0.12); g.fillRect(Math.max(6, b.x + b.w / 2 - 52), b.y + b.h, 104, 142);
+        for (const source of s.bricks.filter(b => b.kind === 'gravity')) {
+            const b = { ...source, x: view.x(source.x), w: source.w * view.zoom, y: view.y(source.y), h: view.y(source.y + source.h) - view.y(source.y) };
+            g.fillStyle(0x68d9ff, 0.12); g.fillRect(Math.max(6, b.x + b.w / 2 - 52), b.y + b.h, 104, view.y(source.y + 160) - b.y - b.h);
             g.lineStyle(1, 0x68d9ff, 0.5);
-            for (let y = b.y + 45; y < b.y + 150; y += 30) { const x = b.x + b.w / 2; g.lineBetween(x - 6, y + 6, x, y); g.lineBetween(x, y, x + 6, y + 6); }
+            for (let logicalY = source.y + 45; logicalY < source.y + 150; logicalY += 30) { const x = b.x + b.w / 2, y = view.y(logicalY); g.lineBetween(x - 6, y + 6, x, y); g.lineBetween(x, y, x + 6, y + 6); }
         }
         const catalogue = this.engine.level === 0 ? 'feast' : this.engine.level === 17 ? 'autumn' : this.engine.level === 14 ? 'stars' : '';
+        if (this.decor) this.decor.draw(`garden-118-${catalogue || this.art?.id || 'panda'}`, 0, 0, 360, 640, -1);
+        else brickGarden(g, catalogue || this.art?.id || 'panda');
         if (catalogue === 'stars') for (let i = 0; i < 8; i++) {
             const x = 28 + i * 43, y = 275 + (i * 53) % 145;
             g.lineStyle(1, 0x8b81d2, .18); g.lineBetween(x, y, x + 43, 275 + ((i + 1) * 53) % 145);
@@ -154,42 +192,38 @@ export class BriqueterieScene extends Phaser.Scene {
         }
         if (catalogue === 'autumn') for (let i = 0; i < 8; i++) this.art?.icon('feuille', 25 + i * 46, 290 + i % 3 * 59, 29, reduced ? 0 : this.artClock / 7000 + i, .16);
         if (catalogue === 'feast') for (let i = 0; i < 5; i++) this.art?.icon(i % 2 ? 'bao' : 'bambou', 30 + i * 75, 340 + i % 2 * 61, 55, 0, .12);
-        const palette: Record<string, number> = { moving: 0x64e4cc, explosive: 0xff785c, regen: 0x8ae873, portal: 0xbfa2ff, angle: 0xffdf78, key: 0xffdf78, locked: 0x6977a8, multi: 0xf080cf, gravity: 0x68d9ff, anchor: 0xeedac0, hanging: 0xd6bc9a };
-        for (const b of s.bricks) {
-            g.fillStyle(palette[b.kind ?? ''] ?? (b.solid ? 0x617b96 : b.hp === 2 ? 0xf080ab : Number.parseInt((this.art?.colors.light ?? '#ffb867').slice(1), 16))); g.fillRoundedRect(b.x, b.y, b.w, b.h, 4);
-            g.lineStyle(2, 0x162134); g.strokeRoundedRect(b.x, b.y, b.w, b.h, 4);
-            g.lineStyle(1, 0xffffff, 0.5); g.lineBetween(b.x + 4, b.y + 3, b.x + b.w - 4, b.y + 3);
-            const cx = b.x + b.w / 2, cy = b.y + 10;
-            g.lineStyle(2, 0x132438);
-            if (!b.solid && (!b.kind || b.kind === 'plain')) this.art?.icon(catalogue === 'stars' ? 'etoile' : catalogue === 'autumn' ? 'feuille' : catalogue === 'feast' && b.y > 110 ? 'bao' : this.art.theme.primary, cx, cy - 1, 15);
-            if (b.kind === 'portal') { g.strokeEllipse(cx, cy, 14, 10); g.strokeEllipse(cx, cy, 5, 10); }
-            if (b.kind === 'angle') g.lineBetween(b.x + 5, b.y + 14, b.x + b.w - 5, b.y + 5);
-            if (b.kind === 'explosive') { g.strokeCircle(cx, cy, 4); g.lineBetween(cx - 7, cy, cx + 7, cy); g.lineBetween(cx, cy - 7, cx, cy + 7); }
-            if (b.kind === 'regen') { g.lineBetween(cx - 5, cy, cx + 5, cy); g.lineBetween(cx, cy - 5, cx, cy + 5); if (b.healAt) { g.lineStyle(2, 0xffffff); g.strokeRoundedRect(b.x, b.y, b.w, b.h, 4); } }
-            if (b.kind === 'key') { g.strokeCircle(cx - 4, cy, 4); g.lineBetween(cx, cy, cx + 7, cy); g.lineBetween(cx + 6, cy, cx + 6, cy + 4); }
-            if (b.kind === 'moving') { g.lineBetween(cx - 8, cy, cx + 8, cy); g.lineBetween(cx - 8, cy, cx - 4, cy - 4); g.lineBetween(cx + 8, cy, cx + 4, cy + 4); }
-            if (b.kind === 'multi') { for (const dx of [-7, 0, 7]) { g.fillStyle(0x132438); g.fillCircle(cx + dx, cy, 2); } }
-            if (b.kind === 'anchor' || b.kind === 'hanging') { g.lineBetween(cx, b.y - 8, cx, b.y + 6); g.strokeCircle(cx, cy, 3); }
-            if (b.kind === 'gravity') { g.lineBetween(cx, cy - 5, cx, cy + 5); g.lineBetween(cx - 4, cy - 1, cx, cy - 5); g.lineBetween(cx + 4, cy - 1, cx, cy - 5); }
-            if (b.solid) { g.lineStyle(2, 0x132438); g.lineBetween(b.x + 8, b.y + 4, b.x + 24, b.y + 14); g.lineBetween(b.x + 24, b.y + 4, b.x + 8, b.y + 14); }
-            else if (!b.kind || b.kind === 'plain' || b.kind === 'regen') for (let i = 0; i < b.hp; i++) { g.fillStyle(0x132438); g.fillCircle(b.x + b.w / 2 + (i - (b.hp - 1) / 2) * 6, b.y + 11, 1.5); }
+        for (let i = 0; i < 24; i++) {
+            const x = i % 2 ? 338 : 22, y = 70 + Math.floor(i / 2) * 44;
+            this.art?.icon(catalogue === 'stars' ? 'etoile' : catalogue === 'autumn' ? 'feuille' : this.art.theme.primary, x, y, 46, i % 2 ? .3 : -.3, .65);
+        }
+
+        for (const source of s.bricks) {
+            const b = { ...source, x: view.x(source.x - 2), y: view.y(source.y), w: view.width, h: view.y(source.y + source.h) - view.y(source.y) };
+            const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
+            if (!b.solid && (!b.kind || b.kind === 'plain') && !(catalogue === 'stars' && Math.floor(source.x / 34) % 2)) this.art?.icon(catalogue === 'stars' ? 'etoile' : catalogue === 'autumn' ? 'feuille' : catalogue === 'feast' && b.y > 110 ? 'bao' : this.art.theme.primary, cx, cy - 1, Math.min(34, b.h - 4));
+            if (!b.solid && b.kind === 'plain' && b.h > 44) for (const dy of [-b.h / 2 + 13, b.h / 2 - 13]) this.art?.icon(catalogue === 'feast' ? (Math.floor(source.x / 34) % 2 ? 'bao' : 'bambou') : catalogue === 'stars' ? 'etoile' : catalogue === 'autumn' ? 'feuille' : this.art.theme.primary, cx, cy + dy, 22);
+            if (b.kind === 'multi') this.art?.icon('etoile', cx, cy, 30);
+            const color = Number.parseInt((this.art?.colors.light ?? '#ffb867').slice(1), 16);
+            if (this.decor && this.textures.exists(brickKey(b, source, catalogue, color))) this.decor.draw(brickKey(b, source, catalogue, color), b.x - 2, b.y - 8, 48, Math.ceil(b.h + 16), .5);
+            else drawBrickBody(g, b, source, catalogue, color);
         }
         for (const drop of s.bonuses) {
             const kind = drop.kind === 'life' ? 'coeur' : drop.kind === 'wide' ? this.art?.theme.primary ?? 'bambou' : this.art?.theme.special ?? 'bao';
-            this.art?.icon(kind, drop.x, drop.y, 29);
-            g.lineStyle(2, 0xfff3c4); g.strokeRoundedRect(drop.x - 13, drop.y - 13, 26, 26, 7);
+            this.art?.icon(kind, view.x(drop.x, drop.y), view.y(drop.y), 29);
+            g.lineStyle(2, 0xfff3c4); g.strokeRoundedRect(view.x(drop.x, drop.y) - 13, view.y(drop.y) - 13, 26, 26, 7);
         }
         // The bright gold rail is exactly the unchanged collision surface.
         this.art?.craft('paddles', this.left ? 'gauche' : this.right ? 'droite' : 'face', s.paddle, 584, s.width * 1.08, 72);
         g.fillStyle(0xffe693); g.fillRoundedRect(s.paddle - s.width / 2, 586, s.width, 4, 2);
         for (const ball of s.balls) {
-            this.art?.ball(ball.x, ball.y, ball.vx, ball.vy, (ball.pierce ?? 0) > 0 || s.balls.length > 1 || s.wideUntil > 0, reduced);
-            g.lineStyle(1, 0xffffff, .8); g.strokeCircle(ball.x, ball.y, 6);
+            this.art?.ball(view.x(ball.x, ball.y), view.y(ball.y), ball.vx, ball.vy, (ball.pierce ?? 0) > 0 || s.balls.length > 1 || s.wideUntil > 0, reduced);
+            g.lineStyle(1, 0xffffff, .8); g.strokeCircle(view.x(ball.x, ball.y), view.y(ball.y), 10);
+            this.art?.icon(this.art.id === 'panda' ? 'bao' : this.art.id === 'pandaroux' ? 'feuille' : this.art.id === 'dragon' ? 'feu' : this.art.id === 'singe' ? 'coeur' : 'etoile', view.x(ball.x, ball.y), view.y(ball.y), 24);
         }
         if (this.glow) { g.lineStyle(4, 0xffe0b5, this.glow); g.strokeRoundedRect(3, 3, 354, 634, 14); }
         this.specialGraphics?.clear();
         this.hero.advance(0, this.session.paused, this.engine.status, (s.strongPending || s.balls.some(b => (b.pierce ?? 0) > 0)));
-        if ((s.strongPending || s.balls.some(b => (b.pierce ?? 0) > 0)) && this.specialGraphics) this.hero.drawEffect(this.specialGraphics, (s.balls[0]?.x ?? s.paddle) - 32.5, (s.balls[0]?.y ?? 560) - 32.5, 65);
+        if ((s.strongPending || s.balls.some(b => (b.pierce ?? 0) > 0)) && this.specialGraphics) this.hero.drawEffect(this.specialGraphics, view.x(s.balls[0]?.x ?? s.paddle, s.balls[0]?.y ?? 560) - 32.5, view.y(s.balls[0]?.y ?? 560) - 32.5, 65);
         this.hud?.setText(`Balle forte ${s.specialUsed ? 'UTILISÉE' : 'PRÊTE'} · N${String(this.engine.level + 1)}   VIES ${String(s.lives)}   SCORE ${String(s.score)}   ×${String(s.balls.length)}\n${LEVELS[this.engine.level]?.name ?? ''}`);
         this.prompt?.setText(s.ready && this.engine.status === 'playing' ? `${designs[this.engine.level]?.rest ? 'Respiration · ' : (this.engine.level + 1) % 5 === 0 ? 'Défi · ' : ''}À vous de lancer !\n${[...new Set(s.bricks.map(b => b.kind))].filter(k => k && k !== 'plain').map(k => ({ moving: '↔ coulisse', explosive: '✳ explosion', regen: '+ repousse rapide', portal: '◉ portail', angle: '/ déviation', key: '⚿ ouvre les verrous', locked: '× verrou', multi: '••• multi-balle', gravity: '↑ zone inversée', anchor: '○ attache', hanging: '│ suspension' } as Record<string, string>)[k ?? 'plain']).join(' · ')}\nTap · Espace · Lancer` : '');
         const status = document.querySelector('#status'); if (status) status.textContent = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'won' ? 'Victoire' : this.engine.status === 'lost' ? 'Défaite' : s.ready ? 'Prêt' : 'En jeu'}`;

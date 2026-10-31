@@ -1,14 +1,35 @@
 import { test, expect } from './fixture';
 import type { Page, TestInfo } from '@playwright/test';
 import { ids, type CharacterId } from '../../src/characters/model';
-import { Engine as Crates, type Direction } from '../../src/engines/caisses/engine';
-import { solve as solveCrates } from '../../src/engines/caisses/solver';
+import { Engine as Crates, directions, type Direction } from '../../src/engines/caisses/engine';
+import { solve as solveCrates, type PullInput } from '../../src/engines/caisses/solver';
+import { pull, push } from '../../src/engines/caisses/rules';
 import { difficulty } from '../../src/engines/traverse/engine';
 import { crossingAction, landingControl, crossingInputWindowMs } from './character-policy';
 import { Engine as Lander } from '../../src/engines/alunir/engine';
 type Game = 'caisses' | 'traverse' | 'alunir';
-import { Finger } from './character-finger-input';
+import { Finger } from './finger-stepped';
 import { FingerClock } from './finger-clock';
+function cratesInputs(model: Crates): PullInput[] {
+    const budget = model.budgetLeft(), proof = solveCrates(model.board, budget ? 'steps' : 'pushes', true);
+    if (!proof) throw new Error('Missing pull proof');
+    if (proof.inputs.some(a => a.startsWith('pull-'))) return proof.inputs;
+    // The move-budget room needs the step solver. Use a reversible legal pull
+    // along its route, keeping both the solver's placement and the move budget.
+    let position = { player: model.state.player, boxes: model.state.boxes, colors: model.state.colors, filled: model.state.filled };
+    for (const [index, action] of proof.inputs.entries()) {
+        for (const direction of directions) {
+            const pulled = pull(model.board, position, direction), restored = pulled && push(model.board, pulled.pos, direction);
+            if (restored && JSON.stringify(restored.pos) === JSON.stringify(position) && (!budget || proof.inputs.length + 2 <= budget)) {
+                return [...proof.inputs.slice(0, index), `pull-${direction}`, direction, ...proof.inputs.slice(index)];
+            }
+        }
+        const next = push(model.board, position, action as Direction);
+        if (!next) throw new Error('Invalid solver route');
+        position = next.pos;
+    }
+    throw new Error('No pull within move budget');
+}
 async function read(page: Page, game: Game) {
     return page.evaluate(game => {
         const hook = game === 'caisses' ? window.__CAISSES_TEST__ : game === 'traverse' ? window.__TRAVERSE_TEST__ : window.__ALUNIR_TEST__;
@@ -24,34 +45,35 @@ async function capture(page: Page, info: TestInfo, game: Game, id: CharacterId, 
     await info.attach(`perso-${id}-${game}-${kind}`, { path, contentType: 'image/png' });
 }
 for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} doigt bruité : niveaux 1 et 10`, async ({ page }, info) => {
-    test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(600000);
+    test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(1800000);
     await page.setViewportSize({ width: 390, height: 844 });
     const id = ids[game === 'caisses' ? 0 : game === 'traverse' ? 1 : 4];
     await page.addInitScript(id => { localStorage.setItem('arcade-lab:character:v1', id); }, id);
+    await Finger.prepare(page);
     await page.goto(`/?test=1#/${game}`);
     await expect.poll(() => page.evaluate(game => Boolean(game === 'caisses' ? window.__CAISSES_TEST__ : game === 'traverse' ? window.__TRAVERSE_TEST__ : window.__ALUNIR_TEST__), game), { timeout: 30000 }).toBe(true);
-    const cdp = await page.context().newCDPSession(page), finger = new Finger(page, cdp), results: unknown[] = [];
+    const cdp = await page.context().newCDPSession(page), finger = await Finger.create(page, cdp), results: unknown[] = [];
     try {
         if (game !== 'caisses') await finger.press(['#resume']);
-        for (const level of [0, 9]) {
+        for (const level of (game === 'caisses' ? [0, 9, 13] : game === 'traverse' ? [0, 9, 12] : [0, 9])) {
             await page.evaluate(({ game, level }) => {
-                // Pass 403: the second workshop is 14 (ice and arrows); room 10 is now a move-budget challenge.
-                if (game === 'caisses') window.__CAISSES_TEST__?.loadLevel(level ? 13 : 0, 28);
-                else if (game === 'traverse') { window.__TRAVERSE_TEST__?.loadLevel(level ? 12 : 0, 28); } // pass 404: crossing 13
-                else { window.__ALUNIR_TEST__?.loadLevel(level, 28); }
+                // Keep the later mechanics workshops as well as the required levels 1 and 10.
+                if (game === 'caisses') { window.__CAISSES_TEST__?.loadLevel(level, 28); window.__CAISSES_TEST__?.advance(0); }
+                else if (game === 'traverse') { window.__TRAVERSE_TEST__?.loadLevel(level, 28); window.__TRAVERSE_TEST__?.advance(0); }
+                else { window.__ALUNIR_TEST__?.loadLevel(level, 28); window.__ALUNIR_TEST__?.advance(0); }
             }, { game, level });
-            const clock = new FingerClock(), firstEntry = finger.entries.length, decisions: unknown[] = [];
+            const clock = new FingerClock(), started = finger.elapsed, firstEntry = finger.entries.length, decisions: unknown[] = [];
             expect((await read(page, game)).character.id).toBe(id);
             if (game === 'caisses') {
-                const model = new Crates(); model.loadLevel(level ? 13 : 0);
-                const proof = solveCrates(model.board, 'pushes', true); if (!proof) throw new Error('Missing pull proof');
+                const model = new Crates(); model.loadLevel(level, 28);
+                const proof = { inputs: cratesInputs(model) };
                 expect(proof.inputs.some(a => a.startsWith('pull-'))).toBe(true);
                 for (const action of proof.inputs) {
                     await read(page, game);
                     if (action.startsWith('pull-')) {
                         await finger.press(['#caisses-special']);
                         await finger.press([`#caisses-${action.slice(5)}`]); model.special(action.slice(5) as Direction);
-                        await page.waitForTimeout(30); await capture(page, info, game, id, 'special');
+                        await finger.advance(30); await capture(page, info, game, id, 'special');
                     } else { await finger.press([`#caisses-${action}`]); model.input(action as Direction); }
                     const after = await page.evaluate(() => window.__CAISSES_TEST__?.read());
                     expect(after?.player).toBe(model.state.player); expect(after?.boxes).toEqual(model.state.boxes);
@@ -69,7 +91,7 @@ for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} d
                     }
                     // One queued command per quantum, leaving enough room for input latency.
                     if (state.phase === lastPhase || (difficulty(state.level).flowFrames - state.frames) * 1000 / 60 < Math.max(crossingInputWindowMs, clock.horizon)) {
-                        await page.waitForTimeout(10); continue;
+                        await finger.advance(10); continue;
                     }
                     const action = crossingAction(state);
                     decisions.push({ timeMs: clock.elapsed, state, action });
@@ -95,7 +117,8 @@ for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} d
                 await finger.release();
             }
             const final = await read(page, game);
-            results.push({ decisions, realtime: game !== 'caisses', level: level + 1, timeMs: clock.elapsed, entries: finger.entries.slice(firstEntry), touchErrors: finger.entries.slice(firstEntry).filter(e => e.missed).length, victory: final.status === 'won', final });
+            await finger.attach(info, `stepped-${game}-${String(level + 1)}.json`);
+            results.push({ decisions, clock: 'stepped', level: level + 1, timeMs: finger.elapsed - started, entries: finger.entries.slice(firstEntry), touchErrors: finger.entries.slice(firstEntry).filter(e => e.missed).length, victory: final.status === 'won', final });
             expect(finger.entries.slice(firstEntry).filter(entry => entry.missed)).toEqual([]);
             await capture(page, info, game, id, 'jeu');
             expect(final.status).toBe('won'); expect(final.specialUses).toBeLessThan(game === 'alunir' ? 2 : 1);
@@ -103,6 +126,6 @@ for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} d
     } finally {
         await info.attach(`perso-${game}-doigt-bruite.json`, { body: JSON.stringify({ game, character: id, viewport: [390, 844], latencyMs: 150, noisePx: 12, results, entries: finger.entries }, null, 2), contentType: 'application/json' });
         await finger.release();
-        await cdp.detach();
+        await finger.attach(info); await cdp.detach();
     }
 });

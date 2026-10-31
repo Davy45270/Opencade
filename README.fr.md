@@ -79,6 +79,7 @@ partie en pause.
 | Jeu | Principe | Contrôles |
 |---|---|---|
 | **Le Collier du Singe** | 30 niveaux de perles en chaîne, reculs aimantés et combos. | Viser partout puis relâcher ; tap tireur ou ⇄/X : échanger ; flèches/Espace : viser/tirer ; P/Échap : pause. |
+| **Bombercade** | Trente labyrinthes de bombes en solo, blocs cassables, quatre arènes et compagnon choisi. | Flèches / ZQSD : marcher ; Espace : bombe ; X : pouvoir ; pavé tactile et boutons. |
 | **Bubble Lab** | Former des groupes d’au moins trois bulles de même couleur avant que le plafond ne descende. | Souris : viser et tirer ; doigt : glisser puis relâcher ; flèches : viser ; Espace : tirer ; boutons tactiles : ajuster et tirer. |
 | **Serpentin** | Allonger une traînée lumineuse en récoltant étincelles et cristaux, entre murs ou sur un tore. | Flèches, ZQSD ou WASD ; toucher : glisser ou croix directionnelle. |
 | **Briqueterie** | 30 murs dessinés : coulisses, explosions, repousse, portails, chicanes, angles, clés, multi-balle, gravité inversée et suspensions. | Souris : guider ; Gauche/Droite ou A/D : déplacer ; Espace : lancer ; toucher : glisser en bas, tap ou bouton Lancer. |
@@ -245,4 +246,12 @@ Le choix du personnage affiche son nom, son sous-titre et sa devise.
 
 **Le Collier du Singe** (`collier`), treizième jeu : 30 niveaux de perles en chaîne ; viser partout et relâcher pour tirer, tap sur le tireur ou ⇄/X pour échanger. Validation Node : `npm run test:node -- --only=validate-collier.js`.
 
-Gourmandises ajoute 120 niveaux à graine, deux modes, des spéciaux en cascade, des objets dorés, de la glace double, des mondes illustrés et le compagnon choisi ; équilibre sur cinq graines, états inchangés des niveaux 1–60 et 26 mutations en mémoire.
+Gourmandises ajoute 180 niveaux à graine, deux modes, des spéciaux, des objets dorés, de la glace double, du chocolat qui s’étend, des fleurs prisonnières et des tapis bouclés ; équilibre sur cinq graines, états inchangés des niveaux 1–120 et 45 mutations en mémoire.
+
+**Les Artificiers** (`artificiers`) : trente duels au tour par tour, cibles
+d’entraînement et missions de survie ou de démolition, dans un archipel vert,
+des falaises automnales et une cuvette volcanique. Glisser depuis le compagnon
+actif, relâcher pour tirer. Marche courte, saut, grappin, six armes à munitions
+limitées, vent visible et eau montante ; solo contre trois degrés d’IA ou deux
+joueurs sur le même téléphone. Node rejoue trente victoires enregistrées et
+les victoires tactiles bruitées des niveaux 1 et 10. Dessins et sons en code.

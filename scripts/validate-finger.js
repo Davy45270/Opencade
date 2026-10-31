@@ -154,7 +154,8 @@ check('Alunir visual alignment guide preserves engine angles and dangerous appro
 check('capture and touch regression source guards', () => {
     const s = readFileSync('tests/e2e/character-finger-2.spec.ts', 'utf8');
     assert.doesNotMatch(s, /cdp.send\('Input.dispatchTouchEvent'/);
-    assert.doesNotMatch(s, /\.advance\(/);
+    // Piloted time: game time only moves through tests/e2e/finger-stepped.ts; a spec may only enter the manual clock (advance(0)).
+    assert.doesNotMatch(s, /__[A-Z]+_TEST__(?:\?\.|\.)advance\((?!0\))/);
     assert.match(readFileSync('src/style.css', 'utf8'), /#serpentin-special, body\.empilo #touch-controls #empilo-special \{ font-size: 16px; letter-spacing: -0\.06em; \}/);
     assert.doesNotMatch(readFileSync('tests/e2e/habillage.spec.ts', 'utf8'), /setTimeout\(2000\)/);
 });

@@ -111,3 +111,5 @@ document.querySelectorAll('[data-home]').forEach(button => {
     button.addEventListener('click', () => { location.hash = '/'; });
 });
 route();
+
+import './games/artificiers/style.css';

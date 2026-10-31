@@ -1,3 +1,4 @@
+import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
 import { Engine, LEVELS, CANNON_Y, difficulty, type Weapon } from '../../engines/essaim/engine';
@@ -16,10 +17,11 @@ export const essaimButtons: readonly TouchButton[] = [
     { id: 'essaim-fire', label: 'Tir', ariaLabel: 'Tir', size: 64, placement: 'right', mode: 'hold' },
 ];
 export interface EssaimHook {
+    performance(): { frames: number; gameMs: number };
     advance(ms: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; autoFire: boolean; character: ReturnType<GameCharacter['snapshot']> };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; firing: boolean; signatureHeld: boolean }; cumulativeScore: number; progression: string; autoFire: boolean; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger' | 'special'): void;
     weapon(kind: Weapon): void;
@@ -72,6 +74,7 @@ export class EssaimScene extends Phaser.Scene {
         if (!this.session.paused && !this.selecting && this.engine.special()) { sound.playEffect('bonus'); this.draw(); }
     }
     create(): void {
+        const receipts = fingerReceipts(this.inputs);
         this.engine.enableSignature(this.hero.id);
         this.specialGraphics = this.add.graphics().setDepth(4);
         document.body.classList.add('essaim');
@@ -164,7 +167,8 @@ export class EssaimScene extends Phaser.Scene {
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
-            read: () => ({ character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state, autoFire: this.autoFire }),
+            performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.state.ticks * 1000 / 60 }),
+            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, firing: this.firing, signatureHeld: this.signatureHeld }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state, autoFire: this.autoFire }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             weapon: kind => { this.start(0, 458, true); this.engine.state.pickups = []; this.engine.step(1200); this.engine.equip(kind); this.draw(); },
             lastWave: () => {

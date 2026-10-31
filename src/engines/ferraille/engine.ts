@@ -8,7 +8,7 @@ export interface Rect { x: number; y: number; w: number; h: number }
 export interface Body extends Rect { vx: number; vy: number }
 export interface Input { x: number; y: number; jump: boolean; fire: boolean }
 export type Weapon = 'single' | 'fan' | 'burst' | 'flame' | 'bounce' | 'grenade';
-export interface Enemy extends Body { kind: 'crawler' | 'turret' | 'drone' | 'shooter' | 'kamikaze' | 'armored'; hp: number; clock: number; originY: number; phase: number; facing?: number; turned?: number; aim?: number }
+export interface Enemy extends Body { opening?: boolean; kind: 'crawler' | 'turret' | 'drone' | 'shooter' | 'kamikaze' | 'armored'; hp: number; clock: number; originY: number; phase: number; facing?: number; turned?: number; aim?: number }
 export interface Shot extends Body { friendly: boolean; life: number; kind?: Weapon | 'bomb'; bounces?: number }
 export interface Platform extends Rect { originX: number; phase: number; dx: number; originY?: number }
 export interface Block { kind: 'flat' | 'stairs' | 'gap' | 'moving' | 'wall'; start: number; end: number; gap: number; rise: number }
@@ -79,6 +79,7 @@ export function generate(level: number, seed: number): State {
         bonuses.push({ x: 550, y: 130, w: 16, h: 24, kind: config.weapon });
     }
     for (const type of config.enemies.slice(enemies.length)) if (!config.recovery) enemies.push({ kind: type, x: (columns - 26 + enemies.length * 3) * TILE, y: type === 'drone' ? 160 : 242, w: 14, h: 14, vx: -d.enemySpeed, vy: 0, hp: type === 'armored' ? 3 : 1, clock: 0, originY: 160, phase: 0, facing: -1, turned: 0, aim: Math.PI });
+    if (config.openingEnemy) enemies.unshift({ ...config.openingEnemy });
     const cages: Cage[] = config.structure === 'rescue' ? [560, 1072, 1584].map(x => ({ x, y: 224, w: 24, h: 32, hp: 3, rescued: false })) : [];
     const door = (columns - 5) * TILE;
     if (config.structure === 'arena') for (let x = Math.floor((door - 400) / TILE); x < columns; x++) for (let y = 0; y < 20; y++) tiles[y * columns + x] = y >= 16;
@@ -231,9 +232,9 @@ export class Engine {
         }
         for (const e of s.enemies) {
             if (s.modules?.some(m => m.preview && e.x >= m.x && e.x < m.x + m.w)) continue;
-            if (Math.abs(e.x - h.x) > 360 || (s.modules?.length && h.x < 256)) continue;
+            if (Math.abs(e.x - h.x) > 360 || (s.modules?.length && h.x < 256 && !e.opening)) continue;
             const dark = s.modules?.find(m => m.kind === 'spotlight' && e.x >= m.x - 100 && e.x < m.x + 180);
-            if (dark && !(dark.value && h.x >= dark.x && h.x < dark.x + dark.w)) continue;
+            if (!e.opening && dark && !(dark.value && h.x >= dark.x && h.x < dark.x + dark.w)) continue;
             e.clock += DT;
             if (e.kind === 'crawler') {
                 const ahead = e.vx < 0 ? e.x - 2 : e.x + e.w + 2;

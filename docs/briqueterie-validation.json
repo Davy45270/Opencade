@@ -2,139 +2,139 @@
   "pass": 63,
   "cpuCount": 1,
   "victories": 60,
-  "replayMs": 634.0148499999996,
+  "replayMs": 695.9612590000002,
   "testTimings": [
     {
       "name": "K01 réflexion sur mur et plafond",
-      "ms": 0.5844280000001163
+      "ms": 0.626191999999719
     },
     {
       "name": "K02 angle de raquette au centre et aux extrémités",
-      "ms": 0.4870699999992212
+      "ms": 0.5678749999997308
     },
     {
       "name": "K03 faces et coin arrondi de brique",
-      "ms": 0.4273560000001453
+      "ms": 0.5275069999997868
     },
     {
       "name": "K04 balayage continu au plafond de vitesse et au-delà",
-      "ms": 0.3480170000002545
+      "ms": 0.3786069999996471
     },
     {
       "name": "K05 points de vie et score par impact puis destruction",
-      "ms": 0.22523700000056124
+      "ms": 0.2593190000006871
     },
     {
       "name": "K06 indestructible rebondit et ne compte pas pour la victoire",
-      "ms": 0.15064600000005157
+      "ms": 0.19841799999994691
     },
     {
       "name": "K07 trois pertes, attente de relance et défaite",
-      "ms": 0.30401700000038545
+      "ms": 0.35290600000007544
     },
     {
       "name": "K08 victoire après dernier impact et non avant",
-      "ms": 0.14261500000066007
+      "ms": 0.17760499999985768
     },
     {
       "name": "K09 bonus élargir temporaire, multi ×3 et vie plafonnée",
-      "ms": 0.7915759999996226
+      "ms": 0.8084760000001552
     },
     {
       "name": "K09 apparition : positions interdites, brique, saturation et déterminisme des chutes",
-      "ms": 0.997256999999081
+      "ms": 1.0426529999995182
     },
     {
       "name": "K10 accélération tous les dix rebonds, plafond strict",
-      "ms": 4.373991000000387
+      "ms": 6.664482999999564
     },
     {
       "name": "K11 trente silhouettes dessinées et respirations",
-      "ms": 2.1082150000002002
+      "ms": 2.802150000000438
     },
     {
       "name": "K12 déterminisme, découpage fixe, graine témoin et snapshot isolé",
-      "ms": 2.0267110000004323
+      "ms": 1.5288140000002386
     },
     {
       "name": "K-MEC-01 rangée mobile",
-      "ms": 0.27244900000005146
+      "ms": 0.3890129999999772
     },
     {
       "name": "K-MEC-02 explosion de voisinage",
-      "ms": 0.13919300000088697
+      "ms": 0.16580100000010134
     },
     {
       "name": "K-MEC-03 repousse et finition rapide",
-      "ms": 0.6625789999998233
+      "ms": 0.5340029999997569
     },
     {
       "name": "K-MEC-04 portail téléporte réellement",
-      "ms": 0.10706600000048638
+      "ms": 0.13723699999991368
     },
     {
       "name": "K-MEC-05 chicane indestructible",
-      "ms": 0.09798599999885482
+      "ms": 0.11467900000025111
     },
     {
       "name": "K-MEC-06 normale inclinée",
-      "ms": 0.08786000000145577
+      "ms": 0.1192879999998695
     },
     {
       "name": "K-MEC-07 clé libère le coffre",
-      "ms": 0.19485600000007253
+      "ms": 0.3116989999998623
     },
     {
       "name": "K-MEC-08 multi-balle par brique",
-      "ms": 0.09428499999921769
+      "ms": 0.12850699999944482
     },
     {
       "name": "K-MEC-09 zone de gravité inversée",
-      "ms": 0.11656399999992573
+      "ms": 0.13576999999986583
     },
     {
       "name": "K-MEC-10 rupture de suspension",
-      "ms": 1.1849890000012238
+      "ms": 0.9557000000004336
     },
     {
       "name": "K-MEC-11 plafond à chaque tick sous gravité",
-      "ms": 8.461495999999897
+      "ms": 8.443884999999682
     },
     {
       "name": "K-MEC-12 délai du portail et expiration exacte",
-      "ms": 0.28760499999953026
+      "ms": 0.2535219999999754
     },
     {
       "name": "K-MEC-13 maximum neuf balles",
-      "ms": 0.20665900000130932
+      "ms": 0.261344000000463
     },
     {
       "name": "K-MEC-14 bornes exactes du voisinage explosif",
-      "ms": 0.9056959999998071
+      "ms": 1.2789240000001882
     },
     {
       "name": "K-MEC-15 frontières exactes de gravité",
-      "ms": 3.9307819999994535
+      "ms": 1.0988040000002002
     },
     {
       "name": "K-MEC-16 angles multi-balle à ±0,4 rad",
-      "ms": 0.3377509999991162
+      "ms": 0.4729609999994864
     },
     {
       "name": "K-MEC-17 position exacte de sortie du portail",
-      "ms": 0.09533300000111922
+      "ms": 0.09023400000023685
     },
     {
       "name": "K-DIV-01 nouveautés observées, rythme et clones",
-      "ms": 492.75323899999967
+      "ms": 214.20546999999988
     },
     {
       "name": "K-PILOT campagne enregistrée 28",
-      "ms": 380.8926740000006
+      "ms": 212.51651200000015
     },
     {
       "name": "K-PILOT campagne enregistrée 455",
-      "ms": 125.23787600000105
+      "ms": 324.50279000000046
     }
   ],
   "diversity": {
@@ -158,7 +158,7 @@
       "name": "explosion sans voisinage",
       "oracle": "K-MEC-02",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 160,
+      "line": 181,
       "rejected": true,
       "reason": "explosion removes diagonal neighbor"
     },
@@ -166,7 +166,7 @@
       "name": "portail sans téléportation",
       "oracle": "K-MEC-04",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 145,
+      "line": 169,
       "rejected": true,
       "reason": "exit below paired tile"
     },
@@ -174,7 +174,7 @@
       "name": "angle ignoré",
       "oracle": "K-MEC-06",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 131,
+      "line": 147,
       "rejected": true,
       "reason": "inclined reflection vector"
     },
@@ -182,7 +182,7 @@
       "name": "repousse désactivée",
       "oracle": "K-MEC-03",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 94,
+      "line": 103,
       "rejected": true,
       "reason": "healing at tick 181"
     },
@@ -190,7 +190,7 @@
       "name": "clé sans effet",
       "oracle": "K-MEC-07",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 163,
+      "line": 184,
       "rejected": true,
       "reason": "key unlocks"
     },
@@ -198,7 +198,7 @@
       "name": "gravité sans plafond",
       "oracle": "K-MEC-11",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 102,
+      "line": 111,
       "rejected": true,
       "reason": "speed never exceeds level cap at any tick"
     },
@@ -206,7 +206,7 @@
       "name": "portail sans délai",
       "oracle": "K-MEC-12",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 143,
+      "line": 165,
       "rejected": true,
       "reason": "contact reflects without teleportation during cooldown"
     },
@@ -214,7 +214,7 @@
       "name": "dixième balle autorisée",
       "oracle": "K-MEC-13",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 77,
+      "line": 86,
       "rejected": true,
       "reason": "ninth accepted, tenth refused"
     },
@@ -222,7 +222,7 @@
       "name": "explosion trop large",
       "oracle": "K-MEC-14",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 160,
+      "line": 181,
       "rejected": true,
       "reason": "x/-1/38.001: inclusive explosion boundary"
     },
@@ -230,7 +230,7 @@
       "name": "explosion trop haute",
       "oracle": "K-MEC-14",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 160,
+      "line": 181,
       "rejected": true,
       "reason": "y/-1/32.001: inclusive explosion boundary"
     },
@@ -238,7 +238,7 @@
       "name": "explosion exclut la borne horizontale",
       "oracle": "K-MEC-14",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 160,
+      "line": 181,
       "rejected": true,
       "reason": "x/-1/38: inclusive explosion boundary"
     },
@@ -246,7 +246,7 @@
       "name": "explosion exclut la borne verticale",
       "oracle": "K-MEC-14",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 160,
+      "line": 181,
       "rejected": true,
       "reason": "y/-1/32: inclusive explosion boundary"
     },
@@ -254,7 +254,7 @@
       "name": "gravité inclut les bords horizontaux",
       "oracle": "K-MEC-15",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 98,
+      "line": 107,
       "rejected": true,
       "reason": "gravity boundary at 62/150"
     },
@@ -262,7 +262,7 @@
       "name": "gravité inclut le bord inférieur",
       "oracle": "K-MEC-15",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 98,
+      "line": 107,
       "rejected": true,
       "reason": "gravity boundary at 114/260"
     },
@@ -270,7 +270,7 @@
       "name": "gravité inclut le bord supérieur",
       "oracle": "K-MEC-15",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 98,
+      "line": 107,
       "rejected": true,
       "reason": "gravity boundary at 150/100"
     },
@@ -278,7 +278,7 @@
       "name": "angles multi-balle réduits",
       "oracle": "K-MEC-16",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 77,
+      "line": 86,
       "rejected": true,
       "reason": "exact rotated vector and speed"
     },
@@ -286,7 +286,7 @@
       "name": "sortie du portail décalée",
       "oracle": "K-MEC-17",
       "file": "src/engines/briqueterie/engine.ts",
-      "line": 145,
+      "line": 169,
       "rejected": true,
       "reason": "exit at partner center, one pixel below radius clearance"
     },
@@ -304,13 +304,14 @@
     {
       "level": 1,
       "seed": 28,
-      "frames": 4551,
+      "frames": 3249,
       "lives": 3,
-      "score": 720,
+      "score": 1140,
       "witnesses": {
         "bounce": 95,
         "brick": 95,
-        "paddle": 191
+        "paddle": 191,
+        "bonus": 887
       }
     },
     {
@@ -370,14 +371,15 @@
     {
       "level": 6,
       "seed": 28,
-      "frames": 3112,
+      "frames": 3369,
       "lives": 3,
-      "score": 300,
+      "score": 1320,
       "witnesses": {
         "moving": 1,
-        "bounce": 89,
-        "brick": 89,
-        "paddle": 179
+        "bounce": 73,
+        "brick": 73,
+        "paddle": 146,
+        "bonus": 590
       }
     },
     {
@@ -495,17 +497,18 @@
     {
       "level": 15,
       "seed": 28,
-      "frames": 8050,
+      "frames": 2386,
       "lives": 3,
-      "score": 700,
+      "score": 1110,
       "witnesses": {
-        "bounce": 64,
-        "solid": 64,
-        "paddle": 128,
-        "brick": 199,
-        "explosive": 335,
-        "regen": 379,
-        "portal": 742
+        "bounce": 59,
+        "brick": 59,
+        "paddle": 119,
+        "explosive": 633,
+        "bonus": 699,
+        "solid": 757,
+        "portal": 929,
+        "regen": 2369
       }
     },
     {
@@ -538,16 +541,17 @@
     {
       "level": 18,
       "seed": 28,
-      "frames": 1970,
+      "frames": 1601,
       "lives": 3,
-      "score": 450,
+      "score": 1380,
       "witnesses": {
         "moving": 1,
-        "bounce": 55,
-        "brick": 55,
-        "paddle": 110,
-        "portal": 430,
-        "angle": 565
+        "bounce": 51,
+        "brick": 51,
+        "paddle": 103,
+        "portal": 482,
+        "bonus": 570,
+        "angle": 982
       }
     },
     {
@@ -747,14 +751,14 @@
     {
       "level": 1,
       "seed": 455,
-      "frames": 4551,
+      "frames": 6367,
       "lives": 5,
-      "score": 720,
+      "score": 1140,
       "witnesses": {
         "bounce": 95,
         "brick": 95,
         "paddle": 191,
-        "bonus": 1499
+        "bonus": 2805
       }
     },
     {
@@ -812,14 +816,15 @@
     {
       "level": 6,
       "seed": 455,
-      "frames": 1311,
-      "lives": 3,
-      "score": 300,
+      "frames": 7462,
+      "lives": 4,
+      "score": 1320,
       "witnesses": {
         "moving": 1,
-        "bounce": 89,
-        "brick": 89,
-        "paddle": 179
+        "bounce": 73,
+        "brick": 73,
+        "paddle": 146,
+        "bonus": 6366
       }
     },
     {
@@ -934,18 +939,18 @@
     {
       "level": 15,
       "seed": 455,
-      "frames": 5376,
-      "lives": 3,
-      "score": 660,
+      "frames": 19911,
+      "lives": 4,
+      "score": 1210,
       "witnesses": {
-        "bounce": 64,
-        "solid": 64,
-        "paddle": 128,
-        "brick": 199,
-        "explosive": 335,
-        "regen": 379,
-        "portal": 742,
-        "bonus": 3119
+        "bounce": 59,
+        "brick": 59,
+        "paddle": 119,
+        "explosive": 633,
+        "solid": 757,
+        "portal": 933,
+        "regen": 2928,
+        "bonus": 4811
       }
     },
     {
@@ -978,16 +983,17 @@
     {
       "level": 18,
       "seed": 455,
-      "frames": 2156,
-      "lives": 3,
-      "score": 450,
+      "frames": 4731,
+      "lives": 4,
+      "score": 1380,
       "witnesses": {
         "moving": 1,
-        "bounce": 55,
-        "brick": 55,
-        "paddle": 110,
-        "portal": 430,
-        "angle": 565
+        "bounce": 51,
+        "brick": 51,
+        "paddle": 103,
+        "portal": 482,
+        "angle": 1151,
+        "bonus": 4480
       }
     },
     {

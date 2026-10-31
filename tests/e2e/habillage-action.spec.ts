@@ -43,8 +43,10 @@ for (const [index, id] of ids.entries()) {
     });
 }
 
-for (const entry of levelCatalogue) test(`level-catalogue-${entry.code}`, async ({ page }, info) => {
-    test.setTimeout(15_000);
+// Only the three action games are driven here; other catalogue games (Kart, ...) have their own specs.
+for (const entry of levelCatalogue.filter(e => e.game === 'ferraille' || e.game === 'briqueterie' || e.game === 'essaim')) test(`level-catalogue-${entry.code}`, async ({ page }, info) => {
+    // The first visit of a theme bakes its scenery textures once (software rendering on the test host).
+    test.setTimeout(30_000);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     await page.addInitScript(game => {
         localStorage.setItem('arcade-lab:character:v1', game === 'essaim' ? 'licorne' : game === 'ferraille' ? 'pandaroux' : 'panda');
@@ -67,6 +69,10 @@ for (const entry of levelCatalogue) test(`level-catalogue-${entry.code}`, async 
     await page.keyboard.up(entry.game === 'ferraille' ? 'KeyX' : 'Space');
     const level = await page.evaluate(game => (game === 'ferraille' ? window.__FERRAILLE_TEST__?.read() : game === 'briqueterie' ? window.__BRIQUETERIE_TEST__?.read() : window.__ESSAIM_TEST__?.read())?.level, entry.game);
     expect(level).toBe(entry.index);
+    if (entry.game === 'ferraille') {
+        const bake = await page.evaluate(() => window.__FERRAILLE_TEST__?.bake());
+        await info.attach(`bake-${entry.code}.json`, { body: JSON.stringify({ ...bake, userAgent: await page.evaluate(() => navigator.userAgent) }), contentType: 'application/json' });
+    }
     const status = await page.evaluate(game => (game === 'ferraille' ? window.__FERRAILLE_TEST__?.read() : game === 'briqueterie' ? window.__BRIQUETERIE_TEST__?.read() : window.__ESSAIM_TEST__?.read())?.status, entry.game);
     expect(status).toBe('playing');
     if (entry.code === 'G03') expect(await page.evaluate(() => window.__ESSAIM_TEST__?.read().boss?.hp)).toBeGreaterThan(0);

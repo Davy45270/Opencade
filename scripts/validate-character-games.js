@@ -24,7 +24,14 @@ for (const game of ['caisses', 'traverse', 'alunir']) {
         checks.rendered();
         const scene = readFileSync(`src/games/${game}/scene.ts`, 'utf8');
         assert.match(scene, /private hero = new GameCharacter\(\)/);
-        assert.match(scene, /this.hero.draw\(g,/);
+        if (game === 'alunir') {
+            assert.match(scene, /import \{[^}]*\blunarModule\b[^}]*\} from '\.\/presentation'/);
+            assert.match(scene, /lunarModule\(g, e, this.hero, reduced\)/);
+            const presentation = readFileSync('src/games/alunir/presentation.ts', 'utf8');
+            assert.match(presentation, /import type \{ GameCharacter \} from '\.\.\/\.\.\/characters\/game'/);
+            assert.match(presentation, /function lunarModule\(g: G, e: Engine, hero: GameCharacter, reduced: boolean\)/);
+            assert.match(presentation, /hero.draw\(g, -20, -33, 40\)/);
+        } else assert.match(scene, /this.hero.draw\(g,/);
         assert.match(scene, /character: this.hero.snapshot\(\)/);
         assert.match(scene, new RegExp(`id: '${game}-special'.*size: 56`));
     });

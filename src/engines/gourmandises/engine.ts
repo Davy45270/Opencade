@@ -8,12 +8,13 @@ export interface Piece { color: number; drop?: boolean; special?: Special }
 export interface Cell extends Terrain { piece: Piece | null }
 export interface Match { cells: number[]; special?: Special }
 export interface Event {
-    type: 'swap' | 'refused' | 'match' | 'special' | 'cascade' | 'obstacle' | 'fall' | 'fill' | 'shuffle' | 'drop' | 'won' | 'lost';
+    type: 'swap' | 'refused' | 'match' | 'special' | 'cascade' | 'obstacle' | 'fall' | 'fill' | 'shuffle' | 'drop' | 'belt' | 'grow' | 'won' | 'lost';
     cells: number[];
     multiplier: number;
     from?: number;
     to?: number;
     piece?: Piece;
+    pieces?: (Piece | null)[];
 }
 export interface State {
     level: number;
@@ -25,7 +26,8 @@ export interface State {
     cells: Cell[];
     objectives: Objective[];
     collected: number[];
-    broken: { crate: number; ice: number };
+    broken: { crate: number; ice: number; chocolate?: number };
+    released?: number;
     dropped?: number;
     score: number;
     moves: number;
@@ -66,7 +68,7 @@ export class Engine {
             idle: 0, character,
         };
         this.events = [];
-        this.shuffle();
+        this.shuffle(true);
         if (level.layout % 5 === 1 || level.layout % 5 === 4) {
             const center = Math.floor(this.state.height / 2) * this.state.width + Math.floor(this.state.width / 2);
             const middle = this.state.cells[center]?.piece ? center
@@ -106,7 +108,7 @@ export class Engine {
             || !Number.isInteger(state.colors) || state.colors < 5 || state.colors > 7
             || !state.objectives.length || state.objectives.some(o => !Number.isFinite(o.target) || o.target <= 0)
             || state.cells.some(c => typeof c.active !== 'boolean' || ![0, 1, 2].includes(c.crate)
-                || ![0, 1, 2].includes(c.ice) || ((!c.active || c.crate > 0) && c.piece !== null)
+                || ![0, 1, 2].includes(c.ice) || ((!c.active || c.crate > 0 || c.chocolate) && c.piece !== null)
                 || (c.piece !== null && (!Number.isInteger(c.piece.color) || c.piece.color < 0
                     || c.piece.color >= state.colors || (c.piece.drop !== undefined
                         && (!c.piece.drop || c.piece.color !== 2 || c.piece.special !== undefined)))))) {
@@ -138,7 +140,13 @@ export class Engine {
     }
     private emit(type: Event['type'], cells: number[], multiplier = 1, motion?: { from?: number; to?: number; piece?: Piece }): void {
         if (!this.recording) return;
-        this.events.push({ type, cells: [...cells], multiplier, ...motion });
+        const event: Event = { type, cells: [...cells], multiplier, ...motion };
+        // A reshuffle has no individual trajectories. Belt playback needs its
+        // resulting inventory before replaying the next transport or cascade.
+        if (type === 'shuffle' && this.state.cells.some(cell => cell.belt)) {
+            event.pieces = this.state.cells.map(cell => cell.piece ? { ...cell.piece } : null);
+        }
+        this.events.push(event);
     }
     adjacent(a: number, b: number): boolean {
         const w = this.state.width;
@@ -156,7 +164,7 @@ export class Engine {
     }
     private movable(i: number): boolean {
         const c = this.state.cells[i];
-        return !!c?.active && !c.crate && !!c.piece;
+        return !!c?.active && !c.crate && !c.chocolate && !!c.piece;
     }
     neighbors(i: number): number[] {
         const w = this.state.width;
@@ -241,9 +249,18 @@ export class Engine {
         return moves;
     }
     /** Seeded permutation of the inventory; initial boards use run-free filling. */
-    shuffle(): void {
+    shuffle(initial = false): void {
         this.deliverDrops();
-        const slots = this.state.cells.flatMap((c, i) => c.active && !c.crate && !c.piece?.drop ? [i] : []);
+        // A dead board first loses all spreading blockers, before rebuilding candy.
+        if (!initial && !this.validMoves(true).length) {
+            this.state.cells.forEach((cell, i) => {
+                if (!cell.chocolate) return;
+                cell.chocolate = false;
+                this.state.broken.chocolate = (this.state.broken.chocolate ?? 0) + 1;
+                this.emit('obstacle', [i]);
+            });
+        }
+        const slots = this.state.cells.flatMap((c, i) => c.active && !c.crate && !c.chocolate && !c.piece?.drop ? [i] : []);
         const inventory = slots.flatMap(i => {
             const piece = this.state.cells[i]?.piece;
             return piece ? [{ ...piece }] : [];
@@ -269,7 +286,7 @@ export class Engine {
             for (let i = 0; i < this.state.cells.length; i++) {
                 const c = required(this.state.cells[i]);
                 if (c.piece?.drop) continue;
-                if (!c.active || c.crate) {
+                if (!c.active || c.crate || c.chocolate) {
                     c.piece = null;
                     continue;
                 }
@@ -304,11 +321,21 @@ export class Engine {
             this.emit('refused', [a, b]);
             return false;
         }
+        const chocolateBefore = this.state.broken.chocolate ?? 0;
         this.state.moves++;
         this.state.idle = 0;
         this.emit('swap', [a, b]);
         if (ca.piece?.special || cb.piece?.special) this.combine(a, b);
-        this.resolve(b, a);
+        const movingTerrain = this.state.cells.some(cell => cell.chocolate || cell.belt);
+        if (!movingTerrain) {
+            this.resolve(b, a);
+            return true;
+        }
+        this.resolve(b, a, false);
+        if ((this.state.broken.chocolate ?? 0) === chocolateBefore) this.growChocolate();
+        if (this.advanceBelts()) this.resolve(-1, -1, false);
+        if (!this.validMoves(true).length) this.shuffle();
+        this.checkStatus();
         return true;
     }
     private line(i: number, vertical: boolean, radius = 0): number[] {
@@ -368,13 +395,27 @@ export class Engine {
             for (const j of spread) hit.add(j);
         }
         const crates = new Set<number>();
+        const chocolates = new Set<number>();
         for (const i of hit) {
             const cell = this.state.cells[i];
             if (!cell?.active) continue;
+            if (cell.chocolate) chocolates.add(i);
+            if (cell.hedge) {
+                cell.hedge = false;
+                this.state.released = (this.state.released ?? 0) + 1;
+                this.emit('obstacle', [i], multiplier);
+            }
             if (cell.ice) {
                 cell.ice--;
                 this.state.broken.ice++;
                 this.emit('obstacle', [i], multiplier);
+            }
+            // A protected new special still belongs to the adjacent match.
+            if (cell.piece && !cell.piece.drop) {
+                for (const j of this.neighbors(i)) {
+                    if (this.state.cells[j]?.chocolate) chocolates.add(j);
+                    if (!protectedCells.has(i) && this.state.cells[j]?.crate) crates.add(j);
+                }
             }
             if (protectedCells.has(i)) continue;
             if (cell.crate) {
@@ -386,7 +427,11 @@ export class Engine {
             this.state.collected[color] = (this.state.collected[color] ?? 0) + 1;
             this.state.score += 10 * multiplier;
             cell.piece = null;
-            for (const j of this.neighbors(i)) if (this.state.cells[j]?.crate) crates.add(j);
+        }
+        for (const i of chocolates) {
+            required(this.state.cells[i]).chocolate = false;
+            this.state.broken.chocolate = (this.state.broken.chocolate ?? 0) + 1;
+            this.emit('obstacle', [i], multiplier);
         }
         for (const i of crates) {
             required(this.state.cells[i]).crate--;
@@ -458,14 +503,14 @@ export class Engine {
             };
             for (let y = 0; y < h; y++) {
                 const i = y * w + x;
-                if (!required(cells[i]).active || required(cells[i]).crate) flush();
+                if (!required(cells[i]).active || required(cells[i]).crate || required(cells[i]).chocolate) flush();
                 else segment.push(i);
             }
             flush();
         }
         this.supplyDrops();
     }
-    resolve(preferred = -1, origin = -1): void {
+    resolve(preferred = -1, origin = -1, finish = true): void {
         this.deliverDrops();
         for (let cascade = 1; cascade <= 100; cascade++) {
             const groups = this.matches();
@@ -486,11 +531,49 @@ export class Engine {
             if (cascade === 100) this.shuffle();
         }
         if (!this.validMoves(true).length) this.shuffle();
-        this.checkStatus();
+        if (finish) this.checkStatus();
+    }
+    private growChocolate(): void {
+        const candidates = this.state.cells.flatMap((cell, i) => cell.chocolate ? this.neighbors(i) : [])
+            .filter(i => {
+                const cell = required(this.state.cells[i]);
+                return cell.active && !cell.crate && !cell.chocolate && !cell.hedge && !cell.belt && !cell.piece?.drop;
+            }).sort((a, b) => a - b);
+        const target = candidates[0];
+        if (target === undefined) return;
+        const cell = required(this.state.cells[target]);
+        cell.chocolate = true;
+        cell.piece = null;
+        this.emit('grow', [target]);
+    }
+    /** Rotate each authored band simultaneously, retaining its floor and direction. */
+    advanceBelts(): boolean {
+        const bands = new Map<number, number[]>();
+        this.state.cells.forEach((cell, i) => {
+            if (!cell.active || cell.crate || cell.chocolate || !cell.belt) return;
+            const band = bands.get(cell.belt.band) ?? [];
+            band.push(i);
+            bands.set(cell.belt.band, band);
+        });
+        for (const indices of bands.values()) {
+            if (indices.length < 2) continue;
+            const direction = required(this.state.cells[required(indices[0])]).belt?.direction;
+            const step = direction === 'left' || direction === 'up' ? -1 : 1;
+            const pieces = indices.map(i => this.state.cells[i]?.piece ?? null);
+            indices.forEach((from, offset) => {
+                const to = required(indices[(offset + step + indices.length) % indices.length]);
+                const piece = pieces[offset] ?? null;
+                required(this.state.cells[to]).piece = piece;
+                this.emit('belt', [from, to], 1, { from, to, ...(piece ? { piece: { ...piece } } : {}) });
+            });
+        }
+        return bands.size > 0;
     }
     progress(objective: Objective): number {
         if (objective.kind === 'collect') return this.state.collected[objective.color] ?? 0;
         if (objective.kind === 'drop') return this.state.dropped ?? 0;
+        if (objective.kind === 'flower') return this.state.released ?? 0;
+        if (objective.kind === 'chocolate') return this.state.broken.chocolate ?? 0;
         if (objective.kind === 'score') return this.state.score;
         return this.state.broken[objective.kind];
     }

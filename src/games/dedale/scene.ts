@@ -1,4 +1,5 @@
 import { lesson as dedaleLesson } from './lessons';
+import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
 import { Engine, LEVELS, WIDTH, HEIGHT, visible, index, type Direction } from '../../engines/dedale/engine';
@@ -18,10 +19,11 @@ export const dedaleButtons: readonly TouchButton[] = [
     { id: 'dedale-right', label: '→', ariaLabel: 'Aller à droite', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface DedaleHook {
+    performance(): { frames: number; gameMs: number };
     advance(ms: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger'): void;
 }
@@ -54,6 +56,7 @@ export class DedaleScene extends Phaser.Scene {
         this.testManual = false; this.progress.start(index, fresh); this.engine.loadLevel(index, seed); this.selecting = false; this.panels(); this.draw();
     }
     create(): void {
+        const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('dedale');
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('dedale'); delete window.__DEDALE_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup);
@@ -96,7 +99,8 @@ export class DedaleScene extends Phaser.Scene {
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
-            read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state }),
+            performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.state.ticks * 1000 / 60 }),
+            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 this.start(0, 459, true);

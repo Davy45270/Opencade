@@ -14,11 +14,13 @@ export function createThumbnail(seed = 28): Thumbnail {
             const t = e.at(x, y), fill = colors[t];
             if (fill) rect(c, x * 7, y * 7, 7, 7, fill);
             if (t === 'o') circle(c, x * 7 + 3.5, y * 7 + 3.5, 3, '#9a948a');
-            if (t === '*' || t === 'g') circle(c, x * 7 + 3.5, y * 7 + 3.5, (t === 'g' ? 3.5 : 2.5) - ((frame + x + y) % 4 === 0 ? 1 : 0), '#ffd34d');
+            if (t === '*' || t === 'g') circle(c, x * 7 + 3.5, y * 7 + 3.5, (t === 'g' ? 3.5 : 2.5) - ((frame + x + y) % 7 === 0 ? 1 : 0), '#ffd34d');
         }
         for (const n of e.state.enemies) rect(c, n.x * 7 + 1, n.y * 7 + 1, 5, 5, n.kind === 'f' ? '#ff8a3d' : '#7fd4ff');
         circle(c, e.state.player.x * 7 + 3.5, e.state.player.y * 7 + 3.5, 3, '#e5fff7');
-        // Nugget glint: the preview stays alive even while the miner waits for a boulder to settle.
+        // Nugget glint (period 7) and a lantern sweeping the mine roof (period 84): two frames a few
+        // steps apart never match even while the miner waits for a boulder to settle.
+        circle(c, (frame * 5) % 84, 1.5, 1.5, '#ffe9a0');
         c.restore();
     } };
 }

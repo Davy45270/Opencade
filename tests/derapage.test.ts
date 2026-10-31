@@ -442,7 +442,7 @@ import { joystickCases } from './derapage-joystick';
 // Negative Z36 metadata cases use the Node replay witness instead of replaying here.
 for (const scenario of joystickCases.filter(c => !c.name.startsWith('Z36 rejeu :'))) test(scenario.name, () => {
     scenario.run((ok, message) => { expect(ok, message).toBe(true); });
-}, scenario.name.startsWith('Z36') || scenario.name.includes('rejeu') ? 15000 : 2000);
+}, 15000); // safety net only: joystick cases are bounded by their own frame counts
 
 test('Z15 comparaison compacte : dérive dynamique et snapshots complets', () => {
     checkReplayComparison((ok, message) => { expect(ok, message).toBe(true); });

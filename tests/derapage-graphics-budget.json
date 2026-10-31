@@ -173,308 +173,6 @@
     {
       "level": 18,
       "name": "Bambou Express",
-      "top": 1962,
-      "view3d": 777,
-      "topMean": 1609.5416666666663,
-      "view3dMean": 404.6979166666668,
-      "topIndex": 85,
-      "view3dIndex": 75
-    },
-    {
-      "level": 19,
-      "name": "La Clairière brisée",
-      "top": 484,
-      "view3d": 669,
-      "topMean": 410.4583333333331,
-      "view3dMean": 371.98958333333326,
-      "topIndex": 94,
-      "view3dIndex": 80
-    },
-    {
-      "level": 20,
-      "name": "Feuilles Folles",
-      "top": 991,
-      "view3d": 775,
-      "topMean": 702.270833333333,
-      "view3dMean": 412.5520833333334,
-      "topIndex": 29,
-      "view3dIndex": 79
-    },
-    {
-      "level": 21,
-      "name": "Les Pavés du levant",
-      "top": 346,
-      "view3d": 431,
-      "topMean": 293.4895833333335,
-      "view3dMean": 283.46874999999994,
-      "topIndex": 90,
-      "view3dIndex": 0
-    },
-    {
-      "level": 22,
-      "name": "La Terrasse des quais",
-      "top": 350,
-      "view3d": 481,
-      "topMean": 304.3854166666667,
-      "view3dMean": 309.45833333333337,
-      "topIndex": 1,
-      "view3dIndex": 68
-    },
-    {
-      "level": 23,
-      "name": "Le Passage des halles",
-      "top": 344,
-      "view3d": 453,
-      "topMean": 292.90625,
-      "view3dMean": 302.30208333333337,
-      "topIndex": 89,
-      "view3dIndex": 0
-    },
-    {
-      "level": 24,
-      "name": "Les Balcons de pierre",
-      "top": 342,
-      "view3d": 445,
-      "topMean": 292.2708333333334,
-      "view3dMean": 288.0104166666667,
-      "topIndex": 3,
-      "view3dIndex": 87
-    },
-    {
-      "level": 25,
-      "name": "La Combe des échos",
-      "top": 392,
-      "view3d": 478,
-      "topMean": 342.4791666666663,
-      "view3dMean": 311.0208333333333,
-      "topIndex": 88,
-      "view3dIndex": 90
-    },
-    {
-      "level": 26,
-      "name": "Le Serpent des joncs",
-      "top": 464,
-      "view3d": 691,
-      "topMean": 405.3854166666665,
-      "view3dMean": 407.4166666666667,
-      "topIndex": 90,
-      "view3dIndex": 74
-    },
-    {
-      "level": 27,
-      "name": "Volcan Turbo",
-      "top": 436,
-      "view3d": 488,
-      "topMean": 369.31249999999994,
-      "view3dMean": 315.1145833333333,
-      "topIndex": 48,
-      "view3dIndex": 83
-    },
-    {
-      "level": 28,
-      "name": "Les Sept lacets",
-      "top": 398,
-      "view3d": 501,
-      "topMean": 343.8124999999998,
-      "view3dMean": 325.53124999999994,
-      "topIndex": 43,
-      "view3dIndex": 90
-    },
-    {
-      "level": 29,
-      "name": "La Descente en ruban",
-      "top": 351,
-      "view3d": 485,
-      "topMean": 306.43750000000006,
-      "view3dMean": 301.76041666666663,
-      "topIndex": 6,
-      "view3dIndex": 0
-    },
-    {
-      "level": 30,
-      "name": "Le Petit guidon",
-      "top": 362,
-      "view3d": 477,
-      "topMean": 313.37500000000006,
-      "view3dMean": 299.80208333333337,
-      "topIndex": 6,
-      "view3dIndex": 0
-    }
-  ],
-  "after": [
-    {
-      "level": 1,
-      "name": "La Flèche des prés",
-      "top": 400,
-      "view3d": 542,
-      "topMean": 348.96875000000006,
-      "view3dMean": 327.47916666666663,
-      "topIndex": 5,
-      "view3dIndex": 95
-    },
-    {
-      "level": 2,
-      "name": "Autour des Invalides",
-      "top": 350,
-      "view3d": 427,
-      "topMean": 301.1666666666667,
-      "view3dMean": 272.88541666666663,
-      "topIndex": 90,
-      "view3dIndex": 0
-    },
-    {
-      "level": 3,
-      "name": "Les Docks clairs",
-      "top": 326,
-      "view3d": 409,
-      "topMean": 275.7604166666667,
-      "view3dMean": 262.7291666666667,
-      "topIndex": 88,
-      "view3dIndex": 0
-    },
-    {
-      "level": 4,
-      "name": "La Cour des arches",
-      "top": 344,
-      "view3d": 498,
-      "topMean": 296.19791666666674,
-      "view3dMean": 318.625,
-      "topIndex": 85,
-      "view3dIndex": 85
-    },
-    {
-      "level": 5,
-      "name": "Le Rocher",
-      "top": 385,
-      "view3d": 475,
-      "topMean": 319.1770833333333,
-      "view3dMean": 303.65625000000006,
-      "topIndex": 16,
-      "view3dIndex": 67
-    },
-    {
-      "level": 6,
-      "name": "Le Grand détour",
-      "top": 366,
-      "view3d": 438,
-      "topMean": 301.2395833333335,
-      "view3dMean": 284.6458333333333,
-      "topIndex": 88,
-      "view3dIndex": 95
-    },
-    {
-      "level": 7,
-      "name": "Les Deux horizons",
-      "top": 390,
-      "view3d": 537,
-      "topMean": 353.7395833333334,
-      "view3dMean": 338.375,
-      "topIndex": 92,
-      "view3dIndex": 83
-    },
-    {
-      "level": 8,
-      "name": "Le Vent des plaines",
-      "top": 366,
-      "view3d": 448,
-      "topMean": 314.1770833333335,
-      "view3dMean": 298.7604166666667,
-      "topIndex": 90,
-      "view3dIndex": 95
-    },
-    {
-      "level": 9,
-      "name": "Les Trois replis",
-      "top": 348,
-      "view3d": 437,
-      "topMean": 306.1354166666668,
-      "view3dMean": 267.59374999999994,
-      "topIndex": 88,
-      "view3dIndex": 73
-    },
-    {
-      "level": 10,
-      "name": "La Clef des champs",
-      "top": 390,
-      "view3d": 528,
-      "topMean": 337.98958333333326,
-      "view3dMean": 323.30208333333326,
-      "topIndex": 87,
-      "view3dIndex": 75
-    },
-    {
-      "level": 11,
-      "name": "Le Ruban plié",
-      "top": 362,
-      "view3d": 464,
-      "topMean": 317.7604166666666,
-      "view3dMean": 290.7395833333334,
-      "topIndex": 89,
-      "view3dIndex": 84
-    },
-    {
-      "level": 12,
-      "name": "Les Coudes de cuivre",
-      "top": 356,
-      "view3d": 427,
-      "topMean": 306.77083333333337,
-      "view3dMean": 263.65625000000006,
-      "topIndex": 87,
-      "view3dIndex": 82
-    },
-    {
-      "level": 13,
-      "name": "La Grande ellipse",
-      "top": 384,
-      "view3d": 422,
-      "topMean": 346.62500000000006,
-      "view3dMean": 277.3333333333333,
-      "topIndex": 92,
-      "view3dIndex": 0
-    },
-    {
-      "level": 14,
-      "name": "Le Bol incliné",
-      "top": 368,
-      "view3d": 425,
-      "topMean": 324.0520833333333,
-      "view3dMean": 279.8854166666667,
-      "topIndex": 2,
-      "view3dIndex": 0
-    },
-    {
-      "level": 15,
-      "name": "L’Anneau des vents",
-      "top": 362,
-      "view3d": 405,
-      "topMean": 316.15624999999983,
-      "view3dMean": 262.6770833333333,
-      "topIndex": 86,
-      "view3dIndex": 63
-    },
-    {
-      "level": 16,
-      "name": "Le Triangle arrondi",
-      "top": 400,
-      "view3d": 547,
-      "topMean": 351.21874999999994,
-      "view3dMean": 321.4270833333333,
-      "topIndex": 8,
-      "view3dIndex": 66
-    },
-    {
-      "level": 17,
-      "name": "La Côte des Ardennes",
-      "top": 482,
-      "view3d": 739,
-      "topMean": 386.81249999999966,
-      "view3dMean": 398.45833333333326,
-      "topIndex": 86,
-      "view3dIndex": 74
-    },
-    {
-      "level": 18,
-      "name": "Bambou Express",
       "top": 328,
       "view3d": 777,
       "topMean": 272.32291666666674,
@@ -599,6 +297,308 @@
       "view3d": 477,
       "topMean": 313.37500000000006,
       "view3dMean": 299.80208333333337,
+      "topIndex": 6,
+      "view3dIndex": 0
+    }
+  ],
+  "after": [
+    {
+      "level": 1,
+      "name": "La Flèche des prés",
+      "top": 312,
+      "view3d": 369,
+      "topMean": 271.90624999999994,
+      "view3dMean": 209.64583333333334,
+      "topIndex": 85,
+      "view3dIndex": 0
+    },
+    {
+      "level": 2,
+      "name": "Autour des Invalides",
+      "top": 330,
+      "view3d": 379,
+      "topMean": 284.9791666666664,
+      "view3dMean": 210.96875,
+      "topIndex": 90,
+      "view3dIndex": 0
+    },
+    {
+      "level": 3,
+      "name": "Les Docks clairs",
+      "top": 314,
+      "view3d": 385,
+      "topMean": 265.03125000000017,
+      "view3dMean": 220.3333333333333,
+      "topIndex": 88,
+      "view3dIndex": 0
+    },
+    {
+      "level": 4,
+      "name": "La Cour des arches",
+      "top": 320,
+      "view3d": 377,
+      "topMean": 271.32291666666674,
+      "view3dMean": 218.89583333333346,
+      "topIndex": 85,
+      "view3dIndex": 0
+    },
+    {
+      "level": 5,
+      "name": "Le Rocher",
+      "top": 363,
+      "view3d": 385,
+      "topMean": 300.6354166666668,
+      "view3dMean": 236.51041666666677,
+      "topIndex": 16,
+      "view3dIndex": 0
+    },
+    {
+      "level": 6,
+      "name": "Le Grand détour",
+      "top": 312,
+      "view3d": 374,
+      "topMean": 268.8020833333335,
+      "view3dMean": 226.85416666666677,
+      "topIndex": 86,
+      "view3dIndex": 0
+    },
+    {
+      "level": 7,
+      "name": "Les Deux horizons",
+      "top": 312,
+      "view3d": 366,
+      "topMean": 280.98958333333337,
+      "view3dMean": 229.83333333333346,
+      "topIndex": 90,
+      "view3dIndex": 0
+    },
+    {
+      "level": 8,
+      "name": "Le Vent des plaines",
+      "top": 312,
+      "view3d": 373,
+      "topMean": 268.80208333333337,
+      "view3dMean": 225.5104166666666,
+      "topIndex": 87,
+      "view3dIndex": 0
+    },
+    {
+      "level": 9,
+      "name": "Les Trois replis",
+      "top": 312,
+      "view3d": 365,
+      "topMean": 270.7604166666669,
+      "view3dMean": 224.11458333333334,
+      "topIndex": 86,
+      "view3dIndex": 0
+    },
+    {
+      "level": 10,
+      "name": "La Clef des champs",
+      "top": 312,
+      "view3d": 380,
+      "topMean": 266.3645833333334,
+      "view3dMean": 221.57291666666666,
+      "topIndex": 84,
+      "view3dIndex": 0
+    },
+    {
+      "level": 11,
+      "name": "Le Ruban plié",
+      "top": 320,
+      "view3d": 392,
+      "topMean": 273.3854166666668,
+      "view3dMean": 228.11458333333337,
+      "topIndex": 87,
+      "view3dIndex": 0
+    },
+    {
+      "level": 12,
+      "name": "Les Coudes de cuivre",
+      "top": 320,
+      "view3d": 373,
+      "topMean": 271.83333333333354,
+      "view3dMean": 228.61458333333331,
+      "topIndex": 87,
+      "view3dIndex": 0
+    },
+    {
+      "level": 13,
+      "name": "La Grande ellipse",
+      "top": 312,
+      "view3d": 380,
+      "topMean": 278.5625,
+      "view3dMean": 207.85416666666674,
+      "topIndex": 0,
+      "view3dIndex": 0
+    },
+    {
+      "level": 14,
+      "name": "Le Bol incliné",
+      "top": 314,
+      "view3d": 383,
+      "topMean": 277.05208333333337,
+      "view3dMean": 222.03124999999994,
+      "topIndex": 2,
+      "view3dIndex": 0
+    },
+    {
+      "level": 15,
+      "name": "L’Anneau des vents",
+      "top": 320,
+      "view3d": 364,
+      "topMean": 280.46875,
+      "view3dMean": 220.36458333333331,
+      "topIndex": 91,
+      "view3dIndex": 0
+    },
+    {
+      "level": 16,
+      "name": "Le Triangle arrondi",
+      "top": 328,
+      "view3d": 383,
+      "topMean": 276.2187499999996,
+      "view3dMean": 230.23958333333334,
+      "topIndex": 8,
+      "view3dIndex": 0
+    },
+    {
+      "level": 17,
+      "name": "La Côte des Ardennes",
+      "top": 314,
+      "view3d": 379,
+      "topMean": 271.25000000000034,
+      "view3dMean": 231.3333333333333,
+      "topIndex": 86,
+      "view3dIndex": 0
+    },
+    {
+      "level": 18,
+      "name": "Bambou Express",
+      "top": 328,
+      "view3d": 777,
+      "topMean": 272.32291666666674,
+      "view3dMean": 404.6979166666668,
+      "topIndex": 87,
+      "view3dIndex": 75
+    },
+    {
+      "level": 19,
+      "name": "La Clairière brisée",
+      "top": 322,
+      "view3d": 374,
+      "topMean": 277.7708333333333,
+      "view3dMean": 224.78125000000003,
+      "topIndex": 94,
+      "view3dIndex": 0
+    },
+    {
+      "level": 20,
+      "name": "Feuilles Folles",
+      "top": 453,
+      "view3d": 775,
+      "topMean": 332.7187499999998,
+      "view3dMean": 412.5520833333334,
+      "topIndex": 39,
+      "view3dIndex": 79
+    },
+    {
+      "level": 21,
+      "name": "Les Pavés du levant",
+      "top": 330,
+      "view3d": 419,
+      "topMean": 280.92708333333354,
+      "view3dMean": 242.3645833333334,
+      "topIndex": 86,
+      "view3dIndex": 0
+    },
+    {
+      "level": 22,
+      "name": "La Terrasse des quais",
+      "top": 324,
+      "view3d": 384,
+      "topMean": 281.73958333333354,
+      "view3dMean": 229.81250000000003,
+      "topIndex": 5,
+      "view3dIndex": 0
+    },
+    {
+      "level": 23,
+      "name": "Le Passage des halles",
+      "top": 328,
+      "view3d": 411,
+      "topMean": 278.5937500000003,
+      "view3dMean": 237.6145833333334,
+      "topIndex": 87,
+      "view3dIndex": 0
+    },
+    {
+      "level": 24,
+      "name": "Les Balcons de pierre",
+      "top": 330,
+      "view3d": 398,
+      "topMean": 280.64583333333366,
+      "view3dMean": 242.98958333333337,
+      "topIndex": 0,
+      "view3dIndex": 0
+    },
+    {
+      "level": 25,
+      "name": "La Combe des échos",
+      "top": 320,
+      "view3d": 381,
+      "topMean": 278.79166666666663,
+      "view3dMean": 232.10416666666666,
+      "topIndex": 87,
+      "view3dIndex": 0
+    },
+    {
+      "level": 26,
+      "name": "Le Serpent des joncs",
+      "top": 316,
+      "view3d": 405,
+      "topMean": 273.6979166666668,
+      "view3dMean": 235.31249999999994,
+      "topIndex": 2,
+      "view3dIndex": 0
+    },
+    {
+      "level": 27,
+      "name": "Volcan Turbo",
+      "top": 376,
+      "view3d": 445,
+      "topMean": 333.3020833333334,
+      "view3dMean": 287.83333333333326,
+      "topIndex": 0,
+      "view3dIndex": 75
+    },
+    {
+      "level": 28,
+      "name": "Les Sept lacets",
+      "top": 322,
+      "view3d": 403,
+      "topMean": 278.24999999999983,
+      "view3dMean": 239.80208333333337,
+      "topIndex": 0,
+      "view3dIndex": 0
+    },
+    {
+      "level": 29,
+      "name": "La Descente en ruban",
+      "top": 309,
+      "view3d": 431,
+      "topMean": 273.8124999999999,
+      "view3dMean": 244.53125,
+      "topIndex": 0,
+      "view3dIndex": 0
+    },
+    {
+      "level": 30,
+      "name": "Le Petit guidon",
+      "top": 346,
+      "view3d": 435,
+      "topMean": 298.83333333333326,
+      "view3dMean": 247.1979166666669,
       "topIndex": 6,
       "view3dIndex": 0
     }

@@ -10,7 +10,7 @@ export function median(values: number[]): number {
     return ordered.length % 2 ? upper : ((ordered[middle - 1] ?? 0) + upper) / 2;
 }
 export function bounds(index: number): [number, number] {
-    return index < 10 ? [0.25, 0.5] : index < 40 ? [0.4, 0.7] : [0.55, 0.85];
+    return index >= 120 ? [0.60, 0.88] : index < 10 ? [0.25, 0.5] : index < 40 ? [0.4, 0.7] : [0.55, 0.85];
 }
 /** Both policies use ordinary valid swaps, no tools and the same seeded board. */
 export function measureLevel(index: number, seeds: readonly number[] = CAMPAIGN_SEEDS) {

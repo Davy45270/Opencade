@@ -30,11 +30,31 @@ export function objectiveDrawingChecks(Scene = AlunirScene) {
             }
             if (e.has('balise')) assert(calls.some(c => JSON.stringify(c) === JSON.stringify(['strokeCircle', ...plan.beacon, 38])), 'beacon at authored position');
             if (e.has('secours')) assert(calls.some(c => JSON.stringify(c) === JSON.stringify(['fillCircle', plan.rescue[0], plan.rescue[1] - 4, 5])), 'rescue head at authored position');
+            // Decode the actual seven-segment strokes against an independent digit table.
+            const digits = { 1:[[6,0,6,5],[6,5,6,10]], 2:[[0,0,6,0],[6,0,6,5],[0,5,6,5],[0,5,0,10],[0,10,6,10]], 3:[[0,0,6,0],[6,0,6,5],[6,5,6,10],[0,10,6,10],[0,5,6,5]] };
+            for(const p of e.terrain.pads) {
+                const x=p.x+p.width/2+1, y=p.y+7;
+                const actual=calls.filter(c=>c[0]==='lineBetween'&&c[1]>=x&&c[1]<=x+6&&c[3]>=x&&c[3]<=x+6&&c[2]>=y&&c[2]<=y+10&&c[4]>=y&&c[4]<=y+10).map(c=>c.slice(1).map((v,i)=>v-(i%2?y:x)));
+                const sorted=a=>a.map(v=>v.join(',')).sort();
+                assert.deepEqual(sorted(actual),sorted(digits[p.multiplier]),'drawn pad multiplier');
+            }
+            if(e.has('geyser')) for(const ticks of [0,179,180,239,240]) {
+                e.state.ticks=ticks;calls.length=0;scene.draw();
+                const jets=calls.filter(c=>c[0]==='fillEllipse'&&c[3]>=5&&c[3]<=8&&c[4]===14);
+                assert.equal(jets.length,18,'eighteen painted geyser jets');
+                for(const [i,jet] of jets.entries()) {
+                    assert.deepEqual(jet,['fillEllipse',145+i*31%76,475-i*(ticks%240<180?9:2),5+i%4,14],'geyser jet phase and position');
+                    const at=calls.indexOf(jet);assert.equal(calls[at-1][2],ticks%240<180?.8:.3,'active jet opacity');
+                }
+            }
+
         }
     } finally { globalThis.document = previous; }
 }
 objectiveDrawingChecks();
 const mutations = [
+    ['multiplicateur_faux', 'scoreMark(g, p.x + p.width / 2 - 9, p.y + 7, p.multiplier);', 'scoreMark(g, p.x + p.width / 2 - 9, p.y + 7, 1);'],
+    ['geyser_toujours_repos', 'const active = e.state.ticks % 240 < 180, x = 145', 'const active = e.state.ticks % 240 < 0, x = 145'],
     ['rayon_visible_incorrect', 'g.strokeCircle(gate[0], gate[1], 22);', 'g.strokeCircle(gate[0], gate[1], 12);'],
     ['croix_sur_les_mauvais_cercles', 'if (gate === e.nextGate()) {', 'if (gate !== e.nextGate()) {'],
     ['couleurs_de_progression_inversees', "e.events.includes('passage ' + String(i)) ? 0x64e4cc : 0xffdd66", "e.events.includes('passage ' + String(i)) ? 0xffdd66 : 0x64e4cc"],

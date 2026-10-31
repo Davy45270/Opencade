@@ -99,3 +99,6 @@ const duplicate = structuredClone(rows); duplicate[1] = structuredClone(duplicat
 console.log(`A-niv-01/02/03/04 et U06/U07 : 180 vols, 12 mécaniques, similarité maximale ${diversity.maxSimilarity * 100} %, vingt mutations rejetées.`);
 
 assert(diversity.valid, `Campaign repetition gate: ${JSON.stringify({ maxSimilarity: diversity.maxSimilarity, rejectedPairs: diversity.pairs.filter(p => p.similarity > 0.5).length, pair4and5: diversity.pairs.find(p => p.a === 4 && p.b === 5) })}`);
+
+const { sceneMeasurements } = await import('./validate-briqueterie-scene.js');
+await sceneMeasurements('alunir');

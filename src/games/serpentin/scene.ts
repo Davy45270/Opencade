@@ -1,3 +1,4 @@
+import { fingerReceipts } from '../finger-receipts';
 import { GameCharacter } from '../../characters/game';
 import Phaser from 'phaser';
 import { Engine, LEVELS, difficulty, layout, gateOpen, type Direction } from '../../engines/serpentin/engine';
@@ -17,11 +18,12 @@ export const serpentinButtons: readonly TouchButton[] = [
     { id: 'serpentin-right', label: '→', ariaLabel: 'Aller à droite', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface SerpentinHook {
+    performance(): { frames: number; gameMs: number };
     advance(ms: number): void;
     renderedFrames(): number;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { character: ReturnType<GameCharacter['snapshot']>; cumulativeScore: number; progression: string };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean }; character: ReturnType<GameCharacter['snapshot']>; cumulativeScore: number; progression: string };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'wall' | 'benchmark' | 'body'): void;
     /** Gate states drawn by the last frame (pass 401). */
@@ -47,6 +49,7 @@ export class SerpentinScene extends Phaser.Scene {
         this.testManual = false; this.progress.start(index, fresh); this.engine.loadLevel(index, seed); this.selecting = false; this.panels();
     }
     create(): void {
+        const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('serpentin');
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('serpentin'); delete window.__SERPENTIN_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup);
@@ -84,7 +87,8 @@ export class SerpentinScene extends Phaser.Scene {
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
-            read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.snapshot().ticks * 1000 / 60 }),
+            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             marks: () => ({ ...this.drawn }),
             scenario: name => {

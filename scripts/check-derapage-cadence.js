@@ -1,6 +1,8 @@
 /* global console, process, URL */
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import { vehicleLengthAt } from '../tests/arcade-art-checks.ts';
+import { roadside } from '../src/games/derapage/scenery.ts';
 import { graphicsFps } from './derapage-cadence-model.js';
 process.argv.push('--harness-only');
 const { mount, useSceneModule } = await import('./derapage-mobile-scene.js');
@@ -9,7 +11,7 @@ const { render3dFrames } = await import('./derapage-graphics-checks.js');
 
 // Reference maxima measured over all 96 centre-line positions with the old scene.
 // Count every Graphics API call, including styles, clearing and transforms.
-const circuits = [[0, 591], [9, 572], [26, 471]];
+const circuits = [[0, 591], [1, 350], [9, 572], [26, 471]];
 function withinBudget(calls, reference) {
     assert(calls <= Math.min(520, Math.floor(reference * 1.25)), `Graphics frame budget: ${calls} <= ${Math.min(520, Math.floor(reference * 1.25))}`);
 }
@@ -29,6 +31,13 @@ async function renderBudget() {
             assert.deepEqual(h.scene.hud.children, rows, 'unchanged HUD preserves its DOM nodes');
 
             assert.equal(h.baked.filter(c => c[0] === 'generateTexture').length, 1);
+            const playerArt=h.images.find(i=>i.placements.setVisible?.[0] && i.texture.key.includes('-kart-'));
+            assert(playerArt,'top vehicle atlas is used');
+            assert(vehicleLengthAt('dragon',playerArt.placements.setDisplaySize[0])>=20,'vehicle silhouette at least twenty screen pixels long');
+            if(roadside(h.engine.track).length) {
+                assert(h.baked.some(c=>c[0]==='fillPoints'),'procedural roadside rasterized');
+                assert(h.baked.some(c=>c[0]==='fillStyle' && c[2]===.12),'light ground texture baked');
+            }
             const baked = h.baked.length;
             const removed=h.removedTextures.length;
             const image=h.images.find(image=>image.placements.setOrigin && !image.placements.destroy);
@@ -37,7 +46,7 @@ async function renderBudget() {
             assert.deepEqual(image.placements.setScale,[1]);
             assert.deepEqual(image.placements.setRotation,[0]);
             assert.deepEqual(image.placements.setVisible,[true]);
-            const margin=h.engine.track.circuit.theme.kart ? 32 : Math.max(...h.engine.track.widths)/2+4;
+            const margin=Math.max(32,Math.max(...h.engine.track.widths)/2+20);
             const left=Math.min(...h.engine.track.points.map(p=>p.x))-margin;
             const top=Math.min(...h.engine.track.points.map(p=>p.y))-margin;
             const player=h.engine.karts[0];
@@ -49,6 +58,7 @@ async function renderBudget() {
                 h.frame();
                 maximum = Math.max(maximum, h.calls.length);
                 withinBudget(h.calls.length, reference);
+                assert(!h.calls.some(c=>c[0]==='fillStyle' && c[2]===.12),'ground texture never resubmitted');
                 if(budgetChecks===0) {
                     const length=h.calls.length;
                     h.calls.push(...Array.from({length:800},()=>['fillRect',0,0,1,1]));
@@ -179,7 +189,7 @@ async function clockChecks() {
     } finally { h.cleanup(); }
 }
 await renderBudget();
-assert.equal(budgetChecks,288,'all real frame counts submitted');
+assert.equal(budgetChecks,384,'all real frame counts submitted');
 assert.throws(() => withinBudget(521, 591), { name: 'AssertionError' }, 'negative budget boundary');
 await clockChecks();
 await allCircuitBudgets();

@@ -76,6 +76,7 @@ while pausing play.
 | Game | How to play | Controls |
 |---|---|---|
 | **Le Collier du Singe** | 30 stages of moving pearl chains, magnetic retreats and combos. | Aim anywhere and release; tap shooter or ⇄/X: swap; arrows/Space: aim/fire; P/Escape: pause. |
+| **Bombercade** | Thirty solo bomb mazes with breakable blocks, four arenas and the selected companion. | Arrows / ZQSD: move; Space: bomb; X: special; touch: directional pad, Bomb and power. |
 | **Bubble Lab** | Match groups of at least three bubbles of the same color before the ceiling comes down. | Mouse: aim and fire; touch: drag and release; arrows: aim; Space: fire; touch buttons: adjust and fire. |
 | **Serpentin** | Grow a glowing trail by collecting sparks and crystals, avoiding walls or wrapping around the board. | Arrows, ZQSD or WASD; touch: swipe or direction pad. |
 | **Briqueterie** | 30 authored walls: sliding rows, blasts, regrowth, portals, chicanes, deflectors, keys, multiball, inverse gravity and hanging structures. | Mouse: guide the paddle; Left/Right or A/D: move; Space: launch; touch: drag along the bottom, tap or use Launch. |
@@ -163,6 +164,8 @@ without the parameter. They are deliberately included in the published build so
 E2E tests exercise the shipped product; changing a local game's state is not a
 security boundary.
 
+Finger playthroughs use stepped game time (fixed seed, noisy CDP touches and 150 ms game-time latency); performance is measured separately over five real seconds per game, with an advisory 30 FPS threshold enforced only by `PERF=1`.
+
 GitHub Actions runs lint, typecheck, unit tests, build and E2E checks on pushes
 and pull requests, and attaches a Playwright report on failure.
 
@@ -242,4 +245,12 @@ Le choix du personnage affiche son nom, son sous-titre et sa devise.
 
 **Pépites** (`pepites`), the fourteenth game: 30 original turn-based mines; dig soil, dodge falling and rolling boulders, push them aside, gather nuggets and reach the exit; directions on both thumbs, Étai freezes the rocks for twelve turns. Node validation: `npm run test:node -- --only=validate-pepites.js`.
 
-Gourmandises adds 120 seeded match-three levels, two modes, cascading specials, golden cargo, double ice, illustrated worlds and the selected companion; five-seed balance, unchanged states for levels 1–60 and 26 in-memory mutation checks.
+Gourmandises adds 180 seeded match-three levels, two modes, cascading specials, golden cargo, double ice, spreading chocolate, trapped flowers and looping conveyors; five-seed balance, unchanged states for levels 1–120 and 45 in-memory mutation checks.
+
+**Les Artificiers** (`artificiers`): thirty original turn-based terrain duels,
+training targets and survival/structure missions across a green archipelago,
+autumn cliffs and a volcanic basin. Drag from the active companion to aim and
+release to fire. Short walks, jumps, a grappling line, six limited-ammunition
+weapons, visible wind and rising water; solo against three AI skills or two
+players sharing one phone. Node validation replays thirty recorded victories
+and noisy touch victories on levels 1 and 10. All visuals and sounds are code.

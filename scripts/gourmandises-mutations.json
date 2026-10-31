@@ -107,8 +107,8 @@
   {
     "name": "chutes instantanées",
     "file": "src/games/gourmandises/scene.ts",
-    "before": "const distance = this.falls.get(i) ?? 0;",
-    "after": "const distance = (this.falls.get(i) ?? 0) * 0;",
+    "before": "const distance = falls.get(i) ?? 0;",
+    "after": "const distance = (falls.get(i) ?? 0) * 0;",
     "oracle": "sceneFeedback"
   },
   {
@@ -156,8 +156,8 @@
   {
     "name": "objet rebattu",
     "file": "src/engines/gourmandises/engine.ts",
-    "before": "c.active && !c.crate && !c.piece?.drop ? [i] : []",
-    "after": "c.active && !c.crate ? [i] : []",
+    "before": "c.active && !c.crate && !c.chocolate && !c.piece?.drop ? [i] : []",
+    "after": "c.active && !c.crate && !c.chocolate ? [i] : []",
     "oracle": "G21"
   },
   {
@@ -219,8 +219,8 @@
   {
     "name": "lustres sans cristaux",
     "file": "src/games/gourmandises/presentation.ts",
-    "before": "drawPiece(c, x + dx, 150 + (dx === 0 ? 16 : 0), 8, 2);",
-    "after": "drawPiece(c, x + dx, 150 + (dx === 0 ? 16 : 0), 0, 2);",
+    "before": "drawPiece(c, x + dx, 99 + (dx === 0 ? 2 : 0), 3, 2);",
+    "after": "drawPiece(c, x + dx, 99 + (dx === 0 ? 2 : 0), 0, 2);",
     "oracle": "presentationChecks"
   },
   {
@@ -268,8 +268,169 @@
   {
     "name": "deux cases gênantes remplies",
     "file": "src/engines/gourmandises/levels.ts",
-    "before": "if (layout === 6 && y === my && (x === 1 || x === w - 2)) active = false;",
-    "after": "if (layout === 6 && y === my && (x === 1 || x === w - 2)) active = true;",
+    "before": "if (layout === 6 && y === my && (x === 1 || x === w - 2)) {\n            active = false;\n        }",
+    "after": "if (layout === 6 && y === my && (x === 1 || x === w - 2)) {\n            active = true;\n        }",
     "oracle": "geometryChecks"
+  },
+  {
+    "name": "chocolat intact adjacent",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "if (this.state.cells[j]?.chocolate) chocolates.add(j);",
+    "after": "if (false) chocolates.add(j);",
+    "oracle": "G26"
+  },
+  {
+    "name": "chocolat étendu après une casse",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "if ((this.state.broken.chocolate ?? 0) === chocolateBefore) this.growChocolate();",
+    "after": "if ((this.state.broken.chocolate ?? 0) >= chocolateBefore) this.growChocolate();",
+    "oracle": "G26"
+  },
+  {
+    "name": "extension chocolat supprimée",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "this.emit('grow', [target]);",
+    "after": "cell.chocolate = false;\n        this.emit('grow', [target]);",
+    "oracle": "G26"
+  },
+  {
+    "name": "fleurs non libérées",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "this.state.released = (this.state.released ?? 0) + 1;",
+    "after": "this.state.released = (this.state.released ?? 0);",
+    "oracle": "G27"
+  },
+  {
+    "name": "tapis inversés",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "const step = direction === 'left' || direction === 'up' ? -1 : 1;",
+    "after": "const step = direction === 'left' || direction === 'up' ? 1 : -1;",
+    "oracle": "G28"
+  },
+  {
+    "name": "boucle tapis perdue",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "required(this.state.cells[to]).piece = piece;",
+    "after": "required(this.state.cells[to]).piece = offset === indices.length - 1 ? null : piece;",
+    "oracle": "G28"
+  },
+  {
+    "name": "transport animé supprimé",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "for (const move of beltMoves) {",
+    "after": "for (const move of beltMoves.slice(0, 0)) {",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "transport immédiatement à destination",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "const remaining = Math.pow(animation / 280, 2);\n            for (const move of beltMoves)",
+    "after": "const remaining = 0;\n            for (const move of beltMoves)",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "bouclage horizontal animé à contresens",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "const dx = direction === 'right' ? 1 : direction === 'left' ? -1 : 0;",
+    "after": "const dx = direction === 'right' ? -1 : direction === 'left' ? 1 : 0;",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "spéciaux invisibles pendant le transport",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "b.unit * .37, move.piece.color, move.piece.special);",
+    "after": "b.unit * .37, move.piece.color);",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "fleur prisonnière invisible",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "drawPiece(c, x + unit / 2, y + unit / 2, unit * .18, 4);",
+    "after": "drawPiece(c, x + unit / 2, y + unit / 2, 0, 4);",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "mur du château invisible",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "c.fillRect(0, 170, 360, 120);",
+    "after": "c.fillRect(0, 170, 0, 120);",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "découpe de bande supprimée",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "                c.clip();\n                const fromX",
+    "after": "                // No band clip.\n                const fromX",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "cascades après tapis supprimées",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "if (transported) this.transportFrames.push(frame);",
+    "after": "if (belt) this.transportFrames.push(frame);",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "horloge du tapis figée",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "this.beltClock = (this.beltClock + delta) % 1200;",
+    "after": "this.beltClock = this.beltClock;",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "murs chocolat décalés",
+    "file": "src/engines/gourmandises/levels.ts",
+    "before": "(x === 0 || x === w - 1) && y % 2 === 1",
+    "after": "(x === 0 || x === w - 1) && y % 2 === 0",
+    "oracle": "geometryChecks"
+  },
+  {
+    "name": "massifs sans croix",
+    "file": "src/engines/gourmandises/levels.ts",
+    "before": "cell.hedge = x % 3 === 1 || y % 3 === 1",
+    "after": "cell.hedge = x % 3 === 1 && y % 3 === 1",
+    "oracle": "geometryChecks"
+  },
+  {
+    "name": "bande horizontale manquante",
+    "file": "src/engines/gourmandises/levels.ts",
+    "before": "} else if (y === my || y === my + 1) {",
+    "after": "} else if (y === my) {",
+    "oracle": "geometryChecks"
+  },
+  {
+    "name": "inventaire rebattu ignoré par le rendu",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "if (event.type === 'shuffle' && event.pieces) {",
+    "after": "if (event.type === 'shuffle' && event.pieces && false) {",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "objectif glace en glyphe",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "drawIce(c, x - 13, y - 13, 26, 2);",
+    "after": "c.fillText('◇', x, y);",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "ruban sans contraste",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "foreground: '#563749'",
+    "after": "foreground: '#fff1d6'",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "étoiles trop petites",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "SCORE_STAR_RADIUS = 15",
+    "after": "SCORE_STAR_RADIUS = 8",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "chevrons hors bandes",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "    c.clip();",
+    "after": "    // Clip removed.",
+    "oracle": "presentationChecks"
   }
 ]

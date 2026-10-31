@@ -1,6 +1,6 @@
 import { test, expect } from './fixture';
 
-const ids = ['gourmandises', 'pepites', 'collier', 'derapage', 'traverse', 'caisses', 'alunir', 'ferraille', 'dedale', 'essaim', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin'];
+const ids = ['bombercade', 'marmaille', 'gourmandises', 'pepites', 'collier', 'derapage', 'traverse', 'caisses', 'alunir', 'ferraille', 'dedale', 'essaim', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin'];
 const windows = [{ width: 390, height: 844 }, { width: 360, height: 640 }, { width: 390, height: 600 }];
 for (const viewport of windows) for (const id of ids) {
     test(`M01 M02 M02b M03 ${id} ${String(viewport.width)}x${String(viewport.height)}`, async ({ page }, testInfo) => {
@@ -46,7 +46,7 @@ for (const viewport of windows) for (const id of ids) {
             expect(m.canvas.width >= .92 * m.availableWidth || m.canvas.height >= .85 * m.availableHeight).toBe(true);
             expect(m.bar.height).toBeLessThanOrEqual(44);
             // Documented exceptions: Ferraille's joystick (120 px) and Dérapage's large Drift button with Bonus above it (88 + 56 px).
-            expect(m.row.height).toBeLessThanOrEqual(id === 'ferraille' ? 120 : id === 'derapage' ? 156 : 64);
+            expect(m.row.height).toBeLessThanOrEqual(id === 'bombercade' ? 120 : id === 'ferraille' ? 120 : id === 'derapage' ? 156 : 64);
             expect(m.buttons.length, 'M02b boutons visibles').toBeGreaterThan(0);
             for (const button of m.buttons) {
                 expect(button.scrollWidth, `M02b ${button.id} largeur`).toBeLessThanOrEqual(button.clientWidth);
@@ -77,7 +77,9 @@ for (const viewport of windows) for (const id of ids) {
         await expect.poll(() => page.evaluate(id => Boolean(window.__ARCADE_TEST__?.games[id]), id)).toBe(true);
         if (id !== 'bubble' && id !== 'caisses') await page.locator('#resume').tap();
         await page.locator('#game-menu-toggle').tap();
-        const before = await page.evaluate(id => window.__ARCADE_TEST__?.games[id]?.read(), id);
+        // Raw touch receipts (tests/e2e/finger-stepped.ts evidence) record every pointer event, by design; the game state must not move.
+        const gameState = (id: string) => page.evaluate(id => { const s = window.__ARCADE_TEST__?.games[id]?.read() as { fingerInput?: { receipts?: unknown } } | undefined; if (s?.fingerInput) delete s.fingerInput.receipts; return s; }, id);
+        const before = await gameState(id);
         await expect(page.locator('#levels')).toBeVisible();
         await expect(page.locator('#restart')).toBeVisible();
         await expect(page.locator('#game-help')).toBeVisible();
@@ -91,7 +93,7 @@ for (const viewport of windows) for (const id of ids) {
             await page.locator('#touch-fire').dispatchEvent('click', { detail: 0 });
         }
         await page.waitForTimeout(300);
-        expect(await page.evaluate(id => window.__ARCADE_TEST__?.games[id]?.read(), id)).toEqual(before);
+        expect(await gameState(id)).toEqual(before);
         await page.keyboard.press('Tab');
         expect(await page.evaluate(() => document.activeElement?.closest('#game-menu') !== null || document.activeElement.id === 'game-menu-toggle')).toBe(true);
         await page.keyboard.press('Escape');

@@ -196,6 +196,6 @@ export function terrain(E: EngineClass = Engine): void {
         check(s.blocks.some(b => b.rise > 0) || s.platforms.length > 0 || (s.modules?.length ?? 0) >= 5, 'F-TERRAIN: authored traversal');
         check(s.enemies.length > 0 && s.bonuses.length > 0, 'guaranteed encounters');
         for (const cage of s.cages) check(!s.tiles[Math.floor(cage.y / 16) * s.columns + cage.x / 16], 'cage free socket');
-        if ((level + 1) % 5 === 1 && level > 0) check(s.recovery && s.enemies.filter(e => !s.modules?.some(m => (m.kind === 'tower' && e.x === m.x + 90 || m.kind === 'spotlight' && e.x === m.x + 65))).length <= 1, 'post-boss recovery');
+        if ((level + 1) % 5 === 1 && level > 0) check(s.recovery && s.enemies.filter(e => !e.opening && !s.modules?.some(m => (m.kind === 'tower' && e.x === m.x + 90 || m.kind === 'spotlight' && e.x === m.x + 65))).length <= 1, 'post-boss recovery');
     }
 }

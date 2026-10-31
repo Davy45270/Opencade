@@ -1,3 +1,4 @@
+import { fingerReceipts } from '../finger-receipts';
 import { swipeDirection } from '../../shell/gestures';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
@@ -18,11 +19,12 @@ export const traverseButtons: readonly TouchButton[] = [
     { id: 'traverse-right', label: '→', ariaLabel: 'Aller à droite', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface TraverseHook {
+    performance(): { frames: number; gameMs: number };
     bounds(): { hud: { x: number; y: number; width: number; height: number }; hero: { x: number; y: number; width: number; height: number } };
     advance(ms: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger'): void;
     /** What the last frame drew for the crossing's rules (pass 404). */
@@ -48,6 +50,7 @@ export class TraverseScene extends Phaser.Scene {
         this.testManual = false; this.progress.start(index, fresh); this.engine.loadLevel(index, seed); this.selecting = false; this.panels();
     }
     create(): void {
+        const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('traverse');
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('traverse'); delete window.__TRAVERSE_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup);
@@ -98,7 +101,8 @@ export class TraverseScene extends Phaser.Scene {
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 9, y: 64, width: 342, height: 570 }),
-            read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            performance: () => ({ frames: this.game.loop.frame, gameMs: (this.engine.state.phase * (30 - Math.floor(17 * this.engine.level / 29)) + this.engine.snapshot().frames) * 1000 / 60 }),
+            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             marks: () => ({ ...this.drawn }),
             scenario: name => {

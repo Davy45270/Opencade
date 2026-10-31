@@ -137,29 +137,29 @@
         {
           "seed": 460,
           "level": 1,
-          "frames": 839,
+          "frames": 854,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 2,
-          "frames": 978,
+          "frames": 1159,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 3,
-          "frames": 1192,
+          "frames": 1207,
           "lives": 1,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 4,
-          "frames": 1396,
-          "lives": 1,
+          "frames": 1381,
+          "lives": 2,
           "status": "won"
         },
         {
@@ -172,147 +172,147 @@
         {
           "seed": 460,
           "level": 6,
-          "frames": 943,
+          "frames": 958,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 7,
-          "frames": 1066,
+          "frames": 1078,
           "lives": 2,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 8,
-          "frames": 992,
+          "frames": 1007,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 9,
-          "frames": 938,
+          "frames": 953,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 10,
-          "frames": 1498,
+          "frames": 1513,
           "lives": 1,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 11,
-          "frames": 965,
+          "frames": 966,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 12,
-          "frames": 425,
+          "frames": 426,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 13,
-          "frames": 1137,
+          "frames": 1152,
           "lives": 2,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 14,
-          "frames": 882,
+          "frames": 897,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 15,
-          "frames": 1954,
+          "frames": 1969,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 16,
-          "frames": 866,
+          "frames": 881,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 17,
-          "frames": 505,
+          "frames": 506,
           "lives": 2,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 18,
-          "frames": 1077,
+          "frames": 1091,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 19,
-          "frames": 988,
+          "frames": 1003,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 20,
-          "frames": 1088,
+          "frames": 1217,
           "lives": 2,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 21,
-          "frames": 840,
+          "frames": 1022,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 22,
-          "frames": 1160,
-          "lives": 2,
+          "frames": 844,
+          "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 23,
-          "frames": 423,
+          "frames": 424,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 24,
-          "frames": 852,
+          "frames": 1004,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 25,
-          "frames": 1491,
+          "frames": 1461,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 26,
-          "frames": 901,
+          "frames": 916,
           "lives": 3,
           "status": "won"
         },
@@ -326,21 +326,21 @@
         {
           "seed": 460,
           "level": 28,
-          "frames": 420,
+          "frames": 421,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 29,
-          "frames": 955,
+          "frames": 1000,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 460,
           "level": 30,
-          "frames": 2191,
+          "frames": 2206,
           "lives": 2,
           "status": "won"
         }
@@ -352,29 +352,29 @@
         {
           "seed": 28,
           "level": 1,
-          "frames": 839,
+          "frames": 854,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 2,
-          "frames": 978,
+          "frames": 1159,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 3,
-          "frames": 1192,
+          "frames": 1207,
           "lives": 1,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 4,
-          "frames": 1396,
-          "lives": 1,
+          "frames": 1381,
+          "lives": 2,
           "status": "won"
         },
         {
@@ -387,147 +387,147 @@
         {
           "seed": 28,
           "level": 6,
-          "frames": 943,
+          "frames": 958,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 7,
-          "frames": 1066,
+          "frames": 1078,
           "lives": 2,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 8,
-          "frames": 992,
+          "frames": 1007,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 9,
-          "frames": 938,
+          "frames": 953,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 10,
-          "frames": 1498,
+          "frames": 1513,
           "lives": 1,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 11,
-          "frames": 965,
+          "frames": 966,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 12,
-          "frames": 425,
+          "frames": 426,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 13,
-          "frames": 1137,
+          "frames": 1152,
           "lives": 2,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 14,
-          "frames": 882,
+          "frames": 897,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 15,
-          "frames": 1954,
+          "frames": 1969,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 16,
-          "frames": 866,
+          "frames": 881,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 17,
-          "frames": 505,
+          "frames": 506,
           "lives": 2,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 18,
-          "frames": 1077,
+          "frames": 1091,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 19,
-          "frames": 988,
+          "frames": 1003,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 20,
-          "frames": 1088,
+          "frames": 1217,
           "lives": 2,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 21,
-          "frames": 840,
+          "frames": 1022,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 22,
-          "frames": 1160,
-          "lives": 2,
+          "frames": 844,
+          "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 23,
-          "frames": 423,
+          "frames": 424,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 24,
-          "frames": 852,
+          "frames": 1004,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 25,
-          "frames": 1491,
+          "frames": 1461,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 26,
-          "frames": 901,
+          "frames": 916,
           "lives": 3,
           "status": "won"
         },
@@ -541,21 +541,21 @@
         {
           "seed": 28,
           "level": 28,
-          "frames": 420,
+          "frames": 421,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 29,
-          "frames": 955,
+          "frames": 1000,
           "lives": 3,
           "status": "won"
         },
         {
           "seed": 28,
           "level": 30,
-          "frames": 2191,
+          "frames": 2206,
           "lives": 2,
           "status": "won"
         }
@@ -573,7 +573,7 @@
     {
       "name": "stationary kamikaze",
       "file": "src/engines/ferraille/engine.ts",
-      "line": 244,
+      "line": 245,
       "killed": true,
       "error": "Error: kamikaze must move toward hero"
     },
@@ -587,7 +587,7 @@
     {
       "name": "ricochet disabled",
       "file": "src/engines/ferraille/engine.ts",
-      "line": 307,
+      "line": 308,
       "killed": true,
       "error": "Error: floor ricochet"
     },
@@ -601,7 +601,7 @@
     {
       "name": "distant boss repeats frozen threshold",
       "file": "src/engines/ferraille/engine.ts",
-      "line": 276,
+      "line": 277,
       "killed": true,
       "error": "Error: no repeated distant attack"
     },
@@ -615,7 +615,7 @@
     {
       "name": "guardian 15 bombs removed",
       "file": "src/engines/ferraille/engine.ts",
-      "line": 290,
+      "line": 291,
       "killed": true,
       "error": "Error: mini boss bomb count"
     },
@@ -643,7 +643,7 @@
     {
       "name": "boss weakness ignored",
       "file": "src/engines/ferraille/engine.ts",
-      "line": 320,
+      "line": 321,
       "killed": true,
       "error": "Error: closed core rejects shot"
     }

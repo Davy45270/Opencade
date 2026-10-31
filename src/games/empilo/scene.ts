@@ -1,3 +1,4 @@
+import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
 import { Engine, LEVELS, SHAPES, BOMB, TILE, stratum, emptyBoard, type Action, type Cell } from '../../engines/empilo/engine';
@@ -20,10 +21,11 @@ export const empiloButtons: readonly TouchButton[] = [
     { id: 'empilo-drop', label: '⤓', ariaLabel: 'Chute instantanée', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface EmpiloHook {
+    performance(): { frames: number; gameMs: number };
     advance(ms: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'blocked' | 'reserve'): void;
     /** What the last frame drew for the stratum rules (pass 402). */
@@ -49,6 +51,7 @@ export class EmpiloScene extends Phaser.Scene {
         this.testManual = false; this.progress.start(index, fresh); this.engine.loadLevel(index, seed); this.selecting = false; this.panels();
     }
     create(): void {
+        const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('empilo');
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('empilo'); delete window.__EMPILO_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
@@ -101,7 +104,8 @@ export class EmpiloScene extends Phaser.Scene {
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
-            read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state }),
+            performance: () => ({ frames: this.game.loop.frame, gameMs: this.hero.time }),
+            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             marks: () => structuredClone(this.drawn),
             scenario: name => {

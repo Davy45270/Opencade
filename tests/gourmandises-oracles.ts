@@ -7,8 +7,8 @@ type Rules = typeof rules;
 function ok(value: unknown, message = 'Oracle'): asserts value {
     if (!value) throw new Error(message);
 }
-function equal(actual: unknown, expected: unknown): void {
-    ok(JSON.stringify(actual) === JSON.stringify(expected), `${JSON.stringify(actual)} ≠ ${JSON.stringify(expected)}`);
+function equal(actual: unknown, expected: unknown, message = 'Égalité'): void {
+    ok(JSON.stringify(actual) === JSON.stringify(expected), `${message}: ${JSON.stringify(actual)} ≠ ${JSON.stringify(expected)}`);
 }
 /** Every board is literal, with no initial accidental run. */
 export function fixture(module: Rules = rules): rules.Engine {
@@ -303,22 +303,22 @@ export const oracles: Record<string, (module?: Rules) => void> = {
     },
     G17() {
         geometryChecks();
-        equal(LEVELS.length, 120);
-        equal(WORLDS.filter(world => world.playable).length, 6);
-        for (let i = 0; i < 120; i++) {
+        equal(LEVELS.length, 180);
+        equal(WORLDS.filter(world => world.playable).length, 9);
+        for (let i = 0; i < 180; i++) {
             const level = required(LEVELS[i]);
             const cells = terrain(level);
             const actual = difficulty(i);
             equal(actual, {
                 pressure: level.objectives.reduce((sum, o) => sum + o.target, 0) / level.moves,
                 colors: level.colors,
-                obstacles: cells.reduce((sum, c) => sum + c.crate + c.ice, 0),
+                obstacles: cells.reduce((sum, c) => sum + c.crate + c.ice + (c.chocolate ? 1 : 0) + (c.hedge ? 1 : 0), 0),
                 absent: cells.filter(c => !c.active).length,
                 objectives: level.objectives.length,
             });
             if (i >= 60) {
-                equal(level.width, level.layout < 7 ? 7 : 8);
-                equal(level.height, level.layout < 14 ? 7 : 8);
+                equal(level.width, level.world >= 7 ? (level.layout < 14 ? 8 : 9) : level.layout < 7 ? 7 : 8);
+                equal(level.height, level.world >= 7 ? (level.layout < 7 ? 7 : 8) : level.layout < 14 ? 7 : 8);
                 if (level.world === 4) {
                     ok(level.objectives.some(o => o.kind === 'drop'));
                     ok(cells.some(c => c.exit), 'Sorties marquées');
@@ -326,11 +326,18 @@ export const oracles: Record<string, (module?: Rules) => void> = {
                 } else if (level.world === 5) {
                     ok(cells.every(c => c.ice <= 1));
                     ok(cells.filter(c => c.ice).length >= cells.filter(c => c.active).length / 2, 'Grande zone gelée');
-                } else {
+                } else if (level.world === 6) {
                     ok(cells.some(c => c.ice === 2));
                     ok(cells.some(c => c.active && !c.ice), 'Couloirs de glace et passages libres');
                     ok(cells.every(c => c.ice === 0 || c.ice === 2));
                 }
+                if (level.world === 7) ok(cells.some(c => c.chocolate), 'Murs en chocolat');
+                if (level.world === 8) {
+                    ok(cells.some(c => c.hedge), 'Massifs fleuris');
+                    ok(level.objectives.some(o => o.kind === 'flower'));
+                    ok(cells.filter(c => c.hedge).length >= required(level.objectives[0]).target);
+                }
+                if (level.world === 9) ok(cells.some(c => c.belt), 'Bandes orientées');
                 if (level.finale) equal(level.objectives.length, 2);
             }
             // Budgets and silhouettes restart with each world's introduction.
@@ -472,6 +479,145 @@ export const oracles: Record<string, (module?: Rules) => void> = {
         ok(swap.events.some(e => e.type === 'swap'));
         ok(swap.events.some(e => e.type === 'drop' && e.cells.includes(6)));
     },
+    G26(module = rules) {
+        const broken = fixture(module);
+        required(broken.state.cells[6]).chocolate = true;
+        required(broken.state.cells[6]).piece = null;
+        required(broken.state.cells[35]).chocolate = true;
+        required(broken.state.cells[35]).piece = null;
+        required(required(broken.state.cells[30]).piece).special = 'row';
+        ok(!broken.validMoves().some(move => move.includes(6)), 'Bloqueur solide');
+        ok(broken.swap(1, 7));
+        equal(broken.state.cells[6]?.chocolate, false);
+        equal(broken.state.broken.chocolate, 1);
+        ok(!broken.events.some(e => e.type === 'grow'), 'Pas d’extension après une casse');
+        const growing = fixture(module);
+        required(growing.state.cells[35]).chocolate = true;
+        required(growing.state.cells[35]).piece = null;
+        required(required(growing.state.cells[30]).piece).special = 'row';
+        const other = growing.clone();
+        ok(growing.swap(1, 7));
+        other.swap(1, 7);
+        equal(growing.snapshot(), other.snapshot());
+        equal(growing.events.filter(e => e.type === 'grow').map(e => e.cells), [[29]]);
+        equal(growing.state.cells.filter(c => c.chocolate).length, 2);
+        const blocked = fixture(module);
+        blocked.state.cells.forEach((c, i) => {
+            c.chocolate = i !== 0;
+            if (c.chocolate) c.piece = null;
+        });
+        const copy = blocked.clone();
+        blocked.shuffle();
+        copy.shuffle();
+        equal(blocked.snapshot(), copy.snapshot());
+        ok(blocked.state.cells.every(c => !c.chocolate));
+        const full = fixture(module);
+        full.state.cells.forEach(c => { c.chocolate = true; c.piece = null; });
+        full.shuffle();
+        ok(full.state.cells.every(c => !c.chocolate), 'Même un plateau entièrement couvert repart');
+        ok(full.validMoves().length > 0);
+        equal(full.state.broken.chocolate, 36, 'Le retrait de secours ne rend pas l’objectif impossible');
+        const anchored = fixture(module);
+        required(anchored.state.cells[35]).chocolate = true;
+        required(anchored.state.cells[35]).piece = null;
+        required(required(anchored.state.cells[30]).piece).special = 'row';
+        anchored.shuffle();
+        equal(anchored.state.cells[35]?.chocolate, true, 'Le chocolat reste fixe si un coup existe');
+        equal(anchored.state.cells[35]?.piece, null);
+        ok(blocked.validMoves().length > 0);
+        equal(blocked.matches().length, 0);
+        const protectedMatch = fixture(module);
+        color(protectedMatch, [12, 13, 14, 15], 4);
+        required(protectedMatch.state.cells[6]).chocolate = true;
+        required(protectedMatch.state.cells[6]).piece = null;
+        protectedMatch.resolve(12);
+        const firstMatch = protectedMatch.events.findIndex(e => e.type === 'match');
+        ok(protectedMatch.events.slice(0, firstMatch).some(e => e.type === 'obstacle' && e.cells.includes(6)),
+            'L’alignement adjacent au spécial créé casse aussi le chocolat');
+        const solid = fixture(module);
+        required(solid.state.cells[18]).chocolate = true;
+        required(solid.state.cells[18]).piece = null;
+        required(solid.state.cells[12]).piece = null;
+        solid.gravity();
+        equal(solid.state.cells[18]?.piece, null, 'Gravité arrêtée par le chocolat');
+        solid.useTool('hammer', 18);
+        equal(solid.state.cells[18]?.chocolate, false, 'Un spécial ou outil touche directement le chocolat');
+    },
+    G27(module = rules) {
+        const engine = fixture(module);
+        required(engine.state.cells[0]).hedge = true;
+        required(engine.state.cells[6]).hedge = true;
+        engine.state.objectives = [{ kind: 'flower', target: 2 }];
+        ok(engine.swap(1, 7));
+        equal(engine.state.cells[0]?.hedge, false);
+        equal(engine.state.cells[6]?.hedge, true, 'L’adjacence ne casse pas une haie');
+        equal(engine.state.released, 1);
+        equal(engine.status, 'playing');
+        engine.useTool('hammer', 6);
+        equal(engine.state.released, 2);
+        equal(engine.progress({ kind: 'flower', target: 2 }), 2);
+        equal(engine.status, 'won');
+        const protectedFlower = fixture(module);
+        required(protectedFlower.state.cells[12]).hedge = true;
+        color(protectedFlower, [12, 13, 14, 15], 4);
+        protectedFlower.resolve(12);
+        equal(protectedFlower.state.cells[12]?.hedge, false, 'Créer un spécial libère la fleur');
+        equal(protectedFlower.state.released, 1);
+        const fixed = fixture(module);
+        required(fixed.state.cells[0]).hedge = true;
+        const copy = fixed.clone();
+        fixed.shuffle();
+        copy.shuffle();
+        equal(fixed.snapshot(), copy.snapshot());
+        equal(fixed.state.cells[0]?.hedge, true, 'Les haies restent fixées au sol');
+    },
+    G28(module = rules) {
+        for (const direction of ['right', 'left', 'down', 'up'] as const) {
+            const engine = fixture(module);
+            const indices = direction === 'right' || direction === 'left' ? [12, 13, 14, 15] : [2, 8, 14, 20];
+            indices.forEach((i, index) => {
+                required(engine.state.cells[i]).belt = { band: 1, direction };
+                required(engine.state.cells[i]).piece = { color: index, ...(index === 3 ? { special: 'row' as const } : {}) };
+            });
+            const pieces = indices.map(i => engine.state.cells[i]?.piece);
+            const step = direction === 'left' || direction === 'up' ? -1 : 1;
+            engine.advanceBelts();
+            indices.forEach((_, index) => {
+                const to = required(indices[(index + step + 4) % 4]);
+                equal(engine.state.cells[to]?.piece, pieces[index]);
+                equal(engine.state.cells[to]?.belt, { band: 1, direction });
+            });
+            equal(engine.events.filter(e => e.type === 'belt').length, 4);
+            const clone = engine.clone();
+            engine.shuffle();
+            clone.shuffle();
+            equal(engine.snapshot(), clone.snapshot());
+            for (const i of indices) equal(engine.state.cells[i]?.belt, { band: 1, direction });
+        }
+        const gravity = fixture(module);
+        required(gravity.state.cells[6]).belt = { band: 0, direction: 'right' };
+        required(gravity.state.cells[7]).belt = { band: 0, direction: 'right' };
+        const piece = gravity.state.cells[0]?.piece;
+        required(gravity.state.cells[6]).piece = null;
+        gravity.gravity();
+        equal(gravity.state.cells[6]?.piece, piece);
+        gravity.advanceBelts();
+        equal(gravity.state.cells[7]?.piece, piece, 'Le tapis transporte après la chute');
+        const turn = fixture(module);
+        for (const i of [30, 31, 32, 33, 34, 35]) required(turn.state.cells[i]).belt = { band: 3, direction: 'left' };
+        const before = turn.snapshot();
+        ok(!turn.swap(34, 35));
+        equal(turn.snapshot(), before, 'Un refus ne déplace pas le tapis');
+        ok(turn.swap(1, 7));
+        equal(turn.events.filter(e => e.type === 'belt').length, 6, 'Une avancée par coup malgré les cascades');
+        const firstBelt = turn.events.findIndex(e => e.type === 'belt');
+        ok(turn.events.slice(0, firstBelt).some(e => e.type === 'fill'), 'La gravité précède le tapis');
+        equal(turn.matches().length, 0);
+        ok(turn.validMoves().length > 0);
+    },
+    G29(module = rules) {
+        equal(regressionFingerprint(module, [8], 120), 1490700344);
+    },
     G25(module = rules) {
         // Literal cargo position: a spectacular score competes with a delivery.
         // Level 63 supplies color weight 3; all geometry and objectives are explicit.
@@ -537,10 +683,10 @@ function required<T>(value: T | null | undefined): T {
     return value;
 }
 
-export function regressionFingerprint(module: Rules = rules, seeds: readonly number[] = [8, 19, 37, 65, 101]): number {
+export function regressionFingerprint(module: Rules = rules, seeds: readonly number[] = [8, 19, 37, 65, 101], count = 60): number {
     // Reference captured before extension: snapshots AND events, five campaign seeds.
     let hash = 2166136261;
-    for (let index = 0; index < 60; index++) {
+    for (let index = 0; index < count; index++) {
         for (const seed of seeds) {
             const engine = new module.Engine('arcade');
             engine.loadLevel(index, seed);
@@ -579,13 +725,74 @@ export function geometryChecks(module: { LEVELS: typeof LEVELS; terrain: typeof 
         [107, '#22#22#/#22#22#/#22#22#/#.2#2.#/#22#22#/#22#22#/#22#22#'],
         [112, '#22#.2#2/#22#.2#2/#22#.2#2/#22#22#2/#22#.2#2/#22#.2#2/#22#.2#2'],
         [120, '###22###/###22###/###22###/###22###/###22###/###22###/###22###/###22###'],
+        [121, '########/C######C/########/C######C/########/C######C/########'],
+        [122, '########/C######C/########/C######C/########/C######C/########'],
+        [123, '.#######/...###../...###../...###../...###../...###../C##C##C#'],
+        [124, '...###../...###../########/C######C/########/...###../...###..'],
+        [125, '########/C######C/########/C######C/########/C######C/########'],
+        [126, '########/C######C/########/C######C/########/C######C/########'],
+        [127, '########/C######C/########/C.####.C/########/C######C/########'],
+        [128, '.#######/C######C/########/C######C/########/C######C/########/C##C##CC'],
+        [129, '..####../C######C/########/C######C/########/C######C/########/C##C##CC'],
+        [130, '########/C######C/########/C######C/########/C######C/########/C##C##CC'],
+        [131, '########/C######C/########/C######C/########/C######C/########/C##C##CC'],
+        [132, '####.###/C###.##C/####.###/C###.##C/########/C###.##C/####.###/C##C.#CC'],
+        [133, '.#######/C######C/########/C######C/########/C######C/########/C##C##CC'],
+        [134, '..####../C######C/########/C######C/########/C######C/########/C##C##CC'],
+        [135, '#########/C#######C/#########/C#######C/#########/C#######C/#########/C##C##C#C'],
+        [136, '#########/C#######C/#########/C#######C/#########/C#######C/#########/C##C##C#C'],
+        [137, '#########/C#######C/#########/C#######C/#########/C#######C/#########/C##C##C#C'],
+        [138, '.########/C#######C/#########/C#######C/#########/C#######C/#########/C##C##C#C'],
+        [139, '..#####../C#######C/#########/C#######C/#########/C#######C/#########/C##C##C#C'],
+        [140, '#########/C#######C/#########/C#######C/#########/C#######C/#########/C##C##C#C'],
+        [141, 'FFFFFFFF/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF/FF##F##F/FFFFFFFF'],
+        [142, 'FFFFFFFF/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF/FF##F##F/FFFFFFFF'],
+        [143, '.FFFFFFF/...FFF../...#F#../...#F#../...FFF../...#F#../FFFFFFFF'],
+        [144, '...FFF../...FFF../FF##F##F/FF##F##F/FFFFFFFF/...#F#../...FFF..'],
+        [145, 'FFFFFFFF/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF/FF##F##F/FFFFFFFF'],
+        [146, 'FFFFFFFF/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF/FF##F##F/FFFFFFFF'],
+        [147, 'FFFFFFFF/FFFFFFFF/FF##F##F/F.##F#.F/FFFFFFFF/FF##F##F/FFFFFFFF'],
+        [148, '.FFFFFFF/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF'],
+        [149, '..FFFF../FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF'],
+        [150, 'FFFFFFFF/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF'],
+        [151, 'FFFFFFFF/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF'],
+        [152, 'FFFF.FFF/FFFF.FFF/FF##.##F/FF##.##F/FFFFFFFF/FF##.##F/FF##.##F/FFFF.FFF'],
+        [153, '.FFFFFFF/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF'],
+        [154, '..FFFF../FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF/FF##F##F/FF##F##F/FFFFFFFF'],
+        [155, 'FFFFFFFFF/FFFFFFFFF/FF##F##FF/FF##F##FF/FFFFFFFFF/FF##F##FF/FF##F##FF/FFFFFFFFF'],
+        [156, 'FFFFFFFFF/FFFFFFFFF/FF##F##FF/FF##F##FF/FFFFFFFFF/FF##F##FF/FF##F##FF/FFFFFFFFF'],
+        [157, 'FFFFFFFFF/FFFFFFFFF/FF##F##FF/FF##F##FF/FFFFFFFFF/FF##F##FF/FF##F##FF/FFFFFFFFF'],
+        [158, '.FFFFFFFF/FFFFFFFFF/FF##F##FF/FF##F##FF/FFFFFFFFF/FF##F##FF/FF##F##FF/FFFFFFFFF'],
+        [159, '..FFFFF../FFFFFFFFF/FF##F##FF/FF##F##FF/FFFFFFFFF/FF##F##FF/FF##F##FF/FFFFFFFFF'],
+        [160, 'FFFFFFFFF/FFFFFFFFF/FF##F##FF/FF##F##FF/FFFFFFFFF/FF##F##FF/FF##F##FF/FFFFFFFFF'],
+        [161, '########/########/########/>>>>>>>>/<<<<<<<</########/########'],
+        [162, '########/########/########/>>>>>>>>/<<<<<<<</########/########'],
+        [163, '.##v#^##/...v#^../...v#^../...v#^../...v#^../...v#^../###v#^##'],
+        [164, '...###../...###../########/>>>>>>>>/<<<<<<<</...###../...###..'],
+        [165, '########/########/########/>>>>>>>>/<<<<<<<</########/########'],
+        [166, '########/########/########/>>>>>>>>/<<<<<<<</########/########'],
+        [167, '########/########/########/>.>>>>.>/<<<<<<<</########/########'],
+        [168, '.#######/########/########/########/>>>>>>>>/<<<<<<<</########/########'],
+        [169, '..####../########/########/########/>>>>>>>>/<<<<<<<</########/########'],
+        [170, '########/########/########/########/>>>>>>>>/<<<<<<<</########/########'],
+        [171, '########/########/########/########/>>>>>>>>/<<<<<<<</########/########'],
+        [172, '###v.^##/###v.^##/###v.^##/###v.^##/###v#^##/###v.^##/###v.^##/###v.^##'],
+        [173, '.#######/########/########/########/>>>>>>>>/<<<<<<<</########/########'],
+        [174, '..####../########/########/########/>>>>>>>>/<<<<<<<</########/########'],
+        [175, '#########/#########/#########/#########/>>>>>>>>>/<<<<<<<<</#########/#########'],
+        [176, '#########/#########/#########/#########/>>>>>>>>>/<<<<<<<<</#########/#########'],
+        [177, '#########/#########/#########/#########/>>>>>>>>>/<<<<<<<<</#########/#########'],
+        [178, '.########/#########/#########/#########/>>>>>>>>>/<<<<<<<<</#########/#########'],
+        [179, '..#####../#########/#########/#########/>>>>>>>>>/<<<<<<<<</#########/#########'],
+        [180, '#########/#########/#########/#########/>>>>>>>>>/<<<<<<<<</#########/#########'],
     ];
     for (const [number, silhouette] of silhouettes) {
         const level = required(module.LEVELS[number - 1]);
         const cells = module.terrain(level);
         const rows = Array.from({ length: level.height }, (_, y) => cells
             .slice(y * level.width, (y + 1) * level.width)
-            .map(c => !c.active ? '.' : c.ice ? String(c.ice) : '#').join(''));
+            .map(c => !c.active ? '.' : c.ice ? String(c.ice) : c.chocolate ? 'C' : c.hedge ? 'F'
+                : c.belt ? ({ right: '>', left: '<', down: 'v', up: '^' }[c.belt.direction]) : '#').join(''));
         equal(rows.join('/'), silhouette);
     }
 }

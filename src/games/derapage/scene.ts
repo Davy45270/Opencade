@@ -1,7 +1,9 @@
+import { sceneryKinds, sceneryDrawing, type SceneryKind } from './scenery';
 import { Cadence, draw3d, screenHeading, type RenderCost } from './view3d';
 import { beginThumb, moveThumb, thumbDirection, thumbIntensity, acceptsThumb, type Thumb } from './joystick';
 import { RoadLayer, inView } from './road';
 import { kartLandscape, kartRoadArt, kartTree } from './kart-art';
+import { fingerReceipts } from '../finger-receipts';
 import { others } from '../../characters/selection';
 import { GameCharacter } from '../../characters/game';
 import { arcadeArt, bonusEmblem, emblems, liveries, vehicleDrawing, type Emblem } from '../../characters/arcade-art';
@@ -33,9 +35,10 @@ export const derapageButtons: readonly TouchButton[] = [
 ];
 export interface DerapageHook {
     view(): { preferred: string; active: string; fallback: boolean; fps: number; elapsed: number; cost: RenderCost };
+    performance(): { frames: number; gameMs: number };
     art(): string[];
     overview(enabled: boolean): void;
-    read(): ReturnType<Engine['snapshot']> & { character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
     loadLevel(i: number, seed?: number): void;
     advance(ms: number): void;
     scenario(name: 'finish' | 'danger' | 'trees-boost' | 'lap' | 'slalom-gate' | 'bmx-jump'): void;
@@ -101,6 +104,7 @@ export class DerapageScene extends Phaser.Scene {
     private propCount = 0;
     private props3d: Phaser.GameObjects.Graphics[] = [];
     private rearTextures = new Map<string, string>();
+    private sceneryTextures = new Map<SceneryKind, string>();
     private kartTextures = new Map<string, string>();
     private emblemTextures = new Map<Emblem, string>();
     private resultArt?: HTMLCanvasElement;
@@ -163,6 +167,7 @@ export class DerapageScene extends Phaser.Scene {
     create(): void {
         this.previousFrame = undefined;
         this.hudContent = '';
+        const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('derapage');
         this.view3d = this.progress.save.view === '3d';
         const view = document.createElement('button');
@@ -203,6 +208,7 @@ export class DerapageScene extends Phaser.Scene {
         this.paint = new ArcadePaint(this, 96);
         for (const id of ids) for (const expression of expressions) this.kartTextures.set(`${id}-${expression}`, this.paint.texture(`kart-${id}-${expression}`, vehicleDrawing(id, 'dessus', expression)));
         for (const id of ids) for (const expression of expressions) this.rearTextures.set(`${id}-${expression}`, this.paint.texture(`rear-${id}-${expression}`, vehicleDrawing(id, 'arriere', expression)));
+        for (const kind of sceneryKinds) this.sceneryTextures.set(kind,this.paint.texture(`roadside-${kind}`, sceneryDrawing(kind)));
         for (const kind of Object.keys(emblems) as Emblem[]) this.emblemTextures.set(kind, this.paint.texture(`emblem-${kind}`, emblems[kind], 80));
         this.hud = document.createElement('div');
         this.hud.setAttribute('aria-live', 'off');
@@ -273,7 +279,8 @@ export class DerapageScene extends Phaser.Scene {
                 view: () => ({ preferred: this.view3d ? '3d' : 'top', active: this.active3d ? '3d' : 'top', fallback: this.cadence.fallback, fps: this.cadence.fps, elapsed: this.cadence.elapsed, cost: this.renderCost }),
                 art: () => this.paint?.keys() ?? [],
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
-                read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); },
+                performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.time }),
+                read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
                 hudText: () => this.hud?.textContent ?? '', usefulArea: () => ({ x: 0, y: 96, width: 360, height: 544 }),
@@ -429,9 +436,13 @@ export class DerapageScene extends Phaser.Scene {
                     g.fillStyle(0x89949c); g.fillRoundedRect(x-size*.23,y-size*.85,size*.46,size*.8,size*.08);
                     g.fillStyle(0xf2eee1); g.fillCircle(x,y-size*.55,size*.13);
                 }
-            }, layer);
+            }, layer, (item,a,depth) => {
+                const size=item.radius*2*a.scale;
+                const texture=this.sceneryTextures.get(item.kind);
+                if(texture) this.paint?.draw(texture,a.x,a.y-size/2,size,0,1,depth);
+            });
         } else {
-        background.fillStyle(t.circuit.snow.length ? 0xe0eff5 : t.circuit.theme.ground);
+        background.fillStyle(t.circuit.theme.ground);
         background.fillRect(0, 96, 360, 544);
         // Clip geometry to the useful rectangle so the reserved HUD never hides the road ahead.
         const line = (a: {
@@ -495,16 +506,8 @@ export class DerapageScene extends Phaser.Scene {
                 if (t.circuit.theme.kart === 'volcano' && a.y > 110 && a.y < 620) kartTree(g,t.circuit.theme.kart,a,tree.radius,scale,artTime);
                 continue;
             }
-            if (t.circuit.theme.urban) {
-                if (a.y>105 && a.y<630) { g.fillStyle(t.circuit.theme.decor); g.fillRect(a.x-tree.radius*scale,a.y-tree.radius*scale,tree.radius*2*scale,tree.radius*2*scale); }
-                continue;
-            }
-            if (t.circuit.snow.length && a.y > 110 && a.y < 620) {
-                for (const h of [0, 1, 2]) { g.fillStyle(h === 2 ? 0xf4fbff : 0x327454); g.fillTriangle(a.x-2*scale,a.y-h*scale,a.x+2*scale,a.y-h*scale,a.x,a.y-(h+3)*scale); }
-                continue;
-            }
-            if (t.circuit.family === 'bmx' && a.y > 110 && a.y < 620) { g.fillStyle(0xdabc72); g.fillRect(a.x-2*scale,a.y-scale,4*scale,2*scale); continue; }
-            if (a.y > 110 && a.y < 620) { g.fillStyle(0x553c29); g.fillCircle(a.x + 2, a.y + 3, tree.radius * scale); g.fillStyle(t.circuit.theme.decor); g.fillCircle(a.x, a.y, tree.radius * scale); g.fillStyle(0x69a865); g.fillCircle(a.x - 3, a.y - 3, tree.radius * scale * .4); }
+            // Ordinary roadside objects are owned by the cached road layer.
+
         }
         for (const section of t.circuit.tunnel) {
             const index = Math.floor(section * 96/t.circuit.controls.length);

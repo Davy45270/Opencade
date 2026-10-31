@@ -59,6 +59,12 @@ export async function mount(game, id, SceneOverride) {
     scene.textures = { createCanvas: () => ({ context: new Proxy({}, { get: () => () => {} }), refresh() {} }) };
     scene.add.image = () => ({ setOrigin() {} });
     scene.events = { once() {} }; scene.scale = { refresh() {} }; scene.game = { canvas: new Element() };
+    if(game==='alunir') {
+        const textures=new Set();
+        scene.textures.exists=key=>textures.has(key);
+        scene.make={graphics:()=>new Proxy({}, {get:(_,method)=>(...args)=>{if(method==='generateTexture')textures.add(args[0]);return g;}})};
+        scene.add.image=()=>{const sprite={};for(const method of ['setTexture','setPosition','setDisplaySize','setDepth','setVisible','destroy'])sprite[method]=()=>sprite;return sprite;};
+    }
     scene.create(); inputs.dispose();
     runInNewContext(mainSource, {
         document: doc, window: globalThis.window, location: { search: '?test=1', hash: '#/' + game },
@@ -89,12 +95,13 @@ for (const game of ['caisses', 'traverse', 'alunir']) {
         const h = await mount(game, id), { scene, engine, hero, frame, draws, calls } = h;
         try {
             frame(); assert.equal(hero.id, id); assert(draws.length); assert(calls.some(c => c[0] === 'fillPoints'));
-            const expectedSize = game === 'caisses' ? Math.min(336 / engine.board.width, 490 / engine.board.height) * 1.2 : game === 'alunir' ? 34 : 40;
+            // Alunir's 40px pilot sits inside the canopy; the module owns its rotation.
+            const expectedSize = game === 'caisses' ? Math.min(336 / engine.board.width, 490 / engine.board.height) * 1.2 : 40;
             assert.equal(draws[0][2], expectedSize, `${game}: actual rendered size`);
             if (game === 'caisses') { key('ArrowRight'); assert.equal(hero.pose, 'profil'); assert.equal(hero.flip, false); key('ArrowLeft'); assert.equal(hero.flip, true); key('ArrowUp'); assert.equal(hero.expression, 'surprise'); }
             // Advance in coarse intervals: the real engine retains its fixed simulation steps.
             if (game === 'traverse') { tap('traverse-left'); for (let i = 0; i < 7 && engine.state.player.x === 4; i++) frame(100); assert.equal(hero.pose, 'profil'); assert(hero.flip); assert.equal(hero.animation, 'saut'); tap('traverse-right'); for (let i = 0; i < 7 && engine.state.player.x === 3; i++) frame(100); assert.equal(hero.flip, false); }
-            if (game === 'alunir') { engine.loadState({ angle: .2 }); frame(); assert.equal(draws[0][3], engine.state.angle); tap('alunir-thrust'); emit(globalThis.document, 'keydown', { code: 'ArrowUp' }); frame(16); assert.equal(hero.pose, 'face'); assert.equal(hero.animation, 'saut'); emit(globalThis.document, 'keyup', { code: 'ArrowUp' }); }
+            if (game === 'alunir') { engine.loadState({ angle: .2 }); frame(); assert.deepEqual(draws[0], [-20, -33, 40]); assert.deepEqual(calls.filter(c => c[0] === 'rotateCanvas'), [['rotateCanvas', engine.state.angle]]); tap('alunir-thrust'); emit(globalThis.document, 'keydown', { code: 'ArrowUp' }); frame(16); assert.equal(hero.pose, 'face'); assert.equal(hero.animation, 'saut'); emit(globalThis.document, 'keyup', { code: 'ArrowUp' }); }
             // Pause through the production UI and main's exact update binding.
             h.session.menuOpen = true; frame(); assert.equal(hero.expression, 'dodo'); assert(draws.length); assert(calls.some(c => c[0] === 'fillPoints'));
             h.session.menuOpen = false;
