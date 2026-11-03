@@ -48,6 +48,7 @@ export class TraverseScene extends Phaser.Scene {
     /** Cars, logs, turtles and huts baked once per shape, shown as pooled images; waves on a cheap layer below them. */
     private pieces?: BlockPool;
     private under?: Phaser.GameObjects.Graphics;
+    private paintedRocks = 0;
     private hud?: Phaser.GameObjects.Text;
     private heroBounds = { x: 0, y: 0, width: 24, height: 24 };
     private drawn = { red: 0, green: 0, rocks: 0, castaway: false, closedShelters: 0 };
@@ -185,7 +186,8 @@ export class TraverseScene extends Phaser.Scene {
                     sg.fillStyle(0xf2f2e6, .7); for (let x = 0; x < 9; x++) sg.fillRect(20 + x * 38, top + 18, 16, 2);
                 }
             }
-            for (const r of this.engine.board.rocks ?? []) stoneBlock(sg, world, 12 + r.x * 38, 67 + r.y * 38, 32, r.x + r.y);
+            this.paintedRocks = 0;
+            for (const r of this.engine.board.rocks ?? []) { stoneBlock(sg, world, 12 + r.x * 38, 67 + r.y * 38, 32, r.x + r.y); this.paintedRocks++; }
             layer.commit();
         }
         const u = this.under, pool = this.pieces; u?.clear(); pool?.begin();
@@ -224,7 +226,8 @@ export class TraverseScene extends Phaser.Scene {
             }
         }
         // Rocks are baked with the scenery; the count stays what the player sees.
-        this.drawn.rocks = (this.engine.board.rocks ?? []).length;
+        // Rocks live in the baked scenery: report the ones actually painted there.
+        this.drawn.rocks = this.paintedRocks;
         const castaway = s.rescued ? null : castawayAt(this.engine.board, s.phase);
         if (castaway) { this.drawn.castaway = true; g.fillStyle(0xffe08a); g.fillCircle(28 + castaway.x * 38, 83 + castaway.y * 38, 9); g.lineStyle(2, 0xff6b6b); g.strokeCircle(28 + castaway.x * 38, 83 + castaway.y * 38, 12); }
         for (const x of this.engine.board.shelters) {

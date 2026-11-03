@@ -1,10 +1,11 @@
 /* global URL */
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { transpile } from './transpile.js';
 import { Engine, STEP } from '../src/engines/alunir/engine.ts';
-// Both historical modules come from the pinned revision, never from today's catalogue.
-const historical = path => execFileSync('git', ['show', `eecddb7:${path}`], { encoding: 'utf8' });
+// Both historical modules are byte-for-byte copies of the pass 107 revision (eecddb7), frozen as fixtures:
+// never today's catalogue, and no git history needed (the published repository does not carry it).
+const historical = path => readFileSync(new URL(`../tests/fixtures/alunir-107/${path.split('/').at(-1)}.txt`, import.meta.url), 'utf8');
 const levels = `data:text/javascript,${encodeURIComponent(transpile(historical('src/engines/alunir/levels.ts')))}`;
 const source = historical('src/engines/alunir/engine.ts')
     .replaceAll("'./levels'", JSON.stringify(levels))

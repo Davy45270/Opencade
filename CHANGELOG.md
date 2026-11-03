@@ -11,6 +11,9 @@ First stable release of the 0.4 series: everything from the three preview builds
 
 - Marmaille : la troupe avance deux fois moins vite (un pas toutes les 250 ms) ; le bouton « » » (touche V) double toujours la vitesse. Les temps limites sont doublés, si bien que chaque niveau garde exactement le même nombre de pas et reste gagnable avec les mêmes solutions.
 - Contrôles Node des scènes alignés sur le décor cuit en texture et les pièces en images réutilisées ; Serpentin vérifie que le décor est cuit une fois par niveau.
+- Bubble : murs et linteau de pierre, terrasse et bandeau de jeu cuits avec le décor du monde ; le bandeau ne passe plus sous le lanceur.
+- Traverse : les repères de rochers comptent les rochers peints dans le décor cuit.
+- Intégration continue : les contrôles ne dépendent plus de l’historique de travail, et les tests de bout en bout sont répartis en quatre lots parallèles.
 - Bombercade : nouvel habillage d’après les planches — arènes en relief (jungle, château à torches, volcan fendu de lave, damier sucré et bonbons), bombes et flammes propres à chaque personnage, bonus en icônes, bandeau de jeu dessiné, bouton bombe rond, vignette assortie ; débris seulement sur une vraie casse.
 - Passe 121 : reçus tactiles séparés de `read()` via `fingerReceipts()` dans les 18 scènes ; empreintes des parties limitées aux entrées et à l’état final. Sonde CDP des quatre bords des commandes et contrôles Node du contrat des scènes et des cibles cliquables ; joystick partagé déclaré bouton avec écouteur click. Les durées Gourmandises et Bombercade restent indicatives sur CPU partagé.
 

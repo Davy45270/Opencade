@@ -66,6 +66,19 @@ export function drawBubbleBackdrop(g: Phaser.GameObjects.Graphics, level: number
     g.fillStyle(0x101d30, .28); g.fillRoundedRect(8, 4, 344, 463, 16);
     g.lineStyle(2, light, .55); g.strokeRoundedRect(2, 2, 356, 636, 16);
     // The launcher rests on a bright stone terrace below the playing field.
+    // Frame walls: stone pillars on both sides and a lintel, tinted by the world (baked with the scenery).
+    const stone = world === 'volcan' ? 0x5a4048 : world === 'etoiles' ? 0x4a4a8a : world === 'automne' ? 0x9a7a62 : 0x8a8a7a;
+    for (const x of [0, 351]) {
+        g.fillStyle(stone); g.fillRect(x, 0, 9, 470);
+        g.fillStyle(0x000000, .25); for (let y = 18; y < 470; y += 26) g.fillRect(x, y, 9, 2);
+        g.fillStyle(0xffffff, .18); g.fillRect(x + 1, 0, 2, 470);
+        if (world === 'jungle' || world === 'automne') { g.fillStyle(world === 'jungle' ? 0x5cbf3f : 0xd8922f, .9); for (let y = 60; y < 470; y += 120) g.fillEllipse(x + 4, y, 12, 7); }
+    }
+    g.fillStyle(stone); g.fillRect(0, 466, 360, 8); g.fillStyle(0xffffff, .2); g.fillRect(0, 466, 360, 2);
+    // HUD band between the field and the terrace (the launcher stands in front of it).
+    g.fillStyle(0x0a1420, .55); g.fillRect(9, 474, 342, 80);
+    // Terrace: stone slab on two wooden posts, the launcher's platform.
+    g.fillStyle(0x6a4020); g.fillRect(40, 600, 10, 36); g.fillRect(310, 600, 10, 36);
     g.fillStyle(0x000000, .25); g.fillRoundedRect(14, 557, 336, 80, 16);
     g.fillStyle(mid); g.fillRoundedRect(12, 553, 336, 80, 16);
     g.fillStyle(light, .35); g.fillRoundedRect(20, 557, 320, 8, 4);
