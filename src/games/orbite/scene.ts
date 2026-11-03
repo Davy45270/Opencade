@@ -1,3 +1,4 @@
+import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
@@ -10,6 +11,7 @@ import { browserStorage, readSave, writeSave, readValue, writeValue } from '../.
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
+import { backdrop, playerShip, probeShip, shieldColors, worldOf } from './art';
 export const orbiteButtons: readonly TouchButton[] = [
     { id: 'orbite-special', label: 'Rafale', ariaLabel: 'Rafale : tir doublé', size: 56, placement: 'right', mode: 'tap' },
     { id: 'orbite-left', label: '←', ariaLabel: 'Canon à gauche', size: 56, placement: 'left', mode: 'hold' },
@@ -22,12 +24,15 @@ export interface OrbiteHook {
     hudText(): string;
     renderedProbeIds(): number[];
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; firing: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number; autoFire: boolean };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; firing: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number; autoFire: boolean };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger'): void;
 }
 declare global { interface Window { __ORBITE_TEST__?: OrbiteHook } }
 const OPTIONS_KEY = 'arcade-lab:orbite:options:v1';
+/** Ship hull in each companion's colour (charter: one ship per companion). */
+const SHIP: Record<string, number> = { panda: 0x4fae4a, pandaroux: 0xe0552f, dragon: 0x3a7ae0, singe: 0xe04aa8, licorne: 0x9a6aff };
 export class OrbiteScene extends Phaser.Scene {
     private engine = new Engine();
     private hero = new GameCharacter();
@@ -62,6 +67,7 @@ export class OrbiteScene extends Phaser.Scene {
         document.body.classList.add('orbite');
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('orbite'); delete window.__ORBITE_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
+        this.backdropImage = this.add.image(0, 0, '__DEFAULT').setOrigin(0).setDepth(-1);
         this.graphics = this.add.graphics();
         this.hud = this.add.text(16, 14, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 3 });
         renderTouchControls(this.inputs, orbiteButtons, (id, held) => {
@@ -112,12 +118,14 @@ export class OrbiteScene extends Phaser.Scene {
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         area.setAttribute('aria-label', 'Orbite : flotte de sondes, guider le canon en bas et tirer');
         if (new URLSearchParams(location.search).get('test') === '1') window.__ORBITE_TEST__ = {
+            ...fingerProof,
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             renderedProbeIds: () => [...this.renderedProbes],
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.state.ticks * 1000 / 60 }),
-            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, firing: this.firing }, ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state, autoFire: this.autoFire }),
+            fingerReceipts: receipts,
+            read: () => ({ fingerInput: { paused: this.session.paused, firing: this.firing }, ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state, autoFire: this.autoFire }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 this.start(0, 457, true);
@@ -177,14 +185,21 @@ export class OrbiteScene extends Phaser.Scene {
         if (this.testAdvancing) return;
         this.scale.refresh(); this.panels(); this.draw();
     }
+    /** Sky, nebula, planets and stars: baked once per world, shown as one image. */
+    private backdropImage?: Phaser.GameObjects.Image;
+    private ensureBackdrop(): void {
+        const world = worldOf(this.engine.level), key = `orbite-bg-${world}`;
+        if (!this.textures.exists(key)) { const b = this.make.graphics({}, false); backdrop(b, world); b.generateTexture(key, 360, 640); b.destroy(); }
+        this.backdropImage?.setTexture(key);
+    }
     private draw(): void {
         const g = this.graphics; if (!g) return;
-        const s = this.engine.state;
-        g.clear(); g.fillStyle(0x102339); g.fillRoundedRect(0, 0, 360, 640, 16);
-        for (let i = 0; i < 48; i++) { g.fillStyle(0x6e91b0, 0.25 + (i % 3) * 0.15); g.fillCircle(14 + (i * 97) % 332, 80 + (i * 61) % 540, i % 4 === 0 ? 1.5 : 0.7); }
-        g.lineStyle(1, 0x244c61); g.strokeEllipse(180, 290, 320, 350); g.strokeEllipse(180, 290, 220, 350);
-        g.lineStyle(1, 0x78ead5, 0.3); g.lineBetween(12, SHIELD_Y, 348, SHIELD_Y);
-        for (const cell of s.shields) { g.fillStyle(0x78ead5); g.fillRect(cell.x, cell.y, 4, 4); g.fillStyle(0xc4fff0, 0.4); g.fillRect(cell.x, cell.y, 4, 1); }
+        const s = this.engine.state, world = worldOf(this.engine.level), [shield, shieldLight] = shieldColors(world);
+        this.ensureBackdrop();
+        g.clear();
+        g.lineStyle(1, shieldLight, 0.25); g.lineBetween(12, SHIELD_Y, 348, SHIELD_Y);
+        g.fillStyle(shield); for (const cell of s.shields) g.fillRect(cell.x, cell.y, 4, 4);
+        g.fillStyle(shieldLight, 0.55); for (const cell of s.shields) g.fillRect(cell.x, cell.y, 4, 1);
         for (const well of s.wells ?? []) {
             for (const radius of [18, 30, 44]) { g.lineStyle(2, 0xbaadff, 0.6); g.strokeEllipse(well.x, well.y, radius * 2, radius); }
             g.fillStyle(0x080b20); g.fillCircle(well.x, well.y, 10);
@@ -212,8 +227,7 @@ export class OrbiteScene extends Phaser.Scene {
             if (!this.engine.visible(p)) continue;
             this.renderedProbes.push(p.id);
             const color = [0xffdb89, 0xbaadff, 0xff9ebb, 0x87d8ff, 0xa5f0ca][p.row] ?? 0xffffff;
-            g.fillStyle(color); g.fillTriangle(p.x, p.y - 10, p.x - 11, p.y + 4, p.x + 11, p.y + 4); g.fillTriangle(p.x, p.y + 10, p.x - 7, p.y, p.x + 7, p.y);
-            g.fillStyle(0x102339); g.fillCircle(p.x, p.y, 3); g.lineStyle(1, color); g.strokeCircle(p.x, p.y, 12 + Math.sin(s.ticks / 12 + p.column) * 1.5);
+            probeShip(g, p.x, p.y, color, Math.sin(s.ticks / 6 + p.column));
             if (p.kind === 'rotor') { g.lineStyle(3, 0x87d8ff); g.beginPath(); const start = Math.PI / 2 - (s.ticks + p.id * 11) % 120 * Math.PI / 60; g.arc(p.x, p.y, 16, start, start + Math.PI * 0.75); g.strokePath(); }
             if (p.kind === 'split') { g.lineStyle(2, 0xff8da9); g.lineBetween(p.x - 6, p.y - 5, p.x + 6, p.y + 5); g.lineBetween(p.x + 6, p.y - 5, p.x - 6, p.y + 5); }
             if (p.kind === 'repair') { g.fillStyle(0x78ead5); g.fillRect(p.x - 7, p.y - 2, 14, 4); g.fillRect(p.x - 2, p.y - 7, 4, 14); }
@@ -227,14 +241,12 @@ export class OrbiteScene extends Phaser.Scene {
         }
         for (const shot of s.shots) { g.fillStyle(shot.owner === 'player' ? 0xc2fff2 : 0xff91ac); g.fillRoundedRect(shot.x - 1.5, shot.y - 5, 3, 10, 1.5); }
         if (s.invulnerable === 0 || s.ticks % 8 < 4) {
-            g.fillStyle(0x78ead5); g.fillTriangle(s.cannon, CANNON_Y - 14, s.cannon - 15, CANNON_Y + 10, s.cannon + 15, CANNON_Y + 10);
-            g.fillStyle(0x102339); g.fillTriangle(s.cannon, CANNON_Y - 2, s.cannon - 6, CANNON_Y + 9, s.cannon + 6, CANNON_Y + 9);
-            g.lineStyle(2, 0xc2fff2); g.lineBetween(s.cannon, CANNON_Y - 17, s.cannon, CANNON_Y - 6);
+            playerShip(g, s.cannon, CANNON_Y, SHIP[this.hero.id] ?? 0x78ead5, Math.abs(Math.sin(s.ticks / 4)));
         }
-        this.hero.draw(g, s.cannon - 24, CANNON_Y - 35, 48);
+        this.hero.draw(g, s.cannon - 14, CANNON_Y - 44, 28);
         if (this.engine.specialTicks > 0) for (const shot of s.shots) if (shot.owner === 'player') this.hero.drawEffect(g, shot.x - 14, shot.y - 14, 28);
         for (const spark of this.sparks) { g.lineStyle(2, 0xffdb89, 1 - spark.age / 350); for (let i = 0; i < 6; i++) { const angle = i * Math.PI / 3, radius = 8 + spark.age / 15; g.lineBetween(spark.x + Math.cos(angle) * radius, spark.y + Math.sin(angle) * radius, spark.x + Math.cos(angle) * (radius + 5), spark.y + Math.sin(angle) * (radius + 5)); } }
-        g.lineStyle(2, this.glow ? this.glowColor : 0x42718b, this.glow ? this.glow : 0.7); g.strokeRoundedRect(2, 2, 356, 636, 14);
+        if (this.glow) { g.lineStyle(3, this.glowColor, this.glow); g.strokeRoundedRect(2, 2, 356, 636, 14); }
         const c = stage(this.engine.level);
         const names = { rotor: 'Rotors : attendre l’ouverture', split: 'Scindées : finir les fragments', asteroid: 'Astéroïdes : tirs déviés', gravity: 'Gravité : viser en avance', stealth: 'Furtives : guetter le retour', repair: 'Réparateurs : priorité', satellite: 'Protéger le satellite : intercepter', spiral: 'Essaim : suivre les courbes' };
         const mechanicHint = c.mechanics[0] ? names[c.mechanics[0]] : 'Défendre les quatre abris';

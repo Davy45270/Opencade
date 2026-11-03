@@ -52,12 +52,13 @@ async function mount(game, id) {
     const inputs = new Inputs(); setupPause(inputs, session);
     const scene = new Scene(session), calls = [];
     const g = new Proxy({}, { get: (_, method) => (...args) => { calls.push([method, ...args]); return g; } });
-    const textures = new Set();
+    // Off-list Graphics (baked scenery) record into their own list, never into the frame's calls.
+    const textures = new Set(), baked = [];
     scene.textures = { exists: key => textures.has(key), remove: key => textures.delete(key) };
-    scene.make = { graphics: () => new Proxy({}, { get: (_, method) => (...args) => {
-        if (method === 'generateTexture') textures.add(args[0]);
-        return g;
-    } }) };
+    scene.make = { graphics: () => { const b = new Proxy({}, { get: (_, method) => (...args) => {
+        baked.push([method, ...args]); if (method === 'generateTexture') textures.add(args[0]);
+        return b;
+    } }); return b; } };
     const image = () => {
         const sprite = { texture: { key: '' } };
         for (const method of ['setTexture', 'setPosition', 'setDisplaySize', 'setRotation', 'setAlpha', 'setDepth', 'setVisible', 'setOrigin', 'setScale', 'destroy']) sprite[method] = (...args) => {
@@ -67,7 +68,7 @@ async function mount(game, id) {
         return sprite;
     };
     scene.add = { graphics: () => g, image, text: () => ({ text: '', setText(text) { this.text = text; }, setY() {}, setDepth() { return this; } }) };
-    scene.events = { once() {} }; scene.scale = { refresh() {} }; scene.game = { canvas: new Element() };
+    scene.events = { once() {} }; scene.scale = { refresh() {} }; scene.game = { canvas: new Element() }; scene.time = { now: 0 };
     scene.input = { handlers: new Map(), on(name, callback) { this.handlers.set(name, callback); } }; scene.create(); inputs.dispose();
     runInNewContext(mainSource, {
         document: doc, window: globalThis.window, location: { search: '?test=1', hash: '#/' + game },
@@ -93,7 +94,7 @@ async function mount(game, id) {
     scene.update(0, 0);
     const frame = (ms = 0) => { if (game === 'derapage' && scene.previousFrame === undefined) scene.update(timestamp, 0); timestamp += ms; calls.length = 0; draws.length = 0; actors.length = 0; drawOffsets.length = 0; scene.update(timestamp, ms); };
     const cleanup = () => { scene.road?.destroy(); scene.paint?.destroy(); scene.inputs.dispose(); inputs.dispose(); };
-    return { scene, session: scene.session, frame, draws, actors, drawOffsets, calls, cleanup, engine: scene.engine, hero: scene.hero };
+    return { scene, session: scene.session, frame, draws, actors, drawOffsets, calls, baked, cleanup, engine: scene.engine, hero: scene.hero };
 }
 setMaxListeners(0);
 for (const game of ['derapage', 'bubble', 'serpentin']) {
@@ -165,14 +166,26 @@ for (const game of ['derapage', 'bubble', 'serpentin']) {
             engine.loadState({ segments: [{ x: 7, y: 10 }, { x: 7, y: 9 }, { x: 8, y: 9 }, { x: 8, y: 10 }, { x: 9, y: 10 }], direction: 'right', apple: { x: 2, y: 2 }, obstacles: [], eaten: 0, score: 0, crystal: null, crystalUntil: 0 });
             tap('serpentin-special'); frame(167); assert.equal(engine.status, 'playing');
             assert.deepEqual(engine.state.segments[0], engine.state.segments.at(-1));
-            const rectangles = h.calls.filter(c => c[0] === 'fillRoundedRect' && c[3] === 18 && c[4] === 18);
+            // One 20 × 20 rounded cell per segment (radius 7 body, 8 head), tail first.
+            const cell = c => c[0] === 'fillRoundedRect' && c[3] === 20 && c[4] === 20;
+            const rectangles = h.calls.filter(cell);
             assert.equal(rectangles.length, 5);
-            assert.equal(rectangles.at(-1)[5], 7, 'head rectangle after all body rectangles');
+            assert.deepEqual(rectangles.map(c => c[5]), [7, 7, 7, 7, 8], 'head rectangle after all body rectangles');
             const headIndex = h.calls.indexOf(rectangles.at(-1));
             assert(h.drawOffsets[0] > headIndex, 'actor drawn after head');
-            assert(!h.calls.slice(headIndex + 1).some(c => c[0] === 'fillRoundedRect' && c[3] === 18 && c[4] === 18), 'no body over actor');
+            assert(!h.calls.slice(headIndex + 1).some(cell), 'no body over actor');
         }
         assert(scene.hero.impact > 0);
+        if (game === 'serpentin') {
+            // Scenery baked once per level: the 15 × 21 floor tiles live in the texture, never in the frame.
+            const tiles = list => list.filter(c => c[0] === 'fillRect' && c[3] === 22 && c[4] === 22).length;
+            const bakes = () => h.baked.filter(c => c[0] === 'generateTexture' && c[1] === 'serpentin-scenery').length;
+            const before = bakes(); frame(167); frame(167);
+            assert.equal(bakes(), before, 'no re-bake on the same level');
+            assert.equal(tiles(h.calls), 0, 'floor not repainted per frame');
+            assert.equal(tiles(h.baked), 15 * 21 * before, 'floor drawn into the baked texture');
+            assert(before >= 1, 'scenery baked');
+        }
         assert(performance.now() - start < 2000, `${game}: event and drawing checks < 2 s`);
     } finally { h.cleanup(); }
 }

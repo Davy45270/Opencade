@@ -10,7 +10,7 @@ const timings = [];
 function placement(game, engine, draws) {
     const expected = game === 'dedale'
         ? [5.2 + (engine.state.hero.x + .5) * 18.4 - 14, 64 + (engine.state.hero.y + .5) * 18.4 - 14, 28]
-        : game === 'orbite' ? [engine.state.cannon - 24, 588 - 35, 48]
+        : game === 'orbite' ? [engine.state.cannon - 14, 588 - 44, 28]
             : [270 + 4, 230, 84];
     assert(draws.length, 'actor actually drawn');
     assert.deepEqual(draws[0].slice(0, 3), expected, `${game}: layout position`);
@@ -39,13 +39,14 @@ function particles(h) {
     assert.equal(cursor, expected.length, 'Lueur draws all selected character particles on the path');
 }
 function reserve(h) {
-    const { engine, frame, calls } = h;
+    const { engine, frame, images } = h;
     for (const id of [0, 1]) {
         engine.loadState({ ...engine.state, reserve: null, active: { ...engine.state.active, id } });
         tap('empilo-special'); frame(60); assert.equal(engine.reserve, id);
         const cells = id === 0 ? [[0, 0], [1, 0], [2, 0]] : [[0, 0], [0, 1], [1, 1]];
-        const actual = calls.filter(c => c[0] === 'fillRoundedRect' && c[2] >= 370 && c[2] < 410 && c[1] >= 282);
-        assert.deepEqual(actual, cells.map(([x, y]) => ['fillRoundedRect', 282 + x * 13, 370 + y * 13, 11, 11, 3]), 'reserved piece really painted');
+        // The reserve is shown as pooled 12 px gem images: one visible image per cell, at its cell.
+        const actual = images.filter(i => i.visible && /^gem-[0-9a-f]+-12$/.test(i.key) && i.y >= 370 && i.y < 410 && i.x >= 282).map(i => [i.x, i.y]);
+        assert.deepEqual(actual, cells.map(([x, y]) => [282 + x * 13, 370 + y * 13]), 'reserved piece really painted');
     }
 }
 function events(game, h) {
@@ -95,6 +96,13 @@ async function check(game, id, SceneOverride) {
     const h = await mount(game, id, SceneOverride), { engine, hero, frame, scene, draws } = h;
     try {
         h.session.send('start'); frame(60); assert.equal(hero.id, id); placement(game, engine, draws);
+        if (game === 'dedale') {
+            // Static scenery is painted once per maze: eating a seed repaints only the collectibles layer.
+            const paints = scene.sceneryPaints, seeds = engine.state.seeds;
+            assert(paints >= 1 && seeds.length > 0, 'scenery painted');
+            engine.loadState({ ...engine.state, seeds: seeds.slice(1) }); scene.draw();
+            assert.equal(scene.sceneryPaints, paints, 'a seed eaten does not repaint the scenery');
+        }
         tap(`${game}-special`); frame(); assert.equal(engine.specialUses, 0); assert.equal(hero.animation, 'special');
         assert.match(scene.hud.text, game === 'dedale' ? /LUEUR 0\/1/ : game === 'orbite' ? /RAFALE 0\/1/ : /RÉSERVE 0\/1/);
         const before = engine.snapshot(), time = hero.time;
@@ -113,7 +121,7 @@ for (const game of ['dedale', 'orbite', 'empilo']) for (const id of ids) {
 }
 for (const [game, before, after] of [
     ['dedale', 'this.hero.draw(g, x - 14, y - 14, 28);', 'this.hero.draw(g, 0, 0, 28);'],
-    ['orbite', 'this.hero.draw(g, s.cannon - 24, CANNON_Y - 35, 48);', 'this.hero.draw(g, 0, 0, 48);'],
+    ['orbite', 'this.hero.draw(g, s.cannon - 14, CANNON_Y - 44, 28);', 'this.hero.draw(g, 0, 0, 28);'],
     ['empilo', 'this.hero.draw(g, 274, 230, 84);', 'this.hero.draw(g, 100, 230, 84);'],
     ...['dedale', 'orbite'].map(game => [game, "if (event === 'life') this.hero.impact = 500;", "if (event === 'life') this.hero.impact = 0;"]),
     ['dedale', 'g.strokeCircle(px, py, 4); this.hero.drawEffect(g, px - 10, py - 10, 20);', 'g.strokeCircle(px, py, 4);'],

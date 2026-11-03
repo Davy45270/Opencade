@@ -1,3 +1,4 @@
+import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
 import { GameCharacter } from '../../characters/game';
 import Phaser from 'phaser';
@@ -10,6 +11,7 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
+import { backdrop, coin, floorTile, hudVeil, palettes, shade, stoneBlock, worldOf, SceneryLayer } from '../universal/art';
 export const serpentinButtons: readonly TouchButton[] = [
     { id: 'serpentin-special', label: 'Esquive', ariaLabel: 'Esquive : traverser son corps une fois', size: 56, placement: 'right', mode: 'tap' },
     { id: 'serpentin-left', label: '←', ariaLabel: 'Aller à gauche', size: 56, placement: 'left', mode: 'tap' },
@@ -23,7 +25,8 @@ export interface SerpentinHook {
     renderedFrames(): number;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean }; character: ReturnType<GameCharacter['snapshot']>; cumulativeScore: number; progression: string };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean }; character: ReturnType<GameCharacter['snapshot']>; cumulativeScore: number; progression: string };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'wall' | 'benchmark' | 'body'): void;
     /** Gate states drawn by the last frame (pass 401). */
@@ -40,6 +43,8 @@ export class SerpentinScene extends Phaser.Scene {
     private testManual = false;
     private testAdvancing = false;
     private graphics?: Phaser.GameObjects.Graphics;
+    /** Static scenery layer, repainted only when its key changes (level, board): software rendering stays fast. */
+    private scenery?: SceneryLayer;
     private hud?: Phaser.GameObjects.Text;
     private glow = 0;
     private drawn = { open: 0, closing: 0, closed: 0 };
@@ -54,6 +59,7 @@ export class SerpentinScene extends Phaser.Scene {
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('serpentin'); delete window.__SERPENTIN_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
+        this.scenery = new SceneryLayer(this, 'serpentin');
         this.graphics = this.add.graphics();
         this.hud = this.add.text(15, 548, '', { fontFamily: 'system-ui', fontSize: '15px', color: '#e5f3ff', lineSpacing: 8 });
         const direction = (value: Direction | 'special'): void => {
@@ -83,12 +89,14 @@ export class SerpentinScene extends Phaser.Scene {
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         this.game.canvas.setAttribute('aria-label', 'Serpentin : glisser pour guider la tête lumineuse');
         if (new URLSearchParams(location.search).get('test') === '1') window.__SERPENTIN_TEST__ = {
+            ...fingerProof,
             renderedFrames: () => this.frames,
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.snapshot().ticks * 1000 / 60 }),
-            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            fingerReceipts: receipts,
+            read: () => ({ fingerInput: { paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             marks: () => ({ ...this.drawn }),
             scenario: name => {
@@ -153,12 +161,18 @@ export class SerpentinScene extends Phaser.Scene {
         const g = this.graphics;
         if (!g) return;
         this.frames++;
-        g.clear(); g.fillStyle(0x132438); g.fillRoundedRect(0, 0, 360, 640, 18);
-        g.lineStyle(1, 0x24415a);
-        for (let x = 0; x <= 15; x++) g.lineBetween(15 + x * 22, 32, 15 + x * 22, 494);
-        for (let y = 0; y <= 21; y++) g.lineBetween(15, 32 + y * 22, 345, 32 + y * 22);
-        const d = difficulty(this.engine.level);
-        g.lineStyle(3, d.walls ? 0xffb867 : 0x70cfff); g.strokeRect(14, 31, 332, 464);
+        const world = worldOf(this.engine.level), clock = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : this.time.now / 1000;
+        g.clear();
+        const d = difficulty(this.engine.level), layer = this.scenery, sg = layer?.g;
+        if (layer && sg && layer.stale(this.engine.level)) {
+            // Meadow (or ash field) in a checker of 22 px cells; walls are a stone rim, the torus a low hedge.
+            backdrop(sg, world, 360, 640); hudVeil(sg, world, 6, 500, 348, 136);
+            for (let y = 0; y < 21; y++) for (let x = 0; x < 15; x++) floorTile(sg, world, 15 + x * 22, 32 + y * 22, 22, (x + y) % 2 === 1);
+            if (d.walls) { for (let i = 0; i < 17; i++) { stoneBlock(sg, world, 4 + i * 21, 21, 11, i); stoneBlock(sg, world, 4 + i * 21, 495, 11, i + 1); } for (let i = 0; i < 23; i++) { stoneBlock(sg, world, 4, 21 + i * 21, 11, i); stoneBlock(sg, world, 345, 21 + i * 21, 11, i + 2); } }
+            else { sg.lineStyle(5, palettes[world].foliage, .8); sg.strokeRect(12, 29, 336, 468); sg.lineStyle(2, shade(palettes[world].foliage, .35), .9); sg.strokeRect(12, 29, 336, 468); }
+            sg.lineStyle(3, d.walls ? 0xffb867 : 0x70cfff); sg.strokeRect(14, 31, 332, 464);
+            layer.commit();
+        }
         const l = layout(this.engine.level), ticks = this.engine.snapshot().ticks, at = (v: number) => 26 + v * 22, ay = (v: number) => 43 + v * 22;
         // Portals: paired rings sharing one colour per pair.
         l.portals.forEach((p, i) => {
@@ -184,11 +198,12 @@ export class SerpentinScene extends Phaser.Scene {
         for (const c of this.engine.sentries()) { g.fillStyle(0xff4d5e); g.fillRoundedRect(18 + c.x * 22, 35 + c.y * 22, 16, 16, 3); g.fillStyle(0xffffff); g.fillCircle(at(c.x) - 3, ay(c.y) - 2, 2); g.fillCircle(at(c.x) + 3, ay(c.y) - 2, 2); }
         const scissors = this.engine.state.scissors;
         if (scissors) { const x = at(scissors.x), y = ay(scissors.y); g.lineStyle(3, 0xff6b6b); g.lineBetween(x - 7, y - 7, x + 7, y + 7); g.lineBetween(x + 7, y - 7, x - 7, y + 7); g.strokeCircle(x - 6, y + 6, 3); g.strokeCircle(x + 6, y + 6, 3); }
-        for (const c of this.engine.state.obstacles) { g.fillStyle(0x617b96); g.fillRoundedRect(17 + c.x * 22, 34 + c.y * 22, 18, 18, 4); }
+        for (const c of this.engine.state.obstacles) stoneBlock(g, world, 16 + c.x * 22, 33 + c.y * 22, 20, c.x + c.y);
         const apple = this.engine.state.apple;
         if (l.prey) { g.fillStyle(0xfff3a0, 0.3 + 0.2 * Math.sin(ticks / 6)); g.fillCircle(26 + apple.x * 22, 43 + apple.y * 22, 12); }
-        g.fillStyle(l.prey ? 0xfff07a : 0xffb867); g.fillCircle(26 + apple.x * 22, 43 + apple.y * 22, 8 + this.glow * 2);
-        g.lineStyle(2, 0xffffff); g.lineBetween(26 + apple.x * 22, 34 + apple.y * 22, 30 + apple.x * 22, 30 + apple.y * 22);
+        // The spark is the charter's collectible: a spinning gold coin, warmer when it is prey.
+        if (!l.prey) { g.fillStyle(0xffb867, .35); g.fillCircle(26 + apple.x * 22, 43 + apple.y * 22, 10 + this.glow * 2); }
+        coin(g, 26 + apple.x * 22, 43 + apple.y * 22, 8 + this.glow * 2, clock);
         const crystal = this.engine.state.crystal;
         if (crystal) {
             const x = 26 + crystal.x * 22, y = 43 + crystal.y * 22;
@@ -197,7 +212,9 @@ export class SerpentinScene extends Phaser.Scene {
         // Paint tail first: an armed dodge can put the head on a body cell.
         [...this.engine.state.segments.entries()].reverse().forEach(([i, c]) => {
             const x = 17 + c.x * 22, y = 34 + c.y * 22;
-            g.fillStyle(i === 0 ? 0xe5fff7 : 0x64e4cc, i === 0 ? 1 : 0.85); g.fillRoundedRect(x, y, 18, 18, i === 0 ? 7 : 5);
+            const scale = i % 2 ? 0x2fbf8f : 0x3fd9a3;
+            g.fillStyle(i === 0 ? 0xe5fff7 : shade(scale, -.35)); g.fillRoundedRect(x - 1, y - 1, 20, 20, i === 0 ? 8 : 7);
+            if (i > 0) { g.fillStyle(scale); g.fillRoundedRect(x + 1, y + 1, 16, 15, 6); g.fillStyle(0xffe08a, .8); g.fillCircle(x + 9, y + 9, 2.5); g.fillStyle(0xffffff, .35); g.fillEllipse(x + 6, y + 5, 7, 3); }
             if (i === 0) this.hero.draw(g, x - 4, y - 5, 26);
         });
         const timer = l.timeMs ? ` · ⏱ ${String(Math.ceil((this.engine.state.timeLeft ?? 0) / 1000))} s` : '';

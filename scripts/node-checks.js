@@ -1,6 +1,7 @@
 // Explicit inventory of executable fast checks; see docs/node-tests.md for helpers/tools.
 export const nodeChecks = [
     ['../tests/e2e/finger-stepped.node.ts'],
+    ['../tests/e2e/touch-contract.node.ts'],
     // Start the longest replays first so neither worker leaves a long serial tail.
     ...['derapage', 'character-games-2', 'orbite', 'essaim', 'ferraille',
         'caisses', 'briqueterie', 'character-scenes-2', 'characters',

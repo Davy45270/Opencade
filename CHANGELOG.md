@@ -5,6 +5,17 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.4.0] — 2026-11-03
+
+First stable release of the 0.4 series: everything from the three preview builds (Marmaille, Bombercade, Les Artificiers, Gourmandises, Pépites, Dérapage on phones, new art across the arcade), plus the changes below.
+
+- Marmaille : la troupe avance deux fois moins vite (un pas toutes les 250 ms) ; le bouton « » » (touche V) double toujours la vitesse. Les temps limites sont doublés, si bien que chaque niveau garde exactement le même nombre de pas et reste gagnable avec les mêmes solutions.
+- Contrôles Node des scènes alignés sur le décor cuit en texture et les pièces en images réutilisées ; Serpentin vérifie que le décor est cuit une fois par niveau.
+- Bombercade : nouvel habillage d’après les planches — arènes en relief (jungle, château à torches, volcan fendu de lave, damier sucré et bonbons), bombes et flammes propres à chaque personnage, bonus en icônes, bandeau de jeu dessiné, bouton bombe rond, vignette assortie ; débris seulement sur une vraie casse.
+- Passe 121 : reçus tactiles séparés de `read()` via `fingerReceipts()` dans les 18 scènes ; empreintes des parties limitées aux entrées et à l’état final. Sonde CDP des quatre bords des commandes et contrôles Node du contrat des scènes et des cibles cliquables ; joystick partagé déclaré bouton avec écouteur click. Les durées Gourmandises et Bombercade restent indicatives sur CPU partagé.
+
+- Aide doigt : preuves de réception déclarées par les scènes de quatorze jeux, sans branche par jeu dans l’aide ; reçus par événement et sortie de pause conservés.
+
 ## [0.4.0-beta.3] — 2026-10-31
 
 Preview build: new games Marmaille (lead a troop with roles, 30 levels), Bombercade (bombs and breakable mazes, 30 levels, thumb-playable) and Les Artificiers (turn-based artillery on destructible ground, 30 levels); new art for Ferraille, Briqueterie and Alunir; Gourmandises grows to 180 levels with a richer look; Dérapage karts drawn from the character sheets and themed scenery on every circuit; noisy-thumb checks now run on a stepped game clock and give the same result on every machine.
@@ -448,7 +459,8 @@ A measured repetitiveness score (`docs/diversity.md`, lower is more varied):
 - Pure seeded engines tested with Vitest; desktop and mobile Playwright E2E journeys.
 - GitHub Actions CI and GitHub Pages deployment.
 
-[Unreleased]: https://github.com/Davy45270/Opencade/compare/v0.3.1...HEAD
+[Unreleased]: https://github.com/Davy45270/Opencade/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/Davy45270/Opencade/releases/tag/v0.4.0
 [0.3.1]: https://github.com/Davy45270/Opencade/releases/tag/v0.3.1
 [0.3.0]: https://github.com/Davy45270/Opencade/releases/tag/v0.3.0
 [0.2.0]: https://github.com/Davy45270/Opencade/releases/tag/v0.2.0

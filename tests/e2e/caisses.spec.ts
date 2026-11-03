@@ -6,6 +6,8 @@ const gameState = (state: Awaited<ReturnType<typeof read>>) => {
     const { character, ...game } = state;
     return { character, game };
 };
+/** Manual test clock: real time stops moving the scene, so two reads compare logic, never elapsed frames. */
+const freeze = (page: Page) => page.evaluate(() => { window.__CAISSES_TEST__?.advance(0); });
 async function activate(page: Page, selector: string, mobile: boolean) {
     if (mobile) await page.locator(selector).tap(); else await page.locator(selector).click();
 }
@@ -17,6 +19,7 @@ test('C01 C04 C05 C06 C11 victoire, reprise, impasse sans défaite', async ({ pa
     const mobile = info.project.name === 'mobile-chromium';
     await page.goto('/?test=1#/caisses');
     await expect.poll(() => page.evaluate(() => Boolean(window.__ARCADE_TEST__?.games.caisses))).toBe(true);
+    await freeze(page);
     await expect(page.locator('#pause')).toBeHidden();
     await page.screenshot({ path: `test-results/screenshots/caisses-play-${info.project.name}.png` });
     // Complete the entire first level with real inputs; no scenario required.
@@ -27,6 +30,7 @@ test('C01 C04 C05 C06 C11 victoire, reprise, impasse sans défaite', async ({ pa
     await activate(page,'#next-level',mobile); expect((await read(page))?.level).toBe(1);
     await page.reload();
     await expect.poll(() => page.evaluate(() => Boolean(window.__CAISSES_TEST__))).toBe(true);
+    await freeze(page);
     if (mobile) await activate(page,'#game-menu-toggle',true);
     await activate(page,'#levels',mobile); await expect(page.locator('#level-list button').nth(1)).toBeEnabled();
     await activate(page,'#close-levels',mobile);
@@ -51,6 +55,7 @@ test('C01 C05 glisser tactile et menu bloquant les entrées', async ({ page }, i
     test.skip(info.project.name !== 'mobile-chromium', 'Parcours tactile');
     await page.goto('/?test=1#/caisses');
     await expect.poll(() => page.evaluate(() => Boolean(window.__CAISSES_TEST__))).toBe(true);
+    await freeze(page);
     const box=await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent');
     const cdp=await page.context().newCDPSession(page);
     const x=box.x+box.width*.3, y=box.y+box.height*.5;

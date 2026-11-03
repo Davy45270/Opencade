@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import process from 'node:process';
 const mutations = [
     ['Panneau sur le terrain', 'src/games/artificiers/art.ts', 'g.fillRoundedRect(10, 531, 340, 98, 12);', 'g.fillRoundedRect(10, 480, 340, 149, 12);', 'hudGeometry'],
-    ['Vies toujours pleines', 'src/games/artificiers/art.ts', 'g.fillRect(u.x - 15, u.y - 34, u.hp * .3, 4);', 'g.fillRect(u.x - 15, u.y - 34, 30, 4);', 'hudGeometry'],
+    ['Vies toujours pleines', 'src/games/artificiers/art.ts', 'g.fillRect(u.x - 15, u.y - LIFE_Y, Math.min(100, u.hp) * .3, 6);', 'g.fillRect(u.x - 15, u.y - LIFE_Y, 30, 6);', 'hudGeometry'],
     ['Puissance toujours pleine', 'src/games/artificiers/art.ts', '205 * (e.power - 65) / 180', '205', 'hudGeometry'],
     ['Visée invisible', 'src/games/artificiers/art.ts', 'preview.points.slice(0, 10)', 'preview.points.slice(0, 0)', 'hudGeometry'],
     ['Corde avant déplacement seulement', 'src/engines/artificiers/engine.ts', 'if (this.moveLeft < 12) return false;', 'if (this.moveLeft < 48) return false;', 'movementAndRope'],

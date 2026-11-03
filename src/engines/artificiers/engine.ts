@@ -2,6 +2,7 @@ import { ids, type CharacterId } from '../../characters/model';
 import { Random } from '../shared/random';
 import { levelAt, type Level } from './levels';
 import { Terrain, WIDTH, HEIGHT } from './terrain';
+export const BODY_HALF_HEIGHT = 25, BODY_RADIUS = 14, MUZZLE = 32;
 export const FIXED_MS = 20, GRAVITY = 125;
 export const WEAPONS = [
     { name: 'Galet sonore', radius: 34, damage: 62, bounce: 0, homing: 0, count: 18 },
@@ -50,10 +51,10 @@ export class Engine {
         this.config = levelAt(level); if (mode === 'duo') this.config.mission = 'duel'; this.terrain = new Terrain(this.config); this.random = new Random(seed);
         this.level = level; this.seed = seed; this.mode = mode; this.units = [];
         for (const team of [0, 1] as const) for (let i = 0; i < this.config.teams; i++) {
-            const x = (team ? this.config.right : this.config.left) + (i - (this.config.teams - 1) / 2) * 18;
+            const x = (team ? this.config.right : this.config.left) + (i - (this.config.teams - 1) / 2) * 48;
             const id = team ? ids[(level + i + 2) % ids.length] ?? 'dragon' : i === 0 ? hero : ids[(level + i) % ids.length] ?? 'singe';
-            this.units.push({ id: this.units.length, team, hero: id, x, y: this.terrain.surface(x) - 8,
-                vx: 0, vy: 0, hp: team && mode === 'solo' ? 72 + this.config.ai * 8 : 100, fallY: this.terrain.surface(x) - 8,
+            this.units.push({ id: this.units.length, team, hero: id, x, y: this.terrain.surface(x) - BODY_HALF_HEIGHT,
+                vx: 0, vy: 0, hp: team && mode === 'solo' ? 72 + this.config.ai * 8 : 100, fallY: this.terrain.surface(x) - BODY_HALF_HEIGHT,
                 ammo: WEAPONS.map((w, wi) => wi === 0 ? w.count + this.config.teams * 4 : wi === signature[id] ? w.count + (level > 19 ? 1 : 0) : 0) });
         }
         this.active = 0; this.turn = 0; this.timer = 25000; this.water = 606; this.time = 0; this.remainder = 0;
@@ -78,8 +79,8 @@ export class Engine {
     move(direction: number): boolean {
         if (!this.ready() || this.moveLeft <= 0 || !Number.isFinite(direction)) return false;
         const d = Math.sign(direction) * Math.min(4, this.moveLeft), a = this.actor;
-        const x = clamp(a.x + d, 8, WIDTH - 8);
-        for (let rise = 0; rise <= 6; rise += 2) if (!this.terrain.solid(x, a.y + 5 - rise) && !this.terrain.solid(x, a.y - 5 - rise)) {
+        const x = clamp(a.x + d, BODY_RADIUS, WIDTH - BODY_RADIUS);
+        for (let rise = 0; rise <= 6; rise += 2) if (!this.blocked(x, a.y - rise)) {
             a.x = x; a.y -= rise; this.moveLeft -= Math.abs(d); return true;
         }
         return false;
@@ -88,7 +89,7 @@ export class Engine {
         if (!this.ready()) return false;
         const a = this.actor;
         if (!this.rope && (!this.grounded(a) || a.vy < 0)) return false;
-        this.rope = null; a.vy = -112; a.fallY = a.y; this.events.push('jump'); return true;
+        this.rope = null; a.vy = -130; a.fallY = a.y; this.events.push('jump'); return true;
     }
     grapple(): boolean {
         if (!this.ready()) return false;
@@ -105,7 +106,7 @@ export class Engine {
     }
     launch(shot: Shot = { angle: this.angle, power: this.power, weapon: this.weapon }): Projectile {
         const a = this.actor;
-        return { x: a.x + Math.cos(shot.angle) * 12, y: a.y + Math.sin(shot.angle) * 12 - 3,
+        return { x: a.x + Math.cos(shot.angle) * MUZZLE, y: a.y + Math.sin(shot.angle) * MUZZLE - 3,
             vx: Math.cos(shot.angle) * shot.power, vy: Math.sin(shot.angle) * shot.power,
             age: 0, bounces: 0, weapon: shot.weapon, owner: a.id };
     }
@@ -130,7 +131,7 @@ export class Engine {
             const ox = p.x, oy = p.y;
             p.x += p.vx * dt / steps; p.y += p.vy * dt / steps;
             if (p.x < 0 || p.x >= WIDTH || p.y >= this.water || p.age >= 8000) return 'outside';
-            if (this.units.some(u => u.hp > 0 && (u.id !== p.owner || p.age > 300) && Math.hypot(u.x - p.x, u.y - p.y) < 9)) return 'impact';
+            if (this.units.some(u => u.hp > 0 && (u.id !== p.owner || p.age > 300) && ((u.x - p.x) / BODY_RADIUS) ** 2 + ((u.y - p.y) / BODY_HALF_HEIGHT) ** 2 < 1)) return 'impact';
             if (this.terrain.solid(p.x, p.y)) {
                 if (p.bounces < w.bounce) {
                     const wall = this.terrain.solid(p.x, oy);
@@ -155,34 +156,41 @@ export class Engine {
         for (const u of this.units) {
             if (u.hp <= 0) continue;
             const d = Math.hypot(u.x - x, u.y - y);
-            if (d < w.radius + 15) {
-                u.hp = Math.max(0, u.hp - Math.round(w.damage * Math.max(.15, 1 - d / (w.radius + 15))));
-                u.vx += (u.x < x ? -1 : 1) * (w.radius + 15 - d) * 1.4;
-                u.vy = -Math.max(24, (w.radius + 15 - d) * 1.3); u.fallY = u.y;
+            if (d < w.radius + BODY_RADIUS) {
+                u.hp = Math.max(0, u.hp - Math.round(w.damage * Math.max(.15, 1 - d / (w.radius + BODY_RADIUS))));
+                u.vx += (u.x < x ? -1 : 1) * (w.radius + BODY_RADIUS - d) * 1.8;
+                u.vy = -Math.max(24, (w.radius + BODY_RADIUS - d) * 1.6); u.fallY = u.y;
             }
         }
         this.blasts.push({ x, y, weapon, radius: w.radius, time: this.time }); this.events.push('blast'); this.checkResult();
     }
-    private grounded(u: Unit): boolean { return this.terrain.solid(u.x, u.y + 8) || this.terrain.solid(u.x - 4, u.y + 8) || this.terrain.solid(u.x + 4, u.y + 8); }
+    private blocked(x: number, y: number): boolean {
+        for (let dy = -BODY_HALF_HEIGHT + 2; dy <= BODY_HALF_HEIGHT - 2; dy += 2)
+            if (this.terrain.solid(x - BODY_RADIUS, y + dy) || this.terrain.solid(x + BODY_RADIUS, y + dy)) return true;
+        for (let dx = -BODY_RADIUS; dx <= BODY_RADIUS; dx += 2)
+            if (this.terrain.solid(x + dx, y - BODY_HALF_HEIGHT + 2) || this.terrain.solid(x + dx, y + BODY_HALF_HEIGHT - 2)) return true;
+        return false;
+    }
+    private grounded(u: Unit): boolean { return [-BODY_RADIUS + 2, 0, BODY_RADIUS - 2].some(dx => this.terrain.solid(u.x + dx, u.y + BODY_HALF_HEIGHT)); }
     private body(u: Unit): void {
         if (u.hp <= 0) return;
         const dt = FIXED_MS / 1000;
         if (this.grounded(u) && u.vy >= 0) {
-            if (u.y - u.fallY > 45) { u.hp = Math.max(0, u.hp - Math.round((u.y - u.fallY - 45) * .7)); this.events.push('fall'); }
+            if (u.y - u.fallY > 60) { u.hp = Math.max(0, u.hp - Math.round((u.y - u.fallY - 60) * .6)); this.events.push('fall'); }
             u.vy = 0; u.fallY = u.y;
         } else { if (u.vy < 0) u.fallY = Math.min(u.fallY, u.y); u.vy += GRAVITY * dt; }
-        const nx = clamp(u.x + u.vx * dt, 7, WIDTH - 7);
-        if (!this.terrain.solid(nx, u.y) && !this.terrain.solid(nx, u.y + 5)) u.x = nx;
+        const nx = clamp(u.x + u.vx * dt, BODY_RADIUS, WIDTH - BODY_RADIUS);
+        if (!this.blocked(nx, u.y)) u.x = nx;
         else u.vx = 0;
         u.vx *= .94;
         const dy = u.vy * dt, steps = Math.max(1, Math.ceil(Math.abs(dy)));
         for (let i = 0; i < steps; i++) {
             const ny = u.y + dy / steps;
-            if (dy > 0 && this.terrain.solid(u.x, ny + 7)) { u.vy = 0; break; }
-            if (dy < 0 && this.terrain.solid(u.x, ny - 7)) { u.vy = 0; break; }
+            if (dy > 0 && [-BODY_RADIUS + 2, 0, BODY_RADIUS - 2].some(dx => this.terrain.solid(u.x + dx, ny + BODY_HALF_HEIGHT - 1))) { u.vy = 0; break; }
+            if (dy < 0 && [-BODY_RADIUS + 2, 0, BODY_RADIUS - 2].some(dx => this.terrain.solid(u.x + dx, ny - BODY_HALF_HEIGHT + 1))) { u.vy = 0; break; }
             u.y = ny;
         }
-        if (u.y + 6 >= this.water || u.y > HEIGHT) { u.hp = 0; this.events.push('splash'); }
+        if (u.y + BODY_HALF_HEIGHT >= this.water || u.y > HEIGHT) { u.hp = 0; this.events.push('splash'); }
     }
     private checkResult(): void {
         if (this.status !== 'playing') return;
@@ -220,7 +228,7 @@ export class Engine {
                 // Pull through free space only, never through a wall.
                 const steps = Math.ceil(Math.hypot(x - a.x, y - a.y));
                 const dx = (x - a.x) / steps, dy = (y - a.y) / steps;
-                for (let i = 0; i < steps; i++) { if (this.terrain.solid(a.x + dx, a.y + dy - 6) || this.terrain.solid(a.x + dx, a.y + dy + 6)) break; a.x += dx; a.y += dy; }
+                for (let i = 0; i < steps; i++) { if (this.blocked(a.x + dx, a.y + dy)) break; a.x += dx; a.y += dy; }
                 a.vy *= .7; a.fallY = a.y;
             } }
         }
@@ -244,8 +252,7 @@ export class Engine {
             this.timer -= FIXED_MS;
             if (this.timer <= 0 || this.actor.hp <= 0) this.endTurn();
             else if (this.mode === 'solo' && this.actor.team === 1 && this.timer <= 24000) {
-                if (this.config.mission === 'target') this.endTurn();
-                else { const shot = chooseShot(this, this.config.ai); this.aim(shot.angle, shot.power); this.selectWeapon(shot.weapon); this.shoot(); }
+                const shot = chooseShot(this, this.config.ai); this.aim(shot.angle, shot.power); this.selectWeapon(shot.weapon); this.shoot();
             }
         }
     }
@@ -273,6 +280,9 @@ export class Engine {
 }
 /** Full deterministic search uses the actual integrator, terrain and visible wind. No state changes. */
 export function chooseShot(e: Engine, difficulty: 0 | 1 | 2 = 2, objective = true): Shot {
+    return doseAimError(e, searchShot(e, objective), difficulty);
+}
+export function searchShot(e: Engine, objective = true): Shot {
     const actor = e.actor, targets = e.units.filter(u => u.hp > 0 && u.team !== actor.team);
     let best: Shot = { angle: actor.team ? -2.4 : -.7, power: 150, weapon: 0 }, bestScore = -Infinity;
     const weapons = [0, signature[actor.hero]] as Weapon[];
@@ -285,7 +295,7 @@ export function chooseShot(e: Engine, difficulty: 0 | 1 | 2 = 2, objective = tru
             let score = -Math.min(...targets.map(u => Math.hypot(u.x - hit.x, u.y - hit.y)));
             for (const u of e.units.filter(u => u.hp > 0)) {
                 const d = Math.hypot(u.x - hit.x, u.y - hit.y);
-                const damage = d < w.radius + 15 ? w.damage * Math.max(.15, 1 - d / (w.radius + 15)) : 0;
+                const damage = d < w.radius + BODY_RADIUS ? w.damage * Math.max(.15, 1 - d / (w.radius + BODY_RADIUS)) : 0;
                 score += (u.team === actor.team ? -2.4 : 2) * damage;
             }
             if (objective && actor.team === 0 && e.config.mission === 'structure') {
@@ -296,7 +306,27 @@ export function chooseShot(e: Engine, difficulty: 0 | 1 | 2 = 2, objective = tru
             if (score > bestScore) { bestScore = score; best = shot; }
         }
     }
-    // Error derives from public turn/seed, does not consume or inspect future RNG.
-    const sign = (e.seed + e.turn) % 2 ? 1 : -1, error = [ .19, .065, 0 ][difficulty] ?? 0;
-    return { ...best, angle: clamp(best.angle + sign * error, -Math.PI + .08, -.08), power: clamp(best.power + sign * error * 85, 65, 245) };
+    return best;
+}
+// Map geometry changes how much angular error a shot tolerates. These authored
+// spreads calibrate the same stationary-target protocol across all thirty maps.
+// They affect aim only: search, wind, flight, damage and bodies stay identical.
+const AIM_SPREAD = [0.648, 0.264, 1.288, 0.392, 0.352, 1.044, 0.7, 0.26, 0.4, 0.34, 0.244, 0.3, 0.368, 0.252, 0.2, 0.272, 0.796, 0.14, 0.088, 0.288, 0.268, 0.344, 0.344, 0.036, 0.208, 0.184, 0.012, 0.192, 0.168, 0.2] as const;
+function aimNoise(seed: number, turn: number, salt: number): number {
+    let x = (seed ^ Math.imul(turn + 1, 0x9e3779b9) ^ salt) >>> 0;
+    x = Math.imul(x ^ (x >>> 16), 0x21f0aaad);
+    x = Math.imul(x ^ (x >>> 15), 0x735a2d97);
+    return ((x ^ (x >>> 15)) >>> 0) / 4294967296 * 2 - 1;
+}
+/** Public seed/turn only; independent angle/power errors, no RNG or result lookup. */
+export function doseAimError(e: Engine, best: Shot, difficulty: 0 | 1 | 2): Shot {
+    // Keep the recording/direct/finger pilot's established aiming policy.
+    if (e.actor.team === 0) {
+        const sign = (e.seed + e.turn) % 2 ? 1 : -1, error = [ .11, .045, 0 ][difficulty] ?? 0;
+        return { ...best, angle: clamp(best.angle + sign * error, -Math.PI + .08, -.08), power: clamp(best.power + sign * error * 85, 65, 245) };
+    }
+    const spread = (AIM_SPREAD[e.level] ?? AIM_SPREAD[29]) * .4 ** (difficulty - e.config.ai);
+    return { ...best,
+        angle: clamp(best.angle + spread * aimNoise(e.seed, e.turn, 0x1234567), -Math.PI + .08, -.08),
+        power: clamp(best.power + spread * 100 * aimNoise(e.seed, e.turn, 0x7654321), 65, 245) };
 }

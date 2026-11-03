@@ -1,0 +1,1018 @@
+{
+  "protocol": {
+    "seeds": [
+      19,
+      37,
+      73,
+      101,
+      149,
+      220,
+      307,
+      401
+    ],
+    "maxAttempts": 12,
+    "targetHP": 100,
+    "stationary": true,
+    "pristineTerrainEachShot": true,
+    "damage": "Engine.explode",
+    "flight": "Engine.trace / integrate",
+    "turns": "AI attempts, stopped on cumulative 100 damage; meanKillTurns excludes censored trials; cappedTurns counts censored trials as 12",
+    "recordedTurns": "final.turn + 1, including the winning turn",
+    "units": 2,
+    "fingerViewport": [
+      360,
+      640
+    ]
+  },
+  "sizing": {
+    "viewport": [
+      360,
+      640
+    ],
+    "canvasScale": 0.83125,
+    "beforePaintedHeight": [
+      19.68,
+      22.71
+    ],
+    "afterPaintedHeight": [
+      41.24,
+      47.58
+    ],
+    "textureSize": 88,
+    "worldScaleY": 0.8
+  },
+  "aiGroups": [
+    {
+      "levels": [
+        1,
+        7
+      ],
+      "before": {
+        "hits": 199,
+        "attempts": 241,
+        "hitPercent": 82.6,
+        "kills": 56,
+        "trials": 56,
+        "meanKillTurns": 4.3,
+        "cappedTurns": 4.3
+      },
+      "after": {
+        "hits": 182,
+        "attempts": 355,
+        "hitPercent": 51.3,
+        "kills": 55,
+        "trials": 56,
+        "meanKillTurns": 6.24,
+        "cappedTurns": 6.34
+      }
+    },
+    {
+      "levels": [
+        8,
+        16
+      ],
+      "before": {
+        "hits": 196,
+        "attempts": 203,
+        "hitPercent": 96.6,
+        "kills": 72,
+        "trials": 72,
+        "meanKillTurns": 2.82,
+        "cappedTurns": 2.82
+      },
+      "after": {
+        "hits": 228,
+        "attempts": 357,
+        "hitPercent": 63.9,
+        "kills": 72,
+        "trials": 72,
+        "meanKillTurns": 4.96,
+        "cappedTurns": 4.96
+      }
+    },
+    {
+      "levels": [
+        17,
+        30
+      ],
+      "before": {
+        "hits": 275,
+        "attempts": 275,
+        "hitPercent": 100.0,
+        "kills": 112,
+        "trials": 112,
+        "meanKillTurns": 2.46,
+        "cappedTurns": 2.46
+      },
+      "after": {
+        "hits": 349,
+        "attempts": 418,
+        "hitPercent": 83.5,
+        "kills": 112,
+        "trials": 112,
+        "meanKillTurns": 3.73,
+        "cappedTurns": 3.73
+      }
+    }
+  ],
+  "aiBefore": [
+    {
+      "level": 1,
+      "difficulty": 0,
+      "hits": 31,
+      "attempts": 31,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 31,
+      "meanTurns": 3.88
+    },
+    {
+      "level": 2,
+      "difficulty": 0,
+      "hits": 24,
+      "attempts": 53,
+      "rate": 45.3,
+      "kills": 8,
+      "totalKillTurns": 53,
+      "meanTurns": 6.63
+    },
+    {
+      "level": 3,
+      "difficulty": 0,
+      "hits": 24,
+      "attempts": 24,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    },
+    {
+      "level": 4,
+      "difficulty": 0,
+      "hits": 27,
+      "attempts": 29,
+      "rate": 93.1,
+      "kills": 8,
+      "totalKillTurns": 29,
+      "meanTurns": 3.63
+    },
+    {
+      "level": 5,
+      "difficulty": 0,
+      "hits": 43,
+      "attempts": 47,
+      "rate": 91.5,
+      "kills": 8,
+      "totalKillTurns": 47,
+      "meanTurns": 5.88
+    },
+    {
+      "level": 6,
+      "difficulty": 0,
+      "hits": 26,
+      "attempts": 26,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 26,
+      "meanTurns": 3.25
+    },
+    {
+      "level": 7,
+      "difficulty": 0,
+      "hits": 24,
+      "attempts": 31,
+      "rate": 77.4,
+      "kills": 8,
+      "totalKillTurns": 31,
+      "meanTurns": 3.88
+    },
+    {
+      "level": 8,
+      "difficulty": 1,
+      "hits": 24,
+      "attempts": 24,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    },
+    {
+      "level": 9,
+      "difficulty": 1,
+      "hits": 19,
+      "attempts": 21,
+      "rate": 90.5,
+      "kills": 8,
+      "totalKillTurns": 21,
+      "meanTurns": 2.63
+    },
+    {
+      "level": 10,
+      "difficulty": 1,
+      "hits": 24,
+      "attempts": 24,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    },
+    {
+      "level": 11,
+      "difficulty": 1,
+      "hits": 23,
+      "attempts": 23,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 23,
+      "meanTurns": 2.88
+    },
+    {
+      "level": 12,
+      "difficulty": 1,
+      "hits": 24,
+      "attempts": 29,
+      "rate": 82.8,
+      "kills": 8,
+      "totalKillTurns": 29,
+      "meanTurns": 3.63
+    },
+    {
+      "level": 13,
+      "difficulty": 1,
+      "hits": 24,
+      "attempts": 24,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    },
+    {
+      "level": 14,
+      "difficulty": 1,
+      "hits": 17,
+      "attempts": 17,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 17,
+      "meanTurns": 2.13
+    },
+    {
+      "level": 15,
+      "difficulty": 1,
+      "hits": 24,
+      "attempts": 24,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    },
+    {
+      "level": 16,
+      "difficulty": 1,
+      "hits": 17,
+      "attempts": 17,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 17,
+      "meanTurns": 2.13
+    },
+    {
+      "level": 17,
+      "difficulty": 2,
+      "hits": 16,
+      "attempts": 16,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 16,
+      "meanTurns": 2
+    },
+    {
+      "level": 18,
+      "difficulty": 2,
+      "hits": 24,
+      "attempts": 24,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    },
+    {
+      "level": 19,
+      "difficulty": 2,
+      "hits": 16,
+      "attempts": 16,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 16,
+      "meanTurns": 2
+    },
+    {
+      "level": 20,
+      "difficulty": 2,
+      "hits": 24,
+      "attempts": 24,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    },
+    {
+      "level": 21,
+      "difficulty": 2,
+      "hits": 16,
+      "attempts": 16,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 16,
+      "meanTurns": 2
+    },
+    {
+      "level": 22,
+      "difficulty": 2,
+      "hits": 17,
+      "attempts": 17,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 17,
+      "meanTurns": 2.13
+    },
+    {
+      "level": 23,
+      "difficulty": 2,
+      "hits": 24,
+      "attempts": 24,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    },
+    {
+      "level": 24,
+      "difficulty": 2,
+      "hits": 17,
+      "attempts": 17,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 17,
+      "meanTurns": 2.13
+    },
+    {
+      "level": 25,
+      "difficulty": 2,
+      "hits": 24,
+      "attempts": 24,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    },
+    {
+      "level": 26,
+      "difficulty": 2,
+      "hits": 16,
+      "attempts": 16,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 16,
+      "meanTurns": 2
+    },
+    {
+      "level": 27,
+      "difficulty": 2,
+      "hits": 17,
+      "attempts": 17,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 17,
+      "meanTurns": 2.13
+    },
+    {
+      "level": 28,
+      "difficulty": 2,
+      "hits": 24,
+      "attempts": 24,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    },
+    {
+      "level": 29,
+      "difficulty": 2,
+      "hits": 16,
+      "attempts": 16,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 16,
+      "meanTurns": 2
+    },
+    {
+      "level": 30,
+      "difficulty": 2,
+      "hits": 24,
+      "attempts": 24,
+      "rate": 100,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    }
+  ],
+  "aiAfter": [
+    {
+      "level": 1,
+      "difficulty": 0,
+      "hits": 29,
+      "attempts": 60,
+      "rate": 48.333333333333336,
+      "kills": 7,
+      "totalKillTurns": 48,
+      "meanTurns": 6.857142857142857
+    },
+    {
+      "level": 2,
+      "difficulty": 0,
+      "hits": 24,
+      "attempts": 48,
+      "rate": 50,
+      "kills": 8,
+      "totalKillTurns": 48,
+      "meanTurns": 6
+    },
+    {
+      "level": 3,
+      "difficulty": 0,
+      "hits": 25,
+      "attempts": 49,
+      "rate": 51.02040816326531,
+      "kills": 8,
+      "totalKillTurns": 49,
+      "meanTurns": 6.125
+    },
+    {
+      "level": 4,
+      "difficulty": 0,
+      "hits": 25,
+      "attempts": 49,
+      "rate": 51.02040816326531,
+      "kills": 8,
+      "totalKillTurns": 49,
+      "meanTurns": 6.125
+    },
+    {
+      "level": 5,
+      "difficulty": 0,
+      "hits": 28,
+      "attempts": 53,
+      "rate": 52.83018867924528,
+      "kills": 8,
+      "totalKillTurns": 53,
+      "meanTurns": 6.625
+    },
+    {
+      "level": 6,
+      "difficulty": 0,
+      "hits": 24,
+      "attempts": 45,
+      "rate": 53.333333333333336,
+      "kills": 8,
+      "totalKillTurns": 45,
+      "meanTurns": 5.625
+    },
+    {
+      "level": 7,
+      "difficulty": 0,
+      "hits": 27,
+      "attempts": 51,
+      "rate": 52.94117647058823,
+      "kills": 8,
+      "totalKillTurns": 51,
+      "meanTurns": 6.375
+    },
+    {
+      "level": 8,
+      "difficulty": 1,
+      "hits": 27,
+      "attempts": 49,
+      "rate": 55.10204081632653,
+      "kills": 8,
+      "totalKillTurns": 49,
+      "meanTurns": 6.125
+    },
+    {
+      "level": 9,
+      "difficulty": 1,
+      "hits": 25,
+      "attempts": 42,
+      "rate": 59.523809523809526,
+      "kills": 8,
+      "totalKillTurns": 42,
+      "meanTurns": 5.25
+    },
+    {
+      "level": 10,
+      "difficulty": 1,
+      "hits": 32,
+      "attempts": 53,
+      "rate": 60.37735849056604,
+      "kills": 8,
+      "totalKillTurns": 53,
+      "meanTurns": 6.625
+    },
+    {
+      "level": 11,
+      "difficulty": 1,
+      "hits": 21,
+      "attempts": 34,
+      "rate": 61.76470588235294,
+      "kills": 8,
+      "totalKillTurns": 34,
+      "meanTurns": 4.25
+    },
+    {
+      "level": 12,
+      "difficulty": 1,
+      "hits": 24,
+      "attempts": 37,
+      "rate": 64.86486486486487,
+      "kills": 8,
+      "totalKillTurns": 37,
+      "meanTurns": 4.625
+    },
+    {
+      "level": 13,
+      "difficulty": 1,
+      "hits": 27,
+      "attempts": 40,
+      "rate": 67.5,
+      "kills": 8,
+      "totalKillTurns": 40,
+      "meanTurns": 5
+    },
+    {
+      "level": 14,
+      "difficulty": 1,
+      "hits": 24,
+      "attempts": 36,
+      "rate": 66.66666666666667,
+      "kills": 8,
+      "totalKillTurns": 36,
+      "meanTurns": 4.5
+    },
+    {
+      "level": 15,
+      "difficulty": 1,
+      "hits": 25,
+      "attempts": 35,
+      "rate": 71.42857142857143,
+      "kills": 8,
+      "totalKillTurns": 35,
+      "meanTurns": 4.375
+    },
+    {
+      "level": 16,
+      "difficulty": 1,
+      "hits": 23,
+      "attempts": 31,
+      "rate": 74.19354838709677,
+      "kills": 8,
+      "totalKillTurns": 31,
+      "meanTurns": 3.875
+    },
+    {
+      "level": 17,
+      "difficulty": 2,
+      "hits": 25,
+      "attempts": 33,
+      "rate": 75.75757575757575,
+      "kills": 8,
+      "totalKillTurns": 33,
+      "meanTurns": 4.125
+    },
+    {
+      "level": 18,
+      "difficulty": 2,
+      "hits": 25,
+      "attempts": 33,
+      "rate": 75.75757575757575,
+      "kills": 8,
+      "totalKillTurns": 33,
+      "meanTurns": 4.125
+    },
+    {
+      "level": 19,
+      "difficulty": 2,
+      "hits": 23,
+      "attempts": 29,
+      "rate": 79.3103448275862,
+      "kills": 8,
+      "totalKillTurns": 29,
+      "meanTurns": 3.625
+    },
+    {
+      "level": 20,
+      "difficulty": 2,
+      "hits": 27,
+      "attempts": 34,
+      "rate": 79.41176470588235,
+      "kills": 8,
+      "totalKillTurns": 34,
+      "meanTurns": 4.25
+    },
+    {
+      "level": 21,
+      "difficulty": 2,
+      "hits": 26,
+      "attempts": 32,
+      "rate": 81.25,
+      "kills": 8,
+      "totalKillTurns": 32,
+      "meanTurns": 4
+    },
+    {
+      "level": 22,
+      "difficulty": 2,
+      "hits": 24,
+      "attempts": 29,
+      "rate": 82.75862068965517,
+      "kills": 8,
+      "totalKillTurns": 29,
+      "meanTurns": 3.625
+    },
+    {
+      "level": 23,
+      "difficulty": 2,
+      "hits": 27,
+      "attempts": 33,
+      "rate": 81.81818181818181,
+      "kills": 8,
+      "totalKillTurns": 33,
+      "meanTurns": 4.125
+    },
+    {
+      "level": 24,
+      "difficulty": 2,
+      "hits": 25,
+      "attempts": 30,
+      "rate": 83.33333333333333,
+      "kills": 8,
+      "totalKillTurns": 30,
+      "meanTurns": 3.75
+    },
+    {
+      "level": 25,
+      "difficulty": 2,
+      "hits": 29,
+      "attempts": 34,
+      "rate": 85.29411764705883,
+      "kills": 8,
+      "totalKillTurns": 34,
+      "meanTurns": 4.25
+    },
+    {
+      "level": 26,
+      "difficulty": 2,
+      "hits": 21,
+      "attempts": 24,
+      "rate": 87.5,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    },
+    {
+      "level": 27,
+      "difficulty": 2,
+      "hits": 23,
+      "attempts": 26,
+      "rate": 88.46153846153847,
+      "kills": 8,
+      "totalKillTurns": 26,
+      "meanTurns": 3.25
+    },
+    {
+      "level": 28,
+      "difficulty": 2,
+      "hits": 26,
+      "attempts": 29,
+      "rate": 89.65517241379311,
+      "kills": 8,
+      "totalKillTurns": 29,
+      "meanTurns": 3.625
+    },
+    {
+      "level": 29,
+      "difficulty": 2,
+      "hits": 22,
+      "attempts": 24,
+      "rate": 91.66666666666667,
+      "kills": 8,
+      "totalKillTurns": 24,
+      "meanTurns": 3
+    },
+    {
+      "level": 30,
+      "difficulty": 2,
+      "hits": 26,
+      "attempts": 28,
+      "rate": 92.85714285714286,
+      "kills": 8,
+      "totalKillTurns": 28,
+      "meanTurns": 3.5
+    }
+  ],
+  "recordings": [
+    {
+      "level": 1,
+      "beforeTurns": 3,
+      "afterTurns": 3,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 2,
+      "changed": true
+    },
+    {
+      "level": 2,
+      "beforeTurns": 3,
+      "afterTurns": 3,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 2,
+      "changed": true
+    },
+    {
+      "level": 3,
+      "beforeTurns": 3,
+      "afterTurns": 3,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 2,
+      "changed": true
+    },
+    {
+      "level": 4,
+      "beforeTurns": 3,
+      "afterTurns": 3,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 2,
+      "changed": true
+    },
+    {
+      "level": 5,
+      "beforeTurns": 1,
+      "afterTurns": 1,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 1,
+      "changed": false
+    },
+    {
+      "level": 6,
+      "beforeTurns": 5,
+      "afterTurns": 5,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 3,
+      "changed": true
+    },
+    {
+      "level": 7,
+      "beforeTurns": 5,
+      "afterTurns": 5,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 3,
+      "changed": true
+    },
+    {
+      "level": 8,
+      "beforeTurns": 9,
+      "afterTurns": 9,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 2,
+      "changed": true
+    },
+    {
+      "level": 9,
+      "beforeTurns": 5,
+      "afterTurns": 5,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 3,
+      "changed": true
+    },
+    {
+      "level": 10,
+      "beforeTurns": 1,
+      "afterTurns": 1,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 1,
+      "changed": false
+    },
+    {
+      "level": 11,
+      "beforeTurns": 3,
+      "afterTurns": 3,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 2,
+      "changed": true
+    },
+    {
+      "level": 12,
+      "beforeTurns": 5,
+      "afterTurns": 5,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 3,
+      "changed": true
+    },
+    {
+      "level": 13,
+      "beforeTurns": 5,
+      "afterTurns": 4,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 2,
+      "changed": true
+    },
+    {
+      "level": 14,
+      "beforeTurns": 5,
+      "afterTurns": 5,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 3,
+      "changed": true
+    },
+    {
+      "level": 15,
+      "beforeTurns": 1,
+      "afterTurns": 1,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 1,
+      "changed": false
+    },
+    {
+      "level": 16,
+      "beforeTurns": 5,
+      "afterTurns": 5,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 3,
+      "changed": true
+    },
+    {
+      "level": 17,
+      "beforeTurns": 9,
+      "afterTurns": 9,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 5,
+      "changed": true
+    },
+    {
+      "level": 18,
+      "beforeTurns": 13,
+      "afterTurns": 13,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 4,
+      "changed": true
+    },
+    {
+      "level": 19,
+      "beforeTurns": 11,
+      "afterTurns": 9,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 5,
+      "changed": true
+    },
+    {
+      "level": 20,
+      "beforeTurns": 1,
+      "afterTurns": 1,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 1,
+      "changed": false
+    },
+    {
+      "level": 21,
+      "beforeTurns": 3,
+      "afterTurns": 3,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 2,
+      "changed": true
+    },
+    {
+      "level": 22,
+      "beforeTurns": 9,
+      "afterTurns": 9,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 5,
+      "changed": true
+    },
+    {
+      "level": 23,
+      "beforeTurns": 7,
+      "afterTurns": 7,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 4,
+      "changed": true
+    },
+    {
+      "level": 24,
+      "beforeTurns": 11,
+      "afterTurns": 13,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 7,
+      "changed": true
+    },
+    {
+      "level": 25,
+      "beforeTurns": 1,
+      "afterTurns": 1,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 1,
+      "changed": false
+    },
+    {
+      "level": 26,
+      "beforeTurns": 9,
+      "afterTurns": 11,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 6,
+      "changed": true
+    },
+    {
+      "level": 27,
+      "beforeTurns": 9,
+      "afterTurns": 9,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 5,
+      "changed": true
+    },
+    {
+      "level": 28,
+      "beforeTurns": 17,
+      "afterTurns": 17,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 6,
+      "changed": true
+    },
+    {
+      "level": 29,
+      "beforeTurns": 9,
+      "afterTurns": 9,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 5,
+      "changed": true
+    },
+    {
+      "level": 30,
+      "beforeTurns": 1,
+      "afterTurns": 1,
+      "seed": 220,
+      "hero": "panda",
+      "commands": 1,
+      "changed": false
+    }
+  ],
+  "render": {
+    "stressMaximum": 79,
+    "replayMaximum": 69,
+    "limit": 500,
+    "replayFrames": 43252
+  },
+  "checks": {
+    "lint": "passed",
+    "typecheck": "passed",
+    "build": "passed",
+    "test:node": "passed",
+    "targetedNodeValidation": "passed",
+    "browserRun": false,
+    "vitestRun": false,
+    "commitCreated": false,
+    "nodeValidators": 50
+  },
+  "curve": {
+    "movingWindow": 3,
+    "monotone": true,
+    "maximumAdjacentPercentagePoints": 4.76,
+    "negativeCases": "Upper tier aiming rejected on both lower tiers, same maps and seeds",
+    "cache": "All flights and explosions live; one golden ideal search revalidated per map; CLI uses full live searches"
+  }
+}

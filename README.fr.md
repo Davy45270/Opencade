@@ -1,6 +1,6 @@
 <h1 align="center"><a href="https://davy45270.github.io/Opencade/">▶ Play / Jouer</a></h1>
 
-<p align="center"><a href="https://davy45270.github.io/Opencade/"><img src="docs/screenshots/home-desktop.webp" alt="Accueil d’Opencade sur ordinateur : douze cartes de jeux" width="100%"></a></p>
+<p align="center"><a href="https://davy45270.github.io/Opencade/"><img src="docs/screenshots/home-desktop.webp" alt="Accueil d’Opencade sur ordinateur : cartes de jeux avec aperçus animés" width="100%"></a></p>
 
 [English](README.md) | Français
 
@@ -26,14 +26,14 @@ Ferraille propose 30 étapes avec six comportements ennemis, flammes/ricochets/g
 [![Pages](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml/badge.svg)](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml)
 [![Licence MIT](https://img.shields.io/badge/licence-MIT-blue.svg)](LICENSE)
 
-Treize jeux originaux réunis dans une arcade pour navigateur. Opencade se joue
+Des jeux originaux réunis dans une arcade pour navigateur. Opencade se joue
 sur téléphone et ordinateur, au toucher, à la souris et au clavier, sans compte
 ni serveur applicatif. Le projet utilise TypeScript strict, Phaser 3 et Vite.
 **L’interface est en français.**
 
 **[Jouer à la démo](https://davy45270.github.io/Opencade/)**
 
-L’accueil présente treize vignettes Canvas animées par les moteurs purs des jeux.
+Chaque carte de l’accueil présente une vignette Canvas animée par les moteurs purs des jeux.
 Elles se suspendent hors écran, en arrière-plan et pendant une partie. La
 réduction des animations les remplace par des images fixes. Sur téléphone,
 la grille comporte deux colonnes.
@@ -62,6 +62,16 @@ Captures en portrait sur téléphone, prises en cours de partie (`node scripts/s
 <td align="center" width="33%"><img src="docs/screenshots/game-caisses.webp" alt="Caisses" width="240"><br><b>Caisses</b><br>Pousser les caisses sur leurs cibles, avec annulation illimitée.</td>
 <td align="center" width="33%"><img src="docs/screenshots/game-traverse.webp" alt="Traverse" width="240"><br><b>Traverse</b><br>Rejoindre les abris à travers la circulation, les troncs et les flotteurs.</td>
 <td align="center" width="33%"><img src="docs/screenshots/game-derapage.webp" alt="Dérapage" width="240"><br><b>Dérapage</b><br>Faire déraper un kart sur 30 circuits et viser le podium.</td>
+</tr>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/game-pepites.webp" alt="Pépites" width="240"><br><b>Pépites</b><br>Creuser la mine, esquiver les rochers qui tombent et ramasser chaque pépite.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-gourmandises.webp" alt="Gourmandises" width="240"><br><b>Gourmandises</b><br>Échanger les friandises pour en aligner trois, sur 180 niveaux et neuf mondes.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-collier.webp" alt="Le Collier du Singe" width="240"><br><b>Le Collier du Singe</b><br>Tirer des perles dans le collier avant qu’il n’atteigne le panier.</td>
+</tr>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/game-bombercade.webp" alt="Bombercade" width="240"><br><b>Bombercade</b><br>Poser des bombes, faire sauter les caisses et survivre aux rivaux dans quatre arènes.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-marmaille.webp" alt="Marmaille" width="240"><br><b>Marmaille</b><br>Distribuer des rôles à une troupe d’enfants et la mener saine et sauve à la sortie.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-artificiers.webp" alt="Les Artificiers" width="240"><br><b>Les Artificiers</b><br>Artillerie au tour par tour sur un terrain destructible, avec vent et grappin.</td>
 </tr>
 </table>
 
@@ -109,13 +119,13 @@ quand il est disponible ; le jeu fonctionne sans. Les clés historiques
 <img src="docs/screenshots/home-phone.webp" alt="Accueil d’Opencade sur téléphone" width="240" align="right">
 
 Ouvrir [la démo](https://davy45270.github.io/Opencade/) avec une connexion et
-attendre le chargement complet de l’accueil pour mettre les treize jeux en cache.
+attendre le chargement complet de l’accueil pour mettre tous les jeux en cache.
 
 - **Android / Chrome :** ouvrir le menu ⋮ et choisir « Installer l’application » ou « Ajouter à l’écran d’accueil ».
 - **iOS / Safari :** ouvrir Partager, choisir « Sur l’écran d’accueil » et confirmer.
 
 Relancer Opencade depuis la nouvelle icône. Les intitulés varient selon la
-version du navigateur. Une fois le cache initial prêt, l’accueil et les douze
+version du navigateur. Une fois le cache initial prêt, l’accueil et tous les
 jeux fonctionnent hors ligne. Scores, niveaux débloqués et préférences restent
 dans le stockage local du navigateur ou de l’application installée. Effacer ce
 stockage supprime les progrès et peut imposer un nouveau chargement en ligne.
@@ -244,7 +254,7 @@ Le compagnon choisi sur l'accueil joue désormais dans Caisses, Traverse et Alun
 
 Le choix du personnage affiche son nom, son sous-titre et sa devise.
 
-**Le Collier du Singe** (`collier`), treizième jeu : 30 niveaux de perles en chaîne ; viser partout et relâcher pour tirer, tap sur le tireur ou ⇄/X pour échanger. Validation Node : `npm run test:node -- --only=validate-collier.js`.
+**Le Collier du Singe** (`collier`) : 30 niveaux de perles en chaîne ; viser partout et relâcher pour tirer, tap sur le tireur ou ⇄/X pour échanger. Validation Node : `npm run test:node -- --only=validate-collier.js`.
 
 Gourmandises ajoute 180 niveaux à graine, deux modes, des spéciaux, des objets dorés, de la glace double, du chocolat qui s’étend, des fleurs prisonnières et des tapis bouclés ; équilibre sur cinq graines, états inchangés des niveaux 1–120 et 45 mutations en mémoire.
 

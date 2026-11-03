@@ -4,7 +4,7 @@
 // Any win is a shortcut that makes the removed role useless. Slow (minutes per level): run by hand, not in test:node.
 // Usage: node scripts/search-marmaille-shortcuts.js [level numbers, e.g. 14,25,30]
 import './ts-loader.js';
-const { Engine, ROLES } = await import('../src/engines/marmaille/engine.ts');
+const { Engine, ROLES, TICK_MS } = await import('../src/engines/marmaille/engine.ts');
 const { LEVELS } = await import('../src/engines/marmaille/levels.ts');
 const only = process.argv[2] ? process.argv[2].split(',').map(Number) : null;
 function play(level, attrs, plan) { // plan: [[tick, kid, role]]
@@ -19,7 +19,7 @@ function play(level, attrs, plan) { // plan: [[tick, kid, role]]
 let found = 0;
 for (let level = 0; level < LEVELS.length; level++) {
     if (only && !only.includes(level + 1)) continue;
-    const def = LEVELS[level], offered = ROLES.filter(r => (def.roles[r] ?? 0) > 0), T = def.seconds * 8;
+    const def = LEVELS[level], offered = ROLES.filter(r => (def.roles[r] ?? 0) > 0), T = def.seconds * 1000 / TICK_MS;
     for (const removed of offered) {
         const rest = offered.filter(r => r !== removed), attrs = rest.filter(r => r === 'float' || r === 'climb'), work = rest.filter(r => r !== 'float' && r !== 'climb');
         const base = play(level, attrs, []); const end = Math.min(T, base.tick + 60);

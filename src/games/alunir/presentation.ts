@@ -7,6 +7,12 @@ export function moduleBounds(x: number, y: number, angle: number) {
     const left = Math.min(...corners.map(p => p.x)), top = Math.min(...corners.map(p => p.y));
     return { x: left, y: top, width: Math.max(...corners.map(p => p.x)) - left, height: Math.max(...corners.map(p => p.y)) - top };
 }
+/** Screen box of the pilot drawn in the canopy (lunarModule: translate(0,-18), hero at (-20,-33), size 40), under the .88 vertical scale. */
+export function heroBounds(x: number, y: number, angle: number) {
+    const corners = [-20, 20].flatMap(dx => [-51, -11].map(dy => ({ x: x + dx * Math.cos(angle) - dy * Math.sin(angle), y: (y + dx * Math.sin(angle) + dy * Math.cos(angle)) * .88 })));
+    const left = Math.min(...corners.map(p => p.x)), top = Math.min(...corners.map(p => p.y));
+    return { x: left, y: top, width: Math.max(...corners.map(p => p.x)) - left, height: Math.max(...corners.map(p => p.y)) - top };
+}
 /** Segment digits keep score labels in the same reusable Graphics object. */
 export function scoreMark(g: G, x: number, y: number, value: number): void {
     g.lineStyle(2, 0xfff3b1); g.lineBetween(x, y, x + 5, y + 6); g.lineBetween(x + 5, y, x, y + 6);

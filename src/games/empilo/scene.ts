@@ -1,3 +1,4 @@
+import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
@@ -10,6 +11,7 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
+import { backdrop, hudVeil, palettes, worldOf, SceneryLayer, BlockPool } from '../universal/art';
 export const empiloButtons: readonly TouchButton[] = [
     { id: 'empilo-special', label: 'Réserve', ariaLabel: 'Mise de côté', size: 56, placement: 'right', mode: 'tap' },
     { id: 'empilo-left', label: '←', ariaLabel: 'Déplacer à gauche', size: 56, placement: 'left', mode: 'hold', repeatMs: 90 },
@@ -25,7 +27,8 @@ export interface EmpiloHook {
     advance(ms: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'blocked' | 'reserve'): void;
     /** What the last frame drew for the stratum rules (pass 402). */
@@ -41,6 +44,10 @@ export class EmpiloScene extends Phaser.Scene {
     private testManual = false;
     private testAdvancing = false;
     private graphics?: Phaser.GameObjects.Graphics;
+    /** Static scenery layer, repainted only when its key changes (level, board): software rendering stays fast. */
+    private scenery?: SceneryLayer;
+    /** Gem blocks baked once per colour and size, shown as reused images (no per-frame arcs). */
+    private blocks?: BlockPool;
     private hud?: Phaser.GameObjects.Text;
     private flash = 0;
     private lastPiece = '';
@@ -55,8 +62,10 @@ export class EmpiloScene extends Phaser.Scene {
         document.body.classList.add('empilo');
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('empilo'); delete window.__EMPILO_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
-        this.graphics = this.add.graphics();
-        this.hud = this.add.text(18, 568, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 4 });
+        this.scenery = new SceneryLayer(this, 'empilo');
+        this.graphics = this.add.graphics().setDepth(1);
+        this.blocks = new BlockPool(this, 0);
+        this.hud = this.add.text(18, 568, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 4 }).setDepth(2);
         const act = (action: Action): void => {
             if (this.session.state === 'ready') this.session.send('start');
             if (this.session.paused || this.selecting || this.engine.status !== 'playing') return;
@@ -66,6 +75,8 @@ export class EmpiloScene extends Phaser.Scene {
             if (this.engine.input(action)) { sound.playEffect(action === 'drop' ? 'drop' : action === 'soft' ? 'soft' : action.includes('clockwise') ? 'rotate' : 'move'); this.flash = action === 'drop' ? 0.5 : 0; }
             if (this.engine.state.lines > before) { sound.playEffect('clear'); this.flash = 1; this.hero.animation = 'celebration'; this.hero.moving = 650; }
             this.landing();
+            // Redraw at once: what the marks report is what the player sees right after the input.
+            this.draw();
         };
         renderTouchControls(this.inputs, empiloButtons, (id, held) => { if (held) act(id.replace('empilo-', '') as Action); });
         const keys: Record<string, Action> = { ArrowLeft: 'left', ArrowRight: 'right', ArrowDown: 'soft', ArrowUp: 'clockwise', KeyX: 'clockwise', KeyW: 'clockwise', KeyZ: 'counterclockwise', KeyC: 'counterclockwise', Space: 'drop', ShiftLeft: 'special', KeyV: 'special' };
@@ -101,11 +112,13 @@ export class EmpiloScene extends Phaser.Scene {
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         this.game.canvas.setAttribute('aria-label', 'Empilo : puits de cristaux, glisser pour déplacer, tap pour tourner');
         if (new URLSearchParams(location.search).get('test') === '1') window.__EMPILO_TEST__ = {
+            ...fingerProof,
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.hero.time }),
-            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state }),
+            fingerReceipts: receipts,
+            read: () => ({ fingerInput: { paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             marks: () => structuredClone(this.drawn),
             scenario: name => {
@@ -172,18 +185,26 @@ export class EmpiloScene extends Phaser.Scene {
     private crystal(c: Cell, color: number, alpha = 1, sealed = false): void {
         const g = this.graphics; if (!g) return;
         const x = 32 + c.x * 28, y = 48 + c.y * 28;
-        g.fillStyle(color, alpha); g.fillTriangle(x, y - 13, x - 13, y, x + 13, y); g.fillTriangle(x, y + 13, x - 13, y, x + 13, y);
-        g.lineStyle(1, 0xffffff, alpha * 0.7); g.lineBetween(x, y - 10, x - 8, y); g.lineBetween(x - 8, y, x, y + 9);
+        this.blocks?.block(x - 13, y - 13, 26, color, alpha);
         if (sealed) { g.lineStyle(3, 0xffffff); g.strokeCircle(x, y, 5); }
     }
     private draw(): void {
         const g = this.graphics; if (!g) return;
         const colors = [0x80e9dc, 0xffc582, 0xe9a6d2, 0xaeb6ff, 0x91c9ff, 0xe1e992, 0xd29af2, 0x9de1ae, 0xff8a5c];
-        g.clear(); g.fillStyle(0x102637); g.fillRoundedRect(0, 0, 360, 640, 18);
-        g.lineStyle(1, 0x244659);
-        for (let x = 0; x <= 9; x++) g.lineBetween(18 + x * 28, 34, 18 + x * 28, 482);
-        for (let y = 0; y <= 16; y++) g.lineBetween(18, 34 + y * 28, 270, 34 + y * 28);
-        g.lineStyle(2, 0x80e9dc); g.strokeRect(17, 33, 254, 450);
+        const world = worldOf(this.engine.level), layer = this.scenery, sg = layer?.g;
+        g.clear(); this.blocks?.begin();
+        if (layer && sg && layer.stale(this.engine.level)) {
+            // The well: stone frame around a dark shaft, so vivid blocks stay readable over the scenery.
+            backdrop(sg, world, 360, 640);
+            sg.fillStyle(palettes[world].stone); sg.fillRoundedRect(8, 24, 272, 470, 10); sg.fillStyle(0xffffff, .18); sg.fillRect(12, 27, 264, 4);
+            sg.fillStyle(palettes[world].veil, .9); sg.fillRect(18, 34, 252, 448);
+            hudVeil(sg, world, 8, 504, 344, 132); hudVeil(sg, world, 274, 220, 80, 200);
+            sg.lineStyle(1, 0x244659);
+            for (let x = 0; x <= 9; x++) sg.lineBetween(18 + x * 28, 34, 18 + x * 28, 482);
+            for (let y = 0; y <= 16; y++) sg.lineBetween(18, 34 + y * 28, 270, 34 + y * 28);
+            sg.lineStyle(2, 0x80e9dc); sg.strokeRect(17, 33, 254, 450);
+            layer.commit();
+        }
         const l = stratum(this.engine.level);
         this.drawn = { previews: 0, riseLeft: null, blast: null, belts: l.conveyors.length };
         // Conveyor rows: chevrons in the gutter on the side they push towards.
@@ -197,7 +218,8 @@ export class EmpiloScene extends Phaser.Scene {
             if (v === TILE.gem) { this.crystal({ x, y }, 0x6fa5b4); g.fillStyle(0xff5fa2); g.fillCircle(32 + x * 28, 48 + y * 28, 6); g.fillStyle(0xffffff, 0.8); g.fillCircle(30 + x * 28, 46 + y * 28, 2); return; }
             if (v === TILE.lock) { g.fillStyle(0x7b6a52); g.fillRoundedRect(20 + x * 28, 36 + y * 28, 24, 24, 4); g.lineStyle(2, 0xffd166); g.strokeCircle(32 + x * 28, 44 + y * 28, 5); g.fillStyle(0xffd166); g.fillRect(26 + x * 28, 46 + y * 28, 12, 9); return; }
             if (v === TILE.key) { this.crystal({ x, y }, 0x6fa5b4); g.lineStyle(3, 0xffd166); g.strokeCircle(28 + x * 28, 48 + y * 28, 4); g.lineBetween(32 + x * 28, 48 + y * 28, 40 + x * 28, 48 + y * 28); g.lineBetween(38 + x * 28, 48 + y * 28, 38 + x * 28, 52 + y * 28); return; }
-            this.crystal({ x, y }, v === TILE.sealed ? 0xc59ee9 : 0x6fa5b4, 1, v === TILE.sealed);
+            // Settled crystals keep vivid world colours, varied by position like a brick wall.
+            this.crystal({ x, y }, v === TILE.sealed ? 0xc59ee9 : [palettes[worldOf(this.engine.level)].accent, 0x4fa3ff, 0x3fcf8e, 0xffc93d, 0xff6fae][(x * 3 + y * 5) % 5] ?? 0x4fa3ff, 1, v === TILE.sealed);
         }); });
         if (l.rise) {
             const left = l.rise - ((this.engine.state.locked ?? 0) % l.rise); this.drawn.riseLeft = left;
@@ -218,15 +240,16 @@ export class EmpiloScene extends Phaser.Scene {
             this.drawn.previews++;
             for (const c of SHAPES[id] ?? []) {
                 g.fillStyle(colors[id] ?? 0xffffff); const x = 22 + i * 108 + c.x * 16, y = 530 + c.y * 16;
-                g.fillTriangle(x, y - 7, x - 7, y, x + 7, y); g.fillTriangle(x, y + 7, x - 7, y, x + 7, y);
+                this.blocks?.block(x - 7, y - 7, 14, colors[id] ?? 0xffffff);
             }
         });
         if (this.flash) { g.fillStyle(0xdefcff, this.flash * 0.16); g.fillRect(18, 34, 252, 448); }
         this.hero.draw(g, 274, 230, 84);
-        if (this.engine.reserve !== null) for (const c of SHAPES[this.engine.reserve] ?? []) { g.fillStyle(colors[this.engine.reserve] ?? 0xffffff); g.fillRoundedRect(282 + c.x * 13, 370 + c.y * 13, 11, 11, 3); }
+        if (this.engine.reserve !== null) for (const c of SHAPES[this.engine.reserve] ?? []) this.blocks?.block(282 + c.x * 13, 370 + c.y * 13, 12, colors[this.engine.reserve] ?? 0xffffff);
         const s = this.engine.state, goal = l.objective === 'gems' ? `GEMMES ${String(s.gems ?? 0)}/${String(l.goal)}` : `LIGNES ${String(s.lines)}/${String(l.goal)}`;
         const timer = l.timeMs ? ` · ⏱ ${String(Math.ceil((s.timeLeft ?? 0) / 1000))} s` : '';
         const ending = this.engine.status === 'lost' ? ({ top: 'Le puits déborde !', time: 'Temps écoulé !', rise: 'La marée déborde !' })[this.engine.reason ?? 'top'] + ' On réessaie ?' : this.engine.status === 'won' ? 'Bravo, strate terminée !' : s.resets >= 15 ? 'Ancrage imminent' : strataTip(this.engine.level);
+        this.blocks?.end();
         this.hud?.setText(`STRATE ${String(this.engine.level + 1)} · ${l.name.toUpperCase()} · ${l.gravity.toFixed(1)} c/s\n${goal}   SCORE ${String(s.score)}${timer}\nRÉSERVE ${String(this.engine.specialUses)}/1 · ${this.engine.reserve === null ? 'vide' : 'à droite'}\n${ending}`);
         const status = document.querySelector('#status'); if (status) status.textContent = `Score : ${String(this.engine.state.score)} · ${this.engine.status === 'playing' ? 'En jeu' : this.engine.status === 'won' ? 'Victoire' : 'Défaite'}`;
     }

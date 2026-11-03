@@ -61,7 +61,7 @@ for (const level of [0, 9]) {
                 const intendedStart = point(hero.x, hero.y);
                 const intendedEnd = point(hero.x + Math.cos(shot.angle) * shot.power / 1.25,
                     hero.y + Math.sin(shot.angle) * shot.power / 1.25);
-                const sequence = observed.fingerInput.receipts.sequence;
+                const sequence = (await page.evaluate(() => { const hook = window.__ARTIFICIERS_TEST__; if (!hook) throw new Error('Crochet absent'); return hook.fingerReceipts(); })).sequence;
                 const entryStart = finger.entries.length;
                 let from = intendedStart, to = intendedEnd;
                 await aimShot(finger, intendedStart, intendedEnd, async () => {
@@ -77,7 +77,7 @@ for (const level of [0, 9]) {
                     expect(aimed.shots).toBe(observed.shots);
                 });
                 const after = await read();
-                const receipts = after.fingerInput.receipts.events.filter(e => e.sequence > sequence);
+                const receipts = (await page.evaluate(() => { const hook = window.__ARTIFICIERS_TEST__; if (!hook) throw new Error('Crochet absent'); return hook.fingerReceipts(); })).events.filter(e => e.sequence > sequence);
                 for (const [type, target] of [['pointerdown', from], ['pointermove', to], ['pointerup', to]] as const) {
                     const event = receipts.find(e => e.type === type);
                     expect(event, `Reçu de scène ${type}`).toBeDefined();

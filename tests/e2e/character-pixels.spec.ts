@@ -18,10 +18,8 @@ for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} p
             let b;
             if (game === 'caisses') b = window.__CAISSES_TEST__?.bounds().hero;
             else if (game === 'traverse') b = window.__TRAVERSE_TEST__?.bounds().hero;
-            else {
-                const s = window.__ALUNIR_TEST__?.read();
-                if (s) b = { x: s.x - 17, y: s.y - 21, width: 34, height: 34 };
-            }
+            // Alunir: the pilot sits in the lunar module's canopy; the scene reports its drawn box.
+            else b = window.__ALUNIR_TEST__?.bounds().hero;
             if (!b) throw new Error('Missing character bounds');
             return { x: canvas.x + b.x * canvas.width / 360, y: canvas.y + b.y * canvas.height / 640, width: b.width * canvas.width / 360, height: b.height * canvas.height / 640 };
         }, game);

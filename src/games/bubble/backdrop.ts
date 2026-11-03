@@ -3,10 +3,14 @@ import { LEVELS } from '../../engines/bubble/levels';
 export const bubbleWorlds = ['jungle', 'automne', 'volcan', 'cirque', 'ciel'] as const;
 export function bubbleWorld(level: number): typeof bubbleWorlds[number] { return bubbleWorlds[Math.min(4, Math.floor(Math.max(0, level) / 6))] ?? 'ciel'; }
 const palettes = {
-    jungle: [0x173f39, 0x316e4f, 0x80b65b], automne: [0x483244, 0x86503b, 0xd58b43],
-    volcan: [0x352d47, 0x675064, 0xd1794a], cirque: [0x3e2850, 0x7a427f, 0xc57da8], ciel: [0x243e61, 0x426a8d, 0x9ac4d9],
-    etoiles: [0x1b1638, 0x3a2f6b, 0xb7a6ff],
+    jungle: [0x2f7a5a, 0x4f9a5e, 0xb6ec6a], automne: [0x8a4a3a, 0xb8683a, 0xffc07a],
+    volcan: [0x4a2a3a, 0x8a4a44, 0xff9a4a], cirque: [0x6a3a8a, 0x9a5aa8, 0xffb0e0], ciel: [0x4a7ac0, 0x7aa8e0, 0xe0f0ff],
+    etoiles: [0x241c58, 0x4a3a9a, 0xd8ccff],
 } as const;
+/** Sky gradient tops per world (bright, after the charter's bubble boards). */
+const skies = { jungle: 0x9ad8f0, automne: 0xffd8a0, volcan: 0x8a3a3a, cirque: 0xf0b8e8, ciel: 0xcfe8ff, etoiles: 0x0e0a2a } as const;
+/** Texture key of a level's scenery: one baked image per world, and per catalogue board. */
+export function bubbleBackdropKey(level: number): string { const c = LEVELS[level]?.catalogue; return `bubble-bg-${c ?? bubbleWorld(level)}`; }
 /** Muted scenery stays behind a dark playfield veil. Fixed loops, no scene objects. */
 /** Draws the scenery; returns the catalogue features actually drawn (for the E2E frame log). */
 export function drawBubbleBackdrop(g: Phaser.GameObjects.Graphics, level: number): string[] {
@@ -14,7 +18,12 @@ export function drawBubbleBackdrop(g: Phaser.GameObjects.Graphics, level: number
     // Catalogue boards wear their own scenery; the chapter world stays the same elsewhere.
     const catalogue = LEVELS[level]?.catalogue;
     const world = catalogue === 'P01' ? 'jungle' : catalogue === 'P02' ? 'automne' : catalogue === 'P03' ? 'etoiles' : bubbleWorld(level), [base, mid, light] = palettes[world];
-    g.fillStyle(base); g.fillRoundedRect(0, 0, 360, 640, 18);
+    for (let i = 0; i < 16; i++) {
+        const t = i / 15, a = skies[world], c = (sh: number): number => Math.round(((a >> sh) & 255) * (1 - t) + ((base >> sh) & 255) * t);
+        g.fillStyle((c(16) << 16) | (c(8) << 8) | c(0)); g.fillRect(0, i * 40, 360, 41);
+    }
+    g.fillStyle(0xffffff, world === 'etoiles' || world === 'volcan' ? .08 : .5);
+    for (const [x, y] of [[60, 60], [250, 40], [320, 120]] as const) { g.fillEllipse(x, y, 80, 24); g.fillEllipse(x + 20, y - 9, 48, 24); }
     for (let i = 0; i < 7; i++) {
         const x = i * 61 - 9, y = 140 + (i % 3) * 63;
         g.fillStyle(mid); g.fillRoundedRect(x, y, 45, 330, 12);
@@ -54,10 +63,12 @@ export function drawBubbleBackdrop(g: Phaser.GameObjects.Graphics, level: number
         for (const [x, y] of stars) { g.fillStyle(0xffffff, .85); g.fillCircle(x, y, 3); }
         features.push('constellation');
     }
-    g.fillStyle(0x101d30, .52); g.fillRoundedRect(8, 4, 344, 463, 16);
+    g.fillStyle(0x101d30, .28); g.fillRoundedRect(8, 4, 344, 463, 16);
     g.lineStyle(2, light, .55); g.strokeRoundedRect(2, 2, 356, 636, 16);
     // The launcher rests on a bright stone terrace below the playing field.
+    g.fillStyle(0x000000, .25); g.fillRoundedRect(14, 557, 336, 80, 16);
     g.fillStyle(mid); g.fillRoundedRect(12, 553, 336, 80, 16);
+    g.fillStyle(light, .35); g.fillRoundedRect(20, 557, 320, 8, 4);
     g.lineStyle(2, light, .45); g.lineBetween(20, 628, 340, 628);
     return features;
 }

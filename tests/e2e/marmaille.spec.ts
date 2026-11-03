@@ -2,9 +2,9 @@ import { test, expect } from './fixture';
 import type { Page } from '@playwright/test';
 import { Finger } from './character-finger-input';
 import { solutions } from '../marmaille-solutions';
-import { ROLES } from '../../src/engines/marmaille/engine';
+import { ROLES, TICK_MS } from '../../src/engines/marmaille/engine';
 import { LEVELS } from '../../src/engines/marmaille/levels';
-const TICK = 125;
+const TICK = TICK_MS;
 async function open(page: Page): Promise<void> {
     await page.goto('/?test=1#/marmaille');
     await expect.poll(() => page.evaluate(() => Boolean(window.__MARMAILLE_TEST__))).toBe(true);
@@ -33,11 +33,11 @@ test('MA-E1 ouverture, emplacements de rôles et clic sur un enfant', async ({ p
     const p = await toPage(page, at); await page.mouse.click(p.x, p.y);
     await expect.poll(() => page.evaluate(() => window.__MARMAILLE_TEST__?.read().roles.block)).toBe(0);
     await expect(page.locator('#marmaille-r0')).toHaveText('✋0');
-    // V doubles game time: one second of host time is sixteen ticks instead of eight.
+    // V doubles game time: one second of host time is eight ticks instead of four (one tick every TICK_MS = 250 ms).
     const t0 = (await page.evaluate(() => window.__MARMAILLE_TEST__?.read()))?.tick ?? 0;
     await page.keyboard.press('KeyV'); expect((await page.evaluate(() => window.__MARMAILLE_TEST__?.read()))?.fast).toBe(true);
     await page.evaluate(() => { window.__MARMAILLE_TEST__?.advance(1000); });
-    expect((await page.evaluate(() => window.__MARMAILLE_TEST__?.read()))?.tick).toBe(t0 + 16);
+    expect((await page.evaluate(() => window.__MARMAILLE_TEST__?.read()))?.tick).toBe(t0 + 8);
     await page.evaluate(() => { window.__MARMAILLE_TEST__?.advance(60000); });
     const s = await page.evaluate(() => window.__MARMAILLE_TEST__?.read());
     expect(s?.status).toBe('won'); expect(s?.kids.find(k => k.id === kid)?.state).toBe('block');

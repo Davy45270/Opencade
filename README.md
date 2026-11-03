@@ -1,6 +1,6 @@
 <h1 align="center"><a href="https://davy45270.github.io/Opencade/">▶ Play / Jouer</a></h1>
 
-<p align="center"><a href="https://davy45270.github.io/Opencade/"><img src="docs/screenshots/home-desktop.webp" alt="Opencade home screen on a desktop browser: twelve game cards" width="100%"></a></p>
+<p align="center"><a href="https://davy45270.github.io/Opencade/"><img src="docs/screenshots/home-desktop.webp" alt="Opencade home screen on a desktop browser: game cards with live previews" width="100%"></a></p>
 
 English | [Français](README.fr.md)
 
@@ -26,13 +26,13 @@ Ferraille now spans 30 authored stages with six enemy behaviors, flame/ricochet/
 [![Pages](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml/badge.svg)](https://github.com/Davy45270/Opencade/actions/workflows/pages.yml)
 [![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Thirteen original games, one browser arcade. Opencade runs on phones and desktops,
+Original games, one browser arcade. Opencade runs on phones and desktops,
 with touch, mouse and keyboard controls and no account or backend. It is built
 with strict TypeScript, Phaser 3 and Vite. **The interface is in French.**
 
 **[Play the demo](https://davy45270.github.io/Opencade/)**
 
-The home screen features thirteen animated Canvas previews driven by the games'
+Every card on the home screen shows an animated Canvas preview driven by the games'
 pure engines. Previews pause off screen, in the background and during play;
 reduced-motion preferences switch them to still images. Phones use a two-column grid.
 
@@ -60,6 +60,16 @@ Phone portrait captures taken during play (`node scripts/screenshots.js` regener
 <td align="center" width="33%"><img src="docs/screenshots/game-caisses.webp" alt="Caisses" width="240"><br><b>Caisses</b><br>Push crates onto their targets, with unlimited undo.</td>
 <td align="center" width="33%"><img src="docs/screenshots/game-traverse.webp" alt="Traverse" width="240"><br><b>Traverse</b><br>Hop across traffic, logs and diving floats to the shelters.</td>
 <td align="center" width="33%"><img src="docs/screenshots/game-derapage.webp" alt="Dérapage" width="240"><br><b>Dérapage</b><br>Drift a kart around 30 tracks and race for the podium.</td>
+</tr>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/game-pepites.webp" alt="Pépites" width="240"><br><b>Pépites</b><br>Dig through the mine, dodge falling boulders and gather every nugget.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-gourmandises.webp" alt="Gourmandises" width="240"><br><b>Gourmandises</b><br>Swap treats to line up three, across 180 levels and nine worlds.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-collier.webp" alt="Le Collier du Singe" width="240"><br><b>Le Collier du Singe</b><br>Shoot beads into the necklace before it reaches the basket.</td>
+</tr>
+<tr>
+<td align="center" width="33%"><img src="docs/screenshots/game-bombercade.webp" alt="Bombercade" width="240"><br><b>Bombercade</b><br>Drop bombs, blast crates and outlast your rivals in four arenas.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-marmaille.webp" alt="Marmaille" width="240"><br><b>Marmaille</b><br>Hand out roles to a troop of kids and lead them safely to the exit.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-artificiers.webp" alt="Les Artificiers" width="240"><br><b>Les Artificiers</b><br>Turn-based artillery on destructible ground, with wind and a grappling rope.</td>
 </tr>
 </table>
 
@@ -105,13 +115,13 @@ Existing `arcade-lab:*` and `bubble-lab:*` storage keys preserve earlier progres
 <img src="docs/screenshots/home-phone.webp" alt="Opencade home screen on a phone" width="240" align="right">
 
 Open [the demo](https://davy45270.github.io/Opencade/) online and let the home
-screen finish loading so all thirteen games can be cached.
+screen finish loading so every game can be cached.
 
 - **Android / Chrome:** open the ⋮ menu and choose “Install app” or “Add to Home screen”.
 - **iOS / Safari:** open Share, choose “Add to Home Screen” and confirm.
 
 Launch Opencade from the new icon. Menu wording varies by browser version.
-After the initial cache is ready, the home screen and all thirteen games work
+After the initial cache is ready, the home screen and every game work
 offline. Scores, unlocked levels and settings stay in the browser or installed
 app's local storage. Clearing that storage removes progress and may require
 another online visit.
@@ -241,9 +251,9 @@ The companion selected at home now plays Caisses, Traverse and Alunir, with a ta
 
 Le choix du personnage affiche son nom, son sous-titre et sa devise.
 
-**Le Collier du Singe** (`collier`), the thirteenth game: 30 original chain-pearl stages; aim anywhere and release to shoot, tap the shooter or ⇄/X to swap. Node validation: `npm run test:node -- --only=validate-collier.js`.
+**Le Collier du Singe** (`collier`): 30 original chain-pearl stages; aim anywhere and release to shoot, tap the shooter or ⇄/X to swap. Node validation: `npm run test:node -- --only=validate-collier.js`.
 
-**Pépites** (`pepites`), the fourteenth game: 30 original turn-based mines; dig soil, dodge falling and rolling boulders, push them aside, gather nuggets and reach the exit; directions on both thumbs, Étai freezes the rocks for twelve turns. Node validation: `npm run test:node -- --only=validate-pepites.js`.
+**Pépites** (`pepites`): 30 original turn-based mines; dig soil, dodge falling and rolling boulders, push them aside, gather nuggets and reach the exit; directions on both thumbs, Étai freezes the rocks for twelve turns. Node validation: `npm run test:node -- --only=validate-pepites.js`.
 
 Gourmandises adds 180 seeded match-three levels, two modes, cascading specials, golden cargo, double ice, spreading chocolate, trapped flowers and looping conveyors; five-seed balance, unchanged states for levels 1–120 and 45 in-memory mutation checks.
 

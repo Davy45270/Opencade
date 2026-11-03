@@ -1,6 +1,8 @@
 import type { Point } from '../../engines/collier/levels';
 import type { Engine } from '../../engines/collier/engine';
 
+export const canvasSize = { width: 360, height: 736 } as const;
+
 export const themes = [
     { name: 'Cirque Tutu', sky: 0x672653, light: 0xffedbf, accent: 0xf45eaa },
     { name: 'Jungle des bananes', sky: 0x145e55, light: 0xe9ffc5, accent: 0xffd65c },
@@ -17,8 +19,8 @@ function calculateView(config: Engine['config']) {
     const right = Math.max(...points.map(p => p.x), config.shooter.x + 65);
     const top = Math.min(...points.map(p => p.y), config.shooter.y - 60);
     const bottom = Math.max(...points.map(p => p.y), config.shooter.y + 55);
-    const scale = Math.min(312 / (right - left), 456 / (bottom - top));
-    return { scale, x: 180 - (left + right) / 2 * scale, y: 285 - (top + bottom) / 2 * scale };
+    const scale = Math.min(312 / (right - left), 496 / (bottom - top));
+    return { scale, x: 180 - (left + right) / 2 * scale, y: 300 - (top + bottom) / 2 * scale };
 }
 const views = new WeakMap<Engine['config'], ReturnType<typeof calculateView>>();
 export function fieldView(config: Engine['config']) {

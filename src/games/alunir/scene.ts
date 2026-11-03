@@ -1,7 +1,8 @@
+import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { DecorCache } from '../ferraille/decor-cache';
-import { lunarSky, lunarGround, lunarCrater, lunarModule, scoreMark, moduleBounds } from './presentation';
+import { lunarSky, lunarGround, lunarCrater, lunarModule, scoreMark, moduleBounds, heroBounds } from './presentation';
 import { GameCharacter } from '../../characters/game';
 import { Engine, LEVELS, meteorAt, required } from '../../engines/alunir/engine';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
@@ -21,9 +22,10 @@ export interface AlunirHook {
     performance(): { frames: number; gameMs: number };
     advance(ms: number): void;
     hudText(): string;
-    bounds(): { module: { x: number; y: number; width: number; height: number }; hud: { x: number; y: number; width: number; height: number } };
+    bounds(): { module: { x: number; y: number; width: number; height: number }; hero: { x: number; y: number; width: number; height: number }; hud: { x: number; y: number; width: number; height: number } };
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; held: string[] }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; held: string[] }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger'): void;
 }
@@ -83,16 +85,18 @@ export class AlunirScene extends Phaser.Scene {
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         this.game.canvas.setAttribute('aria-label', 'Alunir : poser le module sur la plateforme lumineuse');
         if (new URLSearchParams(location.search).get('test') === '1') window.__ALUNIR_TEST__ = {
+            ...fingerProof,
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             bounds: () => {
                 const s = this.engine.state, hud = this.hud?.getBounds();
-                return { module: moduleBounds(s.x, s.y, s.angle),
+                return { module: moduleBounds(s.x, s.y, s.angle), hero: heroBounds(s.x, s.y, s.angle),
                     hud: { x: hud?.x ?? 0, y: hud?.y ?? 0, width: hud?.width ?? 0, height: hud?.height ?? 0 } };
             },
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.state.ticks * 1000 / 60 }),
-            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, held: [...this.held] }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            fingerReceipts: receipts,
+            read: () => ({ fingerInput: { paused: this.session.paused, held: [...this.held] }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 this.start(0, 454, true);

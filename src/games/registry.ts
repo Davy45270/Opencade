@@ -1,3 +1,4 @@
+import type { FingerProof } from './finger-receipts';
 import { CollierScene, collierButtons } from './collier/scene';
 import { MarmailleScene, marmailleButtons } from './marmaille/scene';
 import { marmailleEffects } from './marmaille/sound';
@@ -60,7 +61,8 @@ import { LabScene } from './bubble/scene';
 import { LEVELS } from '../engines/bubble/levels';
 import type { SoundEffects } from '../shell/sound';
 import { bubbleEffects } from './bubble/sound';
-export interface GameTestHook {
+export interface GameTestHook extends FingerProof {
+    fingerReceipts(): { sequence: number; events: { sequence: number; type: string; x: number; y: number; target: string | null }[] };
     read(): unknown;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };

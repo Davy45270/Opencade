@@ -180,7 +180,7 @@ export function sceneListeners(module) {
     Object.defineProperty(globalThis, 'document', { configurable: true, value: doc });
     Object.defineProperty(globalThis, 'location', { configurable: true, value: { search: '?test=1' } });
     Object.defineProperty(globalThis, 'matchMedia', { configurable: true, value: () => ({ matches: false }) });
-    Object.defineProperty(globalThis, 'window', { configurable: true, value: {} });
+    Object.defineProperty(globalThis, 'window', { configurable: true, value: new EventTarget() });
     const pointerHandlers = new Map();
     let scene;
     try {

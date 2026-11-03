@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
-import { Engine, type Shot } from '../src/engines/artificiers/engine';
+import { Engine, BODY_HALF_HEIGHT, type Shot } from '../src/engines/artificiers/engine';
 import type { CharacterId } from '../src/characters/model';
-import { WORLD_SCALE, PANEL_TOP, countedGraphics, drawDynamic } from '../src/games/artificiers/art';
+import { WORLD_SCALE, PANEL_TOP, countedGraphics, drawDynamic, LIFE_Y } from '../src/games/artificiers/art';
 import type Phaser from 'phaser';
 import { charge } from './artificiers-budget';
 import recordings from './fixtures/artificiers-wins.json' with { type: 'json' };
@@ -41,8 +41,8 @@ export function replayWin(level: number): void {
             const wasPlaying = e.playing;
             advance(Math.min(20, left));
             for (const u of e.units.filter(u => u.hp > 0)) {
-                assert.ok((u.y + 13) * WORLD_SCALE < PANEL_TOP, 'Personnage visible après chute');
-                assert.ok((u.y - 30) * WORLD_SCALE < PANEL_TOP, 'Vie visible après chute');
+                assert.ok((u.y + BODY_HALF_HEIGHT) * WORLD_SCALE < PANEL_TOP, 'Personnage visible après chute');
+                assert.ok((u.y - LIFE_Y) * WORLD_SCALE < PANEL_TOP, 'Vie visible après chute');
             }
             budget.calls = 0; drawDynamic(graphics, e, true, true);
             assert.ok(budget.calls <= budget.limit, `Graphics N${String(level + 1)} : ${String(budget.calls)}`);

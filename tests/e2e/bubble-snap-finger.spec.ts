@@ -4,6 +4,7 @@ import { Engine, ORIGIN, center, type Cell } from '../../src/engines/bubble/engi
 import { generateLevel } from '../../src/engines/bubble/levels';
 // B-SNAP-04: a noisy real finger aims, the ghost shows a socket, the release fills exactly that socket,
 // and the socket contains the impact point of the displayed guide (hex cell radius 40/sqrt(3)).
+const near = (value: unknown): unknown => JSON.parse(JSON.stringify(value), (_k, v: unknown) => typeof v === 'number' ? Math.round(v * 1e9) / 1e9 : v);
 test('B-SNAP-04 doigt bruité : la case fantôme est la case remplie', async ({ page }, info) => {
     test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(240000);
     await page.setViewportSize({ width: 390, height: 844 });
@@ -32,7 +33,8 @@ test('B-SNAP-04 doigt bruité : la case fantôme est la case remplie', async ({ 
             expect(before.s.grid.some(c => c.row === ghost.row && c.col === ghost.col)).toBe(false);
             // The displayed guide is the engine's whole path for the measured angle, bounces included.
             const model = new Engine(28); model.loadLevel(4, 28); model.load(before.s.grid, before.s.next, 28); model.drops = before.s.drops;
-            expect(before.v?.guide).toEqual(model.trace(before.s.angle).segments);
+            // Node and Chromium may differ in the last bit of Math.sin/cos: compare to 1e-9 px.
+            expect(near(before.v?.guide)).toEqual(near(model.trace(before.s.angle).segments));
             expect(model.trace(before.s.angle).target).toEqual({ ...ghost, color: before.s.next });
             // What is drawn, not only the hook data: every guide segment and a visible ghost with its ring.
             expect(before.v?.drawn.guide).toBe(before.v?.guide.length);

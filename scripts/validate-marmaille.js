@@ -4,6 +4,17 @@ import assert from 'node:assert/strict';
 import { mutationModule } from './mutation-module.js';
 const { marmailleCases } = await import('../tests/marmaille-cases.ts');
 for (const [name, run] of Object.entries(marmailleCases)) { run(); console.log(`${name}: ok`); }
+const { marmailleArtCases } = await import('../tests/marmaille-art-checks.ts');
+for (const [name, run] of Object.entries(marmailleArtCases)) { run(); console.log(`${name}: ok`); }
+// Art mutations: repainting the whole board every tick, or a heavier cell, must be caught.
+for (const [name, before, after] of [
+    ['whole board repainted each tick', 'if ((row[x] ?? \' \') === (was[x] ?? \' \')) continue;', ''],
+    ['neighbours never repainted', 'for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {', 'for (let dy = 0; dy <= 0; dy++) for (let dx = 0; dx <= 0; dx++) {'],
+]) {
+    const { module } = await mutationModule('../src/games/marmaille/art.ts', before, after);
+    assert.throws(() => { for (const run of Object.values(marmailleArtCases)) run(module); }, name);
+    console.log(`rejected art mutation: ${name}`);
+}
 // Each rule has a mutation the cases must reject.
 for (const [name, before, after, id] of [
     ['walkers step over a blocker', 'if (this.solid(nx, k.y) && !this.wall(nx, k.y - 1, k)', 'if (!this.wall(nx, k.y - 1, k)', 'MA-04'],
@@ -35,4 +46,4 @@ for (const [name, before, after, id] of [
     assert.ok(run, id); assert.throws(() => run(module.Engine), name);
     console.log(`rejected mutation: ${name} (${id})`);
 }
-console.log('Marmaille: 10 rule cases, 30 recorded victories with literal end ticks and scores, 29 levels lost without roles, every offered role needed, 23 mutations rejected.');
+console.log('Marmaille: 10 rule cases, 3 art cases (2 art mutations rejected), 30 recorded victories with literal end ticks and scores, 29 levels lost without roles, every offered role needed, 23 mutations rejected.');

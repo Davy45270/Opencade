@@ -26,9 +26,10 @@ export class Terrain {
         }
         // Safe authored spawn shelves, still fully destructible.
         for (const x of [level.left, level.right]) {
-            const y = this.surface(x);
-            this.rect(x - 30, y - 76, 62, 76, 0);
-            this.rect(x - 30, y, 62, 12, 1);
+            const y = Math.min(this.surface(x), Math.round((level.height - level.amplitude * .6) / CELL) * CELL);
+            const half = 24 + (level.teams - 1) * 24;
+            this.rect(x - half, y - 96, half * 2, 96, 0);
+            this.rect(x - half, y, half * 2, 16, 1);
         }
         const sy = this.surface(level.right) - 62;
         this.structure = { x: level.right - 16, y: sy, width: 32, height: 54 };

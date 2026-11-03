@@ -123,6 +123,9 @@ export function horizontalDrag(inputs: Inputs, area: HTMLElement, width: number,
 }
 export function virtualJoystick(inputs: Inputs, parent: HTMLElement, emit: (direction: number | null) => void, diameter = 120): void {
     const stick = document.createElement('div');
+    stick.setAttribute('role', 'button');
+    // Keep Chromium touch adjustment on this control, including near its edges.
+    inputs.on(stick, 'click', () => {});
     stick.className = 'joystick'; stick.setAttribute('aria-label', 'Joystick directionnel');
     stick.style.width = stick.style.height = `${String(Math.max(120, diameter))}px`;
     parent.append(stick);

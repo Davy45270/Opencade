@@ -1,3 +1,4 @@
+import { fingerProof } from './finger';
 import { sceneryKinds, sceneryDrawing, type SceneryKind } from './scenery';
 import { Cadence, draw3d, screenHeading, type RenderCost } from './view3d';
 import { beginThumb, moveThumb, thumbDirection, thumbIntensity, acceptsThumb, type Thumb } from './joystick';
@@ -38,7 +39,8 @@ export interface DerapageHook {
     performance(): { frames: number; gameMs: number };
     art(): string[];
     overview(enabled: boolean): void;
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
     loadLevel(i: number, seed?: number): void;
     advance(ms: number): void;
     scenario(name: 'finish' | 'danger' | 'trees-boost' | 'lap' | 'slalom-gate' | 'bmx-jump'): void;
@@ -276,11 +278,13 @@ export class DerapageScene extends Phaser.Scene {
         this.game.canvas.setAttribute('aria-label', 'Dérapage : course de karts, vue de dessus');
         if (new URLSearchParams(location.search).get('test') === '1')
             window.__DERAPAGE_TEST__ = {
+            ...fingerProof,
                 view: () => ({ preferred: this.view3d ? '3d' : 'top', active: this.active3d ? '3d' : 'top', fallback: this.cadence.fallback, fps: this.cadence.fps, elapsed: this.cadence.elapsed, cost: this.renderCost }),
                 art: () => this.paint?.keys() ?? [],
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
                 performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.time }),
-                read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); },
+                fingerReceipts: receipts,
+                read: () => ({ fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
                 hudText: () => this.hud?.textContent ?? '', usefulArea: () => ({ x: 0, y: 96, width: 360, height: 544 }),

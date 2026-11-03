@@ -1,3 +1,4 @@
+import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
@@ -21,7 +22,8 @@ export interface EssaimHook {
     advance(ms: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; firing: boolean; signatureHeld: boolean }; cumulativeScore: number; progression: string; autoFire: boolean; character: ReturnType<GameCharacter['snapshot']> };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; firing: boolean; signatureHeld: boolean }; cumulativeScore: number; progression: string; autoFire: boolean; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger' | 'special'): void;
     weapon(kind: Weapon): void;
@@ -140,6 +142,7 @@ export class EssaimScene extends Phaser.Scene {
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         area.setAttribute('aria-label', 'Essaim : guider le vaisseau en bas et tirer');
         if (new URLSearchParams(location.search).get('test') === '1') window.__ESSAIM_TEST__ = {
+            ...fingerProof,
             timing: (reset = false) => {
                 if (reset) this.testTiming = { frames: 0, updateMs: 0, drawMs: 0 };
                 const t = this.testTiming;
@@ -168,7 +171,8 @@ export class EssaimScene extends Phaser.Scene {
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.state.ticks * 1000 / 60 }),
-            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, firing: this.firing, signatureHeld: this.signatureHeld }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state, autoFire: this.autoFire }),
+            fingerReceipts: receipts,
+            read: () => ({ fingerInput: { paused: this.session.paused, firing: this.firing, signatureHeld: this.signatureHeld }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state, autoFire: this.autoFire }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             weapon: kind => { this.start(0, 458, true); this.engine.state.pickups = []; this.engine.step(1200); this.engine.equip(kind); this.draw(); },
             lastWave: () => {

@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import type { Engine } from '../../engines/artificiers/engine';
-import { characters, drawList } from '../../characters/model';
+import { characters, drawList, type CharacterId, type Animation } from '../../characters/model';
 import { renderCharacter } from '../../characters/phaser';
 export const themes = [
     { sky: 0x92ddee, far: 0x64aa99, soil: '#b58b4d', rock: '#637480', grass: '#77bc49', accent: 0x226348 },
@@ -12,6 +12,19 @@ export const themes = [
 export const WORLD_SCALE = .8;
 export const PANEL_TOP = 531;
 export const screenY = (y: number): number => y * WORLD_SCALE;
+// The shared 240-unit character stage includes transparent margins. At 88 units,
+// the smallest painted silhouette is over 40 screen pixels high at 360px width.
+export const HERO_SIZE = 88, HERO_X = 44, HERO_Y = 55, LIFE_Y = 61;
+export function drawHero(g: Phaser.GameObjects.Graphics, hero: CharacterId, pose: Animation): void {
+    renderCharacter(g, drawList(hero, 'face', pose === 'celebration' ? 'joie' : 'concentre', pose, 0, 'reduce'), 0, 0, HERO_SIZE);
+    // A compact shoulder launcher, gripped at the stock, baked into every pose.
+    g.save(); g.scaleCanvas(HERO_SIZE / 80, HERO_SIZE / 80);
+    const accent = Number.parseInt(characters[hero].accent.slice(1), 16);
+    g.lineStyle(2, 0x263641); g.fillStyle(accent); g.fillRoundedRect(39, 43, 32, 11, 4); g.strokeRoundedRect(39, 43, 32, 11, 4);
+    g.fillStyle(0x263641); g.fillEllipse(70, 48, 6, 10);
+    g.fillStyle(0xffe6be); g.fillCircle(46, 54, 4);
+    g.lineStyle(2, 0xffe2a0); g.lineBetween(53, 45, 62, 45); g.restore();
+}
 export interface GraphicsBudget { calls: number; limit: number }
 /** Counts every method call on the real dynamic Graphics object, including character paths. */
 export function countedGraphics(g: Phaser.GameObjects.Graphics, budget: GraphicsBudget): Phaser.GameObjects.Graphics {
@@ -70,11 +83,11 @@ export function drawDynamic(g: Phaser.GameObjects.Graphics, e: Engine, reduced: 
     g.lineStyle(2, 0xd0f5fa); g.lineBetween(0, e.water, 360, e.water);
     for (const u of e.units) if (u.hp > 0) {
         const color = Number.parseInt(characters[u.hero].accent.slice(1), 16);
-        if (u.id === e.actor.id) { g.lineStyle(2, 0xfff6b9); g.strokeEllipse(u.x, u.y + 9, 29, 9); }
-        if (!cachedHeroes) renderCharacter(g, drawList(u.hero, u.vx ? 'profil' : 'face', e.status === 'won' ? 'joie' : 'concentre', e.status === 'won' ? 'celebration' : u.vy ? 'saut' : 'repos', e.time, reduced ? 'reduce' : 'full'), u.x - 21, u.y - 29, 42, u.team === 1);
-        g.fillStyle(0x233344); g.fillRect(u.x - 15, u.y - 34, 30, 4);
-        g.fillStyle(u.team ? 0xffa48e : 0x8ff1c2); g.fillRect(u.x - 15, u.y - 34, u.hp * .3, 4);
-        g.fillStyle(color); g.fillCircle(u.x + 16, u.y - 21, 3);
+        if (u.id === e.actor.id) { g.lineStyle(2, 0xfff6b9); g.strokeEllipse(u.x, u.y + 25, 42, 9); }
+        if (!cachedHeroes) { g.save(); g.translateCanvas(u.x - HERO_X, u.y - HERO_Y); drawHero(g, u.hero, u.vy ? 'saut' : 'repos'); g.restore(); }
+        g.fillStyle(0x233344); g.fillRect(u.x - 15, u.y - LIFE_Y, 30, 6);
+        g.fillStyle(u.team ? 0xffa48e : 0x8ff1c2); g.fillRect(u.x - 15, u.y - LIFE_Y, Math.min(100, u.hp) * .3, 6);
+        g.fillStyle(color); g.fillCircle(u.x + 19, u.y - LIFE_Y + 3, 3);
     }
     if (e.phase === 'aim' && e.status === 'playing') {
         const preview = e.trace({ angle: e.angle, power: e.power, weapon: e.weapon }, 65);

@@ -29,12 +29,12 @@ export const marmailleCases: Record<string, (E?: Factory) => void> = {
     'MA-01 trente niveaux gagnés par rejeu, perdus sans rôles': (E = Engine) => {
         check(LEVELS.length === 30 && solutions.length === 30, 'thirty levels and solutions');
         // Literal end ticks: a level ends as soon as nobody is left walking (posted blockers do not hold it open).
-        const ends = [50, 59, 68, 83, 104, 58, 93, 58, 83, 67, 73, 67, 92, 92, 118, 93, 83, 85, 74, 94, 88, 92, 68, 73, 97, 103, 86, 94, 78, 118];
+        const ends = [50, 59, 68, 83, 104, 58, 109, 58, 83, 67, 73, 67, 92, 92, 118, 93, 83, 85, 74, 94, 88, 92, 68, 73, 97, 103, 86, 94, 78, 118];
         LEVELS.forEach((def, level) => {
             const won = replay(E, level, solutions[level] ?? []);
             check(won.status === 'won' && won.saved >= def.needed, `M${String(level + 1)} solution wins`);
             check(won.tick === ends[level], `M${String(level + 1)} ends at tick ${String(ends[level])}, not ${String(won.tick)}`);
-            check(won.score === won.saved * 100 + Math.floor((def.seconds * 1000 - won.tick * 125) / 1000), `M${String(level + 1)} score`);
+            check(won.score === won.saved * 100 + Math.floor((def.seconds * 1000 - won.tick * TICK_MS) / 1000), `M${String(level + 1)} score`);
             if (level > 0) { const lost = replay(E, level, []); check(lost.status === 'lost' && lost.score === lost.saved * 100, `M${String(level + 1)} needs its roles, no time bonus when lost`); }
         });
     },

@@ -1,9 +1,10 @@
+import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { Engine, COLS, ROWS, ROLES, type Role, type Kid } from '../../engines/marmaille/engine';
 import { GAME_NAME, LEVELS } from '../../engines/marmaille/levels';
 import { GameCharacter } from '../../characters/game';
 import { drawList } from '../../characters/model';
-import { renderCharacter } from '../../characters/phaser';
+import { ArcadePaint } from '../../characters/arcade-phaser';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
 import { Progression } from '../../shell/progression';
@@ -11,6 +12,7 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
+import { backdrop, CARD, paintCell, repaintBox, portals, roleProp, worldOf, WORLD_NAME, type World } from './art';
 /** Field geometry: 20 × 22 cells of 18 px under a 40 px band. */
 export const CELL = 18, FIELD_Y = 40;
 export const ROLE_SYMBOL: Record<Role, string> = { block: '✋', build: '▟', dig: '⇣', bash: '⇢', float: '☂', climb: '⇡' };
@@ -35,6 +37,7 @@ export function kidAt(kids: readonly Kid[], x: number, y: number): Kid | undefin
     return best;
 }
 export interface MarmailleHook {
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
     read(): ReturnType<Engine['snapshot']> & { selected: Role | null; fast: boolean; character: ReturnType<GameCharacter['snapshot']>; progression: string };
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
@@ -55,6 +58,18 @@ export class MarmailleScene extends Phaser.Scene {
     private selected: Role | null = null;
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: Phaser.GameObjects.Text;
+    private title?: Phaser.GameObjects.Text;
+    /** Static layers: the backdrop is one baked image per world and companion; terrain cells live in a
+     * render texture and are repainted only where a digger, miner or builder changed them. */
+    private backdropImage?: Phaser.GameObjects.Image;
+    private terrain?: Phaser.GameObjects.RenderTexture;
+    private scratch?: Phaser.GameObjects.Graphics;
+    /** Kids and the companion are baked sprites (a few frames per pose), not tessellated every frame. */
+    private paint?: ArcadePaint;
+    private painted: string[] = [];
+    private paintedLevel = -1;
+    /** Cells painted per frame (terrain layer), for the cost checks. */
+    repaints = 0;
     private time0 = 0;
     constructor(private session = new PlaySession(true)) { super('marmaille'); }
     private panels(): void { renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.score, this.progress.total, this.selecting); }
@@ -86,9 +101,15 @@ export class MarmailleScene extends Phaser.Scene {
         if (k && this.engine.assign(k.id, this.selected)) this.syncButtons();
     }
     create(): void {
+        const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('marmaille');
-        this.graphics = this.add.graphics();
-        this.hud = this.add.text(12, FIELD_Y + ROWS * CELL + 8, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#f3f0dc', lineSpacing: 4 });
+        this.backdropImage = this.add.image(0, 0, '__DEFAULT').setOrigin(0).setDepth(0);
+        this.terrain = this.add.renderTexture(0, 0, 360, 640).setOrigin(0).setDepth(1);
+        this.scratch = this.make.graphics({}, false);
+        this.paint = new ArcadePaint(this, 10);
+        this.graphics = this.add.graphics().setDepth(3);
+        this.title = this.add.text(22, FIELD_Y + ROWS * CELL + 12, '', { fontFamily: 'system-ui', fontSize: '16px', fontStyle: 'bold', color: '#ffffff' }).setDepth(4);
+        this.hud = this.add.text(26, FIELD_Y + ROWS * CELL + 48, '', { fontFamily: 'system-ui', fontSize: '13px', color: '#fff6e0', lineSpacing: 5, wordWrap: { width: 308 } }).setDepth(4);
         const cleanup = (): void => { this.inputs.dispose(); this.input.removeAllListeners(); document.body.classList.remove('marmaille'); delete window.__MARMAILLE_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         renderTouchControls(this.inputs, marmailleButtons, (id, held) => {
@@ -110,8 +131,9 @@ export class MarmailleScene extends Phaser.Scene {
         this.game.canvas.setAttribute('aria-label', `${GAME_NAME} : choisir un rôle puis toucher un enfant`);
         if (new URLSearchParams(location.search).get('test') === '1')
             window.__MARMAILLE_TEST__ = {
+                fingerReceipts: receipts,
                 read: () => ({ ...this.engine.snapshot(), selected: this.selected, fast: this.fast, character: this.hero.snapshot(), progression: this.progress.state }),
-                hudText: () => this.hud?.text ?? '',
+                hudText: () => `${this.title?.text ?? ''}\n${this.hud?.text ?? ''}`,
                 usefulArea: () => ({ x: 0, y: FIELD_Y, width: COLS * CELL, height: ROWS * CELL }),
                 // Test clock: a loaded board stays frozen until advance() drives it (recorded ticks stay exact).
                 loadLevel: index => { this.start(index, true); this.manual = true; this.tick(0); },
@@ -135,34 +157,67 @@ export class MarmailleScene extends Phaser.Scene {
         this.hero.advance(delta, this.session.paused || this.selecting, this.engine.status, false);
         this.panels(); this.draw();
     }
+    /** Bakes the world backdrop once per world and companion. */
+    private ensureBackdrop(world: World): void {
+        const key = `marmaille-bg-${world}-${this.hero.id}`;
+        if (!this.textures.exists(key)) {
+            const g = this.make.graphics({}, false);
+            backdrop(g, world, CARD[this.hero.id] ?? 0x2f7a3a, FIELD_Y + ROWS * CELL);
+            g.generateTexture(key, 360, 640); g.destroy();
+        }
+        this.backdropImage?.setTexture(key);
+    }
+    /** Repaints changed terrain cells (all of them on a new board) into the render texture. */
+    private syncTerrain(): void {
+        const e = this.engine, def = e.def, rt = this.terrain, g = this.scratch;
+        if (!rt || !g) return;
+        const world = worldOf(e.level), fresh = this.paintedLevel !== e.level || this.painted.length === 0;
+        const box = fresh ? { x0: 0, y0: 0, x1: COLS - 1, y1: ROWS - 1 } : repaintBox(this.painted, e.tiles);
+        if (fresh) { this.ensureBackdrop(world); this.paintedLevel = e.level; }
+        if (!box) { this.repaints = 0; return; }
+        // One clear only (a dynamic texture ignores further clears until it is drawn again), then every cell of the box.
+        if (fresh) rt.clear();
+        else (rt.texture as Phaser.Textures.DynamicTexture).clear(box.x0 * CELL, FIELD_Y + box.y0 * CELL, (box.x1 - box.x0 + 1) * CELL, (box.y1 - box.y0 + 1) * CELL);
+        const cells: [number, number][] = [];
+        for (let y = box.y0; y <= box.y1; y++) for (let x = box.x0; x <= box.x1; x++) cells.push([x, y]);
+        this.repaints = cells.length;
+        g.clear();
+        for (const [x, y] of cells) {
+            const t = e.tile(x, y), built = t === '#' && (def.map[y]?.[x] ?? '.') === '.';
+            paintCell(g, world, t, { up: y > 0 ? e.tile(x, y - 1) : ' ', left: e.tile(x - 1, y), right: e.tile(x + 1, y) }, built, x, y, CELL, FIELD_Y);
+        }
+        portals(g, def.spawn, def.exit, def.dir ?? 1, CELL, FIELD_Y);
+        rt.draw(g);
+        this.painted = e.tiles.map(r => r.join(''));
+    }
     private draw(): void {
         const g = this.graphics, e = this.engine, def = e.def;
         if (!g) return;
+        this.syncTerrain();
         g.clear();
-        g.fillStyle(0x1d2a33); g.fillRect(0, 0, 360, 640);
-        g.fillStyle(0x27404b); g.fillRect(0, FIELD_Y, COLS * CELL, ROWS * CELL);
-        for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
-            const t = e.tile(x, y), px = x * CELL, py = FIELD_Y + y * CELL;
-            if (t === '#') { g.fillStyle(0x8a5a32); g.fillRect(px, py, CELL, CELL); g.fillStyle(0xa8743f); g.fillRect(px + 2, py + 2, CELL - 8, 4); }
-            else if (t === 'X') { g.fillStyle(0x5c6670); g.fillRect(px, py, CELL, CELL); g.lineStyle(1, 0x3c444c); g.strokeRect(px + .5, py + .5, CELL - 1, CELL - 1); }
-            else if (t === '~') { g.fillStyle(0x3d8fd6); g.fillRect(px, py + 4, CELL, CELL - 4); g.fillStyle(0x9fd3ff, .7); g.fillRect(px + 2, py + 5, CELL - 6, 2); }
+        const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches, world = worldOf(e.level);
+        // Moving glints on water (or lava): one short line per liquid cell.
+        if (!reduced) for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (e.tile(x, y) === '~') {
+            g.fillStyle(world === 'mine' ? 0xffd060 : 0xffffff, .7); g.fillRect(x * CELL + ((this.time0 / 60 + x * 5) % (CELL - 5)), FIELD_Y + y * CELL + CELL * .45, 5, 1.5);
         }
-        // Trapdoor and exit door.
-        g.fillStyle(0x3a2a20); g.fillRect(def.spawn.x * CELL - 6, FIELD_Y + def.spawn.y * CELL - 4, CELL + 12, 6);
-        const ex = def.exit.x * CELL, ey = FIELD_Y + def.exit.y * CELL;
-        g.fillStyle(0xf2c45a); g.fillRoundedRect(ex - 2, ey - CELL, CELL + 4, CELL * 2, 6); g.fillStyle(0x3a2a20); g.fillRoundedRect(ex + 3, ey - CELL + 5, CELL - 6, CELL * 2 - 5, 4);
-        // The chosen companion keeps watch above the trapdoor; the troop is a band of little ones of the same kind.
-        this.hero.draw(g, def.spawn.x * CELL - 14, FIELD_Y + Math.max(0, def.spawn.y - 3) * CELL, 34);
-        const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        // The chosen companion keeps watch beside the trapdoor; the troop is a band of little ones of the same kind.
+        const paint = this.paint, id = this.hero.id;
+        paint?.begin();
+        const sprite = (pose: 'face' | 'profil', mood: 'joie' | 'surprise', anim: 'repos' | 'marche' | 'special', phase: number): string => {
+            const frame = reduced ? 0 : Math.floor(phase / 110) % 6;
+            return paint?.texture(`marmaille-${id}-${pose}-${mood}-${anim}-${String(frame)}`, drawList(id, pose, mood, anim, frame * 110)) ?? '';
+        };
+        paint?.draw(sprite('face', 'joie', 'repos', this.time0), def.spawn.x * CELL + CELL / 2 - (def.dir ?? 1) * 26, FIELD_Y + def.spawn.y * CELL - 26, 60, 0, 1, 2);
         for (const k of e.kids) {
             if (k.state === 'saved' || k.state === 'dead') continue;
-            const animation = k.state === 'walk' || k.state === 'climb' ? 'marche' : 'repos';
-            const list = drawList(this.hero.id, k.state === 'block' ? 'face' : 'profil', k.state === 'fall' && k.fall > 3 && !k.float ? 'surprise' : 'joie', animation, reduced ? 0 : this.time0 + k.id * 90);
-            renderCharacter(g, list, k.x * CELL - 2, FIELD_Y + k.y * CELL - 4, CELL + 4, k.dir < 0);
-            if (k.float && k.state === 'fall') { g.fillStyle(0xf080ab); g.fillTriangle(k.x * CELL - 2, FIELD_Y + k.y * CELL - 6, k.x * CELL + CELL + 2, FIELD_Y + k.y * CELL - 6, k.x * CELL + CELL / 2, FIELD_Y + k.y * CELL - 16); }
-            if (k.state !== 'walk' && k.state !== 'fall') { g.fillStyle(0xffffff, .9); g.fillCircle(k.x * CELL + CELL / 2, FIELD_Y + k.y * CELL - 8, 3); }
+            const animation = k.state === 'walk' || k.state === 'climb' ? 'marche' : k.state === 'block' || k.state === 'fall' ? 'repos' : 'special';
+            const cx = k.x * CELL + CELL / 2, top = FIELD_Y + k.y * CELL + CELL;
+            paint?.draw(sprite(k.state === 'block' ? 'face' : 'profil', k.state === 'fall' && k.fall > 3 && !k.float ? 'surprise' : 'joie', animation, this.time0 + k.id * 90), cx, top - 18, k.dir < 0 ? -40 : 40, 0, 1, 2, 40);
+            roleProp(g, k.state, k.float, k.state === 'fall', cx, top - 16, k.dir, reduced ? 0 : this.time0);
+            if (this.selected && e.status === 'playing' && (k.state === 'walk' || k.state === 'fall')) { g.fillStyle(0xffffff, .18); g.fillEllipse(cx, top, 20, 5); }
         }
-        const roles = levelRoles(e.level).map(r => `${ROLE_SYMBOL[r]} ${ROLE_NAME[r]} ${String(e.roles[r])}`).join(' · ');
-        this.hud?.setText(`${GAME_NAME.toLocaleUpperCase('fr')} ${String(e.level + 1)} · ${def.name}\nSAUVÉS ${String(e.saved)}/${String(def.needed)} · SORTIS ${String(e.spawned)}/${String(def.count)} · ${String(Math.ceil(e.timeLeftMs / 1000))} s · SCORE ${String(e.score)}\n${roles || 'Aucun rôle : regarder la marmaille'}${this.fast ? ' · ×2' : ''}\n${def.lesson}`);
+        const roles = levelRoles(e.level).map(r => `${ROLE_SYMBOL[r]} ${ROLE_NAME[r]} ${String(e.roles[r])}`).join('   ');
+        this.title?.setText(`${GAME_NAME} ${String(e.level + 1)} · ${def.name}`);
+        this.hud?.setText(`${WORLD_NAME[world]}\nSAUVÉS ${String(e.saved)}/${String(def.needed)} · SORTIS ${String(e.spawned)}/${String(def.count)} · ${String(Math.ceil(e.timeLeftMs / 1000))} s · SCORE ${String(e.score)}\n${roles || 'Aucun rôle : regarder la marmaille'}${this.fast ? ' · ×2' : ''}\n${def.lesson}`);
     }
 }

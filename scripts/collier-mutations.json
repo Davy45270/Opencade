@@ -110,8 +110,8 @@
   {
     "name": "canon-sur-la-tete",
     "file": "src/games/collier/scene.ts",
-    "before": "        this.hero.draw(g, o.x - layout.size / 2, o.y - layout.size / 2, layout.size);",
-    "after": "        this.hero.draw(g, o.x - layout.size / 2, o.y - layout.size / 2, layout.size);\n        g.lineStyle(7, theme.light);\n        g.lineBetween(o.x, o.y, layout.arrow.x, layout.arrow.y);"
+    "before": "        this.drawActor(this.hero, o.x - layout.size / 2, o.y - layout.size / 2, layout.size);",
+    "after": "        this.drawActor(this.hero, o.x - layout.size / 2, o.y - layout.size / 2, layout.size);\n        g.lineStyle(7, theme.light);\n        g.lineBetween(o.x, o.y, layout.arrow.x, layout.arrow.y);"
   },
   {
     "name": "decor-identique",
@@ -148,5 +148,37 @@
     "file": "src/games/collier/scene.ts",
     "before": "        g.fillStyle(0xffffff, .85);\n        g.fillEllipse(x - radius * .32, y - radius * .48, radius * .48, radius * .24);\n        g.fillStyle(0xffffff, .45);\n        g.fillCircle(x + radius * .42, y + radius * .5, radius * .12);",
     "after": "        g.fillStyle(0xffffff, 0);"
+  },
+  {
+    "name": "hud-perles-supprime",
+    "file": "src/games/collier/scene.ts",
+    "before": "this.pearlLabel?.setText(`Perles",
+    "after": "this.pearlLabel?.setText(`Objets"
+  },
+  {
+    "name": "meneur-miniature",
+    "file": "src/games/collier/scene.ts",
+    "before": "const size = 80 / view.scale;",
+    "after": "const size = 32 / view.scale;"
+  },
+  {
+    "name": "zone-utile-reduite",
+    "file": "src/games/collier/scene.ts",
+    "before": "this.scale.setGameSize(360, 736);",
+    "after": "this.scale.setGameSize(360, 640);"
+  },
+  {
+    "name": "perle-redessinee-par-image",
+    "file": "src/games/collier/scene.ts",
+    "before": "        const key = this.beadTexture(color, bonus);",
+    "after": "        this.paintBead(g, x, y, color, 11.5);\n        const key = this.beadTexture(color, bonus);",
+    "oracle": "C39"
+  },
+  {
+    "name": "texture-recreee-par-image",
+    "file": "src/games/collier/scene.ts",
+    "before": "        const key = this.beadTexture(color, bonus);",
+    "after": "        if (this.textures.exists('collier-regenerated')) this.textures.remove('collier-regenerated');\n        const extra = this.add.graphics();\n        this.paintBead(extra, 20, 18, color, 11.5);\n        extra.generateTexture('collier-regenerated', 40, 40);\n        extra.destroy();\n        const key = this.beadTexture(color, bonus);",
+    "oracle": "C39"
   }
 ]

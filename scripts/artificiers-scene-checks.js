@@ -8,8 +8,9 @@ import { CELL, COLS } from '../src/engines/artificiers/terrain.ts';
 import { characters, ids, drawList } from '../src/characters/model.ts';
 import { renderCharacter } from '../src/characters/phaser.ts';
 import { fingerReceipts } from '../src/games/finger-receipts.ts';
+import { fingerProof } from '../src/games/artificiers/finger.ts';
 import { AimDriver } from '../src/games/artificiers/driver.ts';
-import { countedGraphics, drawDynamic, drawScenery, themes, WORLD_SCALE, screenY } from '../src/games/artificiers/art.ts';
+import { countedGraphics, drawDynamic, drawScenery, themes, WORLD_SCALE, screenY, drawHero, HERO_SIZE, HERO_X, HERO_Y } from '../src/games/artificiers/art.ts';
 import { Progression } from '../src/shell/progression.ts';
 export function sceneChecks(source = readFileSync(new URL('../src/games/artificiers/scene.ts', import.meta.url), 'utf8')) {
     const code = transpile(source).replace(/^import .*;\s*$/gm, '').replace(/\bexport (class|const) /g, '$1 ');
@@ -20,7 +21,7 @@ export function sceneChecks(source = readFileSync(new URL('../src/games/artifici
     const image = (x, y, key) => {
         const sprite = { x, y, key, visible: true, alpha: 1, sx: 1, sy: 1,
             get texture() { return { key: this.key }; },
-            getBounds() { return { x: this.x, y: this.y, width: 42 * this.sx, height: 42 * this.sy }; },
+            getBounds() { return { x: this.x, y: this.y, width: HERO_SIZE * this.sx, height: HERO_SIZE * this.sy }; },
             setOrigin() { return this; }, setDepth() { return this; },
             setScale(sx, sy) { this.sx = sx; this.sy = sy; return this; },
             setPosition(x, y) { this.x = x; this.y = y; return this; },
@@ -47,8 +48,8 @@ export function sceneChecks(source = readFileSync(new URL('../src/games/artifici
     const elements = new Map();
     const document = { body: { classList: { add() {}, remove() {} } }, querySelector(id) { if (!elements.has(id)) elements.set(id, { id }); return elements.get(id); } };
     const window = {}, session = new PlaySession();
-    const bindings = { Phaser: { Scene: BaseScene }, Engine, chooseShot, WEAPONS, LEVELS, GAME_NAME, CELL, COLS,
-        ids, drawList, renderCharacter, WORLD_SCALE, screenY, selectedCharacter: () => 'pandaroux', characters, Inputs, PlaySession, Progression,
+    const bindings = { fingerProof, Phaser: { Scene: BaseScene }, Engine, chooseShot, WEAPONS, LEVELS, GAME_NAME, CELL, COLS,
+        ids, drawList, renderCharacter, WORLD_SCALE, screenY, drawHero, HERO_SIZE, HERO_X, HERO_Y, selectedCharacter: () => 'pandaroux', characters, Inputs, PlaySession, Progression,
         browserStorage: () => undefined, readSave: () => ({ unlocked: 30, best: 0 }), writeSave() {}, renderPanels() {}, renderLevels() {},
         fingerReceipts: inputs => {
             const prior = ['window', 'location'].map(key => Object.getOwnPropertyDescriptor(globalThis, key));
@@ -69,7 +70,7 @@ export function sceneChecks(source = readFileSync(new URL('../src/games/artifici
     const terrain = images.find(i => i.key === 'artificiers-terrain'); assert.ok(terrain);
     assert.equal(terrain.sy, WORLD_SCALE); assert.ok(640 * terrain.sy < 531);
     const hero = images[2], initialActor = hook.read().units[0]; assert.ok(hero);
-    assert.equal(hero.x, initialActor.x - 21); assert.equal(hero.y, screenY(initialActor.y - 29));
+    assert.equal(hero.x, initialActor.x - HERO_X); assert.equal(hero.y, screenY(initialActor.y - HERO_Y));
     assert.ok(hook.heroBounds()[0].visible); assert.equal(hook.heroBounds()[0].y, hero.y);
     assert.equal(hero.sy, WORLD_SCALE); assert.equal(hero.visible, true);
     assert.equal(hook.renderBudget().terrainPixels, 360 * 640); assert.equal(refreshed, 1);
@@ -81,13 +82,13 @@ export function sceneChecks(source = readFileSync(new URL('../src/games/artifici
     listeners.get('pointerdown')({ ...a, y: screenY(a.y), id: 2 }); listeners.get('pointerup')({ x: 180, y: 250, id: 9 });
     assert.equal(hook.read().shots, 0);
     assert.deepEqual(hook.read().fingerInput.aiming, { id: 2, x: a.x, y: screenY(a.y) });
-    const received = hook.read().fingerInput.receipts.sequence;
+    const received = hook.fingerReceipts().sequence;
     dom.get('host:pointermove')({ pointerType: 'touch', clientX: 123, clientY: 234 });
-    assert.deepEqual(hook.read().fingerInput.receipts.events.at(-1), { sequence: received + 1, type: 'pointermove', x: 123, y: 234 });
+    assert.deepEqual(hook.fingerReceipts().events.at(-1), { sequence: received + 1, type: 'pointermove', x: 123, y: 234, target: null });
     listeners.get('pointermove')({ ...end, y: screenY(end.y) }); listeners.get('pointerup')({ ...end, y: screenY(end.y) });
     assert.equal(hook.read().shots, 1); assert.equal(hook.read().phase, 'flight');
     assert.equal(hook.read().fingerInput.aiming, null);
-    const requested = Math.atan2(end.y - a.y, end.x - a.x); assert.equal(hook.read().angle, requested);
+    const requested = Math.atan2(end.y - a.y, end.x - a.x); assert.ok(Math.abs(hook.read().angle - requested) < 1e-12);
     hook.advance(5000); assert.ok(effects.includes('shot')); assert.ok(effects.includes('blast'));
     // The real draw() consumes only crater rectangles after the initial texture.
     assert.ok(clears.some(r => r[2] < 360 && r[3] < 640));

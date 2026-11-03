@@ -77,8 +77,7 @@ for (const viewport of windows) for (const id of ids) {
         await expect.poll(() => page.evaluate(id => Boolean(window.__ARCADE_TEST__?.games[id]), id)).toBe(true);
         if (id !== 'bubble' && id !== 'caisses') await page.locator('#resume').tap();
         await page.locator('#game-menu-toggle').tap();
-        // Raw touch receipts (tests/e2e/finger-stepped.ts evidence) record every pointer event, by design; the game state must not move.
-        const gameState = (id: string) => page.evaluate(id => { const s = window.__ARCADE_TEST__?.games[id]?.read() as { fingerInput?: { receipts?: unknown } } | undefined; if (s?.fingerInput) delete s.fingerInput.receipts; return s; }, id);
+        const gameState = (id: string) => page.evaluate(id => window.__ARCADE_TEST__?.games[id]?.read(), id);
         const before = await gameState(id);
         await expect(page.locator('#levels')).toBeVisible();
         await expect(page.locator('#restart')).toBeVisible();

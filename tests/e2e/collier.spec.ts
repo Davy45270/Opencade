@@ -14,9 +14,10 @@ async function point(page: Page, x: number, y: number) {
     const box = await page.locator('#game canvas').boundingBox();
     if (!box)
         throw new Error('Canevas absent');
-    const view = await page.evaluate(() => window.__COLLIER_TEST__?.view());
+    const geometry = await page.evaluate(() => window.__COLLIER_TEST__?.geometry());
+    const view = geometry?.view;
     if (!view) throw new Error('Transformation absente');
-    return { x: box.x + (x * view.scale + view.x) * box.width / 360, y: box.y + (y * view.scale + view.y) * box.height / 640 };
+    return { x: box.x + (x * view.scale + view.x) * box.width / 360, y: box.y + (y * view.scale + view.y) * box.height / geometry.canvas.height };
 }
 test('Collier : victoire, niveau suivant, défaite, reprise et captures', async ({ page, isMobile }, info) => {
     await page.goto('/?test=1#/collier');
@@ -34,7 +35,9 @@ test('Collier : victoire, niveau suivant, défaite, reprise et captures', async 
     const setup = await state(page);
     if (!setup)
         throw new Error('État absent');
-    const reserve = await point(page, setup.shooter.x + 44, setup.shooter.y + 35);
+    const targets = await page.evaluate(() => window.__COLLIER_TEST__?.geometry().targets);
+    if (!targets) throw new Error('Cibles absentes');
+    const reserve = await point(page, targets.next.x, targets.next.y);
     const hero = await point(page, setup.shooter.x, setup.shooter.y);
     const finger = isMobile ? new Finger(page, await page.context().newCDPSession(page)) : null;
     if (finger) {
@@ -76,13 +79,14 @@ test('Collier : victoire, niveau suivant, défaite, reprise et captures', async 
         const p = await point(page, aim.x, aim.y);
         const shots = s.shots;
         const box = await page.locator('#game canvas').boundingBox();
-        const view = await page.evaluate(() => window.__COLLIER_TEST__?.view());
+        const geometry = await page.evaluate(() => window.__COLLIER_TEST__?.geometry());
+        const view = geometry?.view;
         if (!box || !view) throw new Error('Transformation absente');
         // Touch coordinates are rounded to CSS pixels by the input platform.
         // At the far edge, one CSS pixel is under .01 radian from the shooter.
         const sent = { x: Math.round(p.x), y: Math.round(p.y) };
         const logical = { x: ((sent.x - box.x) * 360 / box.width - view.x) / view.scale,
-            y: ((sent.y - box.y) * 640 / box.height - view.y) / view.scale };
+            y: ((sent.y - box.y) * geometry.canvas.height / box.height - view.y) / view.scale };
         const expected = Math.atan2(logical.y - s.shooter.y, logical.x - s.shooter.x);
         if (finger) {
             const start = await point(page, 180, 80);

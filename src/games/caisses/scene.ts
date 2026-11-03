@@ -1,3 +1,4 @@
+import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { pullRecords } from '../../engines/caisses/records';
@@ -12,6 +13,7 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
+import { backdrop, crate, floorTile, groundTile, hudVeil, iceTile, stoneBlock, worldOf, SceneryLayer } from '../universal/art';
 export const caissesButtons: readonly TouchButton[] = [
     { id: 'caisses-special', label: 'Tirer', ariaLabel: 'Tirer une caisse', size: 56, placement: 'right', mode: 'tap' },
     { id: 'caisses-left', label: '←', ariaLabel: 'Aller à gauche', size: 56, placement: 'left', mode: 'tap' },
@@ -24,7 +26,8 @@ export interface CaissesHook {
     performance(): { frames: number; gameMs: number };
     advance(ms: number): void;
     bounds(): { hero: { x: number; y: number; width: number; height: number } };
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; pulling: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; pulling: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
@@ -41,6 +44,8 @@ export class CaissesScene extends Phaser.Scene {
     private pulling = false;
     private heroBounds = { x: 0, y: 0, width: 0, height: 0 };
     private graphics?: Phaser.GameObjects.Graphics;
+    /** Static scenery layer, repainted only when its key changes (level, board): software rendering stays fast. */
+    private scenery?: SceneryLayer;
     private hud?: Phaser.GameObjects.Text;
     constructor(private session = new PlaySession(false)) { super('caisses'); }
     private panels(): void { renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.state.score, this.progress.total, this.selecting); }
@@ -52,6 +57,7 @@ export class CaissesScene extends Phaser.Scene {
         document.body.classList.add('caisses');
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('caisses'); delete window.__CAISSES_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
+        this.scenery = new SceneryLayer(this, 'caisses');
         this.graphics = this.add.graphics();
         this.hud = this.add.text(12, 20, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 6 });
         const action = (d: Direction | 'undo' | 'special'): void => {
@@ -88,6 +94,7 @@ export class CaissesScene extends Phaser.Scene {
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         this.game.canvas.setAttribute('aria-label', 'Caisses : pousser les caisses dorées sur les cibles turquoise');
         if (new URLSearchParams(location.search).get('test') === '1') window.__CAISSES_TEST__ = {
+            ...fingerProof,
             advance: ms => {
                 if (!Number.isFinite(ms) || ms < 0) throw new RangeError('Temps invalide');
                 this.testManual = true;
@@ -96,7 +103,8 @@ export class CaissesScene extends Phaser.Scene {
             },
             bounds: () => ({ hero: { ...this.heroBounds } }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.hero.time }),
-            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, pulling: this.pulling }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            fingerReceipts: receipts,
+            read: () => ({ fingerInput: { paused: this.session.paused, pulling: this.pulling }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             hudText: () => this.hud?.text ?? '', usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             scenario: name => {
@@ -128,14 +136,26 @@ export class CaissesScene extends Phaser.Scene {
         const g = this.graphics; if (!g) return;
         this.hero.advance(0, this.session.paused || this.selecting, this.engine.status, this.engine.specialMs > 0);
         const b = this.engine.board, s = this.engine.state;
-        g.clear(); g.fillStyle(0x101827); g.fillRect(0, 0, 360, 640);
-        const unit = Math.min(336 / b.width, 490 / b.height), ox = (360-b.width*unit)/2, oy = 120+(490-b.height*unit)/2;
+        const world = worldOf(this.engine.level), time = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : this.time.now / 1000;
+        g.clear();
+        const unit = Math.min(344 / b.width, 470 / b.height), ox = (360-b.width*unit)/2, oy = 140+(470-b.height*unit)/2;
+        const layer = this.scenery, sg = layer?.g;
+        if (layer && sg && layer.stale(b)) {
+            backdrop(sg, world, 360, 640); hudVeil(sg, world, 6, 12, 348, 116);
+            // The workshop stands on a ground slab: grass frame, soil underneath; walls, ice and floor never move.
+            const rim = Math.max(6, unit * .3);
+            for (let i = 0; i < b.width + 1; i++) groundTile(sg, world, ox - rim + i * (b.width * unit + rim * 2) / (b.width + 1), oy + b.height * unit, (b.width * unit + rim * 2) / (b.width + 1), i);
+            sg.fillStyle(0x000000, .25); sg.fillRoundedRect(ox - rim, oy - rim, b.width * unit + rim * 2, b.height * unit + rim * 2, rim);
+            for (let p = 0; p < b.width * b.height; p++) {
+                const column = p % b.width, row = Math.floor(p / b.width), x = ox + column * unit, y = oy + row * unit;
+                if (b.walls.includes(p)) stoneBlock(sg, world, x, y, unit, column * 7 + row * 3); else if (b.ice.includes(p)) iceTile(sg, x, y, unit); else floorTile(sg, world, x, y, unit, (column + row) % 2 === 1);
+            }
+            layer.commit();
+        }
         const open = doorOpen(b, { player: s.player, boxes: s.boxes, colors: s.colors, filled: s.filled });
         const red = 0xff6b6b;
         for (let p=0; p<b.width*b.height; p++) {
             const x=ox+p%b.width*unit, y=oy+Math.floor(p/b.width)*unit, cx = x+unit/2, cy = y+unit/2;
-            g.fillStyle(b.walls.includes(p)?0x52647c:b.ice.includes(p)?0x9fd8ff:0x20394c); g.fillRoundedRect(x+1,y+1,unit-2,unit-2,3);
-            if (b.ice.includes(p)) { g.lineStyle(1, 0xffffff, 0.7); g.lineBetween(x+unit*.2,y+unit*.7,x+unit*.45,y+unit*.3); g.lineBetween(x+unit*.55,y+unit*.8,x+unit*.8,y+unit*.4); }
             const arrow = b.arrows.find(a => a.at === p);
             if (arrow) { const [dx, dy] = ({ up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] } as const)[arrow.direction]; g.fillStyle(0x7fdcff, 0.85); g.fillTriangle(cx+dx*unit*.3, cy+dy*unit*.3, cx-dx*unit*.15-dy*unit*.22, cy-dy*unit*.15-dx*unit*.22, cx-dx*unit*.15+dy*unit*.22, cy-dy*unit*.15+dx*unit*.22); }
             if (b.plates.includes(p)) { g.fillStyle(0xffd166); g.fillCircle(cx, cy, unit*.22); g.lineStyle(2, 0x8a6d1f); g.strokeCircle(cx, cy, unit*.22); }
@@ -144,18 +164,22 @@ export class CaissesScene extends Phaser.Scene {
             const pad = b.pads.indexOf(p);
             if (pad >= 0) { g.lineStyle(3, 0xd29af2); g.strokeCircle(cx, cy, unit*.32); g.strokeCircle(cx, cy, unit*.16); }
             const target = b.targets.indexOf(p);
-            if (target >= 0) { g.lineStyle(3, b.targetColors[target] ? red : 0x64e4cc); g.strokeCircle(cx, cy, unit*.3); }
+            if (target >= 0) { const tc = b.targetColors[target] ? red : 0x64e4cc; g.fillStyle(tc, .3 + .15 * Math.sin(time * 3)); g.fillCircle(cx, cy, unit*.36); g.lineStyle(3, tc); g.strokeCircle(cx, cy, unit*.3); g.strokeCircle(cx, cy, unit*.14); }
             const box = s.boxes.indexOf(p);
             if (box >= 0) {
                 const isRed = (s.colors[box] ?? 0) === 1, home = target >= 0 && (b.targetColors[target] ?? 0) === (s.colors[box] ?? 0);
-                g.fillStyle(home ? 0x64e4cc : isRed ? red : 0xffb867); g.fillRoundedRect(x+4,y+4,unit-8,unit-8,3);
-                g.lineStyle(2,0x6a4a35); g.lineBetween(x+7,y+7,x+unit-7,y+unit-7); g.lineBetween(x+unit-7,y+7,x+7,y+unit-7);
+                if (home) { g.fillStyle(0x64e4cc, .45); g.fillRoundedRect(x+1, y+1, unit-2, unit-2, unit*.2); }
+                crate(g, x+unit*.08, y+unit*.08, unit*.84, home ? 0x5fbf6a : isRed ? 0xc4483c : 0xd08a3e);
             }
             if (s.player===p) {
-                this.heroBounds = { x: x-unit*.1, y: y-unit*.15, width: unit*1.2, height: unit*1.2 };
-                this.hero.draw(g, x-unit*.1, y-unit*.15, unit*1.2);
+                // The character stands a head taller than its cell so it reads on a phone.
+                const size = unit * 1.55, hx = x + (unit - size) / 2, hy = y + unit - size;
+                g.fillStyle(0x000000, .25); g.fillEllipse(cx, y + unit * .9, unit * .7, unit * .2);
+                this.heroBounds = { x: hx, y: hy, width: size, height: size };
             }
         }
+        // Drawn after every tile: the raised character overlaps its neighbours instead of hiding under them.
+        this.hero.draw(g, this.heroBounds.x, this.heroBounds.y, this.heroBounds.width);
         const left = this.engine.budgetLeft(), tip = this.engine.status === 'lost' ? 'Budget épuisé : annulez ↶ ou recommencez' : workshopTip(this.engine.level);
         const text = `CAISSES · ${String(this.engine.level+1)}/30 · ${LEVELS[this.engine.level]?.name ?? ''} · SCORE ${String(s.score)}\nPAS ${String(s.moves)}${left > 0 || this.engine.status === 'lost' ? ` (reste ${String(left)})` : ''} · POUSSÉES ${String(s.pushes)}\nTIRER ${String(this.engine.specialUses)}/1${this.pulling ? ' : direction ?' : ''}\nRecords sans/avec : ${String(LEVELS[this.engine.level]?.minimumPushes ?? 0)}/${String(pullRecords[this.engine.level]?.pushes ?? 0)} poussées${this.engine.snapshot().deadlocked ? '\nCoin bloqué : annulez ↶' : `\n${tip}`}`;
         this.hud?.setText(text);

@@ -7,7 +7,7 @@ export const solutions: readonly (readonly [number, number, Role])[][] = [
     [[9,0,"build"]],
     [[10,0,"build"]],
     [[9,0,"dig"]],
-    [[7,0,"dig"],[17,0,"block"]],
+    [[33,0,"dig"]],
     [[9,0,"bash"]],
     [[6,0,"bash"],[15,0,"build"]],
     [[6,0,"float"],[14,1,"float"],[22,2,"float"],[30,3,"float"],[38,4,"float"],[46,5,"float"]],

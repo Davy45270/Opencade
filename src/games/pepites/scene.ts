@@ -1,3 +1,4 @@
+import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
 import { Engine, LEVELS, W, H, mine, type Direction } from '../../engines/pepites/engine';
@@ -21,6 +22,7 @@ export interface PepitesHook {
     advance(ms: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
     read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
 }
@@ -43,6 +45,7 @@ export class PepitesScene extends Phaser.Scene {
         this.testManual = false; this.progress.start(index, fresh); this.engine.loadLevel(index, seed); this.selecting = false; this.panels();
     }
     create(): void {
+        const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('pepites');
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('pepites'); delete window.__PEPITES_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
@@ -86,6 +89,7 @@ export class PepitesScene extends Phaser.Scene {
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: TOP, width: W * CELL, height: H * CELL }),
+            fingerReceipts: receipts,
             read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
         };

@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import { Engine, WIDTH, HEIGHT, LEVELS } from '../../engines/bombercade/engine';
-import { palettes } from './art';
+import { palettes, tile, crate } from './art';
 
 /** Only images survive baking: no arena Graphics commands are replayed per frame. */
 export class ArenaLayer {
@@ -36,21 +36,44 @@ export class ArenaLayer {
         if (signature !== this.signature) {
             this.reset(); this.signature = signature;
             const base = this.bake(g => {
-                g.fillStyle(palette[0]); g.fillRect(0, 0, 360, 640);
-                g.lineStyle(1, palette[2], .2); for (let i = 0; i < 9; i++) g.strokeCircle(180, 330, 80 + i * 34);
-                const unit = 30, ox = 15, oy = 140;
-                for (let at = 0; at < WIDTH * HEIGHT; at++) {
-                    const x = ox + at % WIDTH * unit, y = oy + Math.floor(at / WIDTH) * unit;
-                    const wall = e.board.walls.includes(at);
-                    g.fillStyle(wall ? palette[2] : palette[1], wall ? .85 : .45); g.fillRoundedRect(x + 1, y + 1, 28, 28, wall ? 6 : 3);
-                    if (wall) {
-                        g.lineStyle(2, palette[0], .35); g.lineBetween(x + 5, y + 9, x + 25, y + 9);
-                        if (level.arena === 'jungle') { g.fillStyle(0x285b32); g.fillEllipse(x + 10, y + 12, 15, 6); g.fillEllipse(x + 21, y + 20, 12, 5); }
-                        if (level.arena === 'château') { g.fillStyle(palette[0], .55); for (let n = 0; n < 3; n++) g.fillRect(x + 4 + n * 8, y + 1, 4, 5); g.lineBetween(x + 13, y + 9, x + 13, y + 26); }
-                        if (level.arena === 'volcan') { g.lineStyle(2, 0xffdf62, .85); g.lineBetween(x + 8, y + 4, x + 19, y + 14); g.lineBetween(x + 19, y + 14, x + 12, y + 26); }
-                        if (level.arena === 'sucré') { g.lineStyle(3, 0xffe6f7, .8); g.lineBetween(x + 5, y + 20, x + 20, y + 5); g.fillStyle(0xf56bb5); g.fillCircle(x + 20, y + 21, 4); }
-                    }
+                // generateTexture uses the Canvas renderer: bake the gradient as solid bands.
+                for (let band = 0; band < 32; band++) {
+                    const t = band / 62;
+                    const mix = (shift: number): number => Math.round(((palette[0] >> shift) & 255) * (1 - t) + ((palette[1] >> shift) & 255) * t);
+                    g.fillStyle((mix(16) << 16) | (mix(8) << 8) | mix(0)); g.fillRect(0, band * 20, 360, 20);
                 }
+                g.lineStyle(1, palette[2], .09);
+                for (let i = 0; i < 18; i++) {
+                    const x = (i * 73) % 360, y = (i * 113) % 640;
+                    if (level.arena === 'jungle') { g.fillStyle(palette[2], .08); g.fillEllipse(x, y, 32, 12); g.lineBetween(x - 14, y + 5, x + 14, y - 5); }
+                    else if (level.arena === 'château') g.strokeRoundedRect(x, y, 28, 18, 3);
+                    else if (level.arena === 'volcan') { g.lineBetween(x - 10, y - 16, x, y); g.lineBetween(x, y, x - 5, y + 15); }
+                    else { g.strokeCircle(x, y, 12 + i % 4 * 7); g.lineBetween(x - 6, y - 6, x + 6, y + 6); }
+                }
+                g.fillStyle(0x050d1b, .6); g.fillRoundedRect(10, 136, 340, 400, 10);
+                g.lineStyle(2, palette[2], .7); g.strokeRoundedRect(11, 137, 338, 396, 8);
+                for (let at = 0; at < WIDTH * HEIGHT; at++) {
+                    const col = at % WIDTH, row = Math.floor(at / WIDTH);
+                    tile(g, level.arena as keyof typeof palettes, 15 + col * 30, 140 + row * 30, at, false, false);
+                }
+                // Floor first: a wall's soft shadow must survive on the next row.
+                for (const at of e.board.walls) {
+                    const col = at % WIDTH, row = Math.floor(at / WIDTH);
+                    tile(g, level.arena as keyof typeof palettes, 15 + col * 30, 140 + row * 30, at, true, col === 0 || col === WIDTH - 1 || row === 0 || row === HEIGHT - 1);
+                }
+                if (level.arena === 'château') for (const x of [30, 330]) for (const y of [215, 455]) {
+                    g.fillStyle(0x251a20); g.fillRoundedRect(x - 4, y - 2, 8, 14, 2);
+                    g.fillStyle(0xb58244); g.fillRect(x - 6, y - 3, 12, 4);
+                }
+                // Static card and speech bubble belong to the baked layer too.
+                g.fillStyle(0x071727, .93); g.fillRoundedRect(12, 12, 336, 113, 14);
+                g.lineStyle(1, palette[2], .7); g.strokeRoundedRect(12, 12, 336, 113, 14);
+                g.lineStyle(2, 0xffdf9c); g.strokeCircle(308, 77, 9);
+                g.lineBetween(308, 77, 308, 71); g.lineBetween(308, 77, 313, 80);
+                g.fillStyle(0x33475d); g.fillRoundedRect(24, 115, 312, 3, 1);
+                g.fillStyle(0xfff3d9); g.fillRoundedRect(15, 550, 330, 70, 12);
+                g.fillTriangle(35, 550, 48, 550, 35, 540);
+
             }, 360, 640);
             this.layers.push(this.scene.add.image(0, 0, base).setOrigin(0).setDepth(-3));
             const overlay = this.bake(g => {
@@ -72,10 +95,8 @@ export class ArenaLayer {
             let key = this.blockKeys.get(style);
             if (!key) {
                 key = this.bake(g => {
-                    const x = 0, y = 0;
-                    g.fillStyle(block.kind === 'gold' ? 0xffd153 : block.kind === 'ice' ? 0x9eeaff : palette[3]); g.fillRoundedRect(x + 3, y + 3, 24, 24, 5);
-                    g.lineStyle(block.hp === 2 ? 3 : 1, palette[0], .6); g.strokeRoundedRect(x + 6, y + 6, 18, 18, 3); g.lineBetween(x + 7, y + 7, x + 23, y + 23);
-                }, 30, 30);
+                    crate(g, level.arena as keyof typeof palettes, block);
+                }, 32, 34);
                 this.blockKeys.set(style, key);
             }
             if (entry) entry.image.destroy();

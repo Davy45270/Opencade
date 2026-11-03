@@ -1,3 +1,4 @@
+import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { DecorCache } from '../ferraille/decor-cache';
@@ -26,7 +27,8 @@ export interface BriqueterieHook {
     art(): ReturnType<ActionPaint['stats']>;
     power(kind: 'wide' | 'multi' | 'life'): void;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'fall'): void;
 }
@@ -109,13 +111,15 @@ export class BriqueterieScene extends Phaser.Scene {
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         area.setAttribute('aria-label', 'Briqueterie : glisser pour déplacer la raquette, toucher pour lancer');
         if (new URLSearchParams(location.search).get('test') === '1') window.__BRIQUETERIE_TEST__ = {
+            ...fingerProof,
             advance: ms => { this.advanceTest(ms); },
             art: () => { if (!this.art) throw new Error('Atlas absent'); return this.art.stats(); },
             power: kind => { this.engine.spawnBonus(this.engine.state.paddle, 470, kind); this.draw(); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.snapshot().ticks * 1000 / 60 }),
-            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            fingerReceipts: receipts,
+            read: () => ({ fingerInput: { paused: this.session.paused }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 this.start(0, 455, true);

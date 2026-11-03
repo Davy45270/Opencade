@@ -5,7 +5,8 @@ import { LEVELS, type LevelDef } from './levels';
  */
 export const COLS = 20;
 export const ROWS = 22;
-export const TICK_MS = 125;
+/** One tick every 250 ms (twice as slow as the first release); the « » » button doubles it back. */
+export const TICK_MS = 250;
 /** Falling more than this many cells is fatal without a parachute. */
 export const FALL_MAX = 5;
 export const BUILD_STEPS = 5;

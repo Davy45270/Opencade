@@ -1,4 +1,6 @@
+import { fingerProof } from './finger';
 import Phaser from 'phaser';
+import { fingerReceipts } from '../finger-receipts';
 import { Random } from '../../engines/shared/random';
 import { GameCharacter } from '../../characters/game';
 import { drawList } from '../../characters/model';
@@ -23,7 +25,18 @@ export const gourmandisesButtons: readonly TouchButton[] = [
 const MODE_KEY = 'arcade-lab:gourmandises:mode:v1';
 const RUN_KEY = 'arcade-lab:gourmandises:run:v1';
 export interface GourmandisesHook {
-    read(): State & { armedTool: Tool | null; stars: number; characterView: ReturnType<GameCharacter['snapshot']> };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read(): State & {
+        armedTool: Tool | null;
+        stars: number;
+        characterView: ReturnType<GameCharacter['snapshot']>;
+        fingerInput: {
+            paused: boolean;
+            animation: number;
+            down: { index: number; x: number; y: number } | null;
+        };
+    };
+    advance(ms: number): void;
     transport(): { from: number; to: number; piece: Piece }[];
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
@@ -43,6 +56,7 @@ export class GourmandisesScene extends Phaser.Scene {
     private engine = new Engine(readValue(browserStorage(), MODE_KEY) === 'arcade' ? 'arcade' : 'discovery', this.hero.id);
     private progress = new Progression(readSave(browserStorage(), 'gourmandises', LEVELS.length), LEVELS.length);
     private inputs = new Inputs();
+    private manual = false;
     private selecting = false;
     private ready = true;
     private selected = -1;
@@ -325,32 +339,8 @@ export class GourmandisesScene extends Phaser.Scene {
             count.className = 'tool-count';
             button?.replaceChildren(icon, count);
         }
-        const indexAt = (x: number, y: number): number => {
-            const b = this.board();
-            const col = Math.floor((x - b.x) / b.unit);
-            const row = Math.floor((y - b.y) / b.unit);
-            return col >= 0 && col < this.engine.state.width && row >= 0 && row < this.engine.state.height
-                ? row * this.engine.state.width + col : -1;
-        };
-        this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
-            if (!this.blocked()) {
-                this.engine.state.idle = 0;
-                this.down = { index: indexAt(p.x, p.y), x: p.x, y: p.y };
-            }
-        });
-        this.input.on('pointerup', (p: Phaser.Input.Pointer) => {
-            const down = this.down;
-            this.down = null;
-            if (!down || down.index < 0 || this.blocked()) return;
-            const dx = p.x - down.x;
-            const dy = p.y - down.y;
-            if (!this.tool && Math.hypot(dx, dy) >= this.board().unit * 0.35) {
-                const released = indexAt(p.x, p.y);
-                const direction = Math.abs(dx) > Math.abs(dy) ? Math.sign(dx) : Math.sign(dy) * this.engine.state.width;
-                const target = this.engine.adjacent(down.index, released) ? released : down.index + direction;
-                this.act(down.index, target);
-            } else this.choose(down.index);
-        });
+        this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { this.pointerDown(p.x, p.y); });
+        this.input.on('pointerup', (p: Phaser.Input.Pointer) => { this.pointerUp(p.x, p.y); });
         this.inputs.on(document, 'keydown', event => { this.keydown(event as KeyboardEvent); });
         this.inputs.on(document, 'keyup', event => {
             if ((event as KeyboardEvent).code === 'KeyP') {
@@ -372,12 +362,66 @@ export class GourmandisesScene extends Phaser.Scene {
         };
         for (const id of ['levels', 'result-levels', 'close-levels']) this.inputs.on(document.querySelector(`#${id}`), 'click', levels);
         this.game.canvas.setAttribute('aria-label', `${GAME_NAME} : permuter deux pièces voisines`);
-        if (new URLSearchParams(location.search).get('test') === '1') window.__GOURMANDISES_TEST__ = {
+        if (new URLSearchParams(location.search).get('test') === '1') window.__GOURMANDISES_TEST__ = this.testHook(fingerReceipts(this.inputs));
+        const cleanup = (): void => {
+            this.inputs.dispose();
+            document.body.classList.remove('gourmandises');
+            this.modeButton?.remove();
+            delete window.__GOURMANDISES_TEST__;
+            this.textures.remove('gourmandises-board');
+            this.textures.remove('gourmandises-scenery');
+            sound.stop();
+        };
+        this.events.once('shutdown', cleanup);
+        this.events.once('destroy', cleanup);
+        this.sync();
+    }
+    private indexAt(x: number, y: number): number {
+        const b = this.board();
+        const col = Math.floor((x - b.x) / b.unit), row = Math.floor((y - b.y) / b.unit);
+        return col >= 0 && col < this.engine.state.width && row >= 0 && row < this.engine.state.height
+            ? row * this.engine.state.width + col : -1;
+    }
+    private pointerDown(x: number, y: number): void {
+        if (!this.blocked()) {
+            this.engine.state.idle = 0;
+            this.down = { index: this.indexAt(x, y), x, y };
+        }
+    }
+    private pointerUp(x: number, y: number): void {
+        const down = this.down;
+        this.down = null;
+        if (!down || down.index < 0 || this.blocked()) return;
+        const dx = x - down.x, dy = y - down.y;
+        if (!this.tool && Math.hypot(dx, dy) >= this.board().unit * 0.35) {
+            const released = this.indexAt(x, y);
+            const direction = Math.abs(dx) > Math.abs(dy) ? Math.sign(dx) : Math.sign(dy) * this.engine.state.width;
+            this.act(down.index, this.engine.adjacent(down.index, released) ? released : down.index + direction);
+        } else this.choose(down.index);
+    }
+    private testHook(receipts: ReturnType<typeof fingerReceipts>): GourmandisesHook {
+        const pausePanel = document.querySelector<HTMLElement>('#pause-panel');
+        return {
+            ...fingerProof,
+            fingerReceipts: receipts,
             read: () => {
                 const paused = this.ready || this.session.paused || this.selecting;
                 const special = this.animation > 0 && (this.combo > 1 || this.engine.events.some(e => e.type === 'special'));
                 this.hero.advance(0, paused, this.engine.status, special);
-                return { ...this.engine.snapshot(), armedTool: this.tool, stars: this.engine.stars, characterView: this.hero.snapshot() };
+                return {
+                    ...this.engine.snapshot(), armedTool: this.tool, stars: this.engine.stars,
+                    characterView: this.hero.snapshot(),
+                    fingerInput: { paused, animation: this.animation, down: this.down ? { ...this.down } : null },
+                };
+            },
+            advance: ms => {
+                if (!Number.isFinite(ms) || ms < 0) throw new RangeError('Temps invalide');
+                this.manual = true;
+                for (let remaining = ms; remaining > 0;) {
+                    const delta = Math.min(remaining, 1000 / 60);
+                    this.tick(delta);
+                    remaining -= delta;
+                }
             },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 600 }),
@@ -414,21 +458,10 @@ export class GourmandisesScene extends Phaser.Scene {
                 return final;
             },
         };
-        const cleanup = (): void => {
-            this.inputs.dispose();
-            document.body.classList.remove('gourmandises');
-            this.modeButton?.remove();
-            delete window.__GOURMANDISES_TEST__;
-            this.textures.remove('gourmandises-board');
-            this.textures.remove('gourmandises-scenery');
-            sound.stop();
-        };
-        this.events.once('shutdown', cleanup);
-        this.events.once('destroy', cleanup);
-        this.sync();
     }
     updatePaused(): void { this.draw(); }
-    update(_time: number, delta: number): void {
+    update(_time: number, delta: number): void { this.tick(this.manual ? 0 : delta); }
+    private tick(delta: number): void {
         const paused = this.ready || this.session.paused || this.selecting;
         if (!paused) {
             this.engine.advance(delta);

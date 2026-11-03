@@ -1,3 +1,4 @@
+import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
@@ -38,7 +39,8 @@ export interface FerrailleHook {
     rendering(): FerrailleScene['rendering'];
     inspect(change: { heroX?: number; weapon?: Engine['state']['weapon']; ammo?: number; score?: number; bossHp?: number; bossClock?: number }): void;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; controls: ReturnType<Engine['snapshot']>['input'] }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; controls: ReturnType<Engine['snapshot']>['input'] }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger' | 'showcase'): void;
 }
@@ -111,6 +113,7 @@ export class FerrailleScene extends Phaser.Scene {
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         this.game.canvas.setAttribute('aria-label', 'Ferraille : aventurier dans les ateliers suspendus');
         if (new URLSearchParams(location.search).get('test') === '1') window.__FERRAILLE_TEST__ = {
+            ...fingerProof,
             advance: ms => { this.advanceTest(ms); },
             layout: () => this.layout(),
             art: () => { if (!this.art) throw new Error('Atlas absent'); return this.art.stats(); },
@@ -131,7 +134,8 @@ export class FerrailleScene extends Phaser.Scene {
             },
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.state.ticks * 1000 / 60 }),
-            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, controls: this.controls() }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            fingerReceipts: receipts,
+            read: () => ({ fingerInput: { paused: this.session.paused, controls: this.controls() }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 if (name === 'showcase') {

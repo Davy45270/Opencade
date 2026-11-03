@@ -8,7 +8,7 @@ export class AimDriver {
     constructor(readonly engine: Engine, private enabled: () => boolean = () => true) {}
     down(p: Point): boolean {
         const a = this.engine.actor;
-        if (!this.enabled() || this.pointer !== null || this.engine.phase !== 'aim' || Math.hypot(p.x - a.x, p.y - a.y) > 32) return false;
+        if (!this.enabled() || this.pointer !== null || this.engine.phase !== 'aim' || Math.abs(p.x - a.x) > 44 || p.y < a.y - 55 || p.y > a.y + 28) return false;
         this.pointer = p.id; this.turn = this.engine.turn; this.actor = a.id; return true;
     }
     move(p: Point): void {

@@ -1,11 +1,11 @@
+import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { Engine, chooseShot, WEAPONS } from '../../engines/artificiers/engine';
 import { LEVELS, GAME_NAME } from '../../engines/artificiers/levels';
 import { CELL, COLS } from '../../engines/artificiers/terrain';
 import { selectedCharacter } from '../../characters/selection';
-import { characters, ids, drawList } from '../../characters/model';
-import { renderCharacter } from '../../characters/phaser';
+import { characters, ids } from '../../characters/model';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
 import { Progression } from '../../shell/progression';
@@ -14,7 +14,7 @@ import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { AimDriver } from './driver';
-import { countedGraphics, drawDynamic, drawScenery, themes, WORLD_SCALE, screenY } from './art';
+import { countedGraphics, drawDynamic, drawScenery, themes, WORLD_SCALE, screenY, drawHero, HERO_SIZE, HERO_X, HERO_Y } from './art';
 export const artificiersButtons: readonly TouchButton[] = [
     { id: 'artificiers-left', label: '←', ariaLabel: 'Marcher à gauche', size: 56, placement: 'left', mode: 'hold' },
     { id: 'artificiers-right', label: '→', ariaLabel: 'Marcher à droite', size: 56, placement: 'left', mode: 'hold' },
@@ -24,7 +24,8 @@ export const artificiersButtons: readonly TouchButton[] = [
     { compactMenu: true, id: 'artificiers-mode', label: '1 / 2', ariaLabel: 'Changer entre solo et deux joueurs', size: 56, placement: 'center', mode: 'tap' },
 ];
 export interface ArtificiersHook {
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; aiming: { id: number; x: number; y: number } | null } };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; aiming: { id: number; x: number; y: number } | null } };
     renderedFrames(): number;
     hudText(): string;
     heroBounds(): { id: number; x: number; y: number; width: number; height: number; visible: boolean }[];
@@ -86,8 +87,8 @@ export class ArtificiersScene extends Phaser.Scene {
         // Rasterize the shared character artwork once per pose, then only move sprites.
         for (const hero of ids) for (const pose of ['repos', 'saut', 'celebration'] as const) {
             const key = `artificiers-${hero}-${pose}`, painter = this.add.graphics();
-            renderCharacter(painter, drawList(hero, 'face', pose === 'celebration' ? 'joie' : 'concentre', pose, 0, 'reduce'), 0, 0, 42);
-            painter.generateTexture(key, 42, 42); painter.destroy(); this.textureKeys.push(key);
+            drawHero(painter, hero, pose);
+            painter.generateTexture(key, HERO_SIZE, HERO_SIZE); painter.destroy(); this.textureKeys.push(key);
         }
         this.heroes = Array.from({ length: 6 }, () => this.add.image(0, 0, 'artificiers-panda-repos').setOrigin(0).setScale(1, WORLD_SCALE));
         this.graphics = countedGraphics(this.add.graphics(), this.budget);
@@ -149,7 +150,9 @@ export class ArtificiersScene extends Phaser.Scene {
         this.inputs.on(window, 'blur', () => { this.held.clear(); this.cancelAim(); });
         this.game.canvas.setAttribute('aria-label', `${GAME_NAME} : glisser du héros vers le ciel pour viser, relâcher pour tirer`);
         if (new URLSearchParams(location.search).get('test') === '1') window.__ARTIFICIERS_TEST__ = {
-            read: () => ({ ...this.engine.snapshot(), fingerInput: { receipts: receipts(), paused: this.session.paused, aiming: this.aiming && { ...this.aiming } } }),
+            ...fingerProof,
+            fingerReceipts: receipts,
+            read: () => ({ ...this.engine.snapshot(), fingerInput: { paused: this.session.paused, aiming: this.aiming && { ...this.aiming } } }),
             renderedFrames: () => this.frames, hudText: () => this.hud?.text ?? '',
             heroBounds: () => this.heroes.flatMap((sprite, i) => {
                 const u = this.engine.units[i]; if (!u) return [];
@@ -229,7 +232,7 @@ export class ArtificiersScene extends Phaser.Scene {
             const u = e.units[i]; sprite.setVisible(!!u && u.hp > 0);
             if (!u) return;
             const pose = e.status === 'won' ? 'celebration' : u.vy ? 'saut' : 'repos';
-            sprite.setTexture(`artificiers-${u.hero}-${pose}`).setPosition(u.x - 21, screenY(u.y - 29)).setFlipX(u.team === 1);
+            sprite.setTexture(`artificiers-${u.hero}-${pose}`).setPosition(u.x - HERO_X, screenY(u.y - HERO_Y)).setFlipX(u.team === 1);
         });
         const a = e.actor, mission = e.config.mission === 'survive' ? `Tenir ${String(e.config.goal)} manches` : e.config.mission === 'structure' ? 'Détruire la tour en bois' : e.config.mission === 'target' ? 'Toucher la cible' : 'Dernière équipe debout';
         this.hud?.setText(`N${String(e.level + 1)} · ${e.config.name} · ${String(e.score)} pts\n${mission}\n${e.mode === 'duo' ? '2 joueurs · ' : ''}Équipe ${String(a.team + 1)} · ${characters[a.hero].fr} · ${String(Math.ceil(e.timer / 1000))} s\nVent ${e.wind < 0 ? '←' : '→'} ${String(Math.abs(e.wind))} · Tour ${String(e.turn + 1)}${e.turn >= e.config.sudden ? ' · Eau montante !' : ''}`);

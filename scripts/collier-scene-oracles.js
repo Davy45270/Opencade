@@ -2,11 +2,16 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { transpile } from './transpile.js';
+import { GameCharacter } from '../src/characters/game.ts';
 import { readDriver } from '../src/games/collier/driver.ts';
 import { Engine, FIXED_MS } from '../src/engines/collier/engine.ts';
 import { GAME_NAME, LEVELS } from '../src/engines/collier/levels.ts';
 import { policy } from '../src/engines/collier/policy.ts';
-import { fieldView, logicalPoint, shooterLayout, themeIndex, themes } from '../src/games/collier/presentation.ts';
+import { canvasSize, fieldView, logicalPoint, shooterLayout, themeIndex, themes } from '../src/games/collier/presentation.ts';
+import { compareBakedActors } from './collier-baked-oracle.js';
+import { actorLayers } from '../src/games/collier/actor-art.ts';
+import { graphicsMeter } from './collier-graphics-meter.js';
+import { renderCharacter } from '../src/characters/phaser.ts';
 import { drawList } from '../src/characters/model.ts';
 import { drawDecor, drawMotif, drawBonus } from '../src/games/collier/art.ts';
 const sceneFile = new URL('../src/games/collier/scene.ts', import.meta.url);
@@ -17,10 +22,16 @@ let sceneFactory;
 
 /** Execute the delivered scene's listeners and drawing calls, without a browser.
  * Only platform services are doubled; the scene and the engine are the real sources. */
-export function createScene(character = 'panda') {
+export function createScene(character = 'panda', measure = false, source, dimensions = canvasSize) {
+    const meter = graphicsMeter();
     const handlers = new Map();
+    const domHandlers = new Map();
     const textures = new Set();
+    const textureCommands = new Map();
     const drawings = [];
+    const texts = [];
+    const images = [];
+    let textureBuilds = 0;
     const circles = [];
     const sounds = [];
     const calls = [];
@@ -28,7 +39,7 @@ export function createScene(character = 'panda') {
     const graphics = new Proxy({}, {
         get: (_, name) => (...args) => {
             calls.push({ name, args });
-            if (name === 'generateTexture') textures.add(args[0]);
+            if (name === 'generateTexture') { textures.add(args[0]); textureBuilds++; }
             if (name === 'clear')
                 circles.length = 0;
             if (name === 'fillStyle')
@@ -42,16 +53,17 @@ export function createScene(character = 'panda') {
                 });
         },
     });
-    class Actor {
+    class Actor extends GameCharacter {
+        pose = 'face'; expression = 'concentre'; animation = 'repos'; time = 0; flip = false;
         constructor(id = character) {
-            this.id = id;
+            super(id);
         }
         snapshot() {
-            return { id: this.id };
+            return super.snapshot();
         }
-        advance() {
-        }
+        advance(...args) { super.advance(...args); }
         draw(_g, x, y, size) {
+            if (measure) renderCharacter(_g, drawList(this.id, 'face', this.expression ?? 'concentre', this.animation ?? 'repos', this.time ?? 0), x, y, size);
             calls.push({ name: 'actor', args: [this.id, x, y, size] });
             drawings.push({
                 id: this.id,
@@ -63,7 +75,8 @@ export function createScene(character = 'panda') {
     }
     class Inputs {
         on(_element, event, callback) {
-            handlers.set(event, callback);
+            if (_element === host) domHandlers.set(event, callback);
+            else handlers.set(event, callback);
         }
         dispose() {
         }
@@ -79,6 +92,7 @@ export function createScene(character = 'panda') {
         }
     }
     class BaseScene {
+        scale = { canvasBounds: { left: 0, top: 0 }, displayScale: { x: 1, y: 1 }, width: 360, height: 640, setGameSize(width, height) { this.width = width; this.height = height; } };
         input = {
             on(event, callback) {
                 handlers.set(event, callback);
@@ -86,27 +100,39 @@ export function createScene(character = 'panda') {
             removeAllListeners() {
             },
         };
-        textures = { exists: key => textures.has(key) };
-        add = { graphics: () => graphics, image: (_x, _y, key) => {
+        textures = { exists: key => textures.has(key), remove: key => textures.delete(key) };
+        add = { graphics: () => measure ? meter.create((key, commands) => { textures.add(key); if (key.startsWith('collier-pearl-')) textureCommands.set(key, Array.from(commands)); textureBuilds++; }) : graphics, image: (_x, _y, key) => {
             const image = { key, visible: true, x: 0, y: 0,
-                setOrigin() { return this; }, setDepth() { return this; }, destroy() {},
+                setOrigin() { return this; }, setDepth() { return this; }, destroy() { images.splice(images.indexOf(this), 1); },
+                setRotation(value) { this.rotation = value; return this; }, setAlpha() { return this; },
+                setSize(width, height) { this.width = width; this.height = height; return this; },
                 setTexture(value) { this.key = value; return this; },
                 setPosition(x, y) { this.x = x; this.y = y; return this; },
-                setDisplaySize() { return this; }, setScale() { return this; },
+                setDisplaySize() { return this; }, setScale(value) { this.scale = value; return this; },
                 setVisible(value) { this.visible = value; return this; }
             };
+            images.push(image);
             return image;
-        }, text: () => ({ setText() {}, setOrigin() { return this; } }) };
+        }, text: (x, y, value, style) => {
+            const label = { x, y, text: value, style, setText(value) { this.text = value; return this; }, setColor(value) { this.style.color = value; return this; }, setOrigin() { return this; } };
+            texts.push(label);
+            return label;
+        } };
         events = { once() {
             } };
         game = { canvas: { setAttribute() {
                 } } };
     }
+    // A TileSprite repeats the 12px cell with its first dot six pixels in.
+    BaseScene.prototype.addTile = function(x, y, width, height, key) {
+        return this.add.image(x, y, key).setSize(width, height);
+    };
     const page = { querySelector: () => null };
     const host = {};
     const bindings = {
+        fingerProof: { fingerReceived: () => true },
         Phaser: { Scene: BaseScene },
-        fieldView, logicalPoint, shooterLayout, themeIndex, themes, drawDecor, drawMotif, drawBonus,
+        canvasSize: dimensions, fieldView, logicalPoint, shooterLayout, themeIndex, themes, drawDecor, drawMotif, drawBonus, actorLayers, renderCharacter,
         matchMedia: () => ({ matches: false }),
         Engine,
         DIAMETER: 20,
@@ -141,11 +167,32 @@ export function createScene(character = 'panda') {
             closest() { return null; }
         },
         URLSearchParams,
-        readDriver
+        readDriver,
+        fingerReceipts: new Function('window', 'location', 'URLSearchParams', `${transpile(readFileSync(new URL('../src/games/finger-receipts.ts', import.meta.url), 'utf8')).replace(/^import .*;\s*$/gm, '').replace('export function', 'function')}\nreturn fingerReceipts;`)(host, { search: '?test=1' }, URLSearchParams)
     };
     sceneFactory ??= new Function(...Object.keys(bindings), `${sceneCode}\nreturn CollierScene;`);
-    const Scene = sceneFactory(...Object.values(bindings));
+    const factory = source ? new Function(...Object.keys(bindings), `${transpile(source).replace(/^import .*;\s*$/gm, '').replace(/\bexport (class|const) /g, '$1 ')}\nreturn CollierScene;`) : sceneFactory;
+    const Scene = factory(...Object.values(bindings));
     const scene = new Scene();
+    scene.add.tileSprite = (...args) => scene.addTile(...args);
+    const drawActor = scene.drawActor;
+    scene.drawActor = function(actor, x, y, size) {
+        calls.push({ name: 'actor', args: [actor.id, x, y, size] });
+        drawings.push({ id: actor.id, x, y, size });
+        return drawActor.call(this, actor, x, y, size);
+    };
+    const draw = scene.draw;
+    scene.draw = function() {
+        draw.call(this);
+        const guide = this.sight;
+        if (!guide?.visible) return;
+        const view = fieldView(this.engine.config), angle = guide.rotation;
+        for (let i = 0; i < guide.width / 12; i++) {
+            const offset = (6 + i * 12 - guide.width / 2) * guide.scale;
+            circles.push({ x: (guide.x + Math.cos(angle) * offset - view.x) / view.scale,
+                y: (guide.y + Math.sin(angle) * offset - view.y) / view.scale, radius: 2, fill: 0xf8f1cd });
+        }
+    };
     scene.create();
     const dispatch = (name, point) => {
         assert.ok(handlers.has(name), `Écouteur ${name}`);
@@ -173,8 +220,16 @@ export function createScene(character = 'panda') {
     }
     return {
         scene,
+        domHandlers,
+        handlers,
+        replay: meter.replay,
+        objects: () => images.filter(i => i.visible).length + texts.filter(t => t.text).length + meter.displayed(),
+        images,
+        textureBuilds: () => textureBuilds,
+        textureCommands,
         engine: scene.engine,
         drawings,
+        texts,
         circles,
         calls,
         sounds,
@@ -315,8 +370,8 @@ export function C21() {
             const origin = e.config.shooter;
             send('pointerdown', { id: 1, ...origin, downTime: 1000, wasTouch });
             if (excursion)
-                send('pointermove', { id: 1, x: origin.x + excursion, y: origin.y, wasTouch });
-            send('pointerup', { id: 1, x: origin.x + distance, y: origin.y, upTime: 1000 + duration, wasTouch });
+                send('pointermove', { id: 1, x: origin.x + excursion / fieldView(e.config).scale, y: origin.y, wasTouch });
+            send('pointerup', { id: 1, x: origin.x + distance / fieldView(e.config).scale, y: origin.y, upTime: 1000 + duration, wasTouch });
             assert.equal(e.shots, swaps ? 0 : 1, `${wasTouch}: ${distance}px / ${duration}ms / excursion ${excursion}`);
             if (swaps) {
                 assert.equal(e.current, 1);
@@ -369,7 +424,7 @@ export function C22() {
         const leader = drawings.find(d => d.id === 'singe');
         assert.ok(leader);
         const position = path.pointAt(s + 24);
-        const size = 64 / fieldView(engine.config).scale;
+        const size = 80 / fieldView(engine.config).scale;
         assert.equal(leader.x, position.x - size / 2);
         assert.equal(leader.y, position.y - size * .7);
         return leader;
@@ -607,6 +662,167 @@ export function C30() {
     assert.equal(LEVELS[3].name, 'Arche arrondie');
     assert.equal(LEVELS[7].name, 'Ovale ouvert');
 }
+/** Delivered HUD content, first-shot help and gauge are observed on the scene. */
+export function C34() {
+    const { scene, engine, hook, texts } = createScene();
+    assert.match(hook.hudText(), /Niveau 1/);
+    assert.match(hook.hudText(), /Perles\n18 \/ 24/);
+    assert.match(hook.hudText(), /Score {2}☆☆☆\n0/);
+    assert.match(hook.hudText(), /Ovale croissant/);
+    assert.match(hook.hudText(), /Viser partout/);
+    engine.shoot();
+    scene.draw();
+    assert.doesNotMatch(hook.hudText(), /Viser partout/);
+    hook.loadLevel(29);
+    assert.match(hook.hudText(), /Niveau 30/);
+    assert.doesNotMatch(hook.hudText(), /Viser partout/);
+    assert.ok(scene.hudPanel && scene.quotaBar, 'Baked cards and quota gauge');
+    assert.ok(texts.find(t => t.text.startsWith('Score')).y >= 638);
+    assert.equal(texts.find(t => t.y === 565).style.fontStyle, 'bold');
+    assert.ok(texts.find(t => t.y === 565).style.strokeThickness >= 6);
+    assert.equal(texts.find(t => t.y === 565).style.color, '#fca2ce');
+}
+/** Actual cast silhouettes, including the substitute leader, fit the phone. */
+export function C35() {
+    for (const id of ['panda', 'singe']) {
+        const { scene, hook, drawings } = createScene(id);
+        for (let level = 0; level < 30; level++) {
+            hook.loadLevel(level);
+            drawings.length = 0;
+            scene.draw();
+            const leader = drawings.find(d => d.id === (id === 'singe' ? 'panda' : 'singe'));
+            const ys = drawList(leader.id, 'face', 'concentre', 'repos', 0, 'reduce').flatMap(p => {
+                if (p.kind === 'circle') return [p.y - p.r, p.y + p.r];
+                if (p.kind === 'ellipse') return [p.y - p.ry, p.y + p.ry];
+                if (p.kind === 'path') return p.commands.flatMap(c => c.op === 'C' ? [c.a[1], c.b[1], c.p[1]] : [c.p[1]]);
+                return p.points.map(q => q[1]);
+            });
+            const cssScale = Math.min(358 / 360, 736 / scene.scale.height);
+            assert.ok((Math.max(...ys) - Math.min(...ys)) / 240 * leader.size * hook.view().scale * cssScale >= 44);
+        }
+    }
+}
+export function C36() {
+    const { scene, hook, calls } = createScene();
+    hook.loadLevel(29);
+    calls.length = 0;
+    scene.paintTrack(scene.graphics, false);
+    assert.ok(calls.filter(c => c.name === 'fillTriangle').length >= 8, 'Twin tent roofs and parted curtains');
+    assert.ok(calls.filter(c => c.name === 'strokeRoundedRect').length >= 2, 'Finished entrance frames');
+    assert.ok(calls.filter(c => c.name === 'fillEllipse').length >= 12, 'Cloud volume and recessed mouths');
+    calls.length = 0;
+    scene.draw();
+    assert.ok(!calls.some(c => c.name === 'lineStyle' && c.args[0] === 26), 'No live tunnel painting');
+}
+export function C37() {
+    const { scene, engine, hook, texts } = createScene();
+    assert.equal(scene.scale.height, 736);
+    assert.ok(Math.max(...texts.map(t => t.y)) >= scene.scale.height - 20, 'Pass 307 HUD reaches the canvas bottom');
+    // Shell: 16px gutters, 44px topbar, 64px row, centred 56px button.
+    for (const { width, height } of [{ width: 390, height: 844 }, { width: 360, height: 640 }, { width: 390, height: 600 }]) {
+        const available = height - 44 - 64;
+        const cssScale = Math.min((width - 32) / 360, available / scene.scale.height);
+        const canvasTop = 44 + (available - scene.scale.height * cssScale) / 2;
+        const useful = hook.usefulArea();
+        const bottom = canvasTop + (useful.y + useful.height) * scene.scale.height * cssScale / 640;
+        const rowTop = height - 64;
+        assert.ok(bottom <= rowTop, `Useful area above controls row ${width}×${height}`);
+        assert.ok(bottom <= rowTop + (64 - 56) / 2, 'M01 swap button outside useful area');
+        assert.ok(scene.scale.height * cssScale >= available * .98, 'Pass 307 vertical coverage');
+        assert.ok(Math.max(...texts.map(t => t.y + 8)) <= (useful.y + useful.height) * scene.scale.height / 640, 'HUD inside useful area');
+    }
+    for (let level = 0; level < 30; level++) {
+        hook.loadLevel(level);
+        const view = hook.view();
+        const points = engine.config.paths.flatMap(p => p.samples);
+        const ys = points.map(p => p.y * view.scale + view.y);
+        assert.ok(Math.min(...ys) >= 20 && Math.max(...ys) < 583, `Rails clear HUD ${level + 1}`);
+    }
+}
+export function C38() {
+    // Measured before pass 307, using Phaser 3.90's actual command-producing methods.
+    const before = [4478,4478,4474,4474,4474,4474,4478,4474,4478,4478,4474,4474,4474,4474,4478,4474,4478,4478,4474,4474,4535,4535,4539,4535,4539,4535,4531,4531,6747,6747];
+    const after = [];
+    for (let level = 0; level < 30; level++) {
+        const { scene, hook, replay } = createScene('panda', true);
+        hook.loadLevel(level);
+        scene.draw();
+        after.push(replay());
+        assert.ok(after[level] <= before[level], `Graphics replay budget level ${level + 1}: ${after[level]} > ${before[level]}`);
+        scene.draw();
+        assert.equal(replay(), after[level], 'Retained static Graphics would also be counted');
+    }
+    console.log(`Commandes Graphics/image : avant ${before.join(',')} ; après ${after.join(',')}`);
+}
+/** Phaser command buffers include retained Graphics, not only fresh draw calls.
+ * Visible objects = nonempty Graphics/Text plus visible Images; hidden pool slots
+ * and baked textures are excluded. Baseline: c3982c0, seed 300, warm initial frame.
+ */
+export function C39() {
+    const beforeCommands = [4302,4278,4286,4306,4302,4302,4302,4298,4302,4278,4286,4306,4302,4302,4302,4298,4302,4278,4286,4306,4302,4302,4302,4298,4298,4278,4286,4306,6465,6465];
+    const beforeObjects = [18,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,17,23,23];
+    const afterCommands = [], afterObjects = [];
+    const measured = createScene('panda', true);
+    const { scene, engine, hook, replay, textureBuilds, textureCommands, objects, images } = measured;
+    for (let level = 0; level < 30; level++) {
+        scene.leader.time = 0;
+        hook.loadLevel(level);
+        scene.draw();
+        afterCommands.push(replay());
+        afterObjects.push(objects());
+        assert.ok(replay() < 600, `C39: level ${level + 1} Graphics commands ${replay()}`);
+        assert.ok(objects() <= beforeObjects[level] + 4, 'Bounded display objects');
+        const builds = textureBuilds(), allocated = images.length;
+        scene.draw();
+        assert.equal(textureBuilds(), builds, 'No texture rebuilt per frame');
+        assert.equal(images.length, allocated, 'Warm frame reuses image pools');
+        assert.equal(replay(), afterCommands[level]);
+        // Walking layers and burst atlases must stay warm while positions change.
+        engine.bursts = [0, 1, 2, 3, 4, 5].map(color => ({ x: 100 + color * 20, y: 120, color, time: engine.time }));
+        scene.leader.animation = 'marche';
+        scene.leader.time = 317;
+        scene.draw();
+        const animatedBuilds = textureBuilds();
+        scene.leader.time = 1234;
+        engine.time += 117;
+        scene.draw();
+        assert.equal(textureBuilds(), animatedBuilds, 'Animation and bursts move baked images');
+        assert.ok(replay() < 600, 'Burst frame Graphics budget');
+        engine.bursts = [];
+    }
+    for (const id of ['panda', 'pandaroux', 'dragon', 'singe', 'licorne']) {
+        scene.hero.id = id;
+        scene.hero.animation = 'celebration';
+        scene.hero.time = 317;
+        engine.reverseMs = 100;
+        scene.draw();
+        assert.ok(replay() < 600, `${id}: animated cast and helper budget`);
+    }
+    // Every pearl variant retains the exact direct paint commands, including
+    // the radial gradient, shadow, contour, motif, highlight and bonus overlay.
+    const meter = graphicsMeter();
+    for (let color = 0; color < 6; color++) for (const bonus of [undefined, 'slow', 'reverse', 'bomb', 'aim']) {
+        const direct = meter.create(() => {});
+        scene.paintBead(direct, 20, 18, color, 11.5);
+        if (bonus) {
+            direct.fillStyle([0x65e4d0,0xffb867,0xf080ab,0x92a8ff,0xd8a4ff,0xffee91][color]);
+            direct.fillCircle(20, 18, 9);
+            drawBonus(direct, 20, 18, bonus);
+        }
+        assert.deepEqual(textureCommands.get(`collier-pearl-${color}-${bonus ?? 'plain'}`), Array.from(direct.commandBuffer));
+        direct.destroy();
+    }
+    assert.equal(compareBakedActors(), 45, 'Software captures of all five casts and three animations');
+    const stats = values => {
+        const sorted = [...values].sort((a, b) => a - b);
+        return { min: sorted[0], median: (sorted[14] + sorted[15]) / 2, max: sorted.at(-1) };
+    };
+    console.log('C39 mesures Node (30 niveaux): ' + JSON.stringify({
+        commands: { before: stats(beforeCommands), after: stats(afterCommands) },
+        objects: { before: stats(beforeObjects), after: stats(afterObjects) },
+        levels: afterCommands.map((commands, i) => ({ level: i + 1, beforeCommands: beforeCommands[i], commands, beforeObjects: beforeObjects[i], objects: afterObjects[i] }))
+    }));
+}
 export const sceneCases = {
     C16,
     C21,
@@ -621,5 +837,5 @@ export const sceneCases = {
     C30,
     C31,
     C32,
-    C33
+    C33, C34, C35, C36, C37, C38, C39
 };

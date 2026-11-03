@@ -1,3 +1,4 @@
+import { fingerProof } from './finger';
 import { lesson as dedaleLesson } from './lessons';
 import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
@@ -23,7 +24,8 @@ export interface DedaleHook {
     advance(ms: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger'): void;
 }
@@ -43,6 +45,12 @@ export class DedaleScene extends Phaser.Scene {
     private panelSignature = '';
     private drawSignature = '';
     private board?: Phaser.Textures.CanvasTexture;
+    /** Sky, paths, walls and veils: painted once per maze, then copied under the collectibles in one call. */
+    private scenery?: Phaser.Textures.CanvasTexture;
+    /** Level and maze content the scenery was painted for (a reloaded state may copy the same maze). */
+    private sceneryKey = '';
+    /** Full scenery paints since the scene started (cost check). */
+    sceneryPaints = 0;
     private drawnMaze?: boolean[];
     private boardSignature = '';
     constructor(private session = new PlaySession(true)) { super('dedale'); }
@@ -64,6 +72,7 @@ export class DedaleScene extends Phaser.Scene {
         const board = this.textures.createCanvas('dedale-board', 360, 640);
         if (!board) throw new Error('Décor indisponible');
         this.board = board;
+        this.scenery = (this.textures.exists('dedale-scenery') ? this.textures.get('dedale-scenery') : this.textures.createCanvas('dedale-scenery', 360, 640)) as Phaser.Textures.CanvasTexture | undefined ?? undefined;
         this.add.image(0, 0, 'dedale-board').setOrigin(0);
         this.graphics = this.add.graphics();
         this.title = this.add.text(20, 22, '', { fontFamily: 'system-ui', fontSize: '19px', color: '#b9fff0' });
@@ -96,11 +105,13 @@ export class DedaleScene extends Phaser.Scene {
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         this.game.canvas.setAttribute('aria-label', 'Dédale : guider le compagnon et récolter la lumière');
         if (new URLSearchParams(location.search).get('test') === '1') window.__DEDALE_TEST__ = {
+            ...fingerProof,
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.state.ticks * 1000 / 60 }),
-            read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state }),
+            fingerReceipts: receipts,
+            read: () => ({ fingerInput: { paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 this.start(0, 459, true);
@@ -158,24 +169,65 @@ export class DedaleScene extends Phaser.Scene {
         if (this.testAdvancing) return;
         this.panels(); this.draw();
     }
+    private paintScenery(ctx: CanvasRenderingContext2D, maze: boolean[], size: number, left: number, top: number): void {
+        this.sceneryPaints++;
+        const s = { maze, journey: this.engine.state.journey };
+        // Three worlds after the charter: hedge garden (1-10), autumn stone (11-20), crystal night (21-30).
+        const world = this.engine.level < 10 ? 0 : this.engine.level < 20 ? 1 : 2;
+        const themes: readonly (readonly [string, string, string, string, string, string])[] = [
+            ['#7fcff0', '#2f7a4a', '#e8d6a0', '#3f9a3f', '#7fd05a', '#22602a'],
+            ['#ffc88a', '#7a3a2a', '#e0b884', '#9a8a7a', '#cbbca8', '#5a4a40'],
+            ['#1a1440', '#3a2a7a', '#3c3470', '#5a4aa8', '#a89aff', '#2a2060'],
+        ];
+        const [skyTop, skyBottom, path, wall, wallTop, wallDark] = themes[world] ?? ['#7fcff0', '#2f7a4a', '#e8d6a0', '#3f9a3f', '#7fd05a', '#22602a'];
+        ctx.clearRect(0, 0, 360, 640);
+        // Sky in sixteen bands (plain fills: the board texture is painted once per state change).
+        const channel = (hex: string, i: number): number => Number.parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
+        for (let band = 0; band < 16; band++) {
+            const t = band / 15, rgb = [0, 1, 2].map(i => Math.round(channel(skyTop, i) * (1 - t) + channel(skyBottom, i) * t));
+            ctx.fillStyle = `rgb(${rgb.join(',')})`; ctx.fillRect(0, band * 40, 360, 41);
+        }
+        ctx.fillStyle = path; ctx.beginPath(); ctx.roundRect(left - 2, top - 2, WIDTH * size + 4, HEIGHT * size + 4, 8); ctx.fill();
+        ctx.fillStyle = '#00000014';
+        for (let y = 0; y < HEIGHT; y++) for (let x = (y % 2); x < WIDTH; x += 2) ctx.fillRect(left + x * size, top + y * size, size, size);
+        // Walls merge with their wall neighbours into hedges (or stone runs), with a lit top and a shadow.
+        const walls = new Set(displayedWalls(s.maze));
+        const block = (color: string, inset: number, dy: number): void => {
+            ctx.fillStyle = color;
+            for (const at of walls) {
+                const x = at % WIDTH, y = Math.floor(at / WIDTH), px = left + x * size, py = top + y * size + dy;
+                const l = x > 0 && walls.has(at - 1) ? 0 : inset, r = x < WIDTH - 1 && walls.has(at + 1) ? 0 : inset;
+                const u = walls.has(at - WIDTH) ? 0 : inset, d = walls.has(at + WIDTH) ? 0 : inset;
+                ctx.fillRect(px + l, py + u, size - l - r, size - u - d);
+            }
+        };
+        block('#00000040', 1.5, 3); block(wallDark, 1.5, 0); block(wall, 2.5, -1.5);
+        ctx.fillStyle = wallTop;
+        for (const at of walls) if (!walls.has(at - WIDTH)) { const x = at % WIDTH, y = Math.floor(at / WIDTH); ctx.fillRect(left + x * size + 3, top + y * size + 1, size - 6, 3); }
+        // Leaf (or grain, or facet) speckles so a run of wall reads as hedge, stone or crystal.
+        ctx.fillStyle = wallDark;
+        for (const at of walls) { const x = left + (at % WIDTH) * size, y = top + Math.floor(at / WIDTH) * size; ctx.fillRect(x + 4 + (at % 3) * 3, y + 8, 3, 3); ctx.fillRect(x + 11 - (at % 2) * 4, y + 12, 2.5, 2.5); }
+        if (world === 0) { ctx.fillStyle = '#ff9cc8'; for (const at of walls) if ((at * 7) % 11 === 0) { ctx.beginPath(); ctx.arc(left + (at % WIDTH + .5) * size, top + (Math.floor(at / WIDTH) + .4) * size, 2, 0, Math.PI * 2); ctx.fill(); } }
+        if (s.journey?.shape === 'mirror') {
+            ctx.strokeStyle = '#b9fff055'; ctx.lineWidth = 1; ctx.setLineDash([4, 5]);
+            ctx.beginPath(); ctx.moveTo(180, top); ctx.lineTo(180, top + HEIGHT * size); ctx.stroke(); ctx.setLineDash([]);
+        }
+        // Veils keep the HUD lines readable over a bright sky.
+        ctx.fillStyle = '#0a141ccc'; ctx.beginPath(); ctx.roundRect(8, 8, 344, top - 14, 10); ctx.fill();
+        ctx.beginPath(); ctx.roundRect(8, top + HEIGHT * size + 8, 344, 632 - top - HEIGHT * size - 12, 10); ctx.fill();
+    }
     private paintBoard(): void {
         const texture = this.board; if (!texture) return;
         const s = this.engine.state, signature = `${String(s.seeds.length)}|${String(s.suns.length)}|${String(s.journey?.held)}|${String(s.journey?.toggled)}|${String((s.journey?.turn ?? 0) % 4)}`;
         if (this.drawnMaze === s.maze && this.boardSignature === signature) return;
         this.drawnMaze = s.maze; this.boardSignature = signature;
-        const ctx = texture.context, size = 18.4, left = 5.2, top = 64;
-        ctx.clearRect(0, 0, 360, 640); ctx.fillStyle = '#101f2c';
-        ctx.beginPath(); ctx.roundRect(0, 0, 360, 640, 18); ctx.fill();
-        ctx.fillStyle = '#284f55';
-        for (const at of displayedWalls(s.maze)) {
-            const x = at % WIDTH, y = Math.floor(at / WIDTH);
-            ctx.beginPath(); ctx.roundRect(left + x * size + 1, top + y * size + 1, size - 2, size - 2, 4); ctx.fill();
-        }
-        if (s.journey?.shape === 'mirror') {
-            ctx.strokeStyle = '#b9fff055'; ctx.lineWidth = 1; ctx.setLineDash([4, 5]);
-            ctx.beginPath(); ctx.moveTo(180, top); ctx.lineTo(180, top + HEIGHT * size); ctx.stroke(); ctx.setLineDash([]);
-        }
-        ctx.fillStyle = '#ffe8ab';
+        const ctx = texture.context, size = 18.4, left = 5.2, top = 64, world = this.engine.level < 10 ? 0 : this.engine.level < 20 ? 1 : 2;
+        const scenery = this.scenery;
+        const key = `${String(this.engine.level)}:${s.maze.map(open => open ? 1 : 0).join('')}`;
+        if (scenery && this.sceneryKey === key) ctx.clearRect(0, 0, 360, 640);
+        else this.paintScenery(scenery?.context ?? ctx, s.maze, size, left, top);
+        if (scenery) { this.sceneryKey = key; ctx.drawImage(scenery.canvas, 0, 0); }
+        ctx.fillStyle = world === 2 ? '#ffe8ab' : '#b8561e';
         for (const i of s.seeds) { ctx.beginPath(); ctx.arc(left + (i % WIDTH + 0.5) * size, top + (Math.floor(i / WIDTH) + 0.5) * size, 2, 0, Math.PI * 2); ctx.fill(); }
         for (const i of s.suns) {
             const x = left + (i % WIDTH + 0.5) * size, y = top + (Math.floor(i / WIDTH) + 0.5) * size;

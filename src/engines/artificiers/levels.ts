@@ -10,7 +10,7 @@ export interface Level {
 const rows: readonly (readonly [string, Shape, number, number, number, number, number, number, number, number, 0 | 1 | 2, Mission, number])[] = [
     ['Premier pétard', 'islands', 432, 16, 1.2, 172, 58, 282, 1, 0, 0, 'target', 1],
     ['Deux rives', 'islands', 455, 31, 2.1, 190, 44, 306, 1, 8, 0, 'duel', 1],
-    ['Passerelle verte', 'bridge', 420, 24, 1.4, 165, 72, 264, 1, 12, 0, 'duel', 1],
+    ['Passerelle verte', 'bridge', 420, 24, 1.4, 165, 90, 250, 1, 12, 0, 'duel', 1],
     ['Sous les racines', 'cave', 462, 21, 2.6, 145, 40, 290, 1, 10, 0, 'duel', 1],
     ['Le belvédère', 'cliffs', 448, 43, 1.8, 182, 62, 314, 1, 16, 0, 'structure', 1],
     ['Trois îlots', 'islands', 478, 46, 3.4, 158, 36, 266, 2, 18, 0, 'duel', 1],
@@ -28,7 +28,7 @@ const rows: readonly (readonly [string, Shape, number, number, number, number, n
     ['Tenir la corniche', 'cliffs', 436, 76, 2.5, 145, 34, 318, 2, 40, 2, 'survive', 6],
     ['Voûte de cuivre', 'cave', 456, 64, 4.4, 188, 74, 266, 3, 46, 2, 'duel', 1],
     ['Le grand échafaud', 'bridge', 498, 52, 1.9, 214, 46, 300, 3, 48, 2, 'structure', 1],
-    ['Étincelle de basalte', 'crater', 442, 70, 1.1, 180, 60, 292, 1, 32, 1, 'target', 1],
+    ['Étincelle de basalte', 'crater', 442, 70, 1.1, 180, 60, 292, 1, 32, 2, 'target', 1],
     ['Les dents noires', 'cliffs', 490, 82, 3.8, 160, 36, 310, 3, 48, 2, 'duel', 1],
     ['Passage incandescent', 'bridge', 430, 68, 2.4, 202, 80, 274, 3, 52, 2, 'duel', 1],
     ['Le ventre du mont', 'cave', 508, 40, 3.3, 142, 48, 326, 3, 54, 2, 'duel', 1],
@@ -41,7 +41,9 @@ const rows: readonly (readonly [string, Shape, number, number, number, number, n
 ];
 export const LEVELS: readonly Level[] = rows.map((r, i) => ({
     name: r[0], shape: r[1], height: r[2], amplitude: r[3], frequency: r[4], gap: r[5],
-    left: r[6], right: r[7], teams: r[8], wind: r[9], ai: r[10], mission: r[11], goal: r[12],
+    // Half a teammate span plus a body/edge margin on each shore.
+    left: Math.max(32 + (r[8] - 1) * 24, r[6]), right: Math.min(328 - (r[8] - 1) * 24, r[7]),
+    teams: r[8], wind: r[9], ai: r[10], mission: r[11], goal: r[12],
     world: Math.floor(i / 10), sudden: i < 10 ? 18 : i < 20 ? 14 : 10,
 }));
 export function levelAt(index: number): Level {

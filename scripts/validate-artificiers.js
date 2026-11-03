@@ -1,11 +1,14 @@
 /* global console */
 import './ts-loader.js';
 const { bounded } = await import('../tests/artificiers-budget.ts');
-const { cases, fingerWin, diversityMetrics, graphicsCosts } = await import('../tests/artificiers-cases.ts');
+const { cases, fingerWin, playerWin, diversityMetrics, graphicsCosts } = await import('../tests/artificiers-cases.ts');
 const { replayWin, wins, replayRender } = await import('../tests/artificiers-replay.ts');
 for (const [name, check] of Object.entries(cases)) { const work = bounded(check); console.log(`Artificiers ${name}: PASS ${JSON.stringify(work)}`); }
 for (let level = 0; level < 30; level++) { bounded(() => replayWin(level)); console.log(`Artificiers N${level + 1}: victoire rejouée`); }
-for (const level of [0, 9]) { bounded(() => fingerWin(level)); console.log(`Artificiers doigt N${level + 1}: PASS, latence 150 ms, bruit ±12 px`); }
+for (const level of [0, 9]) for (const seed of [220, 19, 37, 101]) {
+    bounded(() => playerWin(level, seed)); bounded(() => fingerWin(level, seed));
+    console.log(`Artificiers pilote et doigt N${level + 1}, graine ${seed}: PASS, latence 150 ms, bruit ±12 px`);
+}
 if (wins.length !== 30) throw new Error('Trente bandes requises');
 console.log(JSON.stringify(diversityMetrics()));
 

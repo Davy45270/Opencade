@@ -1,12 +1,14 @@
+import { aiCurve } from './artificiers-accuracy';
 import assert from 'node:assert/strict';
 import type Phaser from 'phaser';
-import { Engine, chooseShot, GRAVITY, FIXED_MS, WEAPONS, signature, type Weapon } from '../src/engines/artificiers/engine';
+import { Engine, chooseShot, GRAVITY, FIXED_MS, WEAPONS, signature, BODY_HALF_HEIGHT, BODY_RADIUS, MUZZLE, type Weapon } from '../src/engines/artificiers/engine';
 import { Terrain, WIDTH, HEIGHT } from '../src/engines/artificiers/terrain';
 import { LEVELS, levelAt } from '../src/engines/artificiers/levels';
-import { ids } from '../src/characters/model';
+import { ids, drawList } from '../src/characters/model';
 import { AimDriver } from '../src/games/artificiers/driver';
-import { countedGraphics, drawDynamic, drawScenery, drawMunition, WORLD_SCALE, PANEL_TOP } from '../src/games/artificiers/art';
+import { countedGraphics, drawDynamic, drawScenery, drawMunition, WORLD_SCALE, PANEL_TOP, LIFE_Y, drawHero, HERO_SIZE, HERO_Y } from '../src/games/artificiers/art';
 import { bounded, withinWork, WORK_LIMIT, charge } from './artificiers-budget';
+import { renderCharacter } from '../src/characters/phaser';
 import { Random } from '../src/engines/shared/random';
 import { createDemo } from '../src/engines/artificiers/demo';
 function close(a: number, b: number, tolerance = .00001): void { assert.ok(Math.abs(a - b) < tolerance, `${String(a)} / ${String(b)}`); }
@@ -34,8 +36,8 @@ export function craters(): void {
 export function fallsAndWater(): void {
     const e = empty(); e.terrain.rect(0, 500, WIDTH, 100, 1);
     e.actor.x = 50; e.actor.y = 330; e.actor.fallY = 330; e.actor.vy = 0;
-    const other = e.units[1]; assert.ok(other); other.x = 300; other.y = 492; other.fallY = 492;
-    e.advance(2400); assert.ok(e.actor.hp < 50 && e.actor.hp > 0); close(e.actor.y, 493, 1.2);
+    const other = e.units[1]; assert.ok(other); other.x = 300; other.y = 475; other.fallY = 475;
+    e.advance(2400); assert.ok(e.actor.hp < 60 && e.actor.hp > 0); close(e.actor.y, 500 - BODY_HALF_HEIGHT + 1, 1.2);
     const f = new Engine(); f.actor.y = 605; f.advance(FIXED_MS); assert.equal(f.actor.hp, 0); assert.equal(f.status, 'lost');
 }
 export function blastPush(): void {
@@ -82,7 +84,7 @@ export function turnsAndDuo(): void {
     e.advance(25000); assert.equal(e.turn, 1); assert.equal(e.actor.team, 1); assert.equal(e.timer, 25000); assert.notEqual(e.wind, oldWind);
     e.advance(2000); assert.equal(e.shots, 0); assert.ok(e.shoot());
     e.advance(9000); assert.ok(e.snapshot().turn >= 2 || e.status !== 'playing');
-    const f = new Engine(0); f.advance(26000); assert.equal(f.turn, 2); assert.equal(f.shots, 0);
+    const f = new Engine(0); f.advance(26000); assert.equal(f.turn, 1); assert.equal(f.shots, 1); // Even the introductory opponent retaliates.
 }
 export function cratesAndSudden(): void {
     const e = new Engine(1, 220, 'duo'); e.turn = 2; e.endTurn(); assert.equal(e.crates.length, 1);
@@ -107,7 +109,7 @@ export function aiAccuracy(): void {
     assert.deepEqual(e.snapshot(), before); assert.deepEqual(chooseShot(e, 2), hard);
     const target = e.units[1]; assert.ok(target);
     const error = (shot: ReturnType<typeof chooseShot>) => { const p = e.trace(shot); return Math.hypot(p.x - target.x, p.y - target.y); };
-    assert.ok(error(easy) > error(middle) && error(middle) > error(hard)); assert.ok(error(hard) < 12);
+    assert.ok(error(easy) > error(middle) && error(middle) > error(hard)); assert.ok(error(hard) < BODY_HALF_HEIGHT);
     for (let i = 0; i < 4 && e.status === 'playing'; i++) {
         const s = chooseShot(e); e.aim(s.angle, s.power); e.selectWeapon(s.weapon); assert.ok(e.shoot());
         for (let frame = 0; frame < 500 && e.playing && (e.phase !== 'aim' || e.actor.team !== 0); frame++) e.advance(100);
@@ -122,13 +124,13 @@ export function aiWindOracle(): void {
             const w = WEAPONS[weapon];
             return -Math.hypot(target.x - x, target.y - y) + e.units.reduce((sum, u) => {
                 const distance = Math.hypot(u.x - x, u.y - y);
-                return sum + (u.team === e.actor.team ? -2.4 : 2) * (distance < w.radius + 15 ? w.damage * Math.max(.15, 1 - distance / (w.radius + 15)) : 0);
+                return sum + (u.team === e.actor.team ? -2.4 : 2) * (distance < w.radius + BODY_RADIUS ? w.damage * Math.max(.15, 1 - distance / (w.radius + BODY_RADIUS)) : 0);
             }, 0);
         };
         // Independent brute sweep: construct projectiles directly and run the real
         // integrator, without calling launch(), trace() or the AI search/scoring.
         const impactScore = (angle: number, power: number, weapon: Weapon) => {
-            const p = { x: e.actor.x + Math.cos(angle) * 12, y: e.actor.y + Math.sin(angle) * 12 - 3,
+            const p = { x: e.actor.x + Math.cos(angle) * MUZZLE, y: e.actor.y + Math.sin(angle) * MUZZLE - 3,
                 vx: Math.cos(angle) * power, vy: Math.sin(angle) * power, age: 0, bounces: 0, weapon, owner: e.actor.id };
             for (let frame = 0; frame < 400; frame++) {
                 const result = e.integrate(p);
@@ -172,11 +174,11 @@ export function diversity(): void {
         assert.ok(diff / union > .025, `Masques proches ${String(i + 1)}/${String(j + 1)}`);
     }
 }
-export function fingerWin(level: number): void {
-    const e = new Engine(level), driver = new AimDriver(e), rng = new Random(73); let actions = 0;
-    // 390 px viewport minus the two 16 px gutters: Phaser FIT is 358 / 360.
-    // Vertical screen noise is inverted through the reserved-band projection too.
-    const noise = () => (Math.floor(rng.next() * 25) - 12) / (358 / 360);
+export function fingerWin(level: number, seed = 220): void {
+    const e = new Engine(level, seed), driver = new AimDriver(e), rng = new Random(73); let actions = 0;
+    // 360×640 phone: gutters, header and controls constrain Phaser FIT.
+    // Invert both FIT and the world projection for actual ±12 screen pixels.
+    const noise = () => (Math.floor(rng.next() * 25) - 12) / Math.min(328 / 360, 532 / 640);
     while (e.playing && e.turn < 32 && actions < 25) {
         if (e.phase === 'aim' && e.actor.team === 0) {
             const s = chooseShot(e); e.selectWeapon(s.weapon);
@@ -188,6 +190,17 @@ export function fingerWin(level: number): void {
     }
     assert.ok(e.time < 1000000);
     assert.equal(e.status, 'won', `Doigt N${String(level + 1)}`); assert.ok(actions > 0);
+}
+export function playerWin(level: number, seed = 220): void {
+    const e = new Engine(level, seed);
+    while (e.playing && e.turn < 32) {
+        if (e.phase === 'aim' && e.actor.team === 0) {
+            const shot = chooseShot(e);
+            e.aim(shot.angle, shot.power); assert.ok(e.selectWeapon(shot.weapon)); assert.ok(e.shoot());
+        }
+        e.advance(100);
+    }
+    assert.equal(e.status, 'won', `Pilote N${String(level + 1)}, graine ${String(seed)}`);
 }
 export function inputSafety(): void {
     const e = new Engine(), d = new AimDriver(e), a = e.actor;
@@ -255,10 +268,10 @@ export function hudGeometry(): void {
         // Initial positions, then a real fall caused by excavation under each body.
         for (let frame = 0; frame <= 100; frame++) {
             for (const u of e.units.filter(u => u.hp > 0)) {
-                disjoint((u.y + 13) * WORLD_SCALE, PANEL_TOP);
-                disjoint((u.y - 30) * WORLD_SCALE, PANEL_TOP);
+                disjoint((u.y + BODY_HALF_HEIGHT) * WORLD_SCALE, PANEL_TOP);
+                disjoint((u.y - LIFE_Y) * WORLD_SCALE, PANEL_TOP);
             }
-            if (!frame) for (const u of e.units) { e.terrain.carve(u.x, u.y + 14, 24); e.terrain.carve(u.x, u.y + 14, 24); }
+            if (!frame) for (const u of e.units) { e.terrain.carve(u.x, u.y + BODY_HALF_HEIGHT + 1, 24); e.terrain.carve(u.x, u.y + BODY_HALF_HEIGHT + 1, 24); }
             e.advance(20);
         }
         e.actor.hp = 37; e.power = 137; e.wind = level % 2 ? -31 : 23; calls.length = 0;
@@ -266,7 +279,7 @@ export function hudGeometry(): void {
         assert.ok(has('fillRoundedRect', [10, 531, 340, 98, 12]));
         assert.ok(has('fillRoundedRect', [22, 595, 205 * (137 - 65) / 180, 14, 6]));
         assert.ok(has('lineBetween', [280, 581, 280 + e.wind, 581]));
-        const a = e.actor; assert.ok(has('fillRect', [a.x - 15, a.y - 34, 37 * .3, 4]));
+        const a = e.actor; assert.ok(has('fillRect', [a.x - 15, a.y - LIFE_Y, 37 * .3, 6]));
         e.status = 'playing'; e.phase = 'aim'; calls.length = 0; drawDynamic(g, e, false, true);
         const points = e.trace({ angle: e.angle, power: e.power, weapon: e.weapon }, 65).points.slice(0, 10);
         assert.ok(points.length >= 2);
@@ -295,4 +308,40 @@ export function demo(): void {
     const d = createDemo(19); const before = d.engine.time; d.step(); assert.ok(d.engine.time > before);
     d.engine.status = 'won'; d.step(); assert.equal(d.restarts, 1); assert.equal(d.engine.status, 'playing');
 }
-export const cases = { trajectory, craters, fallsAndWater, blastPush, weapons, movementAndRope, turnsAndDuo, cratesAndSudden, serialization, aiAccuracy, diversity, inputSafety, graphicsBudget, weaponArt, demo, structureThreshold, hudGeometry, countedWork, aiWindOracle };
+export function phoneBodies(): void {
+    // Count painted paths, not the transparent square returned by getBounds().
+    for (const hero of ids) for (const pose of ['repos', 'saut', 'celebration'] as const) {
+        const ys: number[] = [];
+        const g = new Proxy({}, { get: (_target, method) => (...args: unknown[]) => {
+            if (method === 'fillPoints' || method === 'strokePoints') ys.push(...(args[0] as { y: number }[]).map(p => p.y));
+        } }) as Phaser.GameObjects.Graphics;
+        drawHero(g, hero, pose);
+        const top = Math.min(...ys), bottom = Math.max(...ys);
+        // 360×640 phone: account for gutters, 44px header and 64px controls.
+        assert.ok((bottom - top) * WORLD_SCALE * Math.min(328 / 360, 532 / 640) >= 40, `${hero}: silhouette lisible`);
+        assert.ok(HERO_Y - top < LIFE_Y - 6, 'Vie détachée de la tête');
+        assert.ok(bottom - HERO_Y <= BODY_HALF_HEIGHT, 'Pieds dans le corps physique');
+        ys.length = 0; renderCharacter(g, drawList(hero), 0, 0, 42);
+        assert.ok((Math.max(...ys) - Math.min(...ys)) * WORLD_SCALE < 30, 'Mesure du dessin précédent');
+        assert.equal(HERO_SIZE, 88);
+    }
+    let previous = 0;
+    for (let level = 0; level < 30; level++) {
+        const e = new Engine(level, 220, 'duo');
+        assert.ok(e.config.ai >= previous); previous = e.config.ai;
+        for (const u of e.units) {
+            assert.ok(u.x - BODY_RADIUS >= 0 && u.x + BODY_RADIUS <= WIDTH);
+            assert.ok(e.terrain.solid(u.x, u.y + BODY_HALF_HEIGHT));
+            assert.ok(!e.terrain.solid(u.x - BODY_RADIUS, u.y - BODY_HALF_HEIGHT));
+            for (const v of e.units.filter(v => v.id !== u.id && v.team === u.team)) assert.ok(Math.abs(v.x - u.x) >= 48);
+        }
+    }
+    const e = empty(), target = e.units[1]; assert.ok(target);
+    target.x = 150; target.y = 200;
+    const shot = { x: 146, y: 178, vx: 50, vy: 0, age: 400, bounces: 0, weapon: 0 as const, owner: 0 };
+    assert.equal(e.integrate(shot), 'impact', 'Le haut du grand corps reçoit les tirs');
+    const finger = new AimDriver(e); assert.ok(finger.down({ x: e.actor.x, y: e.actor.y - 40, id: 1 })); finger.cancel();
+    const wall = new Engine(); wall.terrain.rect(wall.actor.x + 16, wall.actor.y - 24, 6, 8, 2);
+    assert.ok(!wall.move(1), 'Les oreilles ne passent pas à travers un plafond latéral');
+}
+export const cases = { aiCurve, phoneBodies, trajectory, craters, fallsAndWater, blastPush, weapons, movementAndRope, turnsAndDuo, cratesAndSudden, serialization, aiAccuracy, diversity, inputSafety, graphicsBudget, weaponArt, demo, structureThreshold, hudGeometry, countedWork, aiWindOracle };

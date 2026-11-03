@@ -1,9 +1,14 @@
+/** Scene hooks may declare fingerReceived(selector, before, after, target) and fingerReleased(selectors, before, after).
+ * Both run in the page on read() snapshots; event receipts are always required, and #resume must leave pause.
+ * Without a declaration, event receipts suffice. New game: add fingerReceived: (s, b, a) => s === '#resume' || Number(a.moves) > Number(b.moves) to its hook.
+ */
 import type { Page, CDPSession, TestInfo } from '@playwright/test';
+import type { FingerProof } from '../../src/games/finger-receipts';
 
 export type Touch = { id: number; x: number; y: number };
 type State = Record<string, unknown>;
-type Hook = { read(): State; advance(ms: number): void };
-type Target = { x: number; y: number; screenX: number; screenY: number; dx: number; dy: number };
+type Receipt = { sequence: number; events: { sequence: number; type: string; x: number; y: number }[] };
+type Hook = FingerProof & { fingerReceipts(): Receipt; read(): State; advance(ms: number): void };
 export function checksum(value: unknown): number {
     let sum = 109;
     for (const char of JSON.stringify(value)) sum = (sum * 31 + char.charCodeAt(0)) % 2147483647;
@@ -38,7 +43,7 @@ export class Finger {
             return id;
         });
         // Fixed epoch, never a wall-time oracle. A11 is already frozen before this
-        // jump. Browser timers cannot repeat a held Empilo button while CDP is slow.
+        // jump. Browser timers cannot repeat a held button while CDP is slow.
         await page.clock.pauseAt(3600000);
         return finger;
     }
@@ -49,6 +54,13 @@ export class Finger {
             if (!hook) throw new Error('Crochet absent');
             hook.advance(0); // Commit held scene controls without advancing simulation.
             return hook.read();
+        }, this.game);
+    }
+    private async receipts(): Promise<Receipt> {
+        return this.page.evaluate(id => {
+            const hook = window.__ARCADE_TEST__?.games[id] as Hook | undefined;
+            if (!hook) throw new Error('Crochet absent');
+            return hook.fingerReceipts();
         }, this.game);
     }
     async advance(ms = 150): Promise<void> {
@@ -66,23 +78,21 @@ export class Finger {
     async release(): Promise<void> { await this.endTouch(true); }
     private async endTouch(reaction: boolean): Promise<void> {
         if (!this.active) return;
-        if (reaction) await this.advance(); // A newly decided release (Bubble fires here).
+        if (reaction) await this.advance(); // A newly decided release (the scene may act here).
         const before = await this.read();
+        const priorReceipt = await this.receipts();
         await this.cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
         this.active = false;
         await this.page.clock.runFor(17);
         const after = await this.read();
-        const scene = after.fingerInput as { held?: string[]; controls?: { x: number; y: number; jump: boolean; fire: boolean }; thumb?: unknown; firing?: boolean };
         const tapped = this.entries.at(-1)?.selectors ?? [];
-        const effect = tapped.includes('#resume') ? (after.fingerInput as { paused?: boolean } | undefined)?.paused === false
-            : this.game === 'alunir' ? scene.held?.length === 0
-            : this.game === 'ferraille' ? scene.controls?.x === 0 && scene.controls.y === 0 && !scene.controls.jump && !scene.controls.fire
-            : this.game === 'derapage' ? scene.thumb === null
-            : this.game === 'orbite' ? scene.firing === false
-            : this.game === 'essaim' ? scene.firing === false
-            : this.game === 'bubble' && before.inFlight === false ? Number(after.shots) === Number(before.shots) + 1 || this.entries.at(-1)?.selectors.every(s => !s.includes('canvas')) === true
-            : true;
-        const accepted = receivedEvents(before, after, 'pointerup', this.activePoints) && effect;
+        const effect = await this.page.evaluate(({ id, selectors, before, after }) => {
+            const hook = window.__ARCADE_TEST__?.games[id] as Hook | undefined;
+            if (!hook) throw new Error('Crochet absent');
+            if (selectors.includes('#resume') && (after.fingerInput as { paused?: boolean } | undefined)?.paused !== false) return false;
+            return hook.fingerReleased?.(selectors, before, after) ?? true;
+        }, { id: this.game, selectors: tapped, before, after });
+        const accepted = receivedEvents(priorReceipt, await this.receipts(), 'pointerup', this.activePoints) && effect;
         this.activePoints = [];
         this.entries.push({ type: 'touchEnd', selectors: [], intended: [], noise: [], points: [], timeMs: this.elapsed, missed: !accepted });
         if (!accepted) throw new Error(`toucher perdu : ${this.game} touchEnd`);
@@ -92,6 +102,7 @@ export class Finger {
         await this.advance(); // The observation used by the caller is now 150 game ms old.
         if (type === 'touchStart') await this.endTouch(false); // Already waited for this replacement decision.
         const before = await this.read();
+        const priorReceipt = await this.receipts();
         // A terminal transition can happen during human reaction time. There is
         // no new command to send once the playthrough has ended.
         if (before.status === 'won' || before.status === 'lost') { await this.release(); return; }
@@ -111,7 +122,11 @@ export class Finger {
         this.activePoints = points;
         await this.page.clock.runFor(17);
         const after = await this.read();
-        const accepted = receivedEvents(before, after, type === 'touchStart' ? 'pointerdown' : 'pointermove', points) && targets.every(t => t.hit) && selectors.every((selector, i) => received(this.game, selector, before, after, targets[i]));
+        const accepted = receivedEvents(priorReceipt, await this.receipts(), type === 'touchStart' ? 'pointerdown' : 'pointermove', points) && targets.every(t => t.hit) && await this.page.evaluate(({ id, selectors, before, after, targets }) => {
+            const hook = window.__ARCADE_TEST__?.games[id] as Hook | undefined;
+            if (!hook) throw new Error('Crochet absent');
+            return selectors.every((selector, i) => hook.fingerReceived?.(selector, before, after, targets[i]) ?? true);
+        }, { id: this.game, selectors, before, after, targets });
         this.entries.push({ type, selectors, points, intended, noise, timeMs: this.elapsed, missed: !accepted });
         if (!accepted) throw new Error(`toucher perdu : ${this.game} ${selectors.join(', ')}`);
     }
@@ -144,54 +159,9 @@ export class Finger {
     }
 }
 
-/** Evidence comes from frozen scene/engine snapshots, never from DOM hit testing alone. */
-export function received(game: string, selector: string, before: State, after: State, target?: Target): boolean {
-    const scene = after.fingerInput as { paused?: boolean; held?: string[]; controls?: Record<string, unknown>; thumb?: { x: number; y: number; dx: number; dy: number } | null; firing?: boolean; pulling?: boolean; aimingPointer?: number | null } | undefined;
-    const changed = (...keys: string[]) => keys.some(key => JSON.stringify(before[key]) !== JSON.stringify(after[key]));
-    const near = (a: unknown, b: number, tolerance = 1.5) => typeof a === 'number' && Math.abs(a - b) < tolerance;
-    // A DOM button such as Resume acts on click, i.e. after touchEnd: its effect is checked in endTouch().
-    if (selector === '#resume') return true;
-    if (selector.endsWith('-special')) return changed('specialUses', 'specialUsed', 'specialCooldown', 'specialArmed', 'karts') || (game === 'caisses' && scene?.pulling === true);
-    if (game === 'alunir') return scene?.held?.includes(selector.slice(1)) === true;
-    if (game === 'ferraille') {
-        if (selector === '.joystick' && target) {
-            const angle = Math.round(Math.atan2(target.dy, target.dx) / (Math.PI / 4)) * Math.PI / 4;
-            return scene?.controls?.x === Math.round(Math.cos(angle)) && scene.controls.y === Math.round(Math.sin(angle));
-        }
-        return scene?.controls?.[selector.endsWith('jump') ? 'jump' : 'fire'] === true;
-    }
-    if (game === 'derapage' && selector.includes('canvas') && target && scene?.thumb) return near(scene.thumb.x + scene.thumb.dx, target.screenX) && near(scene.thumb.y + scene.thumb.dy, target.screenY);
-    if (game === 'orbite' && selector.endsWith('-fire')) return scene?.firing === true;
-    if (game === 'essaim' && selector.endsWith('-fire')) return scene?.firing === true;
-    const direction = selector.split('-').at(-1);
-    if (game === 'dedale') return after.requested === direction;
-    if (game === 'serpentin') return after.direction === direction || (after.queue as string[]).includes(direction ?? '');
-    if (game === 'traverse' && !selector.endsWith('-special')) return (after.queue as string[]).includes(direction ?? '');
-    if (selector.includes('canvas') || selector === '#essaim-steer') {
-        if (!target) return false;
-        if (game === 'artificiers' && selector.includes('canvas')) {
-            const aiming = (after.fingerInput as { aiming?: { x: number; y: number } | null } | undefined)?.aiming;
-            return !!aiming && near(aiming.x, target.x) && near(aiming.y, target.y);
-        }
-        if (game === 'bubble') return scene?.aimingPointer != null && near(after.angle, Math.max(-80 * Math.PI / 180, Math.min(80 * Math.PI / 180, Math.atan2(target.x - 180, 570 - target.y))), .008);
-        if (game === 'essaim' && selector === '#essaim-steer') return near(after.target, Math.max(18, Math.min(342, Number(before.cannon) + target.x / 3 - 60)));
-        if (game === 'essaim' || game === 'orbite') return near(after.target, Math.max(game === 'essaim' ? 18 : 16, Math.min(game === 'essaim' ? 342 : 344, Math.round(target.x))));
-        if (game === 'briqueterie') return near(after.paddle, Math.max(Number(after.width) / 2, Math.min(360 - Number(after.width) / 2, target.x)));
-    }
-    if (game === 'artificiers' && selector === '#artificiers-weapon') return changed('weapon');
-    if (game === 'caisses') return changed('moves', 'player', 'boxes');
-    if (game === 'empilo') return changed('active', 'dealt', 'status', 'reserve');
-    if (game === 'bubble' && selector === '#touch-swap') return changed('next', 'queued');
-    if (game === 'briqueterie' && selector.endsWith('-launch')) return after.ready === false;
-    return false;
-}
-
 /** Match every finger separately; a persistent command is not an event receipt. */
-function receivedEvents(before: State, after: State, type: string, points: Touch[]): boolean {
-    type Receipt = { sequence: number; events: { sequence: number; type: string; x: number; y: number }[] };
-    const prior = (before.fingerInput as { receipts?: Receipt } | undefined)?.receipts;
-    const next = (after.fingerInput as { receipts?: Receipt } | undefined)?.receipts;
-    if (!prior || !next || next.sequence <= prior.sequence) return false;
+function receivedEvents(prior: Receipt, next: Receipt, type: string, points: Touch[]): boolean {
+    if (next.sequence <= prior.sequence) return false;
     const remaining = next.events.filter(event => event.sequence > prior.sequence && event.type === type);
     return points.every(point => {
         const index = remaining.findIndex(event => Math.abs(event.x - point.x) < 1 && Math.abs(event.y - point.y) < 1);

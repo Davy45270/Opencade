@@ -2129,6 +2129,8 @@ le solveur réel et la géométrie des anneaux, spirales et miroirs.
 
 ## Ferraille
 
+Cuisson du décor : les 30 textures de thème sont cuites une fois à l'entrée dans le jeu, en 61 ms mesurées sur l'hôte de test (Chromium headless, rendu logiciel, R01-R03). Le crochet `__FERRAILLE_TEST__.bake()` l'expose, et les captures du catalogue la joignent.
+
 ### Direction visuelle — passes 112 et 114
 
 Le cadrage manuel du monde passe de 1,4 à 2,6, avec suivi horizontal et vertical
@@ -4550,7 +4552,8 @@ nombre limité de **rôles** pour qu'assez d'enfants atteignent la porte avant l
 - Victoire : quand tous les enfants sont sortis, sauvés, tombés ou postés, ou à la fin du temps, avec au moins le nombre
   demandé de sauvés. Score : 100 par enfant sauvé, plus les secondes restantes en cas de victoire.
 - 30 niveaux. Les rôles arrivent un par un : bloqueur (2), bâtisseur (4), creuseur (6), mineur (8), parachute (10),
-  grimpeur (12) ; les niveaux 7, 9, 11, 13, 14 et 15 les combinent. Les niveaux 16 à 30 reprennent un rôle deux fois de
+  grimpeur (12) ; le niveau 7 apprend que l'on tombe dans le sens où l'on marchait ; les niveaux 9, 11, 13, 14 et
+  15 les combinent. Les niveaux 16 à 30 reprennent un rôle deux fois de
   suite (deux fossés, deux étages, deux collines, l'escalier) ou combinent deux à trois rôles (demi-tour puis pont,
   cheminée en parachute, tour, crevasse, grande traversée). Chaque rôle proposé sert : sans lui, le niveau est perdu. Un plateau propose au plus trois rôles : trois
   emplacements tactiles de 56 px (symbole et stock du niveau) et « » » pour accélérer le temps (×2) ; au clavier 1 2 3, V.
@@ -4560,7 +4563,7 @@ nombre limité de **rôles** pour qu'assez d'enfants atteignent la porte avant l
   d'introduction et le déterminisme ; MA-09 que la solution enregistrée privée d'un seul rôle perd et qu'un plateau propose au plus trois
   rôles ; MA-10 les stocks, les attributions refusées et l'horloge. `scripts/search-marmaille-shortcuts.js` (lancé à la
   main, lent) cherche en plus tout plan gagnant sans un rôle proposé : un rôle de travail à l'enfant 0 ou 1 à n'importe
-  quel tick, ou deux à l'enfant 0, parachutes et grimpeurs pour tous ; il n'en trouve aucun sur les 30 niveaux. `validate-marmaille.js` rejette 23 mutations (règles, score, fin anticipée, doublons de rôles, stocks, horloge). E2E : MA-E1 (clic réel), MA-E2,
+  quel tick, ou deux à l'enfant 0, parachutes et grimpeurs pour tous ; il n'en trouve aucun sur les 30 niveaux (sa première passe a retiré au niveau 7 un bloqueur inutile). `validate-marmaille.js` rejette 23 mutations (règles, score, fin anticipée, doublons de rôles, stocks, horloge). E2E : MA-E1 (clic réel), MA-E2,
   MA-E3 (doigt bruité : emplacement de rôle puis enfant, aux ticks enregistrés, niveaux 2, 9, 15 et 25).
 
 ## Bombercade

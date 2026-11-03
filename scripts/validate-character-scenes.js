@@ -55,10 +55,23 @@ export async function mount(game, id, SceneOverride) {
     const inputs = new Inputs(); setupPause(inputs, session);
     const scene = new Scene(session), calls = [];
     const g = new Proxy({}, { get: (_, method) => (...args) => { calls.push([method, ...args]); return g; } });
-    scene.add = { graphics: () => g, text: () => ({ text: '', setText(text) { this.text = text; }, setY() {} }) };
-    scene.textures = { createCanvas: () => ({ context: new Proxy({}, { get: () => () => {} }), refresh() {} }) };
-    scene.add.image = () => ({ setOrigin() {} });
-    scene.events = { once() {} }; scene.scale = { refresh() {} }; scene.game = { canvas: new Element() };
+    scene.add = { graphics: () => g, text: () => ({ text: '', setText(text) { this.text = text; return this; }, setY() { return this; }, setDepth() { return this; }, setOrigin() { return this; } }) };
+    const canvas = () => ({ context: new Proxy({}, { get: () => () => {} }), canvas: {}, refresh() {} });
+    scene.textures = { createCanvas: canvas, exists: () => true, get: canvas, remove() {} };
+    // Baked backdrops are shown through an image: setters chain, textures already exist.
+    // Pooled pieces (BlockPool) are images too: each one keeps its texture, position and visibility.
+    const images = [];
+    scene.add.image = (x = 0, y = 0, key = '') => {
+        const image = { key, x, y, visible: true };
+        for (const m of ['setOrigin', 'setDepth', 'setAlpha', 'setDisplaySize', 'setScale', 'destroy']) image[m] = () => image;
+        image.setTexture = k => { image.key = k; return image; };
+        image.setPosition = (px, py) => { image.x = px; image.y = py; return image; };
+        image.setVisible = v => { image.visible = v; return image; };
+        images.push(image); return image;
+    };
+    // Off-list Graphics (SceneryLayer, baked pieces) draw into their own brush, never into the frame's calls.
+    scene.make = { graphics: () => { const b = new Proxy({}, { get: () => () => b }); return b; } };
+    scene.events = { once() {} }; scene.scale = { refresh() {} }; scene.game = { canvas: new Element() }; scene.time = { now: 0 };
     if(game==='alunir') {
         const textures=new Set();
         scene.textures.exists=key=>textures.has(key);
@@ -85,7 +98,7 @@ export async function mount(game, id, SceneOverride) {
     };
     const frame = (ms = 0) => { calls.length = 0; draws.length = 0; scene.update(0, ms); };
     const cleanup = () => { scene.inputs.dispose(); inputs.dispose(); };
-    return { scene, session: scene.session, frame, draws, calls, cleanup, engine: scene.engine, hero: scene.hero };
+    return { scene, session: scene.session, frame, draws, calls, images, cleanup, engine: scene.engine, hero: scene.hero };
 }
 setMaxListeners(0);
 if (process.argv[1]?.endsWith('validate-character-scenes.js')) {
@@ -95,8 +108,8 @@ for (const game of ['caisses', 'traverse', 'alunir']) {
         const h = await mount(game, id), { scene, engine, hero, frame, draws, calls } = h;
         try {
             frame(); assert.equal(hero.id, id); assert(draws.length); assert(calls.some(c => c[0] === 'fillPoints'));
-            // Alunir's 40px pilot sits inside the canopy; the module owns its rotation.
-            const expectedSize = game === 'caisses' ? Math.min(336 / engine.board.width, 490 / engine.board.height) * 1.2 : 40;
+            // Alunir's 40px pilot sits inside the canopy; the module owns its rotation. Traverse's hero is 50px (charter art).
+            const expectedSize = game === 'caisses' ? Math.min(344 / engine.board.width, 470 / engine.board.height) * 1.55 : game === 'traverse' ? 50 : 40;
             assert.equal(draws[0][2], expectedSize, `${game}: actual rendered size`);
             if (game === 'caisses') { key('ArrowRight'); assert.equal(hero.pose, 'profil'); assert.equal(hero.flip, false); key('ArrowLeft'); assert.equal(hero.flip, true); key('ArrowUp'); assert.equal(hero.expression, 'surprise'); }
             // Advance in coarse intervals: the real engine retains its fixed simulation steps.

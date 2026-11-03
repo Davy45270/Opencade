@@ -1,5 +1,5 @@
 import { createDemo } from '../../engines/marmaille/demo';
-import { COLS, ROWS } from '../../engines/marmaille/engine';
+import { COLS, ROWS, TICK_MS } from '../../engines/marmaille/engine';
 import { circle, type Thumbnail } from '../thumbnail';
 import { drawList } from '../../characters/model';
 import { renderCharacter } from '../../characters/canvas';
@@ -24,7 +24,7 @@ export function createThumbnail(seed = 0): Thumbnail {
             c.fillStyle = '#f2c45a'; c.fillRect(e.def.exit.x * 18 - 2, e.def.exit.y * 18 - 18, 22, 36);
             for (const k of e.kids) {
                 if (k.state === 'saved' || k.state === 'dead') continue;
-                renderCharacter(c, drawList('panda', 'profil', 'joie', 'marche', e.tick * 125 + k.id * 90), k.x * 18 - 4, k.y * 18 - 8, 26);
+                renderCharacter(c, drawList('panda', 'profil', 'joie', 'marche', e.tick * TICK_MS + k.id * 90), k.x * 18 - 4, k.y * 18 - 8, 26);
             }
             circle(c, e.def.spawn.x * 18 + 9, e.def.spawn.y * 18, 8, '#3a2a20');
             c.restore();

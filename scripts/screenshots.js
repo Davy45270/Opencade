@@ -13,13 +13,14 @@ import { join } from 'node:path';
 
 const out = process.argv[2] ?? 'docs/screenshots';
 const SEED = 28;
-const MAX_BYTES = 150 * 1024, TOTAL_BYTES = 2 * 1024 * 1024;
+// A light README: each image at most 150 KB, at most 2.5 MB in all.
+const MAX_BYTES = 150 * 1024, TOTAL_BYTES = 2.5 * 1024 * 1024;
 const phone = { viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, isMobile: true };
 const desktop = { viewport: { width: 1280, height: 800 }, deviceScaleFactor: 1 };
 // [game id, level index, simulated milliseconds of play, character]
 const shots = [
     ['bubble', 4, 0, 'panda'],
-    ['serpentin', 9, 1500, 'pandaroux'],
+    ['serpentin', 19, 2000, 'pandaroux'],
     ['briqueterie', 12, 1800, 'dragon'],
     ['empilo', 3, 4000, 'singe'],
     ['orbite', 4, 2500, 'licorne'],
@@ -27,9 +28,15 @@ const shots = [
     ['dedale', 2, 1500, 'pandaroux'],
     ['ferraille', 4, 3000, 'dragon'],
     ['alunir', 2, 1500, 'singe'],
-    ['caisses', 3, 0, 'licorne'],
+    ['caisses', 11, 0, 'licorne'],
     ['traverse', 3, 2000, 'panda'],
     ['derapage', 1, 6000, 'pandaroux'],
+    ['pepites', 2, 1500, 'dragon'],
+    ['gourmandises', 4, 0, 'singe'],
+    ['collier', 3, 1500, 'licorne'],
+    ['bombercade', 16, 2500, 'panda'],
+    ['marmaille', 9, 10000, 'pandaroux'],
+    ['artificiers', 1, 1500, 'dragon'],
 ];
 
 async function startServer() {
@@ -112,7 +119,7 @@ try {
     for (const [name, options] of [['home-phone', phone], ['home-desktop', desktop]]) {
         const { ctx, page, errors } = await context(browser, options, 'panda');
         await page.goto(`${server.url}/?test=1#/`);
-        await page.locator('.game-card').nth(11).waitFor();
+        await page.locator('.game-card').nth(shots.length - 1).waitFor();
         await save(page, errors, name, await stable(page));
         await ctx.close();
     }
@@ -152,5 +159,5 @@ try {
 }
 const total = written.reduce((sum, [, bytes]) => sum + bytes, 0);
 console.log(`total ${(total / 1024).toFixed(1)} KB for ${String(written.length)} images`);
-if (total > TOTAL_BYTES) failures.push('total exceeds 2 MB');
+if (total > TOTAL_BYTES) failures.push('total exceeds 2.5 MB');
 if (failures.length) { console.error(`${String(failures.length)} failure(s)`); process.exit(1); }

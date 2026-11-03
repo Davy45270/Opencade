@@ -1,143 +1,59 @@
-/* global console, performance, URL */
+/* global console, structuredClone */
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
-import { runInNewContext } from 'node:vm';
-import { transpile } from './transpile.js';
-import { Engine } from '../src/engines/collier/engine.ts';
-import { fieldView } from '../src/games/collier/presentation.ts';
-import { readDriver } from '../src/games/collier/driver.ts';
-import { decision } from '../tests/e2e/collier-policy.ts';
-import { FingerClock } from '../tests/e2e/finger-clock.ts';
+import { replayCollier, replayCollierRecording } from './collier-finger-replay.js';
+import { createScene } from './collier-scene-oracles.js';
 
-// Measure construction + wire serialization, not a fictitious browser/CDP delay.
-function measure(read, repetitions = 300) {
-    const start = performance.now();
-    let bytes = 0;
-    for (let i = 0; i < repetitions; i++) bytes = JSON.stringify(read()).length;
-    return { ms: (performance.now() - start) / repetitions, bytes };
-}
-for (const level of [0, 4]) {
-    const e = new Engine(level, 300);
-    e.step(150);
-    const view = fieldView(e.config);
-    const before = measure(() => ({ ...e.snapshot(), paths: [] }));
-    const after = measure(() => readDriver(e));
-    // The lightweight hook must agree with real engine targets and never call snapshot.
-    const snapshot = e.snapshot();
-    const original = e.snapshot;
-    e.snapshot = () => { throw new Error('Full snapshot forbidden while driving'); };
-    const minimal = readDriver(e);
-    e.snapshot = original;
-    assert.deepEqual(minimal.chains.map(c => c.beads.map(b => ({ id: b.id, color: b.color, s: b.s, x: b.x, y: b.y, hidden: b.hidden }))), snapshot.chains.map(c => c.beads.map(b => ({
-        id: b.id, color: b.color, s: b.s, x: b.x, y: b.y, hidden: b.hidden
-    }))));
-    assert.ok(!('paths' in minimal) && !('bursts' in minimal));
-    const clock = new FingerClock();
-    let seed = 300, ms = 150, swaps = 0;
-    let lastInput = null;
-    const intervals = [];
-    const frameMs = 50;
-    const readMs = 200, sendMs = 200, latencyMs = 150;
-    const step = wallMs => {
-        for (let frame = 0; frame < wallMs / frameMs; frame++) e.step(frameMs);
-        ms += wallMs;
-    };
-    const noise = () => {
-        seed = seed * 16807 % 2147483647;
-        return seed % 25 - 12;
-    };
-    // Software renderer at 20 fps; read + CDP cost 400 wall milliseconds.
-    // Every wait advances real physics, with no fast-forward shortcut in the pilot.
-    while (ms < 120000 && e.status === 'playing') {
-        step(readMs);
-        const state = readDriver(e);
-        const horizon = clock.observe(state);
-        const aim = state.flight ? null : decision(state, view, horizon);
-        if (!aim) {
-            step(latencyMs);
-            continue;
-        }
-        step(latencyMs);
-        const forcedSwap = swaps === 0 && !aim.swap;
-        if (swaps === 0 || aim.swap) {
-            step(sendMs);
-            e.swap();
-            swaps++;
-        }
-        if (!forcedSwap) {
-            step(sendMs);
-            const x = aim.x + noise() / (.975 * view.scale);
-            const y = aim.y + noise() / (.975 * view.scale);
-            e.aim(Math.atan2(y - e.config.shooter.y, x - e.config.shooter.x));
-            assert.ok(e.shoot(), 'A shot must be accepted');
-        }
-        if (lastInput !== null) intervals.push(state.gameTimeMs - lastInput);
-        lastInput = state.gameTimeMs;
+// The same targets drive painted pearls, input hit regions and the public hook.
+for (const level of [0, 4, 29]) {
+    const { scene, hook, handlers, engine, images } = createScene();
+    hook.loadLevel(level, 300);
+    const { canvas, view, targets } = hook.geometry();
+    assert.equal(canvas.height, 736, 'Pass 307 full-height canvas');
+    assert.notEqual(view.scale, 1, 'Exercise a scaled course');
+    engine.current = 0;
+    engine.next = 1;
+    scene.draw();
+    const reserve = images.find(image => image.visible && image.key.startsWith('collier-pearl-')
+        && Math.abs(image.x - (targets.next.x * view.scale + view.x)) < 1e-6
+        && Math.abs(image.y - (targets.next.y * view.scale + view.y)) < 1e-6);
+    assert.ok(reserve, 'The hook target is the drawn reserve');
+    for (const target of [targets.next, engine.config.shooter]) for (const noise of [-12, 0, 12]) {
+        const current = engine.current, next = engine.next, shots = engine.shots;
+        // CSS viewport -> Phaser canvas -> actual registered listeners.
+        const box = { x: 16, y: 44, width: 350, height: 350 * canvas.height / canvas.width };
+        const screen = { x: box.x + (target.x * view.scale + view.x) * box.width / canvas.width + noise,
+            y: box.y + (target.y * view.scale + view.y) * box.height / canvas.height + noise };
+        const point = { id: 1, wasTouch: true, downTime: 0, upTime: 100,
+            x: (screen.x - box.x) * canvas.width / box.width,
+            y: (screen.y - box.y) * canvas.height / box.height };
+        handlers.get('pointerdown')(point);
+        handlers.get('pointerup')(point);
+        assert.equal(engine.current, next);
+        assert.equal(engine.next, current);
+        assert.equal(engine.shots, shots, 'No shot on a noisy reserve/hero tap');
     }
-    assert.ok(Math.max(...intervals) <= 1500, 'Input cadence in game milliseconds');
-    assert.equal(e.status, 'won', `Politique tactile 20 images/s, niveau ${level + 1}`);
-    assert.ok(ms < 120000, 'Marge de deux sous le délai E2E de 240s');
-    console.log(`Politique doigt en Node : niveau ${level + 1}, ${ms} ms simulées, ${e.shots} tirs, ${swaps} échanges`);
-    console.log(JSON.stringify({ level: level + 1, nodeRead: { before, after }, latency: latencyMs,
-        frameMs, readMs, sendMs, iterationMs: readMs + latencyMs + sendMs,
-        maxInputInterval: Math.max(...intervals), victoryMs: ms, shots: e.shots }));
+    assert.match(hook.hudText(), /SCORE|pts/);
+}
+// Golden helper fingerprints for replayCollier's documented reference DOM boxes.
+// Receipts left read() (pass 121): same shots, swaps and game time (29/1/17400 ms, 45/1/34050 ms), new final-state fingerprints.
+const expected = { 0: 2002565211, 4: 1081950634 };
+for (const level of [0, 4]) {
+    const result = await replayCollier(level);
+    assert.equal(result.fingerprint, expected[level], 'Same helper transcript and final snapshot');
+    console.log(`Collier doigt L${level + 1}: ${JSON.stringify({ fingerprint: result.fingerprint, shots: result.final.shots, swaps: result.swaps, gameMs: result.gameMs })}`);
 }
 
-// Execute the actual gesture body with a CDP double that withholds all replies.
-// Awaiting even the first packet before queuing the others fails this oracle.
-const source = readFileSync(new URL('../tests/e2e/collier-finger.spec.ts', import.meta.url), 'utf8');
-const gesture = source.slice(source.indexOf('async function tap('), source.indexOf('        try {'));
-const packets = [], replies = [];
-const entries = [];
-const gestureContext = {
-    cdp: { send: (method, params) => {
-        packets.push({ method, ...params });
-        return new Promise(resolve => replies.push(resolve));
-    } },
-    bounds: { x: 0, y: 0, width: 390, height: 844 },
-    performance: { now: () => 550 }, started: 0,
-    lastInput: null, iterationInterval: null, wallInterval: null,
-    finger: { entries }, inputGameTimes: []
-};
-const tap = runInNewContext(`${transpile(gesture)}; tap`, gestureContext);
-const point = { id: 0, x: 100, y: 200 };
-const pending = tap(point, 350, true);
-assert.deepEqual(packets.map(p => p.type), ['touchStart', 'touchMove', 'touchEnd']);
-assert.ok(packets.every(p => p.method === 'Input.dispatchTouchEvent'));
-assert.deepEqual(Array.from(packets[0].touchPoints), [point]);
-assert.deepEqual(Array.from(packets[1].touchPoints), [point]);
-assert.equal(packets[2].touchPoints.length, 0);
-replies.forEach(resolve => resolve());
-await pending;
-assert.equal(entries.length, 1);
-assert.equal(entries[0].missed, false);
-gestureContext.performance.now = () => 2550;
-const reserveTap = tap(point, 450);
-assert.deepEqual(packets.slice(3).map(p => p.type), ['touchStart', 'touchEnd']);
-replies.slice(3).forEach(resolve => resolve());
-await reserveTap;
-assert.equal(gestureContext.iterationInterval, 100, 'Cadence uses game time');
-assert.equal(gestureContext.wallInterval, 2000, 'Wall time remains informational');
-
-const clock = new FingerClock();
-assert.equal(clock.observe({ gameTimeMs: 1000 }), 150);
-assert.equal(clock.observe({ gameTimeMs: 1400 }), 400);
-assert.equal(clock.observe({ gameTimeMs: 1400 }), 150);
-assert.equal(clock.elapsed, 400);
-const ticks = new FingerClock();
-ticks.observe({ ticks: 60 });
-assert.equal(ticks.observe({ ticks: 90 }), 500);
-console.log('Geste CDP : trois paquets en ordre, aucune attente intermédiaire ; horloge de jeu validée.');
-
-const target = {
-    current: 0, next: 0, shooter: { x: 180, y: 350 },
-    chains: [{ beads: [{ id: 1, color: 0, s: 0, x: 260, y: 200,
-        hidden: false, vx: -20, vy: 0 }] }]
-};
-const immediate = decision(target);
-const predicted = decision(target, undefined, 500);
-assert.ok(immediate && predicted);
-const angle = aim => Math.atan2(aim.y - 350, aim.x - 180);
-assert.ok(Math.abs(angle(predicted) - Math.atan2(-150, 70)) < .000001);
-assert.ok(Math.abs(angle(predicted) - angle(immediate)) > .01,
-    'The reaction horizon must change the target direction');
+// Persisted JSON transport: offset, fractional CSS box and input height deliberately
+// differ from both historical 640 and 736. Policy/noise run only when recording.
+const box = { x: 23.125, y: 51.25, width: 321.75, height: 589.5 };
+const geometry = createScene().hook.geometry();
+geometry.canvas = { width: 360, height: 812 };
+geometry.input = { x: box.x, y: box.y, scaleX: 360 / box.width, scaleY: 812 / box.height };
+const resume = { x: 100.125, y: 350.25, width: 190, height: 56 };
+const recording = JSON.parse(JSON.stringify(await replayCollier(0, box, resume, undefined, geometry)));
+const replay = replayCollierRecording(recording);
+assert.deepEqual(replay.final, recording.final, 'Recorded packets reconstruct the entire snapshot');
+assert.equal(replay.fingerprint, recording.fingerprint, 'JSON geometry and clock preserve the fingerprint');
+const wrongGeometry = structuredClone(recording);
+wrongGeometry.geometry.input.scaleY = 736 / box.height;
+assert.throws(() => replayCollierRecording(wrongGeometry), /recorded/, 'Historical canvas height must fail');

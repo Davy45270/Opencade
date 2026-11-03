@@ -22,7 +22,7 @@ for (const [id, oracle] of Object.entries({
     const usage = process.cpuUsage(cpu);
     const elapsed = (usage.user + usage.system) / 1000;
     const wall = performance.now() - start;
-    assert.ok(elapsed < (id === 'C19' || id === 'C20' ? 400 : 2000), `${id} : ${elapsed} ms`);
+    assert.ok(elapsed < (id === 'C19' || id === 'C20' ? 400 : id === 'C39' ? 4000 : 2000), `${id} : ${elapsed} ms`);
     console.log(`${id}: PASS (${elapsed.toFixed(1)} ms CPU, ${wall.toFixed(1)} ms écoulées)`);
 }
 engineCases.C19(2000);
@@ -82,4 +82,5 @@ console.log(JSON.stringify({ campaign, diversity: {
         maxGap: diversity.maxGapWithoutNovelty
     } }, null, 2));
 await import('./collier-driver-oracles.js');
-console.log('Collier : C01–C30, 30 victoires, 30 inactions perdantes et six témoins aléatoires validés.');
+await import('./collier-finger-recording-oracles.js');
+console.log('Collier : C01–C39, 30 victoires, 30 inactions perdantes et six témoins aléatoires validés.');

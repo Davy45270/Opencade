@@ -6,12 +6,26 @@ import type { Page, CDPSession } from '@playwright/test';
 import type { Inputs } from '../../src/shell/input';
 import { Engine as EmpiloEngine } from '../../src/engines/empilo/engine';
 import { GameCharacter } from '../../src/characters/game';
-import { fingerReceipts } from '../../src/games/finger-receipts';
+import { fingerReceipts, type FingerProof, type FingerState } from '../../src/games/finger-receipts';
+import { fingerProof as dedaleProof } from '../../src/games/dedale/finger';
+import { fingerProof as alunirProof } from '../../src/games/alunir/finger';
+import { fingerProof as bubbleProof } from '../../src/games/bubble/finger';
+import { fingerProof as ferrailleProof } from '../../src/games/ferraille/finger';
+import { fingerProof as derapageProof } from '../../src/games/derapage/finger';
+import { fingerProof as orbiteProof } from '../../src/games/orbite/finger';
+import { fingerProof as essaimProof } from '../../src/games/essaim/finger';
+import { fingerProof as serpentinProof } from '../../src/games/serpentin/finger';
+import { fingerProof as traverseProof } from '../../src/games/traverse/finger';
+import { fingerProof as briqueterieProof } from '../../src/games/briqueterie/finger';
+import { fingerProof as caissesProof } from '../../src/games/caisses/finger';
+import { fingerProof as empiloProof } from '../../src/games/empilo/finger';
+import { fingerProof as artificiersProof } from '../../src/games/artificiers/finger';
+import { fingerProof as gourmandisesProof } from '../../src/games/gourmandises/finger';
 import { Engine as ArtificiersEngine, chooseShot } from '../../src/engines/artificiers/engine';
 import { AimDriver } from '../../src/games/artificiers/driver';
 import { WORLD_SCALE } from '../../src/games/artificiers/art';
 import { aimShot } from './artificiers-finger-gesture';
-import { Finger, performanceMetrics, received } from './finger-stepped';
+import { Finger, performanceMetrics } from './finger-stepped';
 
 type Point = { id: number; x: number; y: number };
 
@@ -19,7 +33,8 @@ void test('stepped finger regressions without a browser', async t => {
     const globals = ['window', 'document', 'location'] as const;
     const previous = globals.map(key => Object.getOwnPropertyDescriptor(globalThis, key));
     function define(key: string, value: unknown) { Object.defineProperty(globalThis, key, { configurable: true, value }); }
-    async function setup(seed = 109, game = 'dedale', level = 0) {
+    const proofs: Record<string, FingerProof> = { dedale: dedaleProof, alunir: alunirProof, bubble: bubbleProof, artificiers: artificiersProof, gourmandises: gourmandisesProof };
+    async function setup(seed = 109, game = 'dedale', level = 0, proof: FingerProof = proofs[game] ?? {}) {
         const listeners = new Map<string, EventListener>();
         define('location', { search: '?test=1' });
         define('window', {});
@@ -35,7 +50,7 @@ void test('stepped finger regressions without a browser', async t => {
         const state = { status: 'playing', requested: 'up', ticks: 0, inFlight: false, shots: 0,
             fingerInput: { paused: false, held: [] as string[], aiming: null as { id: number; x: number; y: number } | null, aimingPointer: null as number | null } };
         let manual = false, installed = false, paused = false;
-        const hook = { read: () => structuredClone({ ...state, ...(game === 'artificiers' ? engine.snapshot() : {}), fingerInput: { ...state.fingerInput, receipts: receipts() } }), advance: (ms: number) => { manual = true; state.ticks += ms; if (game === 'artificiers') engine.advance(ms); } };
+        const hook = { ...proof, fingerReceipts: receipts, read: () => structuredClone({ ...state, ...(game === 'artificiers' ? engine.snapshot() : {}) }), advance: (ms: number) => { manual = true; state.ticks += ms; if (game === 'artificiers') engine.advance(ms); } };
         define('window', { __ARCADE_TEST__: { current: () => game, games: { [game]: hook } } });
         const clockCalls: unknown[] = [], packets: { type: string; touchPoints: Point[]; at: number }[] = [];
         const page = { clock: {
@@ -87,9 +102,18 @@ void test('stepped finger regressions without a browser', async t => {
             await finger.attach({ attach: (_name, options) => { body = String(options?.body); return Promise.resolve(); } });
             return JSON.parse(body) as { fingerprint: number; misses: number; final: unknown };
         }
-        return { finger, state, engine, packets, clockCalls, dropped, droppedFingers, report };
+        return { finger, state, engine, packets, clockCalls, dropped, droppedFingers, report, receipt: () => listeners.get('pointerdown')?.({ pointerType: 'touch', clientX: 10, clientY: 20 } as unknown as Event), receipts };
     }
     try {
+        await t.test('raw receipts change neither read() nor the report fingerprint', async () => {
+            const f = await setup();
+            const before = await f.finger.read(), report = await f.report();
+            f.receipt();
+            assert.equal(f.receipts().sequence, 1);
+            assert.deepEqual(await f.finger.read(), before);
+            assert.deepEqual(await f.report(), report);
+            assert.doesNotMatch(JSON.stringify(report.final), /receipts/);
+        });
         await t.test('seed, both noise axes, input latency and clock protocol', async () => {
             async function run(seed: number) {
                 const f = await setup(seed);
@@ -146,21 +170,130 @@ void test('stepped finger regressions without a browser', async t => {
             assert.equal((await f.report()).misses, 1);
         });
         await t.test('semantic direction evidence remains required after receipt', () => {
-            assert.equal(received('dedale', '#dedale-right', {}, { requested: 'up' }), false);
-            assert.equal(received('dedale', '#dedale-right', {}, { requested: 'right' }), true);
+            assert.equal(dedaleProof.fingerReceived('#dedale-right', {}, { requested: 'up' }), false);
+            assert.equal(dedaleProof.fingerReceived('#dedale-right', {}, { requested: 'right' }), true);
+        });
+        await t.test('migrated scene evidence accepts its effect and rejects an unchanged command', () => {
+            const target = { x: 180, y: 400, screenX: 101, screenY: 203, dx: 1, dy: 0 };
+            const cases: [FingerProof, string, FingerState, FingerState, FingerState][] = [
+                [alunirProof, '#alunir-left', {}, { fingerInput: { held: ['alunir-left'] } }, { fingerInput: { held: [] } }],
+                [ferrailleProof, '.joystick', {}, { fingerInput: { controls: { x: 1, y: 0 } } }, { fingerInput: { controls: { x: 0, y: 0 } } }],
+                [ferrailleProof, '#ferraille-jump', {}, { fingerInput: { controls: { jump: true } } }, { fingerInput: { controls: { jump: false } } }],
+                [ferrailleProof, '#ferraille-fire', {}, { fingerInput: { controls: { fire: true } } }, { fingerInput: { controls: { fire: false } } }],
+                [derapageProof, '#game canvas', {}, { fingerInput: { thumb: { x: 1, y: 3, dx: 100, dy: 200 } } }, { fingerInput: { thumb: null } }],
+                [dedaleProof, '#dedale-right', {}, { requested: 'right' }, { requested: 'up' }],
+                [serpentinProof, '#serpentin-right', {}, { direction: 'up', queue: ['right'] }, { direction: 'up', queue: [] }],
+                [traverseProof, '#traverse-right', {}, { queue: ['right'] }, { queue: [] }],
+                [orbiteProof, '#orbite-fire', {}, { fingerInput: { firing: true } }, { fingerInput: { firing: false } }],
+                [orbiteProof, '#game canvas', {}, { target: 180 }, { target: 160 }],
+                [essaimProof, '#essaim-fire', {}, { fingerInput: { firing: true } }, { fingerInput: { firing: false } }],
+                [essaimProof, '#essaim-steer', { cannon: 180 }, { target: 180 }, { target: 160 }],
+                [essaimProof, '#game canvas', {}, { target: 180 }, { target: 160 }],
+                [bubbleProof, '#game canvas', {}, { angle: 0, fingerInput: { aimingPointer: 0 } }, { angle: 0, fingerInput: { aimingPointer: null } }],
+                [bubbleProof, '#touch-swap', { next: 1, queued: 2 }, { next: 2, queued: 1 }, { next: 1, queued: 2 }],
+                [briqueterieProof, '#game canvas', {}, { paddle: 180, width: 40 }, { paddle: 160, width: 40 }],
+                [briqueterieProof, '#briqueterie-launch', {}, { ready: false }, { ready: true }],
+                [caissesProof, '#caisses-right', { moves: 0 }, { moves: 1 }, { moves: 0 }],
+                [empiloProof, '#empilo-right', { dealt: 0 }, { dealt: 1 }, { dealt: 0 }],
+                [gourmandisesProof, '#gourmandises-hammer', {}, { armedTool: 'hammer' }, { armedTool: null }],
+                [gourmandisesProof, '#game canvas', {}, { fingerInput: { down: { x: 180, y: 400 } } }, { fingerInput: { down: null } }],
+            ];
+            for (const [proof, selector, before, accepted, rejected] of cases) {
+                assert.ok(typeof proof.fingerReceived === 'function');
+                assert.equal(proof.fingerReceived(selector, before, accepted, target), true, selector);
+                assert.equal(proof.fingerReceived(selector, before, rejected, target), false, selector);
+                assert.equal(proof.fingerReceived('#example-special', { specialUses: 0 }, { specialUses: 1 }), true);
+                assert.equal(proof.fingerReceived('#example-special', { specialUses: 0 }, { specialUses: 0 }), false);
+            }
+            assert.equal(caissesProof.fingerReceived('#caisses-special', {}, { fingerInput: { pulling: true } }), true);
+            for (const [proof, idle, held] of [
+                [alunirProof, { held: [] }, { held: ['alunir-left'] }],
+                [ferrailleProof, { controls: { x: 0, y: 0, jump: false, fire: false } }, { controls: { x: 1 } }],
+                [derapageProof, { thumb: null }, { thumb: {} }],
+                [orbiteProof, { firing: false }, { firing: true }],
+                [essaimProof, { firing: false }, { firing: true }],
+            ] as [FingerProof, unknown, unknown][]) {
+                assert.ok(typeof proof.fingerReleased === 'function');
+                assert.equal(proof.fingerReleased(['#game canvas'], {}, { fingerInput: idle }), true);
+                assert.equal(proof.fingerReleased(['#game canvas'], {}, { fingerInput: held }), false);
+            }
+            assert.equal(bubbleProof.fingerReleased(['#game canvas'], { inFlight: false, shots: 2 }, { shots: 3 }), true);
+            assert.equal(bubbleProof.fingerReleased(['#game canvas'], { inFlight: false, shots: 2 }, { shots: 2 }), false);
+            assert.equal(bubbleProof.fingerReleased(['#touch-swap'], { inFlight: false, shots: 2 }, { shots: 2 }), true);
+        });
+        await t.test('scene declarations run in the page after delivery with snapshots and target', async () => {
+            const calls: string[] = [];
+            const f = await setup(109, 'example', 0, {
+                fingerReceived(selector, before, after, target) {
+                    assert.equal(window.__ARCADE_TEST__?.current(), 'example');
+                    assert.equal(selector, '#example-right');
+                    assert.equal(before.requested, 'up');
+                    assert.equal(after.requested, 'right');
+                    assert.equal(after.ticks, 150);
+                    assert.equal(f.packets.at(-1)?.type, 'touchStart');
+                    const point = f.packets.at(-1)?.touchPoints[0];
+                    assert.equal(target?.screenX, point?.x);
+                    assert.equal(target?.screenY, point?.y);
+                    calls.push('received');
+                    return true;
+                },
+                fingerReleased(selectors, before, after) {
+                    assert.deepEqual(selectors, ['#example-right']);
+                    assert.equal(before.ticks, 300);
+                    assert.equal(after.ticks, 300);
+                    assert.equal(f.packets.at(-1)?.type, 'touchEnd');
+                    calls.push('released');
+                    return true;
+                },
+            });
+            await f.finger.steer(['#example-right']);
+            await f.finger.release();
+            assert.deepEqual(calls, ['received', 'released']);
+            assert.deepEqual(f.packets.map(packet => packet.at), [150, 300]);
+        });
+        await t.test('a scene may reject a delivered touch or release; without declarations receipts suffice', async () => {
+            const refused = await setup(109, 'example', 0, { fingerReceived: () => false });
+            await assert.rejects(refused.finger.steer(['#example-right']), /toucher perdu/);
+            assert.equal((await refused.report()).misses, 1);
+            const released = await setup(109, 'example', 0, { fingerReleased: () => false });
+            await released.finger.steer(['#example-right']);
+            await assert.rejects(released.finger.release(), /toucher perdu/);
+            const fallback = await setup(109, 'example');
+            await fallback.finger.press(['#example-right']);
+            assert.equal((await fallback.report()).misses, 0);
+            fallback.dropped.add(3);
+            await assert.rejects(fallback.finger.steer(['#example-right']), /toucher perdu/);
+        });
+        await t.test('resume requires leaving pause on release even without a declaration', async () => {
+            const f = await setup(109, 'example');
+            f.state.fingerInput.paused = true;
+            await f.finger.steer(['#resume']);
+            await assert.rejects(f.finger.release(), /toucher perdu/);
+            const resumed = await setup(109, 'example');
+            resumed.state.fingerInput.paused = true;
+            await resumed.finger.steer(['#resume']);
+            resumed.state.fingerInput.paused = false;
+            await resumed.finger.release();
+        });
+        await t.test('the shared helper contains no registered game name', () => {
+            const registry = readFileSync(new URL('../../src/games/registry.ts', import.meta.url), 'utf8');
+            const helper = readFileSync(new URL('./finger-stepped.ts', import.meta.url), 'utf8');
+            const ids = [...registry.slice(registry.indexOf('export const games:')).matchAll(/\bid: '([^']+)'/g)].map(match => match[1] ?? '');
+            assert.ok(ids.length >= 12);
+            for (const id of ids) assert.ok(id && !helper.toLowerCase().includes(id.toLowerCase()), `Nom de jeu dans l’aide : ${id}`);
         });
         await t.test('Artificiers aiming and weapon evidence accepts effects and rejects stale or missing state', () => {
             const target = { x: 120, y: 240, screenX: 80, screenY: 90, dx: 0, dy: 0 };
             const before = { weapon: 0 };
-            assert.equal(received('artificiers', '#artificiers-weapon', before, { weapon: 1 }), true);
-            assert.equal(received('artificiers', '#artificiers-weapon', before, before), false);
+            assert.equal(artificiersProof.fingerReceived('#artificiers-weapon', before, { weapon: 1 }), true);
+            assert.equal(artificiersProof.fingerReceived('#artificiers-weapon', before, before), false);
             for (const aiming of [null, { x: 124, y: 240 }, { x: 120, y: 244 }]) {
-                assert.equal(received('artificiers', '#game canvas', {}, { fingerInput: { aiming } }, target), false);
+                assert.equal(artificiersProof.fingerReceived('#game canvas', {}, { fingerInput: { aiming } }, target), false);
             }
-            assert.equal(received('artificiers', '#game canvas', {}, {}, target), false);
-            assert.equal(received('artificiers', '#game canvas', {}, { fingerInput: { aiming: { x: 120, y: 240 } } }), false);
-            assert.equal(received('artificiers', '#artificiers-rope', before, { weapon: 1 }), false);
-            assert.equal(received('artificiers', '#game canvas', {}, { fingerInput: { aiming: { x: 120.5, y: 239.5 } } }, target), true);
+            assert.equal(artificiersProof.fingerReceived('#game canvas', {}, {}, target), false);
+            assert.equal(artificiersProof.fingerReceived('#game canvas', {}, { fingerInput: { aiming: { x: 120, y: 240 } } }), false);
+            assert.equal(artificiersProof.fingerReceived('#artificiers-rope', before, { weapon: 1 }), false);
+            assert.equal(artificiersProof.fingerReceived('#game canvas', {}, { fingerInput: { aiming: { x: 120.5, y: 239.5 } } }, target), true);
         });
         await t.test('Artificiers spec gestures replay against strict CDP, including buttons, repeated shots and final cleanup', async () => {
             for (const level of [0, 9]) {

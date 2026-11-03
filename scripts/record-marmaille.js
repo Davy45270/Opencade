@@ -12,7 +12,7 @@ export const TRIGGERS = [
     [[0, 'build', 8]],
     [[0, 'build', 9]],
     [[0, 'dig', 10]],
-    [[0, 'dig', 8], [0, 'block', 11]],
+    [[0, 'dig', 3, 11, -1]],
     [[0, 'bash', 8]],
     [[0, 'bash', 5], [0, 'build', 10]],
     all(6).map(k => [k, 'float', 5]),

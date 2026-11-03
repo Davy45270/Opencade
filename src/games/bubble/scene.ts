@@ -1,9 +1,10 @@
+import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
 import { GameCharacter } from '../../characters/game';
 import { arcadeArt, emblems, liveries, launcherViews, launcherDrawing, aimBarrelDrawing } from '../../characters/arcade-art';
 import { expressions } from '../../characters/model';
 import { ArcadePaint } from '../../characters/arcade-phaser';
-import { drawBubbleBackdrop } from './backdrop';
+import { bubbleBackdropKey, drawBubbleBackdrop } from './backdrop';
 import { Settle, settleTarget } from './settle';
 import { PlaySession } from '../../shell/pause';
 import { bubbleButtons } from '../registry';
@@ -50,14 +51,18 @@ export interface TestHook {
     visuals(): { guide: ReturnType<Engine['trace']>['segments']; falling: number; ghost: Cell | null; settling: Point | null; drawn: Drawn };
     usefulArea(): { x: number; y: number; width: number; height: number };
     lastAttached(): Cell | null;
-    read: () => ReturnType<Engine['snapshot']> & { fingerInput: { receipts: ReturnType<ReturnType<typeof fingerReceipts>>; paused: boolean; aimingPointer: number | null }; character: ReturnType<GameCharacter['snapshot']>; cumulativeScore: number; progression: string };
+    fingerReceipts: ReturnType<typeof fingerReceipts>;
+    read: () => ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; aimingPointer: number | null }; character: ReturnType<GameCharacter['snapshot']>; cumulativeScore: number; progression: string };
 }
 declare global {
     interface Window {
         __BUBBLE_TEST__?: TestHook;
     }
 }
+/** Features drawn in each baked scenery texture (textures outlive a scene restart, so this map does too). */
+const decorFeatures = new Map<string, string[]>();
 export class LabScene extends Phaser.Scene {
+    private backdropImage?: Phaser.GameObjects.Image;
     private hero = new GameCharacter();
     private engine = new Engine();
     private progress = new Progression();
@@ -189,7 +194,9 @@ export class LabScene extends Phaser.Scene {
         canvas.setAttribute('role', 'img');
         if (new URLSearchParams(location.search).get('test') === '1') {
             window.__BUBBLE_TEST__ = {
-                art: () => this.paint?.keys() ?? [],
+            ...fingerProof,
+                // Draws the current state first: a board loaded by the hook is reported even before the next animation frame.
+                art: () => { this.tick(0); return this.paint?.keys() ?? []; },
                 advance: ms => { this.advanceTest(ms); },
                 loadLevel: (index, seed) => { this.startLevel(index, seed, true); },
                 load: (grid, next = 0, seed = this.engine.seed) => {
@@ -211,7 +218,8 @@ export class LabScene extends Phaser.Scene {
                 visuals: () => ({ guide: this.guide(), falling: this.effects.filter(e => e.fall).length, ghost: this.ghost(), settling: this.settling(), drawn: { ...this.drawn } }),
                 usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
                 performance: () => ({ frames: this.game.loop.frame, gameMs: this.hero.time }),
-                read: () => ({ fingerInput: { receipts: receipts(), paused: this.session.paused, aimingPointer: this.aimingPointer }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+                fingerReceipts: receipts,
+                read: () => ({ fingerInput: { paused: this.session.paused, aimingPointer: this.aimingPointer }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             };
         }
     }
@@ -317,7 +325,12 @@ export class LabScene extends Phaser.Scene {
         this.frame = drawn;
         const attachedKey = this.engine.last.attached ? key(this.engine.last.attached) : '';
         this.paint?.begin();
-        drawn.decor = drawBubbleBackdrop(g, this.engine.level);
+        // Scenery is baked once per world (and catalogue board) and shown as a single image.
+        const decorKey = bubbleBackdropKey(this.engine.level);
+        if (!this.textures.exists(decorKey)) { const b = this.make.graphics({}, false); decorFeatures.set(decorKey, drawBubbleBackdrop(b, this.engine.level)); b.generateTexture(decorKey, 360, 640); b.destroy(); }
+        this.backdropImage ??= this.add.image(0, 0, decorKey).setOrigin(0).setDepth(-1);
+        this.backdropImage.setTexture(decorKey);
+        drawn.decor = [...(decorFeatures.get(decorKey) ?? [])];
         g.lineStyle(2, 0x64e4cc, 0.6);
         g.lineBetween(0, 0, 0, 455);
         g.lineBetween(359, 0, 359, 455);

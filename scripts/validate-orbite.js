@@ -98,7 +98,8 @@ for (const file of ['orbite.test.ts', 'orbite-mechanics.test.ts', 'orbite-campai
 }
 const { registerSceneChecks } = await import('./orbite-scene-checks.js');
 await registerSceneChecks();
-const { sceneChecks } = await import('./orbite-scene-checks.js');
+const { sceneChecks, worldChecks } = await import('./orbite-scene-checks.js');
+await worldChecks();
 for (const [name, before, after] of [
     ['stealth always drawn', 'if (!this.engine.visible(p)) continue;', 'if (p.hp <= 0) continue;'],
     ['misleading rotor fallback', "c.mechanics[0] ? names[c.mechanics[0]] : 'Défendre les quatre abris'", "c.mechanics[0] ? names[c.mechanics[0]] : names.rotor"],

@@ -4,7 +4,7 @@ import { Random } from '../../src/engines/shared/random';
 import type { Action } from '../../src/engines/bombercade/pilot';
 import type { BombercadeHook } from '../../src/games/bombercade/scene';
 
-type Receipt = ReturnType<BombercadeHook['read']>['fingerInput']['receipts']['events'][number];
+type Receipt = ReturnType<BombercadeHook['fingerReceipts']>['events'][number];
 type Packet = { type: 'touchStart' | 'touchEnd'; points: Touch[]; sequence: number; endSequence: number;
     before?: { points: { point: Touch; target: string | null }[]; rects: Record<string, { x: number; y: number; width: number; height: number } | null> };
     requireReceipt: boolean; matchedReceipts: { touchId: number; receipt: Receipt }[]; errors: unknown[] };
@@ -58,7 +58,7 @@ for (const level of [0, 3]) test(`B doigt bruité niveau ${String(level + 1)}`, 
     const dispatch = async (points: Touch[], requireReceipt = true) => {
         const sequence = await page.evaluate(() => {
             const hook = window.__BOMBERCADE_TEST__; if (!hook) throw new Error('Crochet absent');
-            return hook.read().fingerInput.receipts.sequence;
+            return hook.fingerReceipts().sequence;
         });
         const packet: Packet = { type: points.length ? 'touchStart' : 'touchEnd', points: points.length ? points : active,
             sequence, endSequence: sequence, requireReceipt, matchedReceipts: [], errors: [] };
@@ -79,7 +79,7 @@ for (const level of [0, 3]) test(`B doigt bruité niveau ${String(level + 1)}`, 
         const after = await page.evaluate(points => {
             const hook = window.__BOMBERCADE_TEST__; if (!hook) throw new Error('Crochet absent');
             const state = hook.read();
-            return { receipts: state.fingerInput.receipts, status: state.status, time: state.time,
+            return { receipts: hook.fingerReceipts(), status: state.status, time: state.time,
                 targets: points.map(point => {
                     const selector = point.id === 0 ? '.joystick' : point.id === 1 ? '#bombercade-bomb' : point.id === 2 ? '#bombercade-special' : '#resume';
                     const r = document.querySelector(selector)?.getBoundingClientRect();
@@ -104,8 +104,8 @@ for (const level of [0, 3]) test(`B doigt bruité niveau ${String(level + 1)}`, 
             };
             if (expected) {
                 if (before.actors[0]?.queued !== expected.intent.direction) errors.push({ effect: 'direction', expected, state: before });
-                if (before.fingerInput.bombRequests !== expected.bombRequests + Number(expected.intent.bomb)) errors.push({ effect: 'bomb', expected, state: before });
-                if (before.fingerInput.specialRequests !== expected.specialRequests + Number(Boolean(expected.intent.special))) errors.push({ effect: 'special', expected, state: before });
+                if (hook.fingerReceipts().bombRequests !== expected.bombRequests + Number(expected.intent.bomb)) errors.push({ effect: 'bomb', expected, state: before });
+                if (hook.fingerReceipts().specialRequests !== expected.specialRequests + Number(Boolean(expected.intent.special))) errors.push({ effect: 'special', expected, state: before });
             }
             let intent: Action | null = null;
             if (drive && !errors.length && before.status === 'playing' && !before.fingerInput.paused) {
@@ -140,8 +140,8 @@ for (const level of [0, 3]) test(`B doigt bruité niveau ${String(level + 1)}`, 
             const resultPanelVisible = document.querySelector<HTMLElement>('#result')?.hidden === false;
             // Keep ordinary decision payloads small; errors retain the full snapshot.
             return { state: { status: state.status, time: state.time, fingerInput: {
-                paused: state.fingerInput.paused, bombRequests: state.fingerInput.bombRequests,
-                specialRequests: state.fingerInput.specialRequests, receipts: { sequence: state.fingerInput.receipts.sequence },
+                paused: state.fingerInput.paused, bombRequests: hook.fingerReceipts().bombRequests,
+                specialRequests: hook.fingerReceipts().specialRequests, receipts: { sequence: hook.fingerReceipts().sequence },
             } }, resultPanelVisible, intent, intended, targets, errors, fromGameMs: before.time };
         }, { expected, drive, noise: Array.from({ length: 3 }, () => ({ x: Math.floor(random.next() * 25) - 12, y: Math.floor(random.next() * 25) - 12 })) });
         expected = null;
@@ -203,7 +203,7 @@ for (const level of [0, 3]) test(`B doigt bruité niveau ${String(level + 1)}`, 
         for (const point of edgePoints) {
             const sequence = await page.evaluate(() => {
                 const hook = window.__BOMBERCADE_TEST__; if (!hook) throw new Error('Crochet absent');
-                return hook.read().fingerInput.receipts.sequence;
+                return hook.fingerReceipts().sequence;
             });
             try {
                 await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [point] });
@@ -212,7 +212,7 @@ for (const level of [0, 3]) test(`B doigt bruité niveau ${String(level + 1)}`, 
             }
             const receipts = await page.evaluate(sequence => {
                 const hook = window.__BOMBERCADE_TEST__; if (!hook) throw new Error('Crochet absent');
-                return hook.read().fingerInput.receipts.events
+                return hook.fingerReceipts().events
                     .filter(event => event.sequence > sequence && event.type === 'pointerdown');
             }, sequence);
             edgeTouchTargets.push({ point, receipts });
@@ -249,7 +249,7 @@ for (const level of [0, 3]) test(`B doigt bruité niveau ${String(level + 1)}`, 
             const cleanup = await page.evaluate(() => {
                 const hook = window.__BOMBERCADE_TEST__; if (!hook) throw new Error('Crochet absent');
                 const state = hook.read(), resultPanelVisible = document.querySelector<HTMLElement>('#result')?.hidden === false;
-                return { status: state.status, resultPanelVisible, sequence: state.fingerInput.receipts.sequence,
+                return { status: state.status, resultPanelVisible, sequence: hook.fingerReceipts().sequence,
                     requireReceipt: state.status === 'playing' && !resultPanelVisible };
             });
             entries.push({ cleanup: true, ...cleanup });
