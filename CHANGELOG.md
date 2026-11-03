@@ -11,6 +11,7 @@ First stable release of the 0.4 series: everything from the three preview builds
 
 - Marmaille : la troupe avance deux fois moins vite (un pas toutes les 250 ms) ; le bouton « » » (touche V) double toujours la vitesse. Les temps limites sont doublés, si bien que chaque niveau garde exactement le même nombre de pas et reste gagnable avec les mêmes solutions.
 - Contrôles Node des scènes alignés sur le décor cuit en texture et les pièces en images réutilisées ; Serpentin vérifie que le décor est cuit une fois par niveau.
+- Bubble : le niveau 9 « Cristal » redevient faisable — même losange et mêmes réglages, mais des couleurs voisines qui se répondent ; le solveur le gagne sur 20 graines sur 20, et aucun des trente niveaux ne descend sous 13 sur 20.
 - Bubble : murs et linteau de pierre, terrasse et bandeau de jeu cuits avec le décor du monde ; le bandeau ne passe plus sous le lanceur.
 - Traverse : les repères de rochers comptent les rochers peints dans le décor cuit.
 - Intégration continue : les contrôles ne dépendent plus de l’historique de travail, et les tests de bout en bout sont répartis en quatre lots parallèles.

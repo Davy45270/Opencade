@@ -51,7 +51,10 @@ test('F09 F12 victoire par déplacement, niveau suivant et contrôles', async ({
     const ready = await read(page); await page.waitForTimeout(150); expect(await read(page)).toEqual(ready);
     await victory(page, mobile);
     await page.screenshot({ path: `test-results/screenshots/ferraille-won-${info.project.name}.png` });
-    await tap(page, '#next-level', mobile); expect((await read(page))?.level).toBe(1); await layout(page);
+    // A new level restarts the real-time clock: pin it again, or the opening turret can knock the hero
+    // back while the layout is measured, before the test even holds the stick.
+    await tap(page, '#next-level', mobile); await page.evaluate(() => { window.__FERRAILLE_TEST__?.advance(0); });
+    expect((await read(page))?.level).toBe(1); await layout(page); expect((await read(page))?.hero.x).toBe(32);
     await walk(page, mobile, async () => { await page.evaluate(() => { window.__FERRAILLE_TEST__?.advance(400); }); await expect.poll(async () => (await read(page))?.hero.x ?? 0).toBeGreaterThan(64); });
     await page.screenshot({ path: `test-results/screenshots/ferraille-play-${info.project.name}.png` });
 });

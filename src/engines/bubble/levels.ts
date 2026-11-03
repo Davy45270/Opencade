@@ -105,7 +105,7 @@ export function generateLevel(index: number, seed: number): Cell[] {
             if (row === 0 || masks[index]) {
                 const motifs = [row + Math.floor(col / 3), distance + row, row + col, row,
                     col, row + Math.floor(col / 2), distance + row, Math.max(distance, row) + col,
-                    distance * 2 + row, col + row * 2];
+                    Math.floor(distance * 5 / 3) + row, col + row * 2];
                 const color = palette[(motifs[index] ?? 0) % level.colors] ?? 0;
                 grid.push({ row, col, color });
             }
