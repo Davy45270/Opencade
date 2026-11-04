@@ -321,3 +321,8 @@ body.pepites #touch-controls button { width: 56px; height: 56px; padding: 0; fon
 .other-game span { display: grid; gap: 4px; min-width: 0; }
 .other-game strong { font-size: 20px; line-height: 1.2; }
 .other-game small { font-size: 12px; line-height: 1.5; }
+
+/* « Donner mon avis », last entry of the ☰ home menu: a plain link to the public forms, opened in a new tab. */
+#feedback-entry { margin: 12px auto 0; font-size: inherit; }
+#give-feedback { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 24px; background: #64e4cc; color: #102532; border-radius: 12px; font-weight: bold; text-decoration: none; }
+#give-feedback:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }

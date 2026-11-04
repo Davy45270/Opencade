@@ -1,0 +1,33 @@
+name: Quelque chose ne marche pas
+description: Un bouton qui ne répond pas, un écran bloqué, un niveau impossible…
+title: "Problème : "
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Merci de nous aider à améliorer Opencade !
+        Ce message sera **public** : n'écrivez ni nom, ni adresse, ni école, ni photo d'un enfant. Un adulte peut aider un enfant à le remplir. Quelques mots suffisent.
+  - type: input
+    id: jeu
+    attributes:
+      label: Quel jeu, ou quel moment du jeu ?
+      placeholder: "Par exemple : Empilo, niveau 12"
+  - type: textarea
+    id: probleme
+    attributes:
+      label: Que s'est-il passé ?
+      description: Racontez avec vos mots ce que vous avez fait, et ce qui s'est passé.
+      placeholder: "J'ai touché… et alors…"
+    validations:
+      required: true
+  - type: input
+    id: appareil
+    attributes:
+      label: Sur quel appareil ?
+      placeholder: "Par exemple : tablette, téléphone, ordinateur (et le navigateur si vous le savez)"
+  - type: textarea
+    id: capture
+    attributes:
+      label: Une capture d'écran ? (facultatif)
+      description: Vous pouvez glisser une image ici.

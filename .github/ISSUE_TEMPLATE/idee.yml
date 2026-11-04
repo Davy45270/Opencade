@@ -1,0 +1,28 @@
+name: J'ai une idée
+description: Un souhait, une amélioration, quelque chose qui rendrait le jeu plus amusant.
+title: "Idée : "
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Toutes les idées sont les bienvenues, petites ou grandes !
+        Les jeux d'Opencade sont originaux : décrivez l'idée avec vos mots, sans reprendre le nom ni les personnages d'un autre jeu.
+        Ce message sera **public** : n'écrivez ni nom, ni adresse, ni école, ni photo d'un enfant. Un adulte peut aider un enfant à le remplir. Quelques mots suffisent.
+  - type: input
+    id: jeu
+    attributes:
+      label: Pour quel jeu ?
+      placeholder: "Par exemple : Empilo, niveau 12"
+  - type: textarea
+    id: idee
+    attributes:
+      label: Votre idée
+      description: Ce que vous aimeriez voir ou changer, et pourquoi si vous voulez.
+    validations:
+      required: true
+  - type: input
+    id: appareil
+    attributes:
+      label: Sur quel appareil jouez-vous ? (facultatif)
+      placeholder: "Par exemple : tablette, téléphone, ordinateur"

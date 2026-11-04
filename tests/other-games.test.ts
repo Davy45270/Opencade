@@ -47,6 +47,14 @@ it('renders same-tab links with the exact address, a name and an icon', () => {
 
 it('the ☰ home menu holds the “Mes autres jeux” entry', () => {
     const html = readFileSync('index.html', 'utf8');
-    expect(html).toMatch(/<details id="home-menu">.*<details id="other-games"><summary>Mes autres jeux<\/summary><ul id="other-games-list"[^>]*><\/ul><\/details><\/details>/);
+    expect(html).toMatch(/<details id="home-menu">.*<details id="other-games"><summary>Mes autres jeux<\/summary><ul id="other-games-list"[^>]*><\/ul><\/details><p id="feedback-entry">.*?<\/p><\/details>/);
     expect(readFileSync('src/shell/other-games.ts', 'utf8')).not.toMatch(/\bfetch\b|XMLHttpRequest|window\.open|_blank/);
+});
+
+it('the ☰ home menu ends with “Donner mon avis”, a new-tab link to the public forms', () => {
+    const html = readFileSync('index.html', 'utf8');
+    const links = [...html.matchAll(/<a [^>]*>/g)].map(match => match[0]);
+    expect(links).toEqual(['<a id="give-feedback" href="https://github.com/Davy45270/Opencade/issues/new/choose" target="_blank" rel="noopener noreferrer">']);
+    expect(html).toMatch(/<p id="feedback-entry"><a id="give-feedback"[^>]*>Donner mon avis<span class="sr-only"> \(nouvel onglet\)<\/span><\/a><\/p><\/details><\/footer>/);
+    expect(html).not.toMatch(/utm_|<script[^>]+src="https?:/);
 });

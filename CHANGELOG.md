@@ -5,6 +5,9 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Menu ☰ de l’accueil : nouvelle entrée « Donner mon avis ». Un simple lien ouvre, dans un nouvel onglet (`rel="noopener"`), les formulaires publics du dépôt. Le jeu n’envoie rien et n’embarque aucun traceur.
+- Deux formulaires courts en français (« Quelque chose ne marche pas », « J'ai une idée ») remplacent les anciens, plus techniques ; le ticket vierge est désactivé. `CONTRIBUTING.md` explique comment signaler.
+
 ## [0.5.1] — 2026-11-04
 
 - Accueil : chaque vignette du catalogue montre le jeu tel qu’il est aujourd’hui — mêmes décors, mêmes sprites, même palette et le personnage choisi — au lieu des anciennes formes simples. Les vignettes appellent le code de dessin de leur jeu (décors, véhicules, perles, briques, labyrinthes…) ; les calques fixes sont cuits une fois en image, si bien qu’une image de vignette ne coûte que quelques copies d’image.

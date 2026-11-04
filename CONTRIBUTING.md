@@ -1,5 +1,15 @@
 # Contributing to Opencade
 
+## Signaler un problème ou proposer une idée
+
+Le plus simple : le menu **☰** de l'accueil, puis **« Donner mon avis »**. Il ouvre, dans un
+nouvel onglet, la page des formulaires du dépôt (ou l'onglet *Issues*, puis **New issue**).
+Deux formulaires courts, en français : **Quelque chose ne marche pas** (quel jeu, ce qui s'est
+passé, sur quel appareil) et **J'ai une idée**. Seule la description est obligatoire ; un adulte
+peut aider un enfant à écrire. Ce que vous écrivez est **public** : pas de nom, d'adresse, d'école
+ni de photo d'enfant. Le jeu n'envoie rien : le bouton est un simple lien, sans compteur ni traceur.
+Une faille de sécurité se signale en privé (voir [SECURITY.md](SECURITY.md)).
+
 Bug reports and pull requests are welcome in English or French.
 
 ## Before you start

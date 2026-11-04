@@ -1,5 +1,5 @@
-blank_issues_enabled: true
+blank_issues_enabled: false
 contact_links:
-  - name: Report a vulnerability
-    url: https://github.com/Davy45270/Opencade/security/advisories/new
-    about: Report privately through GitHub Security Advisories (see SECURITY.md).
+  - name: Signaler une faille de sécurité
+    url: https://github.com/Davy45270/Opencade/security/policy
+    about: En privé, comme indiqué dans SECURITY.md.
