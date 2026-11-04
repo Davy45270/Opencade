@@ -1,12 +1,13 @@
 import { test, expect } from './fixture';
 
-const ids = ['bombercade', 'marmaille', 'gourmandises', 'pepites', 'collier', 'derapage', 'traverse', 'caisses', 'alunir', 'ferraille', 'dedale', 'essaim', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin'];
+const ids = ['petits-pompiers', 'bombercade', 'marmaille', 'gourmandises', 'pepites', 'collier', 'derapage', 'traverse', 'caisses', 'alunir', 'ferraille', 'dedale', 'essaim', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin'];
 const windows = [{ width: 390, height: 844 }, { width: 360, height: 640 }, { width: 390, height: 600 }];
 for (const viewport of windows) for (const id of ids) {
     test(`M01 M02 M02b M03 ${id} ${String(viewport.width)}x${String(viewport.height)}`, async ({ page }, testInfo) => {
         await page.setViewportSize(viewport);
         await page.goto(`/?test=1#/${id}`);
         await expect.poll(() => page.evaluate(id => Boolean(window.__ARCADE_TEST__?.games[id]), id)).toBe(true);
+        if (id === 'petits-pompiers') { await page.locator('#level-list button').first().tap(); await page.locator('#pompiers-detente').tap(); }
         if (id !== 'bubble' && id !== 'caisses') await page.locator('#resume').tap();
         await expect.poll(() => page.evaluate(id => window.__ARCADE_TEST__?.games[id]?.hudText(), id)).toMatch(/SCORE|pts/);
         const measure = () => page.evaluate(id => {
@@ -46,7 +47,7 @@ for (const viewport of windows) for (const id of ids) {
             expect(m.canvas.width >= .92 * m.availableWidth || m.canvas.height >= .85 * m.availableHeight).toBe(true);
             expect(m.bar.height).toBeLessThanOrEqual(44);
             // Documented exceptions: Ferraille's joystick (120 px) and Dérapage's large Drift button with Bonus above it (88 + 56 px).
-            expect(m.row.height).toBeLessThanOrEqual(id === 'bombercade' ? 120 : id === 'ferraille' ? 120 : id === 'derapage' ? 156 : 64);
+            expect(m.row.height).toBeLessThanOrEqual(id === 'bombercade' || id === 'petits-pompiers' ? 120 : id === 'ferraille' ? 120 : id === 'derapage' ? 156 : 64);
             expect(m.buttons.length, 'M02b boutons visibles').toBeGreaterThan(0);
             for (const button of m.buttons) {
                 expect(button.scrollWidth, `M02b ${button.id} largeur`).toBeLessThanOrEqual(button.clientWidth);
@@ -75,6 +76,7 @@ for (const viewport of windows) for (const id of ids) {
         await page.setViewportSize(viewport);
         await page.goto(`/?test=1#/${id}`);
         await expect.poll(() => page.evaluate(id => Boolean(window.__ARCADE_TEST__?.games[id]), id)).toBe(true);
+        if (id === 'petits-pompiers') { await page.locator('#level-list button').first().tap(); await page.locator('#pompiers-detente').tap(); }
         if (id !== 'bubble' && id !== 'caisses') await page.locator('#resume').tap();
         await page.locator('#game-menu-toggle').tap();
         const gameState = (id: string) => page.evaluate(id => window.__ARCADE_TEST__?.games[id]?.read(), id);

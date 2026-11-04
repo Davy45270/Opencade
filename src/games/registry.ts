@@ -1,4 +1,8 @@
 import type { FingerProof } from './finger-receipts';
+import { PetitsPompiersScene, pompiersButtons } from './petits-pompiers/scene';
+import { pompiersEffects } from './petits-pompiers/sound';
+import { createThumbnail as pompiersThumbnail, createDemo as pompiersDemo } from './petits-pompiers/thumbnail';
+import { GAME_NAME as POMPIERS_NAME, LEVELS as POMPIERS_LEVELS } from '../engines/petits-pompiers/levels';
 import { CollierScene, collierButtons } from './collier/scene';
 import { MarmailleScene, marmailleButtons } from './marmaille/scene';
 import { marmailleEffects } from './marmaille/sound';
@@ -91,6 +95,7 @@ export const bubbleButtons: readonly TouchButton[] = [
     { id: 'touch-right', label: '→', ariaLabel: 'Viser à droite', size: 44, placement: 'right', mode: 'tap' },
 ];
 export const games: readonly GameDefinition[] = [
+    { thumbnail: pompiersThumbnail, demo: pompiersDemo, id: 'petits-pompiers', name: POMPIERS_NAME, levelCount: POMPIERS_LEVELS.length, realtime: true, keyboardHelp: 'Flèches / ZQSD : marcher · Espace : action · A : outil · P/Échap : pause', touchHelp: 'Stick : marcher · Grande touche : action contextuelle · Petite touche : outil', createScene: session => new PetitsPompiersScene(session), effects: pompiersEffects, testHook: () => window.__PETITS_POMPIERS_TEST__, touchControls: pompiersButtons },
     { thumbnail: collierThumbnail, demo: collierDemo, id: 'collier', name: COLLIER_NAME, levelCount: 30, realtime: true, keyboardHelp: '← → : viser · Espace : tirer · X : échanger · P/Échap : pause', touchHelp: 'Viser partout puis relâcher · Tap sur le tireur ou ⇄ : échanger', createScene: session => new CollierScene(session), effects: collierEffects, testHook: () => window.__COLLIER_TEST__, touchControls: collierButtons },
     { thumbnail: bombercadeThumbnail, demo: bombercadeDemo, id: 'bombercade', name: BOMBERCADE_NAME, levelCount: 30, realtime: true, keyboardHelp: 'Flèches / ZQSD : marcher · Espace : bombe · X : pouvoir · P/Échap : pause', touchHelp: 'Pavé : maintenir la direction · Glisser dans l’arène : marcher · Tap dans l’arène ou Bombe : poser · ✦ : pouvoir', createScene: session => new BombercadeScene(session), effects: bombercadeEffects, testHook: () => window.__BOMBERCADE_TEST__, touchControls: bombercadeButtons },
     { thumbnail: derapageThumbnail, demo: derapageDemo, id: 'derapage', name: 'Dérapage', levelCount: 30, realtime: true, keyboardHelp: '← → : braquer · Espace/Maj : dérapage · X/Ctrl : bonus · C : élan · P/Échap : pause', touchHelp: 'Maintenir ◀ ▶ et Glisse (Dérapage) · Bonus : utiliser · Inclinaison et souris en option', createScene: session => new DerapageScene(session), effects: derapageEffects, testHook: () => window.__DERAPAGE_TEST__, touchControls: derapageButtons },

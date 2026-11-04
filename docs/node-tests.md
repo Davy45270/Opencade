@@ -6,6 +6,7 @@ Catégories : **V** validateur rapide (objectif < 30 s par entrée), **G** campa
 
 | Script dans `scripts/` | Classe | Exécution / rôle |
 | --- | --- | --- |
+| `validate-petits-pompiers.js` | V | 30 oracles PP, 150 victoires enregistrées et six mutations ; `PP_RECORD=1` régénère les bandes hors CI. |
 | `audit-derapage-mutations.js` | G | `npm run audit:derapage` : 42 preuves de rejet explicites, hors CI. |
 | `check-derapage-3d.js` | V | Projections, rendu et courses de vraie scène ; Y02 sans scène appartient à Vitest. |
 | `check-derapage-cadence.js` | V | Cadence, raster, HUD et parcours Graphics 2D/3D mutualisés. |

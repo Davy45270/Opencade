@@ -16,6 +16,8 @@ export const nodeChecks = [
     ['check-level-catalogue-kart.js'],
     ['validate-marmaille.js'],
     ['validate-bombercade.js'],
+    ['validate-petits-pompiers.js'],
+    ['petits-pompiers-scene-oracle.js'],
     ['check-essaim-art.js'],
     ['check-essaim-signature-art.js'],
     ['check-essaim-geometry.js'],

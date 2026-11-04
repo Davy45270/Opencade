@@ -1,5 +1,7 @@
 <h1 align="center"><a href="https://davy45270.github.io/Opencade/">▶ Play / Jouer</a></h1>
 
+Petits Pompiers: rescue neighbours and animals with five firefighters, touch controls and relaxed or challenge modes.
+
 <p align="center"><a href="https://davy45270.github.io/Opencade/"><img src="docs/screenshots/home-desktop.webp" alt="Opencade home screen on a desktop browser: game cards with live previews" width="100%"></a></p>
 
 English | [Français](README.fr.md)

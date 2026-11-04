@@ -5106,3 +5106,228 @@ pilotes tactiles), le harnais de scène et les huit mutations passent. Les
 37 842 images des trente bandes gagnantes culminent à 75 appels Graphics ;
 le scénario chargé sur les trente cartes culmine à 79. Aucun navigateur,
 Vitest ni Playwright lancé ; aucun commit.
+
+
+## Petits Pompiers — moteur pur et campagne prouvée
+
+Identifiant `petits-pompiers`, familial dès 5 ans. Cette livraison fournit uniquement
+le moteur, le contenu, le pilote, la démonstration pure et les preuves ; scène,
+registre et vignette restent à réaliser. Le contrat détaillé pour le rendu est
+[dans la documentation API](docs/petits-pompiers-api.md).
+
+Grille entière de **14 × 9**, positions continues, tuiles de 32 unités, pas fixe
+`1000 / 60` ms. À 390 px avec 14 px de marge : environ 25,9 px par tuile et
+362 × 233 px pour la grille, commandes placées dessous. Déplacement à huit
+directions normalisées, jet à quatre directions. Les cartes ASCII et leur
+légende sont dans `levels.ts` ; chaque monde a trois cartes : quartier
+résidentiel, centre-ville, forêt, montagne enneigée, port.
+
+Un appui démarre un travail autonome et suspend le déplacement jusqu'à sa fin.
+Un maintien de l'action prolonge le jet de tuyau et répète la mousse avec sa
+recharge ; les autres travaux et le choix d'outil restent sur front montant.
+Un appui bref conserve une rafale autonome d'une seconde. L'ordre contextuel est
+**dépôt > soin disponible > ramassage possible > borne non pleine > déblaiement
+possible > fenêtre avec échelle > appel utile > extincteur sélectionné ou tuyau**.
+Ordre stable des victimes et des cases ; accès sur la même case ou une case
+voisine orthogonale, sans diagonale à travers un angle fermé. Les outils
+rencontrés se ramassent au passage. Le choix d'outil reste mémorisé, mais ne
+masque jamais un secours pertinent. Hors contexte, un outil de secours revient
+au tuyau ; l'extincteur sélectionné conserve ses charges et sa recharge propres.
+
+Un seul porté ; vitesse × 0,72, sauf Tutu. File de quatre personnes rassurées
+au maximum, suivant un vrai chemin et déposées près de la zone sûre. Animaux
+portés ; victimes blessées soignées avant port. Échelle obligatoire, posée au
+pied extérieur accessible (herbe, route ou neige au-dessous de la fenêtre
+en façade), puis montée chronométrée. La hache casse
+caisses, planches, portes bloquées et gravats, jamais les murs ; les portes
+ordinaires se traversent. Les arbres et l'eau bloquent les déplacements.
+
+Les valeurs demandées de vitesse, réserve et outils initiaux sont conservées :
+Boubou 100/120, CaliRoux 135/80 + échelle, Pestouille 110/95 + hache,
+Tutu 125/85 + trousse, Lumi 105/100 + mégaphone. Tous ont le tuyau.
+Boubou porte à 4 cases au lieu de 3, utilise 100 % de l'eau au lieu de 90 %.
+CaliRoux monte en 1 s au lieu de 2. Pestouille déblaie en 0,3 s au lieu de
+1 s (2 s pour les gravats), et caisses/gravats même sans hache. Tutu ramasse
+et dépose en 0,15 s au lieu de 0,6. Le halo de signalisation de Lumi révèle
+et rassure sans outil à 3 cases ; le mégaphone porte à 4. Aucun pouvoir de feu.
+
+Le tuyau consomme 24 unités/s, chaque unité d'intensité coûte 12 unités utiles.
+Mousse : six charges, portée 1, débit 60 unités/s pendant 0,3 s, recharge 0,8 s.
+Borne : 80 unités/s. Les progrès partiels d'extinction sont conservés. Un feu
+éteint laisse une case brûlée non inflammable. Propagation cardinale seedée,
+intervalle par niveau, nouvelle intensité 1 et maximum 3. Route, neige, eau et
+gravats ne brûlent pas ; herbe, sol intérieur, bois et arbres peuvent brûler.
+Le tutoriel désactive la propagation ; le niveau 2 l'introduit lentement.
+
+**Détente** : aucune échéance ni perte de cœur ; maximum simultané de foyers =
+**nombre initial + 3**, aucune croissance d'intensité. **Défi** : intervalle de
+propagation divisé par deux, sans ce plafond ; toutes les **3 s**, un foyer non
+traité depuis 3 s gagne une intensité jusqu'au maximum. Trois cœurs,
+fumée ralentissante et dommages avec 2 s d'invulnérabilité ; seuls l'échéance
+ou zéro cœur font perdre. La neige ralentit de 30 %, la fumée de 35 % ; ces
+effets se cumulent. Aucun sort de victime fatal ou effet graphique de dégât.
+La victoire exige les quatre compteurs d'objectifs déclarés et l'entrée dans
+la sortie. Étoiles : une garantie, une pour aucun cœur perdu, une pour tout
+éteint ou le bonus de temps du défi (≤ 70 % du délai), maximum trois.
+
+`nextObjective()` est toujours défini : dépôt si accompagné, extincteur à
+ramasser s'il en reste un au sol, foyer le plus proche ou borne si l'eau ne
+suffit pas pour la prochaine unité d'intensité, victimes avec prérequis d'outil/soin/déblaiement/échelle/appel, puis sortie.
+L'API expose les événements de début et de fin de travaux, révélations,
+sauvetages, feu, réserve vide et résultat. `snapshot()` est une copie détachée
+qui inclut les entrées, le générateur, le reliquat et la flèche ; la future
+scène pourra l'exposer dans son crochet de test sans modifier le moteur.
+
+### Traçabilité des règles
+
+Les **40 oracles** de `tests/petits-pompiers-oracles.ts` sont enregistrés par
+Vitest et exécutés par Node, avec exactement les mêmes corps. Le validateur
+Node ajoute PP-41/42, les 150 replays et 17 mutations en mémoire. Aucun navigateur,
+Vitest ou Playwright n'est nécessaire à ces preuves.
+
+| Règle | Oracle |
+| --- | --- |
+| Déterminisme d'une victoire complète, lecture pure du pilote | PP-01 |
+| Aucun aléa global dans les sources du dossier moteur | PP-02 |
+| Position continue, collisions mur/eau, diagonales normalisées | PP-03 |
+| Propagation à l'intervalle, voisin inflammable seulement, graines distinctes | PP-04 |
+| Intensité bornée, case brûlée non inflammable | PP-05 |
+| Plafond détente et propagation complète en défi | PP-06 |
+| Coût par unité d'intensité et consommation de réserve | PP-07 |
+| Réserve vide, aucun jet et événement visuel | PP-08 |
+| Borne et capacité maximale | PP-09 |
+| Priorité contextuelle, même si l'extincteur est sélectionné | PP-10 |
+| Fronts montants contextuels et outil, maintien du jet | PP-11 |
+| Un seul porté, dépôt compté une seule fois | PP-12 |
+| Blessure non évacuable avant soin | PP-13 |
+| Hache sur ouvrages seulement, mur intact | PP-14 |
+| Échelle au pied et durée de montée | PP-15 |
+| Mégaphone, révélation, chemin et limite de file | PP-16 |
+| Objectifs ET sortie, trois étoiles sans pénalité | PP-17 |
+| Temps en défi, dix minutes sans échec en détente | PP-18 |
+| Fumée, ralentissement, cœurs, invulnérabilité et détente | PP-19 |
+| Boubou distinct des quatre autres, mêmes entrées | PP-20 |
+| CaliRoux distinct des quatre autres, mêmes entrées | PP-21 |
+| Pestouille distinct des quatre autres, mêmes entrées | PP-22 |
+| Tutu distinct des quatre autres, mêmes entrées | PP-23 |
+| Lumi distincte des quatre autres, mêmes entrées | PP-24 |
+| Quinze cartes : dimensions, légende, accès, outils, victimes et fenêtres | PP-25 |
+| Flèche toujours définie et outils prérequis | PP-26 |
+| Extincteur : charges, puissance, portée et recharge | PP-27 |
+| Suiveurs : contournement par pas fixes et dépôt | PP-28 |
+| Neige et inventaires initiaux | PP-29 |
+| Instantané détaché et états finis stables | PP-30 |
+| Accès cardinal et angle fermé construit (victime 46, joueur 59) | PP-31 |
+| Paramètres finis et domaines numériques stricts | PP-32 |
+| Objectifs possibles et unicité S/E/R, absences et doublons | PP-33 |
+| Trousse, mégaphone, échelle et pied extérieur accessible | PP-34 |
+| Mur bloquant le jet ; planches et portes bloquées inflammables | PP-35 |
+| Diversité Hamming ≥ 35 %, positions de services distinctes, borne du tutoriel | PP-36 |
+| Propagation effective des niveaux 2–15 avant 60 s et plafond détente | PP-37 |
+| Fréquence double, croissance défi, aucun gain en détente ni foyer traité | PP-38 |
+| Maintien tuyau/mousse, secours sur front, flèche d'outil indépendante de l'identifiant | PP-39 |
+| Étoiles exactes : 1, 2 ou 3 selon les bonus construits | PP-40 |
+| Délai défi = triple du plus lent des cinq pilotes, arrondi supérieur à 10 s, minimum 60 s | PP-41 |
+| Au moins dix niveaux diffèrent entre modes, hors champs identitaires/horloges | PP-42 |
+
+### Campagne enregistrée
+
+`tests/fixtures/petits-pompiers-inputs.json` contient **150 bandes** : quinze
+niveaux × cinq mascottes × deux modes, graine 28. Format aux changements :
+`[tick, dx, dy, action, tool]`, avec tick final et empreinte SHA-256 du snapshot
+complet. Chaque partie utilise seulement `input` puis `step(FIXED)` ; aucun
+changement direct d'état ni victoire de substitution. Le rejeu ordinaire
+n'utilise pas le pilote et exige toutes les entrées consommées, le tick final,
+la victoire et l'empreinte exacte. La flèche guide vers tout extincteur à
+ramasser, sans identifiant de niveau dans le pilote.
+Le rapport mesuré est `docs/petits-pompiers-validation.json`.
+
+Durées en secondes de jeu, **détente / défi** pour chaque mascotte. Le délai
+ne s'applique qu'au défi. Il est calibré sur les ticks exacts des bandes :
+`seconds = max(60, ceil(3 × max(durée défi des 5 mascottes) / 10) × 10)`.
+PP-41 recalcule cette formule à chaque rejeu, sans marge de tolérance cachée.
+
+| N° | Thème | Nouveauté / combinaison | Boubou | CaliRoux | Pestouille | Tutu | Lumi | Délai défi |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 | Quartier | Maison, habitant et chat | 10.78 / 10.78 | 8.92 / 8.92 | 10.17 / 10.17 | 7.00 / 7.00 | 9.50 / 9.50 | 60 s |
+| 2 | Quartier | Propagation lente | 16.75 / 16.75 | 13.30 / 13.30 | 15.53 / 15.53 | 11.08 / 11.08 | 13.97 / 14.10 | 60 s |
+| 3 | Quartier | Fumée | 15.48 / 15.48 | 12.38 / 12.38 | 14.40 / 14.40 | 10.12 / 10.12 | 18.40 / 24.72 | 80 s |
+| 4 | Centre-ville | Caisse et hache | 19.93 / 19.93 | 15.93 / 15.93 | 15.52 / 15.52 | 14.12 / 14.12 | 17.75 / 17.75 | 60 s |
+| 5 | Centre-ville | Fenêtre en façade, échelle | 15.18 / 15.18 | 11.10 / 11.78 | 14.83 / 14.83 | 11.55 / 11.55 | 15.30 / 15.30 | 60 s |
+| 6 | Centre-ville | Soin et trousse | 13.62 / 13.62 | 11.17 / 11.17 | 12.75 / 12.75 | 8.13 / 8.13 | 12.60 / 12.60 | 60 s |
+| 7 | Forêt | Extincteur | 38.82 / 39.32 | 29.87 / 29.87 | 35.73 / 36.28 | 26.75 / 27.30 | 35.28 / 35.83 | 120 s |
+| 8 | Forêt | Appel, personnes cachées | 12.85 / 13.35 | 11.95 / 11.95 | 12.65 / 13.20 | 11.17 / 11.17 | 7.70 / 8.25 | 60 s |
+| 9 | Forêt | Combinaison en forêt | 28.85 / 29.35 | 24.00 / 24.00 | 27.57 / 28.12 | 22.80 / 23.23 | 20.35 / 32.43 | 100 s |
+| 10 | Montagne | Neige | 39.37 / 42.78 | 31.07 / 42.13 | 36.97 / 39.42 | 28.42 / 38.82 | 42.08 / 51.18 | 160 s |
+| 11 | Montagne | Gravats | 34.63 / 34.63 | 34.65 / 36.08 | 23.23 / 23.23 | 25.78 / 25.78 | 32.22 / 32.22 | 110 s |
+| 12 | Montagne | Deux chalets | 28.47 / 28.97 | 26.33 / 26.63 | 26.93 / 26.93 | 20.37 / 20.37 | 33.10 / 47.93 | 150 s |
+| 13 | Port | Eau, quai et caisses | 16.62 / 16.62 | 20.27 / 26.27 | 15.95 / 15.95 | 12.45 / 12.45 | 26.00 / 28.83 | 90 s |
+| 14 | Port | Borne éloignée | 14.52 / 14.52 | 19.53 / 21.17 | 14.52 / 14.52 | 11.72 / 11.72 | 12.45 / 15.65 | 70 s |
+| 15 | Port | Sauvetage combiné | 32.80 / 34.25 | 32.80 / 74.63 | 39.60 / 50.35 | 30.35 / 31.98 | 31.05 / 62.75 | 230 s |
+
+Le tutoriel détente dure au maximum **10.78 s**, sous les 90 s exigées.
+Les cinq premiers niveaux durent en moyenne **13.70 s**, les cinq derniers
+**27.02 s** (rapport **1.97**). Le dernier dépasse le double du premier
+pour chacune des cinq mascottes dans chaque mode. Les introductions créent des
+respirations ; cette progression mesurée du pilote n'est pas une estimation
+de la durée d'un enfant.
+
+Les modes diffèrent sur **12 niveaux** : 2, 3, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15.
+La comparaison utilise les ticks, propagations, cases brûlées, terrain final,
+eau restante, dégâts et objectifs, sans le champ mode, le délai, les étoiles
+ni les horloges propres au mode. Les 75 parties défi et 75 parties détente
+gagnent avec leurs vraies entrées. Aucune modification directe d'état dans le pilote.
+
+### Dispositions et diversité
+
+Chaque carte possède sa maison avec une entrée, ses rues ou chemins et son
+implantation de secours. Le tutoriel contient une maison fermée, un feu dedans,
+un habitant, un chat, une borne à une case du départ et une sortie sur la rue.
+Les îlots bâtis du centre-ville, les bosquets et clairières de la forêt,
+la neige et les chalets de montagne, les bassins, quais et caisses du port
+sont représentés dans les cartes. Les fenêtres sont dans une façade sud,
+avec intérieur au-dessus et pied extérieur accessible au-dessous.
+
+Hamming est utilisé plutôt que `diversity-metrics.js`, dont le score combine
+paramètres normalisés et transitions consécutives ; le besoin ici porte sur
+**toutes les 105 paires** de cartes et leurs 126 cases sans réalignement.
+Paire la plus proche : **4 / 5**, **54.76 %** de cases différentes
+(**69/126** ; minimum requis 35 %). La position de **chacun** des quatre
+symboles P, S, R et E est unique à l'échelle des quinze niveaux. PP-36 verrouille
+ces deux contraintes ; les 105 mesures sont conservées dans le rapport JSON.
+PP-37 impose une propagation réelle avant 60 s sur chacune des cartes 2 à 15,
+et vérifie le plafond détente.
+
+### Audit de mutations
+
+Les mutations sont appliquées **une à une en mémoire**, par le harnais de
+transpilation existant ; chaque oracle ciblé doit lever une assertion sous
+`test:node`. Chaque lancement réexécute l'audit. Les sources sur disque ne
+reçoivent jamais le mutant. **17 tuées, aucune survivante**, dont les huit
+contre-exemples demandés, trois mutations supplémentaires sur l'accès,
+la diversité et le défi, et les six protections antérieures.
+
+| Mutation essayée et tuée | Oracle qui la rejette |
+| --- | --- |
+| validation des paramètres supprimée | PP-32 |
+| objectifs impossibles acceptés | PP-33 |
+| trousse manquante acceptée | PP-34 |
+| mégaphone manquant accepté | PP-34 |
+| unicité des services supprimée | PP-33 |
+| pied de fenêtre inaccessible accepté | PP-34 |
+| jet traversant les obstacles | PP-35 |
+| planches et portes ininflammables | PP-35 |
+| accès diagonal à travers angle | PP-31 |
+| cartes clonées | PP-36 |
+| croissance défi supprimée | PP-38 |
+| collision mur | PP-03 |
+| coût intensité | PP-07 |
+| plafond détente | PP-06 |
+| échelle obligatoire | PP-15 |
+| blessure avant évacuation | PP-13 |
+| fumée sans dégât détente | PP-19 |
+
+Les contrôles lint, typecheck, build et test Node ciblé utilisent le verrou
+commun avec `nice -n 19 ionice -c3`. Aucun navigateur, aucune exécution Vitest
+ou Playwright, aucun ajout de dépendance, de scène, de registre ou de vignette ;
+aucun commit ni mise en index.

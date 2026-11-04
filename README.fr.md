@@ -1,5 +1,7 @@
 <h1 align="center"><a href="https://davy45270.github.io/Opencade/">▶ Play / Jouer</a></h1>
 
+Petits Pompiers : cinq mascottes pompiers, secours, commandes tactiles et modes détente ou défi.
+
 <p align="center"><a href="https://davy45270.github.io/Opencade/"><img src="docs/screenshots/home-desktop.webp" alt="Accueil d’Opencade sur ordinateur : cartes de jeux avec aperçus animés" width="100%"></a></p>
 
 [English](README.md) | Français

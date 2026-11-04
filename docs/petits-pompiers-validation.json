@@ -1,0 +1,2088 @@
+{
+  "oracles": 40,
+  "campaignOracles": [
+    "PP-41",
+    "PP-42"
+  ],
+  "victories": 150,
+  "mutations": [
+    {
+      "name": "validation des paramètres supprimée",
+      "id": "PP-32",
+      "killed": true
+    },
+    {
+      "name": "objectifs impossibles acceptés",
+      "id": "PP-33",
+      "killed": true
+    },
+    {
+      "name": "trousse manquante acceptée",
+      "id": "PP-34",
+      "killed": true
+    },
+    {
+      "name": "mégaphone manquant accepté",
+      "id": "PP-34",
+      "killed": true
+    },
+    {
+      "name": "unicité des services supprimée",
+      "id": "PP-33",
+      "killed": true
+    },
+    {
+      "name": "pied de fenêtre inaccessible accepté",
+      "id": "PP-34",
+      "killed": true
+    },
+    {
+      "name": "jet traversant les obstacles",
+      "id": "PP-35",
+      "killed": true
+    },
+    {
+      "name": "planches et portes ininflammables",
+      "id": "PP-35",
+      "killed": true
+    },
+    {
+      "name": "accès diagonal à travers angle",
+      "id": "PP-31",
+      "killed": true
+    },
+    {
+      "name": "cartes clonées",
+      "id": "PP-36",
+      "killed": true
+    },
+    {
+      "name": "croissance défi supprimée",
+      "id": "PP-38",
+      "killed": true
+    },
+    {
+      "name": "collision mur",
+      "id": "PP-03",
+      "killed": true
+    },
+    {
+      "name": "coût intensité",
+      "id": "PP-07",
+      "killed": true
+    },
+    {
+      "name": "plafond détente",
+      "id": "PP-06",
+      "killed": true
+    },
+    {
+      "name": "échelle obligatoire",
+      "id": "PP-15",
+      "killed": true
+    },
+    {
+      "name": "blessure avant évacuation",
+      "id": "PP-13",
+      "killed": true
+    },
+    {
+      "name": "fumée sans dégât détente",
+      "id": "PP-19",
+      "killed": true
+    }
+  ],
+  "diversity": {
+    "metric": "Hamming / 126",
+    "closest": {
+      "a": 4,
+      "b": 5,
+      "distance": 0.5476190476190477
+    },
+    "pairs": [
+      {
+        "a": 4,
+        "b": 5,
+        "distance": 0.5476190476190477
+      },
+      {
+        "a": 5,
+        "b": 12,
+        "distance": 0.5476190476190477
+      },
+      {
+        "a": 2,
+        "b": 7,
+        "distance": 0.5873015873015873
+      },
+      {
+        "a": 3,
+        "b": 9,
+        "distance": 0.6111111111111112
+      },
+      {
+        "a": 1,
+        "b": 5,
+        "distance": 0.6507936507936508
+      },
+      {
+        "a": 4,
+        "b": 14,
+        "distance": 0.6507936507936508
+      },
+      {
+        "a": 4,
+        "b": 12,
+        "distance": 0.6587301587301587
+      },
+      {
+        "a": 1,
+        "b": 6,
+        "distance": 0.6746031746031746
+      },
+      {
+        "a": 3,
+        "b": 13,
+        "distance": 0.6746031746031746
+      },
+      {
+        "a": 9,
+        "b": 13,
+        "distance": 0.6746031746031746
+      },
+      {
+        "a": 1,
+        "b": 3,
+        "distance": 0.6825396825396826
+      },
+      {
+        "a": 3,
+        "b": 4,
+        "distance": 0.6825396825396826
+      },
+      {
+        "a": 1,
+        "b": 9,
+        "distance": 0.6825396825396826
+      },
+      {
+        "a": 1,
+        "b": 2,
+        "distance": 0.6984126984126984
+      },
+      {
+        "a": 4,
+        "b": 11,
+        "distance": 0.6984126984126984
+      },
+      {
+        "a": 2,
+        "b": 4,
+        "distance": 0.7063492063492064
+      },
+      {
+        "a": 3,
+        "b": 6,
+        "distance": 0.7063492063492064
+      },
+      {
+        "a": 5,
+        "b": 6,
+        "distance": 0.7063492063492064
+      },
+      {
+        "a": 4,
+        "b": 13,
+        "distance": 0.7063492063492064
+      },
+      {
+        "a": 1,
+        "b": 8,
+        "distance": 0.7142857142857143
+      },
+      {
+        "a": 5,
+        "b": 13,
+        "distance": 0.7142857142857143
+      },
+      {
+        "a": 2,
+        "b": 5,
+        "distance": 0.7222222222222222
+      },
+      {
+        "a": 4,
+        "b": 6,
+        "distance": 0.7222222222222222
+      },
+      {
+        "a": 2,
+        "b": 8,
+        "distance": 0.7222222222222222
+      },
+      {
+        "a": 8,
+        "b": 9,
+        "distance": 0.7222222222222222
+      },
+      {
+        "a": 5,
+        "b": 11,
+        "distance": 0.7222222222222222
+      },
+      {
+        "a": 7,
+        "b": 8,
+        "distance": 0.7301587301587301
+      },
+      {
+        "a": 10,
+        "b": 15,
+        "distance": 0.7301587301587301
+      },
+      {
+        "a": 10,
+        "b": 11,
+        "distance": 0.7380952380952381
+      },
+      {
+        "a": 13,
+        "b": 14,
+        "distance": 0.7380952380952381
+      },
+      {
+        "a": 5,
+        "b": 9,
+        "distance": 0.746031746031746
+      },
+      {
+        "a": 4,
+        "b": 7,
+        "distance": 0.753968253968254
+      },
+      {
+        "a": 5,
+        "b": 14,
+        "distance": 0.753968253968254
+      },
+      {
+        "a": 2,
+        "b": 3,
+        "distance": 0.7619047619047619
+      },
+      {
+        "a": 5,
+        "b": 8,
+        "distance": 0.7619047619047619
+      },
+      {
+        "a": 12,
+        "b": 13,
+        "distance": 0.7619047619047619
+      },
+      {
+        "a": 2,
+        "b": 6,
+        "distance": 0.7698412698412699
+      },
+      {
+        "a": 7,
+        "b": 9,
+        "distance": 0.7698412698412699
+      },
+      {
+        "a": 2,
+        "b": 10,
+        "distance": 0.7698412698412699
+      },
+      {
+        "a": 6,
+        "b": 12,
+        "distance": 0.7698412698412699
+      },
+      {
+        "a": 3,
+        "b": 5,
+        "distance": 0.7777777777777778
+      },
+      {
+        "a": 11,
+        "b": 12,
+        "distance": 0.7777777777777778
+      },
+      {
+        "a": 4,
+        "b": 15,
+        "distance": 0.7777777777777778
+      },
+      {
+        "a": 5,
+        "b": 15,
+        "distance": 0.7777777777777778
+      },
+      {
+        "a": 2,
+        "b": 9,
+        "distance": 0.7857142857142857
+      },
+      {
+        "a": 4,
+        "b": 10,
+        "distance": 0.7857142857142857
+      },
+      {
+        "a": 10,
+        "b": 12,
+        "distance": 0.7857142857142857
+      },
+      {
+        "a": 1,
+        "b": 13,
+        "distance": 0.7936507936507936
+      },
+      {
+        "a": 6,
+        "b": 15,
+        "distance": 0.7936507936507936
+      },
+      {
+        "a": 13,
+        "b": 15,
+        "distance": 0.7936507936507936
+      },
+      {
+        "a": 3,
+        "b": 7,
+        "distance": 0.8015873015873016
+      },
+      {
+        "a": 6,
+        "b": 9,
+        "distance": 0.8015873015873016
+      },
+      {
+        "a": 7,
+        "b": 10,
+        "distance": 0.8015873015873016
+      },
+      {
+        "a": 8,
+        "b": 11,
+        "distance": 0.8015873015873016
+      },
+      {
+        "a": 11,
+        "b": 13,
+        "distance": 0.8015873015873016
+      },
+      {
+        "a": 3,
+        "b": 8,
+        "distance": 0.8095238095238095
+      },
+      {
+        "a": 4,
+        "b": 8,
+        "distance": 0.8095238095238095
+      },
+      {
+        "a": 4,
+        "b": 9,
+        "distance": 0.8095238095238095
+      },
+      {
+        "a": 3,
+        "b": 10,
+        "distance": 0.8095238095238095
+      },
+      {
+        "a": 6,
+        "b": 10,
+        "distance": 0.8095238095238095
+      },
+      {
+        "a": 6,
+        "b": 7,
+        "distance": 0.8174603174603174
+      },
+      {
+        "a": 9,
+        "b": 11,
+        "distance": 0.8174603174603174
+      },
+      {
+        "a": 12,
+        "b": 15,
+        "distance": 0.8174603174603174
+      },
+      {
+        "a": 5,
+        "b": 10,
+        "distance": 0.8253968253968254
+      },
+      {
+        "a": 2,
+        "b": 11,
+        "distance": 0.8253968253968254
+      },
+      {
+        "a": 3,
+        "b": 12,
+        "distance": 0.8253968253968254
+      },
+      {
+        "a": 2,
+        "b": 14,
+        "distance": 0.8253968253968254
+      },
+      {
+        "a": 6,
+        "b": 14,
+        "distance": 0.8253968253968254
+      },
+      {
+        "a": 3,
+        "b": 15,
+        "distance": 0.8253968253968254
+      },
+      {
+        "a": 3,
+        "b": 11,
+        "distance": 0.8333333333333334
+      },
+      {
+        "a": 11,
+        "b": 15,
+        "distance": 0.8333333333333334
+      },
+      {
+        "a": 2,
+        "b": 13,
+        "distance": 0.8412698412698413
+      },
+      {
+        "a": 10,
+        "b": 13,
+        "distance": 0.8412698412698413
+      },
+      {
+        "a": 3,
+        "b": 14,
+        "distance": 0.8412698412698413
+      },
+      {
+        "a": 10,
+        "b": 14,
+        "distance": 0.8412698412698413
+      },
+      {
+        "a": 2,
+        "b": 15,
+        "distance": 0.8412698412698413
+      },
+      {
+        "a": 1,
+        "b": 7,
+        "distance": 0.8492063492063492
+      },
+      {
+        "a": 1,
+        "b": 11,
+        "distance": 0.8492063492063492
+      },
+      {
+        "a": 7,
+        "b": 11,
+        "distance": 0.8492063492063492
+      },
+      {
+        "a": 2,
+        "b": 12,
+        "distance": 0.8492063492063492
+      },
+      {
+        "a": 12,
+        "b": 14,
+        "distance": 0.8492063492063492
+      },
+      {
+        "a": 7,
+        "b": 15,
+        "distance": 0.8492063492063492
+      },
+      {
+        "a": 8,
+        "b": 10,
+        "distance": 0.8571428571428571
+      },
+      {
+        "a": 6,
+        "b": 13,
+        "distance": 0.8571428571428571
+      },
+      {
+        "a": 8,
+        "b": 13,
+        "distance": 0.8571428571428571
+      },
+      {
+        "a": 8,
+        "b": 14,
+        "distance": 0.8571428571428571
+      },
+      {
+        "a": 11,
+        "b": 14,
+        "distance": 0.8571428571428571
+      },
+      {
+        "a": 5,
+        "b": 7,
+        "distance": 0.8650793650793651
+      },
+      {
+        "a": 9,
+        "b": 12,
+        "distance": 0.8650793650793651
+      },
+      {
+        "a": 14,
+        "b": 15,
+        "distance": 0.8650793650793651
+      },
+      {
+        "a": 1,
+        "b": 4,
+        "distance": 0.873015873015873
+      },
+      {
+        "a": 9,
+        "b": 10,
+        "distance": 0.873015873015873
+      },
+      {
+        "a": 1,
+        "b": 15,
+        "distance": 0.873015873015873
+      },
+      {
+        "a": 7,
+        "b": 14,
+        "distance": 0.8809523809523809
+      },
+      {
+        "a": 9,
+        "b": 15,
+        "distance": 0.8809523809523809
+      },
+      {
+        "a": 6,
+        "b": 11,
+        "distance": 0.8888888888888888
+      },
+      {
+        "a": 8,
+        "b": 15,
+        "distance": 0.8888888888888888
+      },
+      {
+        "a": 1,
+        "b": 10,
+        "distance": 0.8968253968253969
+      },
+      {
+        "a": 6,
+        "b": 8,
+        "distance": 0.9047619047619048
+      },
+      {
+        "a": 1,
+        "b": 12,
+        "distance": 0.9047619047619048
+      },
+      {
+        "a": 9,
+        "b": 14,
+        "distance": 0.9047619047619048
+      },
+      {
+        "a": 8,
+        "b": 12,
+        "distance": 0.9126984126984127
+      },
+      {
+        "a": 7,
+        "b": 13,
+        "distance": 0.9126984126984127
+      },
+      {
+        "a": 7,
+        "b": 12,
+        "distance": 0.9444444444444444
+      },
+      {
+        "a": 1,
+        "b": 14,
+        "distance": 0.9523809523809523
+      }
+    ]
+  },
+  "calibration": [
+    {
+      "level": 1,
+      "longest": 10.783333333333333,
+      "expected": 60,
+      "actual": 60
+    },
+    {
+      "level": 2,
+      "longest": 16.75,
+      "expected": 60,
+      "actual": 60
+    },
+    {
+      "level": 3,
+      "longest": 24.716666666666665,
+      "expected": 80,
+      "actual": 80
+    },
+    {
+      "level": 4,
+      "longest": 19.933333333333334,
+      "expected": 60,
+      "actual": 60
+    },
+    {
+      "level": 5,
+      "longest": 15.3,
+      "expected": 60,
+      "actual": 60
+    },
+    {
+      "level": 6,
+      "longest": 13.616666666666667,
+      "expected": 60,
+      "actual": 60
+    },
+    {
+      "level": 7,
+      "longest": 39.31666666666667,
+      "expected": 120,
+      "actual": 120
+    },
+    {
+      "level": 8,
+      "longest": 13.35,
+      "expected": 60,
+      "actual": 60
+    },
+    {
+      "level": 9,
+      "longest": 32.43333333333333,
+      "expected": 100,
+      "actual": 100
+    },
+    {
+      "level": 10,
+      "longest": 51.18333333333333,
+      "expected": 160,
+      "actual": 160
+    },
+    {
+      "level": 11,
+      "longest": 36.083333333333336,
+      "expected": 110,
+      "actual": 110
+    },
+    {
+      "level": 12,
+      "longest": 47.93333333333333,
+      "expected": 150,
+      "actual": 150
+    },
+    {
+      "level": 13,
+      "longest": 28.833333333333332,
+      "expected": 90,
+      "actual": 90
+    },
+    {
+      "level": 14,
+      "longest": 21.166666666666668,
+      "expected": 70,
+      "actual": 70
+    },
+    {
+      "level": 15,
+      "longest": 74.63333333333334,
+      "expected": 230,
+      "actual": 230
+    }
+  ],
+  "differentLevels": [
+    2,
+    3,
+    5,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15
+  ],
+  "campaign": [
+    {
+      "level": 1,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 10.78,
+      "ticks": 647,
+      "spreads": 0,
+      "outcome": "9dcd058445ca3eeea829057409aaf2c8bac7a0a13c2fc21fe640d69e48c1a8d2"
+    },
+    {
+      "level": 1,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 10.78,
+      "ticks": 647,
+      "spreads": 0,
+      "outcome": "9dcd058445ca3eeea829057409aaf2c8bac7a0a13c2fc21fe640d69e48c1a8d2"
+    },
+    {
+      "level": 1,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 8.92,
+      "ticks": 535,
+      "spreads": 0,
+      "outcome": "334847f4a4b27ec744972f256ba9008a278621c0ef1b4a12a6f982f5bd1ea8b6"
+    },
+    {
+      "level": 1,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 8.92,
+      "ticks": 535,
+      "spreads": 0,
+      "outcome": "334847f4a4b27ec744972f256ba9008a278621c0ef1b4a12a6f982f5bd1ea8b6"
+    },
+    {
+      "level": 1,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 10.17,
+      "ticks": 610,
+      "spreads": 0,
+      "outcome": "2cd63094bfd18715b06eab74456aed635ca61af48ed7591e97ea6a69f9cf6cd1"
+    },
+    {
+      "level": 1,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 10.17,
+      "ticks": 610,
+      "spreads": 0,
+      "outcome": "2cd63094bfd18715b06eab74456aed635ca61af48ed7591e97ea6a69f9cf6cd1"
+    },
+    {
+      "level": 1,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 7,
+      "ticks": 420,
+      "spreads": 0,
+      "outcome": "de7ad2333f9b18ac59d6dcd9c33b0f966095280c6960a24b08e385a7d9ce0b4a"
+    },
+    {
+      "level": 1,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 7,
+      "ticks": 420,
+      "spreads": 0,
+      "outcome": "de7ad2333f9b18ac59d6dcd9c33b0f966095280c6960a24b08e385a7d9ce0b4a"
+    },
+    {
+      "level": 1,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 9.5,
+      "ticks": 570,
+      "spreads": 0,
+      "outcome": "b73c8f49361a805ce811f143b75ea7743977e0e98f282b52d6de73e06f79d190"
+    },
+    {
+      "level": 1,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 9.5,
+      "ticks": 570,
+      "spreads": 0,
+      "outcome": "b73c8f49361a805ce811f143b75ea7743977e0e98f282b52d6de73e06f79d190"
+    },
+    {
+      "level": 2,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 16.75,
+      "ticks": 1005,
+      "spreads": 0,
+      "outcome": "987e449d802373faceea97ce01f3071e008a15b021610a2f7814729e94cf5f48"
+    },
+    {
+      "level": 2,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 16.75,
+      "ticks": 1005,
+      "spreads": 0,
+      "outcome": "987e449d802373faceea97ce01f3071e008a15b021610a2f7814729e94cf5f48"
+    },
+    {
+      "level": 2,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 13.3,
+      "ticks": 798,
+      "spreads": 0,
+      "outcome": "d73dab426ca89f52843d7c8082061eca47fb2e33a19bc9cfb0bd48671a84a7a4"
+    },
+    {
+      "level": 2,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 13.3,
+      "ticks": 798,
+      "spreads": 0,
+      "outcome": "d73dab426ca89f52843d7c8082061eca47fb2e33a19bc9cfb0bd48671a84a7a4"
+    },
+    {
+      "level": 2,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 15.53,
+      "ticks": 932,
+      "spreads": 0,
+      "outcome": "3092cc454471e0ecd161955f37408662eeadcb4b84c455a4322f4f69f881a7bb"
+    },
+    {
+      "level": 2,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 15.53,
+      "ticks": 932,
+      "spreads": 0,
+      "outcome": "3092cc454471e0ecd161955f37408662eeadcb4b84c455a4322f4f69f881a7bb"
+    },
+    {
+      "level": 2,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 11.08,
+      "ticks": 665,
+      "spreads": 0,
+      "outcome": "3ef1b2f442d61e5fa7d5e9630fe528b5cbb14936a80f6f9ee10351e21d53a870"
+    },
+    {
+      "level": 2,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 11.08,
+      "ticks": 665,
+      "spreads": 0,
+      "outcome": "3ef1b2f442d61e5fa7d5e9630fe528b5cbb14936a80f6f9ee10351e21d53a870"
+    },
+    {
+      "level": 2,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 13.97,
+      "ticks": 838,
+      "spreads": 0,
+      "outcome": "e0e89b1efe9f0af850550c24a3c57e474485f675ef0aa7b44b15df7a3718310c"
+    },
+    {
+      "level": 2,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 14.1,
+      "ticks": 846,
+      "spreads": 0,
+      "outcome": "a9be28ecd7ba6c6382e22c0bd46aff93fe4ffe22f8cdc652c5651c55d7ce8581"
+    },
+    {
+      "level": 3,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 15.48,
+      "ticks": 929,
+      "spreads": 0,
+      "outcome": "3e4eada274a029b54e47a0aa3ee28a759d3f74ddd32f4d26c33b95bb1a7442e6"
+    },
+    {
+      "level": 3,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 15.48,
+      "ticks": 929,
+      "spreads": 0,
+      "outcome": "3e4eada274a029b54e47a0aa3ee28a759d3f74ddd32f4d26c33b95bb1a7442e6"
+    },
+    {
+      "level": 3,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 12.38,
+      "ticks": 743,
+      "spreads": 0,
+      "outcome": "02a1fcc2d854e0d7cdb6eeff74d3d0910ddb32e2c732edc9768fd692aa5cf8ce"
+    },
+    {
+      "level": 3,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 12.38,
+      "ticks": 743,
+      "spreads": 0,
+      "outcome": "02a1fcc2d854e0d7cdb6eeff74d3d0910ddb32e2c732edc9768fd692aa5cf8ce"
+    },
+    {
+      "level": 3,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 14.4,
+      "ticks": 864,
+      "spreads": 0,
+      "outcome": "20c1807c9942365ee1fd355079f90d9ff6969ca7df62f0c3dcf5039bae461d24"
+    },
+    {
+      "level": 3,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 14.4,
+      "ticks": 864,
+      "spreads": 0,
+      "outcome": "20c1807c9942365ee1fd355079f90d9ff6969ca7df62f0c3dcf5039bae461d24"
+    },
+    {
+      "level": 3,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 10.12,
+      "ticks": 607,
+      "spreads": 0,
+      "outcome": "be619d2826a4442cd8903dcae7db93bf6d97e180d62d5531940a895ea94c51dc"
+    },
+    {
+      "level": 3,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 10.12,
+      "ticks": 607,
+      "spreads": 0,
+      "outcome": "be619d2826a4442cd8903dcae7db93bf6d97e180d62d5531940a895ea94c51dc"
+    },
+    {
+      "level": 3,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 18.4,
+      "ticks": 1104,
+      "spreads": 0,
+      "outcome": "455fceec1a08db563bbc76687fb9ffe619df4ce57f72acf3e221b3cb2d9c9cb7"
+    },
+    {
+      "level": 3,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 24.72,
+      "ticks": 1483,
+      "spreads": 1,
+      "outcome": "0cde90467c48f1a454e68ffe49f96db945be7ad0692192280fc7b34641061044"
+    },
+    {
+      "level": 4,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 19.93,
+      "ticks": 1196,
+      "spreads": 0,
+      "outcome": "8583aaa9b7809bc020213d87a4134261d499b0fa5da2baf0dbb048dddaed217e"
+    },
+    {
+      "level": 4,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 19.93,
+      "ticks": 1196,
+      "spreads": 0,
+      "outcome": "8583aaa9b7809bc020213d87a4134261d499b0fa5da2baf0dbb048dddaed217e"
+    },
+    {
+      "level": 4,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 15.93,
+      "ticks": 956,
+      "spreads": 0,
+      "outcome": "93a391318eb936e243023dd67b993044eb15c778f990ae9c1b6df0230d81b609"
+    },
+    {
+      "level": 4,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 15.93,
+      "ticks": 956,
+      "spreads": 0,
+      "outcome": "93a391318eb936e243023dd67b993044eb15c778f990ae9c1b6df0230d81b609"
+    },
+    {
+      "level": 4,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 15.52,
+      "ticks": 931,
+      "spreads": 0,
+      "outcome": "a2440d5379034717e48a1af33310ec42e9dc67c42f96af5b95f449a18cfe3149"
+    },
+    {
+      "level": 4,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 15.52,
+      "ticks": 931,
+      "spreads": 0,
+      "outcome": "a2440d5379034717e48a1af33310ec42e9dc67c42f96af5b95f449a18cfe3149"
+    },
+    {
+      "level": 4,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 14.12,
+      "ticks": 847,
+      "spreads": 0,
+      "outcome": "d110a6ee5ee048b33ab7e21f8c98e7d20ef16d06536ec72347a53aeca883ba96"
+    },
+    {
+      "level": 4,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 14.12,
+      "ticks": 847,
+      "spreads": 0,
+      "outcome": "d110a6ee5ee048b33ab7e21f8c98e7d20ef16d06536ec72347a53aeca883ba96"
+    },
+    {
+      "level": 4,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 17.75,
+      "ticks": 1065,
+      "spreads": 0,
+      "outcome": "6ad68c4022290e18379f44fcea74cb0a5704ffe435dbd60659de1329eea44fbe"
+    },
+    {
+      "level": 4,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 17.75,
+      "ticks": 1065,
+      "spreads": 0,
+      "outcome": "6ad68c4022290e18379f44fcea74cb0a5704ffe435dbd60659de1329eea44fbe"
+    },
+    {
+      "level": 5,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 15.18,
+      "ticks": 911,
+      "spreads": 0,
+      "outcome": "86e68d6e99d9f326fa03264d31d1ec271e9c2a9163c056f4733db50b59e86feb"
+    },
+    {
+      "level": 5,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 15.18,
+      "ticks": 911,
+      "spreads": 0,
+      "outcome": "86e68d6e99d9f326fa03264d31d1ec271e9c2a9163c056f4733db50b59e86feb"
+    },
+    {
+      "level": 5,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 11.1,
+      "ticks": 666,
+      "spreads": 0,
+      "outcome": "c5804408d0f15dd1a389c16a58b9af000a91072c0b04abe15337e61646868aec"
+    },
+    {
+      "level": 5,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 11.78,
+      "ticks": 707,
+      "spreads": 0,
+      "outcome": "66c2713a0eef64c9a4c165cc2e9dc000b2a5fd50a14b4abf9b2f91255d1a5c0d"
+    },
+    {
+      "level": 5,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 14.83,
+      "ticks": 890,
+      "spreads": 0,
+      "outcome": "93e76e8602f801f3d430b65344eb86430f718b7db5b4bb57c006f3ec69c7372a"
+    },
+    {
+      "level": 5,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 14.83,
+      "ticks": 890,
+      "spreads": 0,
+      "outcome": "93e76e8602f801f3d430b65344eb86430f718b7db5b4bb57c006f3ec69c7372a"
+    },
+    {
+      "level": 5,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 11.55,
+      "ticks": 693,
+      "spreads": 0,
+      "outcome": "92d4b9c25e10f91482319b6a9dc3158932bbae8864baf7b49776e41637edce7d"
+    },
+    {
+      "level": 5,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 11.55,
+      "ticks": 693,
+      "spreads": 0,
+      "outcome": "92d4b9c25e10f91482319b6a9dc3158932bbae8864baf7b49776e41637edce7d"
+    },
+    {
+      "level": 5,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 15.3,
+      "ticks": 918,
+      "spreads": 0,
+      "outcome": "2c6093a5a967db83831cf2ba6e405247de66af46baa4bd27cf9f4b14a9367a02"
+    },
+    {
+      "level": 5,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 15.3,
+      "ticks": 918,
+      "spreads": 0,
+      "outcome": "2c6093a5a967db83831cf2ba6e405247de66af46baa4bd27cf9f4b14a9367a02"
+    },
+    {
+      "level": 6,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 13.62,
+      "ticks": 817,
+      "spreads": 0,
+      "outcome": "c68d8999fcfc6059c1b4cc284b81b4075bd0c592b7e8342d50760fa3b8c67f7d"
+    },
+    {
+      "level": 6,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 13.62,
+      "ticks": 817,
+      "spreads": 0,
+      "outcome": "c68d8999fcfc6059c1b4cc284b81b4075bd0c592b7e8342d50760fa3b8c67f7d"
+    },
+    {
+      "level": 6,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 11.17,
+      "ticks": 670,
+      "spreads": 0,
+      "outcome": "9849ddd1517b3292643b937c2ba062d0590398b4c07c1e31b6843db2c9d10e63"
+    },
+    {
+      "level": 6,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 11.17,
+      "ticks": 670,
+      "spreads": 0,
+      "outcome": "9849ddd1517b3292643b937c2ba062d0590398b4c07c1e31b6843db2c9d10e63"
+    },
+    {
+      "level": 6,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 12.75,
+      "ticks": 765,
+      "spreads": 0,
+      "outcome": "b8d83e6d64ab70d8174aceaa6a4fe3d584d9c5c22fbfae591ecd606c9f3e3b72"
+    },
+    {
+      "level": 6,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 12.75,
+      "ticks": 765,
+      "spreads": 0,
+      "outcome": "b8d83e6d64ab70d8174aceaa6a4fe3d584d9c5c22fbfae591ecd606c9f3e3b72"
+    },
+    {
+      "level": 6,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 8.13,
+      "ticks": 488,
+      "spreads": 0,
+      "outcome": "32fa38315ba11ca4e74ad8913db84125e3786c78ac087aa996b73b35bf018aa0"
+    },
+    {
+      "level": 6,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 8.13,
+      "ticks": 488,
+      "spreads": 0,
+      "outcome": "32fa38315ba11ca4e74ad8913db84125e3786c78ac087aa996b73b35bf018aa0"
+    },
+    {
+      "level": 6,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 12.6,
+      "ticks": 756,
+      "spreads": 0,
+      "outcome": "1c6a8d7da9c76f909b61e173f5d6814c62f9ae2a294d64ced889538531259309"
+    },
+    {
+      "level": 6,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 12.6,
+      "ticks": 756,
+      "spreads": 0,
+      "outcome": "1c6a8d7da9c76f909b61e173f5d6814c62f9ae2a294d64ced889538531259309"
+    },
+    {
+      "level": 7,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 38.82,
+      "ticks": 2329,
+      "spreads": 0,
+      "outcome": "3b2634892e1d94f20f70a263ccd9f6529a9a21ef2455b6f8445f0cefdd42b647"
+    },
+    {
+      "level": 7,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 39.32,
+      "ticks": 2359,
+      "spreads": 0,
+      "outcome": "a5d0b81bcf577856ed111b44c020eaa6d9cb86d25c6c4646db352dfa1a30df25"
+    },
+    {
+      "level": 7,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 29.87,
+      "ticks": 1792,
+      "spreads": 0,
+      "outcome": "573b6763ba16d4b6dee477af69a833d72d7df106cb7b4f25ff93fcf8276c0de6"
+    },
+    {
+      "level": 7,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 29.87,
+      "ticks": 1792,
+      "spreads": 0,
+      "outcome": "573b6763ba16d4b6dee477af69a833d72d7df106cb7b4f25ff93fcf8276c0de6"
+    },
+    {
+      "level": 7,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 35.73,
+      "ticks": 2144,
+      "spreads": 0,
+      "outcome": "c54318042cf7d51224d94a975a04a8d3ff9c5eb59c6315c26938811ce8db2eb2"
+    },
+    {
+      "level": 7,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 36.28,
+      "ticks": 2177,
+      "spreads": 0,
+      "outcome": "6cf8ef76ff24d78543034034cdce8ec1959266413e8c0b8946b36ae37ce315f3"
+    },
+    {
+      "level": 7,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 26.75,
+      "ticks": 1605,
+      "spreads": 0,
+      "outcome": "9f85fded72636611138bfead8d5e9b3aadcacee86f48a7ee990c6fff2ddf78c2"
+    },
+    {
+      "level": 7,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 27.3,
+      "ticks": 1638,
+      "spreads": 0,
+      "outcome": "6b7bb7029c719efb1a0b6d65e78672d684e24822b43dd431f302ea2c8525891b"
+    },
+    {
+      "level": 7,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 35.28,
+      "ticks": 2117,
+      "spreads": 0,
+      "outcome": "6c61852cb415d0510480ddd2a1d2ecf7b9a7648ace6ebe2c848892032742390f"
+    },
+    {
+      "level": 7,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 35.83,
+      "ticks": 2150,
+      "spreads": 0,
+      "outcome": "227d89c0e895bd7b6c29d9235aa6f293d894e8b18a21477d7bcece3cbde1cdd3"
+    },
+    {
+      "level": 8,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 12.85,
+      "ticks": 771,
+      "spreads": 0,
+      "outcome": "56c92a8f567df68bd91c9d96814ddb80829a9e579f9508e25e1c91e2b48a7d9c"
+    },
+    {
+      "level": 8,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 13.35,
+      "ticks": 801,
+      "spreads": 0,
+      "outcome": "1a53736913865e0c1beea3d94adfb21bae55517399aabcad7b0fd8ef2967b940"
+    },
+    {
+      "level": 8,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 11.95,
+      "ticks": 717,
+      "spreads": 0,
+      "outcome": "8d0b0f13ced1799bf427ade24ee5f563365ec498b570ac5412b05a2ac7bdaaf1"
+    },
+    {
+      "level": 8,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 11.95,
+      "ticks": 717,
+      "spreads": 0,
+      "outcome": "8d0b0f13ced1799bf427ade24ee5f563365ec498b570ac5412b05a2ac7bdaaf1"
+    },
+    {
+      "level": 8,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 12.65,
+      "ticks": 759,
+      "spreads": 0,
+      "outcome": "a4b45cb36ab96cb728f86d7bb32007667e60a94015c36382b95adf98c2c1cc34"
+    },
+    {
+      "level": 8,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 13.2,
+      "ticks": 792,
+      "spreads": 0,
+      "outcome": "fd703aac29b019858c872c9844da46f97a420c93022243c32d192201f41183cc"
+    },
+    {
+      "level": 8,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 11.17,
+      "ticks": 670,
+      "spreads": 0,
+      "outcome": "7fb89204a190dba28353f1f6c697a6b9d52373098daceda09b2b4838b23e1a78"
+    },
+    {
+      "level": 8,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 11.17,
+      "ticks": 670,
+      "spreads": 0,
+      "outcome": "7fb89204a190dba28353f1f6c697a6b9d52373098daceda09b2b4838b23e1a78"
+    },
+    {
+      "level": 8,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 7.7,
+      "ticks": 462,
+      "spreads": 0,
+      "outcome": "e976ea3b76eb89ec0eef51ccae97be43ef978edb5e547337eb64ca7662116583"
+    },
+    {
+      "level": 8,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 8.25,
+      "ticks": 495,
+      "spreads": 0,
+      "outcome": "bf90bac512bb72b2943acca9452fd0b904aa11c99487482bfec3fdb2b9755943"
+    },
+    {
+      "level": 9,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 28.85,
+      "ticks": 1731,
+      "spreads": 0,
+      "outcome": "e804ab69815b88d52896e4f9074851d0b82e1a431e70733325e0352980accaf2"
+    },
+    {
+      "level": 9,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 29.35,
+      "ticks": 1761,
+      "spreads": 0,
+      "outcome": "9b6cf159390581c308ef534e0e8fe852334c501a9ea3a46684e9d063e4154d4a"
+    },
+    {
+      "level": 9,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 24,
+      "ticks": 1440,
+      "spreads": 0,
+      "outcome": "8a82e69fd56910b66ba397bb352acedb7b6003c3ac0657eda8e06c8c4fc4b63b"
+    },
+    {
+      "level": 9,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 24,
+      "ticks": 1440,
+      "spreads": 0,
+      "outcome": "8a82e69fd56910b66ba397bb352acedb7b6003c3ac0657eda8e06c8c4fc4b63b"
+    },
+    {
+      "level": 9,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 27.57,
+      "ticks": 1654,
+      "spreads": 0,
+      "outcome": "ab247227071f2d4e50bfc4abf204caa3314a07c31fbd2322dbcc08aaa3061154"
+    },
+    {
+      "level": 9,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 28.12,
+      "ticks": 1687,
+      "spreads": 0,
+      "outcome": "69b82a290b069cc1b694b89768bd8b3aa2b32b5397f509ffcde80cccedeb020a"
+    },
+    {
+      "level": 9,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 22.8,
+      "ticks": 1368,
+      "spreads": 0,
+      "outcome": "fa4dcb8a1ac3d42a78746537fd673d681ea39b7ec2af1cad52898bd0d88a23c8"
+    },
+    {
+      "level": 9,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 23.23,
+      "ticks": 1394,
+      "spreads": 0,
+      "outcome": "db4eb975f529b17b2ffe16176ece5c774c74d88ebb2f6f85a071af6bbe2c44d4"
+    },
+    {
+      "level": 9,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 20.35,
+      "ticks": 1221,
+      "spreads": 0,
+      "outcome": "420de769afc8a389effeca201e0ccbd7925d66c1afc40846d9efdca8ebb62aa0"
+    },
+    {
+      "level": 9,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 32.43,
+      "ticks": 1946,
+      "spreads": 2,
+      "outcome": "14aa516ba81040256416c1a3b4083a846880db0b65192516da75bb1e781b1404"
+    },
+    {
+      "level": 10,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 39.37,
+      "ticks": 2362,
+      "spreads": 0,
+      "outcome": "fc29236255ad71b4074627b9609949bef7e6c4a861d84a71008eb38ee4cae1d9"
+    },
+    {
+      "level": 10,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 42.78,
+      "ticks": 2567,
+      "spreads": 1,
+      "outcome": "c368d16a74b8b2744d3fb9d931c76845e303b712bd399b2628d976c7b01c1208"
+    },
+    {
+      "level": 10,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 31.07,
+      "ticks": 1864,
+      "spreads": 0,
+      "outcome": "28ef06d2cd6f3e03b3944630993ada6e237f9cf67952da045bce9dac22ac0e51"
+    },
+    {
+      "level": 10,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 42.13,
+      "ticks": 2528,
+      "spreads": 1,
+      "outcome": "836c2678291334db6b412b16628519fee23d78df57a2ca3c901bdd4160f1eaf4"
+    },
+    {
+      "level": 10,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 36.97,
+      "ticks": 2218,
+      "spreads": 0,
+      "outcome": "102b27d65334a3f483b1f043e914a9c432cec2e9ff541324c743c08f49f2aa45"
+    },
+    {
+      "level": 10,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 39.42,
+      "ticks": 2365,
+      "spreads": 1,
+      "outcome": "6570020debac229be4b027c0d3d67f86193f4bd8bfdfc9d8a47093b90654de97"
+    },
+    {
+      "level": 10,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 28.42,
+      "ticks": 1705,
+      "spreads": 0,
+      "outcome": "0fd166f4f3ad8688dfbbb2ad22f1b51644e1d20a987a0598646ff6810de6399a"
+    },
+    {
+      "level": 10,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 38.82,
+      "ticks": 2329,
+      "spreads": 1,
+      "outcome": "973f53148eead150860ac418053dd23619b165a6285e36c3e6c796ab0057d49e"
+    },
+    {
+      "level": 10,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 42.08,
+      "ticks": 2525,
+      "spreads": 1,
+      "outcome": "6dc0fb01b82f0bc6d9e472f9d47b85fad8aabbf890d69acc9d015d85ce1e1b14"
+    },
+    {
+      "level": 10,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 51.18,
+      "ticks": 3071,
+      "spreads": 3,
+      "outcome": "28e1f820eca16837f10e5d812da15768f65ac504f720109660c1662d7591572e"
+    },
+    {
+      "level": 11,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 34.63,
+      "ticks": 2078,
+      "spreads": 0,
+      "outcome": "7c4061d4922e54f350cb2404af6bb88e5c7ca18fb6e0878653ee0e2fc6d010ad"
+    },
+    {
+      "level": 11,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 34.63,
+      "ticks": 2078,
+      "spreads": 0,
+      "outcome": "7c4061d4922e54f350cb2404af6bb88e5c7ca18fb6e0878653ee0e2fc6d010ad"
+    },
+    {
+      "level": 11,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 34.65,
+      "ticks": 2079,
+      "spreads": 0,
+      "outcome": "1da76db2dcef276af59ffab513e5ce564d3b982c0911c747e9261aa5d1b65aac"
+    },
+    {
+      "level": 11,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 36.08,
+      "ticks": 2165,
+      "spreads": 1,
+      "outcome": "04fbe2b9af9fc956160ef69f2685ae9521af1c0be028f330efb3c69bb5f3e7ea"
+    },
+    {
+      "level": 11,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 23.23,
+      "ticks": 1394,
+      "spreads": 0,
+      "outcome": "11d162a63bd5462137cc902861aa59237bdd9b714b357a611e6683ed571e9653"
+    },
+    {
+      "level": 11,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 23.23,
+      "ticks": 1394,
+      "spreads": 0,
+      "outcome": "11d162a63bd5462137cc902861aa59237bdd9b714b357a611e6683ed571e9653"
+    },
+    {
+      "level": 11,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 25.78,
+      "ticks": 1547,
+      "spreads": 0,
+      "outcome": "806a014ec520bd7db23150194703fc31ec7246c87b39204d05b4e57b8a1c41b8"
+    },
+    {
+      "level": 11,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 25.78,
+      "ticks": 1547,
+      "spreads": 0,
+      "outcome": "806a014ec520bd7db23150194703fc31ec7246c87b39204d05b4e57b8a1c41b8"
+    },
+    {
+      "level": 11,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 32.22,
+      "ticks": 1933,
+      "spreads": 0,
+      "outcome": "00ccbe344732b1df8d9f8e1e58d0724ddde2926a4bffaf10fed321a0dfd85094"
+    },
+    {
+      "level": 11,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 32.22,
+      "ticks": 1933,
+      "spreads": 0,
+      "outcome": "00ccbe344732b1df8d9f8e1e58d0724ddde2926a4bffaf10fed321a0dfd85094"
+    },
+    {
+      "level": 12,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 28.47,
+      "ticks": 1708,
+      "spreads": 0,
+      "outcome": "71b5a676c9285d6a614ace85f5fe85d474994f53630b54e888677947a1932bdb"
+    },
+    {
+      "level": 12,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 28.97,
+      "ticks": 1738,
+      "spreads": 1,
+      "outcome": "fff1f8000d2542ac9304d738ccef2bb1041460f53402df471542eab25b24f8e7"
+    },
+    {
+      "level": 12,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 26.33,
+      "ticks": 1580,
+      "spreads": 0,
+      "outcome": "cf360c0298b677d954b6184244383b54f85998d8184f1bad69184e13bfff9c56"
+    },
+    {
+      "level": 12,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 26.63,
+      "ticks": 1598,
+      "spreads": 1,
+      "outcome": "5cd85464c1dcd5307f37c701613b25d0bbddd6c978f42c569bdc093eed7ce262"
+    },
+    {
+      "level": 12,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 26.93,
+      "ticks": 1616,
+      "spreads": 0,
+      "outcome": "27d55118fedf7859d56fb579bef69f656a1fc05e8cb10a828f3d73830a0bce54"
+    },
+    {
+      "level": 12,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 26.93,
+      "ticks": 1616,
+      "spreads": 0,
+      "outcome": "27d55118fedf7859d56fb579bef69f656a1fc05e8cb10a828f3d73830a0bce54"
+    },
+    {
+      "level": 12,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 20.37,
+      "ticks": 1222,
+      "spreads": 0,
+      "outcome": "1e123867aea71623c7f063d212cf27232a2ab88d628829b6034bfb7f0d54035d"
+    },
+    {
+      "level": 12,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 20.37,
+      "ticks": 1222,
+      "spreads": 0,
+      "outcome": "1e123867aea71623c7f063d212cf27232a2ab88d628829b6034bfb7f0d54035d"
+    },
+    {
+      "level": 12,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 33.1,
+      "ticks": 1986,
+      "spreads": 0,
+      "outcome": "37faebbd2b7bc241a14d08fcfd8b9a9fc7662861c8a05be4b0ee896ce78285f2"
+    },
+    {
+      "level": 12,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 47.93,
+      "ticks": 2876,
+      "spreads": 3,
+      "outcome": "279cb0ae9f2d39c3d328ac57ae8d4fc7a65e78b5c3ae5647d9e9fcec3f587d71"
+    },
+    {
+      "level": 13,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 16.62,
+      "ticks": 997,
+      "spreads": 0,
+      "outcome": "c19616e26b4864bc8fb455d6aa816cbd9904fc35b0ce71da62b2d8acdae7f055"
+    },
+    {
+      "level": 13,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 16.62,
+      "ticks": 997,
+      "spreads": 0,
+      "outcome": "c19616e26b4864bc8fb455d6aa816cbd9904fc35b0ce71da62b2d8acdae7f055"
+    },
+    {
+      "level": 13,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 20.27,
+      "ticks": 1216,
+      "spreads": 0,
+      "outcome": "6acafb05020bfc1297442795188f1b576f065b82a1b9e39d86abd1c668d2a2af"
+    },
+    {
+      "level": 13,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 26.27,
+      "ticks": 1576,
+      "spreads": 2,
+      "outcome": "6cb835164a5b7cd0a82c66e637c687d227de56f8f242d3876e012390864a731d"
+    },
+    {
+      "level": 13,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 15.95,
+      "ticks": 957,
+      "spreads": 0,
+      "outcome": "95a8bfb29afe1c8e6bc18b6ab6e79bdee45291ef342725bc7c03db16578e5934"
+    },
+    {
+      "level": 13,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 15.95,
+      "ticks": 957,
+      "spreads": 0,
+      "outcome": "95a8bfb29afe1c8e6bc18b6ab6e79bdee45291ef342725bc7c03db16578e5934"
+    },
+    {
+      "level": 13,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 12.45,
+      "ticks": 747,
+      "spreads": 0,
+      "outcome": "ca0ef156e416dab66d4174197d80dc639db348d392dff527011dac3ba98b1495"
+    },
+    {
+      "level": 13,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 12.45,
+      "ticks": 747,
+      "spreads": 0,
+      "outcome": "ca0ef156e416dab66d4174197d80dc639db348d392dff527011dac3ba98b1495"
+    },
+    {
+      "level": 13,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 26,
+      "ticks": 1560,
+      "spreads": 1,
+      "outcome": "0d732a7b58a7a677a4c47228ce51cc976e28e45c2c59082804037463e9524b5e"
+    },
+    {
+      "level": 13,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 28.83,
+      "ticks": 1730,
+      "spreads": 3,
+      "outcome": "3daa8a316f9d1d924baf59a777918a22dbb0086760459acbe261dfe40f75d376"
+    },
+    {
+      "level": 14,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 14.52,
+      "ticks": 871,
+      "spreads": 0,
+      "outcome": "3ac99b7ffb6dc7d0c5e74f6d37d58e1daa006da24f0943b7d0d6abf879c3c42f"
+    },
+    {
+      "level": 14,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 14.52,
+      "ticks": 871,
+      "spreads": 0,
+      "outcome": "a5ac72bd749707d0505fc3f21caa23b779c57ff7675b7f539d07ddeea0732c83"
+    },
+    {
+      "level": 14,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 19.53,
+      "ticks": 1172,
+      "spreads": 0,
+      "outcome": "69236957d0a9eef891350887a524d4b45cc97b5cc1589fb09e2d10c4238b0d4b"
+    },
+    {
+      "level": 14,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 21.17,
+      "ticks": 1270,
+      "spreads": 1,
+      "outcome": "6767298706c2924474564a7de960d436c60b885b454033144fe0bfb16fa12447"
+    },
+    {
+      "level": 14,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 14.52,
+      "ticks": 871,
+      "spreads": 0,
+      "outcome": "2607280398f6fda0b9578b556d0a4f6553192f4bf4595735ab7005090003399a"
+    },
+    {
+      "level": 14,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 14.52,
+      "ticks": 871,
+      "spreads": 0,
+      "outcome": "ab800bcd12048e06ad69b9dec1bbd01fd11dd91a0d37e11b3127040864ea9c56"
+    },
+    {
+      "level": 14,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 11.72,
+      "ticks": 703,
+      "spreads": 0,
+      "outcome": "87401e5879f2dd4e45a859a752754ceb834622b05aa094b46cfdc0a62d6697dd"
+    },
+    {
+      "level": 14,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 11.72,
+      "ticks": 703,
+      "spreads": 0,
+      "outcome": "7ea748d1ac30c83dd9a3e96e41078f5195c27b90d2bc7711071d098be74cad6c"
+    },
+    {
+      "level": 14,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 12.45,
+      "ticks": 747,
+      "spreads": 0,
+      "outcome": "8ea0ad31198c3c71e81334bbe50c9ff3f7205d6d4db42fbc775ea2d793f56e8a"
+    },
+    {
+      "level": 14,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 15.65,
+      "ticks": 939,
+      "spreads": 1,
+      "outcome": "0a158b369317a0ca15a67c7edf0ad0cee7af20925928794b892193e6f280767b"
+    },
+    {
+      "level": 15,
+      "character": "panda",
+      "mode": "detente",
+      "seconds": 32.8,
+      "ticks": 1968,
+      "spreads": 0,
+      "outcome": "b673cd0f7cbd3e74116431256527a81274305bd525f44d78408431a70aa4a0b1"
+    },
+    {
+      "level": 15,
+      "character": "panda",
+      "mode": "defi",
+      "seconds": 34.25,
+      "ticks": 2055,
+      "spreads": 1,
+      "outcome": "fe41c448a55e842db2cb26154d0c458397df23788f0e9dd5e678ac70165991ff"
+    },
+    {
+      "level": 15,
+      "character": "pandaroux",
+      "mode": "detente",
+      "seconds": 32.8,
+      "ticks": 1968,
+      "spreads": 1,
+      "outcome": "25af6f335fdba67b6a0c8fdfd4651f83bb1831b7e848a0e01436796d7ca69e30"
+    },
+    {
+      "level": 15,
+      "character": "pandaroux",
+      "mode": "defi",
+      "seconds": 74.63,
+      "ticks": 4478,
+      "spreads": 9,
+      "outcome": "8d62cc9104ec4cdf06c18a5170dd24718d54aa238bf3605d87ce6cb962114c09"
+    },
+    {
+      "level": 15,
+      "character": "dragon",
+      "mode": "detente",
+      "seconds": 39.6,
+      "ticks": 2376,
+      "spreads": 1,
+      "outcome": "5e059037a7918d45df180c2b7b44fdbb3439dc58625e550931d9edaf455be8f9"
+    },
+    {
+      "level": 15,
+      "character": "dragon",
+      "mode": "defi",
+      "seconds": 50.35,
+      "ticks": 3021,
+      "spreads": 3,
+      "outcome": "989bb74f28e91a0e892cabd6fab14a589d6a2878fe0f47e171bb616a66fc25e8"
+    },
+    {
+      "level": 15,
+      "character": "singe",
+      "mode": "detente",
+      "seconds": 30.35,
+      "ticks": 1821,
+      "spreads": 0,
+      "outcome": "378cde3c033c60fdefa3a8309a29ae655f075a890a9e887c97afa1bc08a93dd2"
+    },
+    {
+      "level": 15,
+      "character": "singe",
+      "mode": "defi",
+      "seconds": 31.98,
+      "ticks": 1919,
+      "spreads": 1,
+      "outcome": "9f1dab58f29aca16cf2a18407d0fb9b337881a06d70582b2bd4acccc63d979bf"
+    },
+    {
+      "level": 15,
+      "character": "licorne",
+      "mode": "detente",
+      "seconds": 31.05,
+      "ticks": 1863,
+      "spreads": 1,
+      "outcome": "d1881ed16a86a840bdaefc5fe3e1c6612f1b896259e6f6514a4a5c3ec2dd898d"
+    },
+    {
+      "level": 15,
+      "character": "licorne",
+      "mode": "defi",
+      "seconds": 62.75,
+      "ticks": 3765,
+      "spreads": 6,
+      "outcome": "78ccf67eb3b3b1bcd6473aa5203d415ae36f676125199e35415a41e49cb80fa1"
+    }
+  ]
+}
