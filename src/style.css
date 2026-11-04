@@ -307,3 +307,17 @@ body.essaim .touch-slot { flex-direction: row; flex-wrap: nowrap; }
 /* Pépites: two thumbs, directions on both sides, Étai in the middle. */
 body.pepites #touch-controls { justify-content: space-between; gap: 4px; }
 body.pepites #touch-controls button { width: 56px; height: 56px; padding: 0; font-size: 16px; }
+
+/* The author's other games, inside the ☰ home menu: plain same-tab links with local icons. */
+#other-games { margin: 12px auto 0; max-width: 460px; }
+#other-games summary { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 24px; background: #64e4cc; color: #102532; border-radius: 12px; font-weight: bold; cursor: pointer; list-style: none; }
+#other-games summary::-webkit-details-marker { display: none; }
+#other-games summary:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+#other-games-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; text-align: left; }
+.other-game { display: flex; align-items: center; gap: 12px; min-height: 80px; padding: 8px 12px; border-radius: 12px; background: #172d44; border: 2px solid #64e4cc; color: #e5f3ff; text-decoration: none; }
+.other-game:hover { background: #1f3a57; }
+.other-game:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+.other-game img { flex: none; width: 64px; height: 64px; border-radius: 12px; }
+.other-game span { display: grid; gap: 4px; min-width: 0; }
+.other-game strong { font-size: 20px; line-height: 1.2; }
+.other-game small { font-size: 12px; line-height: 1.5; }

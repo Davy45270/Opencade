@@ -41,7 +41,7 @@ for (const action of ['banner', 'force', 'fallback'] as const) {
                 await expect(page.locator('#pwa-update')).toContainText('Nouvelle version 0.3.2 disponible');
                 await page.locator('#pwa-apply').click();
             } else {
-                await page.locator('#home-menu summary').click();
+                await page.locator('#home-menu > summary').click();
                 await page.locator('#home-menu [data-force-update]').click();
             }
             await expect(page.locator('#home footer > [data-build]')).toContainText('Opencade 0.3.2');
@@ -60,7 +60,7 @@ for (const action of ['banner', 'force', 'fallback'] as const) {
                 }).format(new Date(builtAt));
                 return `Opencade ${version} · ${date}`;
             }, metadata);
-            await page.locator('#home-menu summary').click();
+            await page.locator('#home-menu > summary').click();
             await expect(page.locator('#home-menu [data-build]')).toHaveText(label);
             const labels = await page.locator('[data-build]').allTextContents();
             expect(labels.length).toBeGreaterThanOrEqual(3);

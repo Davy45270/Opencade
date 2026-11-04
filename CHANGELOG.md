@@ -5,6 +5,11 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.0] — 2026-11-04
+
+- Menu ☰ de l’accueil : nouvelle entrée « Mes autres jeux ». Elle déplie les trois autres jeux de l’auteur (Opencadkid, TicTac, Petit Astronome), chacun avec son icône et une phrase. Un toucher ouvre le jeu dans le même onglet.
+- La liste et ses icônes sont livrées avec l’arcade : elles s’affichent aussi hors ligne, sans aucune requête réseau.
+
 ## [0.4.0] — 2026-11-03
 
 First stable release of the 0.4 series: everything from the three preview builds (Marmaille, Bombercade, Les Artificiers, Gourmandises, Pépites, Dérapage on phones, new art across the arcade), plus the changes below.

@@ -11,6 +11,7 @@ import './games/gourmandises/style.css';
 import { Inputs } from './shell/input';
 import { PlaySession, setupPause } from './shell/pause';
 import { setupGameMenu } from './shell/menu';
+import { renderOtherGames } from './shell/other-games';
 declare global {
     interface Window {
         __ARCADE_TEST__?: { open(id: string): void; current(): string | null; thumbnails(): Record<string, number>; games: Record<string, GameTestHook | undefined> };
@@ -106,6 +107,7 @@ function route(): void {
         gameResizeObserver.observe(container);
     }
 }
+renderOtherGames(document.querySelector('#other-games-list'));
 window.addEventListener('hashchange', route);
 document.querySelectorAll('[data-home]').forEach(button => {
     button.addEventListener('click', () => { location.hash = '/'; });
