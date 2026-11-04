@@ -1,26 +1,34 @@
 import { createDemo } from '../../engines/pepites/demo';
 import { W, H } from '../../engines/pepites/engine';
-import { rect, circle, type Thumbnail } from '../thumbnail';
+import { CELL, MINE_GROUND, TOP, creature, mineTile } from './art';
+import { bakeArt, canvasGraphics, castSprite, thumbnailHero } from '../thumbnail-art';
+import type { Thumbnail } from '../thumbnail';
 export { createDemo };
+/** The game's mine at its own scale (360 × 640), framed on the miner: same earth, rock,
+ * boulders, diamonds, creatures and character. Each kind of tile is baked once. */
+const K = 160 / 360, VIEW = 120 / K, RES = K * 2;
 export function createThumbnail(seed = 28): Thumbnail {
-    const demo = createDemo(seed);
-    let frame = 0;
+    const demo = createDemo(seed), hero = thumbnailHero();
+    let frame = 0, camera = -1;
     return { step: () => { demo.step(); frame++; }, get restarts() { return demo.restarts; }, read: () => demo.engine.snapshot(), draw(c) {
-        c.save(); rect(c, 0, 0, 160, 120, '#15110d');
-        // Whole 12 × 16 mine, 7 px cells.
-        c.translate(38, 4);
-        const e = demo.engine, colors: Record<string, string> = { '.': '#6b4a2b', '#': '#3b3f4a', '=': '#8a3f2c', m: '#4a3d7a', a: '#3fbf5a', w: '#2f7fd6', x: '#c0392b', E: e.open ? '#64e4cc' : '#2c3a44' };
-        for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) {
-            const t = e.at(x, y), fill = colors[t];
-            if (fill) rect(c, x * 7, y * 7, 7, 7, fill);
-            if (t === 'o') circle(c, x * 7 + 3.5, y * 7 + 3.5, 3, '#9a948a');
-            if (t === '*' || t === 'g') circle(c, x * 7 + 3.5, y * 7 + 3.5, (t === 'g' ? 3.5 : 2.5) - ((frame + x + y) % 7 === 0 ? 1 : 0), '#ffd34d');
+        const e = demo.engine, s = e.state, open = e.open, sorting = s.sorting > 0;
+        const heroY = TOP + s.player.y * CELL;
+        const target = Math.max(TOP - 8, Math.min(TOP + H * CELL - VIEW, heroY - VIEW / 2));
+        camera = camera < 0 ? target : camera + (target - camera) * .3;
+        c.save(); c.scale(K, K); c.translate(0, -Math.round(camera));
+        canvasGraphics(c).fillStyle(MINE_GROUND).fillRect(0, camera, 360, VIEW);
+        for (let y = 0; y < H; y++) {
+            const py = TOP + y * CELL;
+            if (py + CELL < camera || py > camera + VIEW) continue;
+            for (let x = 0; x < W; x++) {
+                const t = e.at(x, y);
+                if (t === ' ') continue;
+                const state = t === 'E' ? String(open) : t === 'm' ? String(sorting) : '';
+                bakeArt(c, `pepites-${t}${state}`, x * CELL, py, CELL, CELL, RES * 2, g => { mineTile(g, t, 0, 0, open, 0, sorting); });
+            }
         }
-        for (const n of e.state.enemies) rect(c, n.x * 7 + 1, n.y * 7 + 1, 5, 5, n.kind === 'f' ? '#ff8a3d' : '#7fd4ff');
-        circle(c, e.state.player.x * 7 + 3.5, e.state.player.y * 7 + 3.5, 3, '#e5fff7');
-        // Nugget glint (period 7) and a lantern sweeping the mine roof (period 84): two frames a few
-        // steps apart never match even while the miner waits for a boulder to settle.
-        circle(c, (frame * 5) % 84, 1.5, 1.5, '#ffe9a0');
+        for (const n of s.enemies) bakeArt(c, `pepites-creature-${n.kind}`, n.x * CELL, TOP + n.y * CELL, CELL, CELL, RES * 2, g => { creature(g, n.kind, 15, 15); });
+        castSprite(c, hero, 'face', 'concentre', 'repos', frame / 2, s.player.x * CELL - 3, heroY - 5, 36, RES);
         c.restore();
     } };
 }

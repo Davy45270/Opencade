@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { Engine, FIXED_MS, type Chain } from '../src/engines/collier/engine';
+import { Engine, FIXED_MS, RUSH_RAMP_S, type Chain } from '../src/engines/collier/engine';
 import { Path, levelAt, difficulty, type Bonus } from '../src/engines/collier/levels';
 import { policy } from '../src/engines/collier/policy';
 function near(a: number, b: number): void {
@@ -528,6 +528,120 @@ export function C20(full = false): void {
         }
     }
 }
+/** Élan: fewer than three visible beads with beads still queued hurry in, smoothly. */
+export function C40(): void {
+    // Late levels cruise slowly (4 + 0.16 per level); the opening deployment is over.
+    const make = (n: number, emitted = 20): Engine => {
+        const e = new Engine(10, 300);
+        e.loadState(Array.from({ length: n }, (_, i) => bead(i + 1, i % 2, 40 + i * 20)), emitted);
+        return e;
+    };
+    const base = (e: Engine): number => e.config.speed;
+    // Two visible beads, queue not empty: the speed rises, without a jump.
+    const two = make(2);
+    near(actualSpeed(two), base(two));
+    two.step(FIXED_MS);
+    assert.deepEqual(two.events, ['élan']);
+    assert.equal(two.rushing, true);
+    const first = actualSpeed(two);
+    assert.ok(first > base(two) && first < base(two) + 1, `pas de saut : ${String(first)}`);
+    let previous = first;
+    for (let n = 1; n < RUSH_RAMP_S * 60; n++) {
+        two.step(FIXED_MS);
+        const v = actualSpeed(two);
+        assert.ok(v >= previous - 1e-9 && v - previous < 6, `montée douce : ${String(previous)} → ${String(v)}`);
+        previous = v;
+    }
+    assert.ok(previous > base(two) * 3, `élan réel : ${String(previous)}`);
+    // Three or more visible beads: normal speed, no élan.
+    for (const n of [3, 4, 8]) {
+        const e = make(n);
+        for (let k = 0; k < 30; k++)
+            e.step(FIXED_MS);
+        assert.equal(e.rushing, false);
+        near(actualSpeed(e), base(e));
+        assert.ok(!e.events.includes('élan'));
+    }
+    // The élan lets go once refilled, then eases back to normal speed.
+    const refill = make(1);
+    let released = -1;
+    for (let k = 0; k < 600 && released < 0; k++) {
+        refill.step(FIXED_MS);
+        if (!refill.rushing)
+            released = k;
+    }
+    assert.ok(released > 0, 'relâché');
+    assert.ok((refill.chains[0]?.beads.length ?? 0) >= 5);
+    const after = actualSpeed(refill);
+    assert.ok(after > base(refill), 'descente progressive, pas de chute');
+    for (let k = 0; k < RUSH_RAMP_S * 60 + 1; k++)
+        refill.step(FIXED_MS);
+    near(actualSpeed(refill), base(refill));
+    // Empty queue: two beads stay at normal speed (the élan never pushes toward the hole).
+    const last = make(2, levelAt(10).quota);
+    assert.equal(last.chains[0]?.emitted, last.chains[0]?.quota);
+    for (let k = 0; k < 30; k++)
+        last.step(FIXED_MS);
+    assert.equal(last.rushing, false);
+    near(actualSpeed(last), base(last));
+    // A head past half of the path forbids the élan.
+    const far = new Engine(10, 300), farPath = far.config.paths[0];
+    assert.ok(farPath);
+    far.loadState([bead(1, 0, farPath.length * .55)], 20);
+    for (let k = 0; k < 30; k++)
+        far.step(FIXED_MS);
+    assert.equal(far.rushing, false);
+    // Finished level: nothing moves and the élan does not count.
+    for (const status of ['won', 'lost'] as const) {
+        const done = make(2);
+        for (let k = 0; k < 20; k++)
+            done.step(FIXED_MS);
+        assert.ok((done.chains[0]?.rush ?? 0) > 0);
+        done.status = status;
+        const before = JSON.stringify(done.snapshot());
+        near(actualSpeed(done), base(done));
+        done.step(1000);
+        assert.equal(JSON.stringify(done.snapshot()), before);
+    }
+    // Neutral élan is absent from the state, so untouched chains keep their shape.
+    assert.deepEqual(Object.keys(make(4).snapshot().chains[0] ?? {}), ['beads', 'emitted', 'quota']);
+}
+/** A snapshot taken during the élan, then restored, follows the same trajectory to the tick. */
+export function C41(): void {
+    const a = new Engine(10, 300);
+    a.loadState([bead(1, 0, 40), bead(2, 1, 60)], 20);
+    for (let k = 0; k < 12; k++)
+        a.step(FIXED_MS);
+    const mid = a.snapshot();
+    assert.ok(a.rushing && (mid.chains[0]?.rush ?? 0) > 0 && (mid.chains[0]?.rush ?? 0) < 1, 'pris en pleine montée');
+    const b = new Engine(0, 1);
+    b.restore(mid);
+    const strip = (e: Engine) => {
+        const { chains, ...rest } = e.snapshot();
+        return { ...rest, chains: chains.map(c => ({ ...c, beads: c.beads.map(bd => { const copy: Partial<typeof bd> = { ...bd }; delete copy.id; return copy; }) })) };
+    };
+    assert.deepEqual(strip(b), strip(a));
+    for (let k = 0; k < 400; k++) {
+        if (k % 9 === 0) {
+            policy(a);
+            policy(b);
+        }
+        a.step(FIXED_MS);
+        b.step(FIXED_MS);
+        assert.deepEqual(strip(b), strip(a), `tick ${String(k)}`);
+        assert.equal(b.rush(0), a.rush(0));
+    }
+    // Losing the élan on restore would diverge: the state really carries it.
+    const lossy = new Engine(0, 1);
+    lossy.restore({ ...mid, chains: mid.chains.map(c => { const copy = { ...c }; delete copy.rush; delete copy.rushOn; return copy; }) });
+    const c = new Engine(0, 1);
+    c.restore(mid);
+    for (let k = 0; k < 30; k++) {
+        lossy.step(FIXED_MS);
+        c.step(FIXED_MS);
+    }
+    assert.notDeepEqual(strip(lossy), strip(c));
+}
 export const engineCases = {
     C01,
     C02,
@@ -546,5 +660,7 @@ export const engineCases = {
     C17,
     C18,
     C19,
-    C20
+    C20,
+    C40,
+    C41
 };

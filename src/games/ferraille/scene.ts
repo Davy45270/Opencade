@@ -8,6 +8,7 @@ import { drawModule } from './modules-art';
 import { enemyArt, weaponArt } from './actors-art';
 import { DecorCache } from './decor-cache';
 import { scenery, sceneryThemes, sceneryTheme, sceneryMotion } from './scenery';
+import { DECOR_PARTS, VIEW, decorFactor, decorKey, decorPart, decorWidth, doorArt, platformArt, tileArt } from './world-art';
 import { bossAppearance, PALETTES, backdropX } from '../../engines/ferraille/appearance';
 import { Engine, LEVELS, TILE, type Input } from '../../engines/ferraille/engine';
 import { Inputs, renderTouchControls, virtualJoystick, type TouchButton } from '../../shell/input';
@@ -23,7 +24,6 @@ export const ferrailleButtons: readonly TouchButton[] = [
     { id: 'ferraille-fire', label: 'Tir', ariaLabel: 'Tirer', size: 64, placement: 'right', mode: 'hold' },
 ];
 const HUD = { x: 10, y: 8, width: 340, height: 98 };
-const VIEW = { scale: 2.6, worldTop: 112, width: 360, height: 640 };
 export interface FerrailleHook {
     performance(): { frames: number; gameMs: number };
     layout(): {
@@ -89,12 +89,8 @@ export class FerrailleScene extends Phaser.Scene {
         this.graphics = this.add.graphics();
         this.art = new ActionPaint(this, 224);
         this.decor = new DecorCache(this, 20);
-        for (const theme of sceneryThemes) for (let part = 0; part < 6; part++) {
-            const width = part >= 1 && part <= 3 ? (104 - (part - 1) * 12) * 2 : part === 5 ? 152 : 360;
-            this.decor.bake(`ferraille-118-${theme}-${String(part)}`, width, 640, g => {
-                if (part === 0) { g.fillStyle(PALETTES[theme === 'furnace' ? 'factory' : theme][0]); g.fillRoundedRect(0, 0, 360, 640, 16); }
-                scenery(g, theme === 'furnace' ? 23 : 0, 0, 0, true, theme, part);
-            });
+        for (const theme of sceneryThemes) for (let part = 0; part < DECOR_PARTS; part++) {
+            this.decor.bake(decorKey(theme, part), decorWidth(part), 640, g => { decorPart(g, theme, part); });
         }
         this.discovery = this.add.text(HUD.x + 12, HUD.y + 68, '', { fontFamily: 'system-ui', fontSize: '10px', color: '#a6cccf' });
         this.hud = this.add.text(14, 16, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 6 }).setDepth(5);
@@ -219,18 +215,16 @@ export class FerrailleScene extends Phaser.Scene {
         if (this.decor) {
             this.decor.begin();
             const theme = sceneryTheme(this.engine.level, s.theme);
-            for (let part = 0; part < 6; part++) {
-                const width = part >= 1 && part <= 3 ? (104 - (part - 1) * 12) * 2 : part === 5 ? 152 : 360;
-                const factor = part === 5 ? .7 : [.15, .3, .55][part - 1] ?? 0;
-                const shift = camera * factor % width;
-                for (let x = -shift; x < 360; x += width) this.decor.draw(`ferraille-118-${theme}-${String(part)}`, x, 0, width, 640, -6 + part * .1);
+            for (let part = 0; part < DECOR_PARTS; part++) {
+                const width = decorWidth(part);
+                const shift = camera * decorFactor(part) % width;
+                for (let x = -shift; x < 360; x += width) this.decor.draw(decorKey(theme, part), x, 0, width, 640, -6 + part * .1);
             }
             sceneryMotion(g, this.engine.level, camera, s.ticks, reducedMotion, s.theme);
         } else scenery(g, this.engine.level, camera, s.ticks, reducedMotion, s.theme);
         const first = Math.max(0, Math.floor(camera / TILE)), last = Math.min(s.columns, first + Math.ceil(VIEW.width / (TILE * VIEW.scale)) + 1);
         for (let y = 0; y < 20; y++) for (let x = first; x < last; x++) if (s.tiles[y * s.columns + x]) {
-            g.fillStyle(y === 16 || !s.tiles[(y - 1) * s.columns + x] ? palette[2] : palette[1]); g.fillRoundedRect(xx(x * TILE), yy(y * TILE), TILE * VIEW.scale - 1, TILE * VIEW.scale - 1, 3);
-            g.fillStyle(0xb3d5c3); g.fillCircle(xx(x * TILE) + 5, yy(y * TILE) + 5, 1.5);
+            tileArt(g, palette, xx(x * TILE), yy(y * TILE), TILE * VIEW.scale, y === 16 || !s.tiles[(y - 1) * s.columns + x]);
         }
         for (const m of s.modules ?? []) {
             if (m.x + m.w < camera || m.x > camera + 280) continue;
@@ -240,8 +234,7 @@ export class FerrailleScene extends Phaser.Scene {
 
         for (const p of s.platforms) {
             if (p.originY !== undefined || s.modules?.some(m => m.kind === 'chain' && p.originX === m.x - 32)) { g.lineStyle(2, 0xd4bd87, .6); for (const dx of [6, p.w - 6]) { g.lineBetween(xx(p.x + dx), yy(70), xx(p.x + dx), yy(p.y)); for (let j = 90; j < p.y; j += 14) g.strokeCircle(xx(p.x + dx), yy(j), 2); } }
-            g.fillStyle(0x283749); g.fillRoundedRect(xx(p.x) - 2, yy(p.y) - 2, p.w * VIEW.scale + 4, 16, 5);
-            g.fillStyle(0xefd77c); g.fillRoundedRect(xx(p.x), yy(p.y), p.w * VIEW.scale, 12, 4);
+            platformArt(g, xx(p.x), yy(p.y), p.w * VIEW.scale);
         }
         for (const x of s.checkpoints) if (Math.abs(x - camera) < 260) { g.lineStyle(2, 0x74f1c7); g.lineBetween(xx(x), yy(220), xx(x), yy(256)); g.fillStyle(x <= s.checkpoint ? 0x74f1c7 : 0x61768d); g.fillTriangle(xx(x), yy(220), xx(x + 14), yy(226), xx(x), yy(232)); }
         for (const b of s.bonuses) {
@@ -253,7 +246,7 @@ export class FerrailleScene extends Phaser.Scene {
             else if (b.kind === 'grenade') { g.fillCircle(x + 12, y + 20, 5); g.fillRect(x + 11, y + 10, 3, 6); }
             else if (b.kind === 'bounce') { g.lineBetween(x + 8, y + 10, x + 16, y + 18); g.lineBetween(x + 16, y + 18, x + 8, y + 26); }
         }
-        g.fillStyle(0x67e9c8); g.fillRoundedRect(xx(s.door), yy(216), 28, 60, 8); g.fillStyle(0x132e3f); g.fillRect(xx(s.door) + 6, yy(222), 16, 45);
+        doorArt(g, xx(s.door), yy(216), VIEW.scale);
         for (const cage of s.cages) {
             const x = xx(cage.x), y = yy(cage.y);
             g.fillStyle(cage.rescued ? 0x74f1c7 : 0xffde93); g.fillCircle(x + 16, y + 18, 7);

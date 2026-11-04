@@ -470,6 +470,21 @@ export class CollierScene extends Phaser.Scene {
                 const p = path.pointAt(s);
                 this.bead(p.x, p.y, b.color, b.bonus);
             }
+            // Élan: speed streaks trail the entering beads, fading in and out with the ramp.
+            const rush = e.status === 'playing' ? e.rush(ci) : 0;
+            if (rush > 0 && !this.reducedMotion) {
+                g.lineStyle(2, 0xf8f1cd, .55 * rush);
+                for (const b of chain.beads.slice(0, 4)) {
+                    if (e.hidden(b.s))
+                        continue;
+                    const p = path.pointAt(b.s), t = path.tangent(b.s), n = { x: -t.y, y: t.x };
+                    for (const side of [-6, 0, 6]) {
+                        const length = (side ? 10 : 16) * rush;
+                        const x = p.x - t.x * 13 + n.x * side, y = p.y - t.y * 13 + n.y * side;
+                        g.lineBetween(x, y, x - t.x * length, y - t.y * length);
+                    }
+                }
+            }
             if (chain.beads.length) {
                 const p = path.pointAt((chain.beads.at(-1)?.s ?? 0) + 24);
                 const size = 80 / view.scale;
@@ -541,7 +556,7 @@ ${String(remaining)} / ${String(e.config.quota)}`);
         this.scoreLabel?.setText(`Score  ${'★'.repeat(stars)}${'☆'.repeat(3 - stars)}
 ${String(e.score)}`);
         this.shapeLabel?.setText(e.config.name);
-        this.helpLabel?.setText(e.danger ? 'DANGER !' : active || (e.level === 0 && e.shots === 0 ? 'Viser partout · relâcher pour tirer' : ''));
+        this.helpLabel?.setText(e.danger ? 'DANGER !' : active || (e.rushing && e.status === 'playing' ? 'Élan !' : '') || (e.level === 0 && e.shots === 0 ? 'Viser partout · relâcher pour tirer' : ''));
         this.quotaBar?.setDisplaySize(136 * Math.max(.001, remaining / e.config.quota), 7);
         const status = document.querySelector('#status');
         if (status)

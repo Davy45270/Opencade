@@ -54,5 +54,16 @@ export function playerShip(g: G, x: number, y: number, color: number, flame: num
     g.fillStyle(mix(color, 0xffffff, .5)); g.fillRect(x - 6 * k, y - 12 * k, 3 * k, 22 * k);
     g.fillStyle(0xffe07a); g.fillTriangle(x - 24 * k, y + 10 * k, x - 20 * k, y + 4 * k, x - 18 * k, y + 10 * k); g.fillTriangle(x + 24 * k, y + 10 * k, x + 20 * k, y + 4 * k, x + 18 * k, y + 10 * k);
 }
+/** The player's hull colour per companion. */
+export const SHIP_COLORS: Record<string, number> = { panda: 0x4fae4a, pandaroux: 0xe0552f, dragon: 0x3a7ae0, singe: 0xe04aa8, licorne: 0x9a6aff };
+/** Probe colour per formation row. */
+export const PROBE_COLORS = [0xffdb89, 0xbaadff, 0xff9ebb, 0x87d8ff, 0xa5f0ca];
+/** Shield bricks with their lit top edge, and the faint line they stand on. */
+export function shieldCells(g: G, world: World, cells: readonly { x: number; y: number }[], line: number): void {
+    const [shield, shieldLight] = shieldColors(world);
+    g.lineStyle(1, shieldLight, 0.25); g.lineBetween(12, line, 348, line);
+    g.fillStyle(shield); for (const cell of cells) g.fillRect(cell.x, cell.y, 4, 4);
+    g.fillStyle(shieldLight, 0.55); for (const cell of cells) g.fillRect(cell.x, cell.y, 4, 1);
+}
 /** Shield brick colours per world. */
 export function shieldColors(world: World): [number, number] { return [palettes[world].shield, palettes[world].shieldLight]; }

@@ -20,8 +20,8 @@
   {
     "name": "tap-reserve-supprime",
     "file": "src/games/collier/scene.ts",
-    "before": "Math.hypot(down.x - (o.x + 44), down.y - (o.y + 35)) < 24",
-    "after": "Math.hypot(down.x - (o.x + 44), down.y - (o.y + 35)) < 0"
+    "before": "Math.hypot(down.x - layout.next.x, down.y - layout.next.y) * view.scale < 24",
+    "after": "Math.hypot(down.x - layout.next.x, down.y - layout.next.y) * view.scale < 0"
   },
   {
     "name": "glisser-ne-vise-plus",
@@ -68,8 +68,8 @@
   {
     "name": "tap-distance-reduite",
     "file": "src/games/collier/scene.ts",
-    "before": "Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) < 10",
-    "after": "Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) < 5"
+    "before": "Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) * view.scale < 10",
+    "after": "Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) * view.scale < 5"
   },
   {
     "name": "tap-ignore-excursion-intermediaire",
@@ -134,8 +134,8 @@
   {
     "name": "appui-long-tire",
     "file": "src/games/collier/scene.ts",
-    "before": "const tap = Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) < 10;",
-    "after": "const tap = Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) < 10 && p.upTime - down.time < 250;"
+    "before": "const tap = Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) * view.scale < 10;",
+    "after": "const tap = Math.max(down.moved, Math.hypot(p.x - down.x, p.y - down.y)) * view.scale < 10 && p.upTime - down.time < 250;"
   },
   {
     "name": "tireur-30px",
@@ -163,9 +163,9 @@
   },
   {
     "name": "zone-utile-reduite",
-    "file": "src/games/collier/scene.ts",
-    "before": "this.scale.setGameSize(360, 736);",
-    "after": "this.scale.setGameSize(360, 640);"
+    "file": "src/games/collier/presentation.ts",
+    "before": "export const canvasSize = { width: 360, height: 736 } as const;",
+    "after": "export const canvasSize = { width: 360, height: 640 } as const;"
   },
   {
     "name": "perle-redessinee-par-image",
@@ -180,5 +180,29 @@
     "before": "        const key = this.beadTexture(color, bonus);",
     "after": "        if (this.textures.exists('collier-regenerated')) this.textures.remove('collier-regenerated');\n        const extra = this.add.graphics();\n        this.paintBead(extra, 20, 18, color, 11.5);\n        extra.generateTexture('collier-regenerated', 40, 40);\n        extra.destroy();\n        const key = this.beadTexture(color, bonus);",
     "oracle": "C39"
+  },
+  {
+    "name": "elan-desactive",
+    "file": "src/engines/collier/levels.ts",
+    "before": "rushSpeed: RUSH_SPEED,",
+    "after": "rushSpeed: 0,"
+  },
+  {
+    "name": "elan-en-saut",
+    "file": "src/engines/collier/engine.ts",
+    "before": "(on ? dt : -dt) / RUSH_RAMP_S",
+    "after": "(on ? 1 : -1)"
+  },
+  {
+    "name": "elan-file-vide",
+    "file": "src/engines/collier/engine.ts",
+    "before": "const feeding = chain.emitted < chain.quota && this.reverseMs <= 0 && safe;",
+    "after": "const feeding = this.reverseMs <= 0 && safe;"
+  },
+  {
+    "name": "elan-hors-etat",
+    "file": "src/engines/collier/engine.ts",
+    "before": "            ...(c.rush !== undefined ? { rush: c.rush } : {}),\n",
+    "after": ""
   }
 ]

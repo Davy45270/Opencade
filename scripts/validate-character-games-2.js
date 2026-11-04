@@ -11,6 +11,8 @@ const { Engine: Snake, difficulty } = await import('../src/engines/serpentin/eng
 const { Engine: Bubble } = await import('../src/engines/bubble/engine.ts');
 const { solutions } = await import('../tests/bubble-solutions.ts');
 const { createThumbnail } = await import('../src/games/traverse/thumbnail.ts');
+const { rasterContext, testSurfaces } = await import('../tests/raster-context.ts');
+const { useSurfaces } = await import('../src/games/thumbnail-art.ts');
 const fixtures = { ...JSON.parse(readFileSync('tests/fixtures/characters-campaigns-2.json', 'utf8')), ...JSON.parse(readFileSync('tests/fixtures/serpentin-campaign.json', 'utf8')) };
 globalThis.matchMedia = () => ({ matches: false });
 const timings = [], mutations = [], records = { derapage: [], bubble: [], serpentin: [] };
@@ -90,28 +92,13 @@ for (let level = 0; level < 30; level++) {
     });
 }
 {
-    const demo = createThumbnail(), palette = new Map();
+    useSurfaces(testSurfaces());
+    const demo = createThumbnail();
     let previous = new Uint16Array(160 * 120), unchanged = 0;
     for (let batch = 0; batch < 4; batch++) run(`Traverse rendered pixels ${batch * 500}..${batch * 500 + 499}`, () => {
         for (let step = 0; step < 500; step++) {
-            demo.step(); const pixels = new Uint16Array(160 * 120);
-            let color = 0, arc = null;
-            const paint = (left, top, width, height, circle = null) => {
-                for (let y = Math.max(0, Math.floor(top)); y < Math.min(120, Math.ceil(top + height)); y++) {
-                    for (let x = Math.max(0, Math.floor(left)); x < Math.min(160, Math.ceil(left + width)); x++) {
-                        if (x + 0.5 < left || x + 0.5 >= left + width || y + 0.5 < top || y + 0.5 >= top + height) continue;
-                        const dx = circle ? x + 0.5 - circle.x : 0, dy = circle ? y + 0.5 - circle.y : 0;
-                        if (!circle || dx * dx + dy * dy <= circle.r * circle.r) pixels[y * 160 + x] = color;
-                    }
-                }
-            };
-            demo.draw({
-                save() {}, restore() {}, beginPath() { arc = null; },
-                set fillStyle(value) { if (!palette.has(value)) palette.set(value, palette.size + 1); color = palette.get(value); },
-                fillRect: paint,
-                arc(x, y, r) { arc = { x, y, r }; },
-                fill() { if (arc) paint(arc.x - arc.r, arc.y - arc.r, arc.r * 2, arc.r * 2, arc); },
-            });
+            demo.step(); const { context, pixels } = rasterContext();
+            demo.draw(context);
             unchanged = pixels.every((value, index) => value === previous[index]) ? unchanged + 1 : 0;
             assert(unchanged < 36); previous = pixels;
         }

@@ -13,7 +13,7 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
-import { color, drawBomb, heart, star, powerIcon, palettes } from './art';
+import { color, drawBomb, fireCell, heart, star, powerIcon, palettes } from './art';
 import { ArenaLayer } from './arena';
 import { cardinalDirection } from './controls';
 export const bombercadeButtons: readonly TouchButton[] = [
@@ -215,23 +215,11 @@ export class BombercadeScene extends Phaser.Scene {
         const burning = new Set(e.fires.map(f => `${String(f.owner)}/${String(f.at)}`));
         for (const fire of e.fires) {
             const x = ox + fire.at % WIDTH * unit + 15, y = oy + Math.floor(fire.at / WIDTH) * unit + 15;
-            const alpha = Math.min(1, fire.left / 180), tint = fire.character === 'panda' ? 0xc6ef58 : fire.character === 'pandaroux' ? 0xff9c3d : fire.character === 'dragon' ? 0xff5b27 : fire.character === 'singe' ? 0xff66c9 : 0x9c8bff;
-            g.fillStyle(tint, .22 * alpha); g.fillRoundedRect(x - 15, y - 15, 30, 30, 9);
+            const alpha = Math.min(1, fire.left / 180);
             const neighbors = [1, -1, WIDTH, -WIDTH].map(step =>
                 Math.abs(step) !== 1 || Math.floor((fire.at + step) / WIDTH) === Math.floor(fire.at / WIDTH)
                     ? burning.has(`${String(fire.owner)}/${String(fire.at + step)}`) : false);
-            for (const [axis, dx, dy] of [[0, 1, 0], [2, 0, 1]] as const) {
-                const positive = neighbors[axis], negative = neighbors[axis + 1];
-                if (!positive && !negative) continue;
-                const flicker = Math.sin(e.time / 65 + fire.at) * 1.2;
-                // Shared boundaries have identical width; only exposed tips taper.
-                const shape = [[-15, negative ? -6 : 0], [-9, -8 - flicker], [0, -6], [9, -8 + flicker], [15, positive ? -6 : 0],
-                    [15, positive ? 6 : 0], [9, 8 + flicker], [0, 6], [-9, 8 - flicker], [-15, negative ? 6 : 0]];
-                const points = shape.map(([along = 0, across = 0]) => ({ x: x + dx * along - dy * across, y: y + dy * along + dx * across }));
-                g.fillStyle(0xff8a26, alpha); g.fillPoints(points, true);
-                const core = [[-15, negative ? -2.5 : 0], [0, -3], [15, positive ? -2.5 : 0], [15, positive ? 2.5 : 0], [0, 3], [-15, negative ? 2.5 : 0]];
-                g.fillStyle(0xfff4b0, alpha); g.fillPoints(core.map(([along = 0, across = 0]) => ({ x: x + dx * along - dy * across, y: y + dy * along + dx * across })), true);
-            }
+            fireCell(g, fire.character, x, y, neighbors, e.time + fire.at * 65, alpha);
             // Bomb stars follow actual origins; untagged dragon breath keeps its shape rule.
             const origin = this.explosionOrigins.get(fire);
             if (origin ?? (neighbors.slice(0, 2).some(Boolean) && neighbors.slice(2).some(Boolean) || !neighbors.some(Boolean))) {

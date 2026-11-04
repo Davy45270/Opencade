@@ -1,4 +1,5 @@
 import type { Thumbnail } from '../games/thumbnail';
+import { useSurfaces, type SurfaceFactory } from '../games/thumbnail-art';
 export interface ThumbnailPorts {
     request(callback: (time: number) => void): number;
     cancel(id: number): void;
@@ -8,7 +9,16 @@ export interface ThumbnailPorts {
     reduced(): boolean;
     motion(change: () => void): () => void;
     ratio: number;
+    /** Where baked thumbnail layers are painted (the page: canvases). */
+    surfaces?: SurfaceFactory;
 }
+/** Baked thumbnail layers are page canvases, created once per key. */
+const canvasSurfaces: SurfaceFactory = (w, h) => {
+    const image = document.createElement('canvas'); image.width = w; image.height = h;
+    const context = image.getContext('2d');
+    if (!context) throw new Error('Contexte 2D absent');
+    return { context, image: () => image };
+};
 export function browserThumbnailPorts(): ThumbnailPorts {
     const media = matchMedia('(prefers-reduced-motion: reduce)');
     return {
@@ -20,10 +30,12 @@ export function browserThumbnailPorts(): ThumbnailPorts {
         visibility(change) { document.addEventListener('visibilitychange', change); return () => { document.removeEventListener('visibilitychange', change); }; },
         motion(change) { media.addEventListener('change', change); return () => { media.removeEventListener('change', change); }; },
         hidden: () => document.hidden, reduced: () => media.matches, ratio: window.devicePixelRatio,
+        surfaces: canvasSurfaces,
     };
 }
 /** No scheduled callbacks survive suspension or disposal. First paint waits for intersection. */
 export function startThumbnail(canvas: HTMLCanvasElement, demo: Thumbnail, ports: ThumbnailPorts, painted: () => void): { stop(): void } {
+    if (ports.surfaces) useSurfaces(ports.surfaces);
     const ratio = Math.min(2, Math.max(1, ports.ratio || 1));
     canvas.width = Math.round(160 * ratio); canvas.height = Math.round(120 * ratio);
     const context = canvas.getContext('2d');

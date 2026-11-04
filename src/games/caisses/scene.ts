@@ -13,7 +13,8 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
-import { backdrop, crate, floorTile, groundTile, hudVeil, iceTile, stoneBlock, worldOf, SceneryLayer } from '../universal/art';
+import { crate, hudVeil, worldOf, SceneryLayer } from '../universal/art';
+import { boxPaint, cellMarks, workshopLayout, workshopScenery } from './art';
 export const caissesButtons: readonly TouchButton[] = [
     { id: 'caisses-special', label: 'Tirer', ariaLabel: 'Tirer une caisse', size: 56, placement: 'right', mode: 'tap' },
     { id: 'caisses-left', label: '←', ariaLabel: 'Aller à gauche', size: 56, placement: 'left', mode: 'tap' },
@@ -138,38 +139,21 @@ export class CaissesScene extends Phaser.Scene {
         const b = this.engine.board, s = this.engine.state;
         const world = worldOf(this.engine.level), time = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : this.time.now / 1000;
         g.clear();
-        const unit = Math.min(344 / b.width, 470 / b.height), ox = (360-b.width*unit)/2, oy = 140+(470-b.height*unit)/2;
+        const { unit, ox, oy } = workshopLayout(b);
         const layer = this.scenery, sg = layer?.g;
         if (layer && sg && layer.stale(b)) {
-            backdrop(sg, world, 360, 640); hudVeil(sg, world, 6, 12, 348, 116);
-            // The workshop stands on a ground slab: grass frame, soil underneath; walls, ice and floor never move.
-            const rim = Math.max(6, unit * .3);
-            for (let i = 0; i < b.width + 1; i++) groundTile(sg, world, ox - rim + i * (b.width * unit + rim * 2) / (b.width + 1), oy + b.height * unit, (b.width * unit + rim * 2) / (b.width + 1), i);
-            sg.fillStyle(0x000000, .25); sg.fillRoundedRect(ox - rim, oy - rim, b.width * unit + rim * 2, b.height * unit + rim * 2, rim);
-            for (let p = 0; p < b.width * b.height; p++) {
-                const column = p % b.width, row = Math.floor(p / b.width), x = ox + column * unit, y = oy + row * unit;
-                if (b.walls.includes(p)) stoneBlock(sg, world, x, y, unit, column * 7 + row * 3); else if (b.ice.includes(p)) iceTile(sg, x, y, unit); else floorTile(sg, world, x, y, unit, (column + row) % 2 === 1);
-            }
+            workshopScenery(sg, world, b); hudVeil(sg, world, 6, 12, 348, 116);
             layer.commit();
         }
         const open = doorOpen(b, { player: s.player, boxes: s.boxes, colors: s.colors, filled: s.filled });
-        const red = 0xff6b6b;
         for (let p=0; p<b.width*b.height; p++) {
-            const x=ox+p%b.width*unit, y=oy+Math.floor(p/b.width)*unit, cx = x+unit/2, cy = y+unit/2;
-            const arrow = b.arrows.find(a => a.at === p);
-            if (arrow) { const [dx, dy] = ({ up: [0, -1], down: [0, 1], left: [-1, 0], right: [1, 0] } as const)[arrow.direction]; g.fillStyle(0x7fdcff, 0.85); g.fillTriangle(cx+dx*unit*.3, cy+dy*unit*.3, cx-dx*unit*.15-dy*unit*.22, cy-dy*unit*.15-dx*unit*.22, cx-dx*unit*.15+dy*unit*.22, cy-dy*unit*.15+dx*unit*.22); }
-            if (b.plates.includes(p)) { g.fillStyle(0xffd166); g.fillCircle(cx, cy, unit*.22); g.lineStyle(2, 0x8a6d1f); g.strokeCircle(cx, cy, unit*.22); }
-            if (b.doors.includes(p)) { g.lineStyle(3, 0xffd166); g.strokeRect(x+3, y+3, unit-6, unit-6); if (!open) { g.fillStyle(0xb8892a); g.fillRect(x+5, y+5, unit-10, unit-10); } }
-            if (b.pits.includes(p)) { g.fillStyle(s.filled.includes(p) ? 0x5b4636 : 0x05080d); g.fillRoundedRect(x+3, y+3, unit-6, unit-6, unit*.3); }
-            const pad = b.pads.indexOf(p);
-            if (pad >= 0) { g.lineStyle(3, 0xd29af2); g.strokeCircle(cx, cy, unit*.32); g.strokeCircle(cx, cy, unit*.16); }
-            const target = b.targets.indexOf(p);
-            if (target >= 0) { const tc = b.targetColors[target] ? red : 0x64e4cc; g.fillStyle(tc, .3 + .15 * Math.sin(time * 3)); g.fillCircle(cx, cy, unit*.36); g.lineStyle(3, tc); g.strokeCircle(cx, cy, unit*.3); g.strokeCircle(cx, cy, unit*.14); }
+            const x=ox+p%b.width*unit, y=oy+Math.floor(p/b.width)*unit, cx = x+unit/2;
+            cellMarks(g, b, s, p, x, y, unit, time, open);
             const box = s.boxes.indexOf(p);
             if (box >= 0) {
-                const isRed = (s.colors[box] ?? 0) === 1, home = target >= 0 && (b.targetColors[target] ?? 0) === (s.colors[box] ?? 0);
+                const { home, color } = boxPaint(b, s, box, p);
                 if (home) { g.fillStyle(0x64e4cc, .45); g.fillRoundedRect(x+1, y+1, unit-2, unit-2, unit*.2); }
-                crate(g, x+unit*.08, y+unit*.08, unit*.84, home ? 0x5fbf6a : isRed ? 0xc4483c : 0xd08a3e);
+                crate(g, x+unit*.08, y+unit*.08, unit*.84, color);
             }
             if (s.player===p) {
                 // The character stands a head taller than its cell so it reads on a phone.

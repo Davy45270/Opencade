@@ -1,27 +1,38 @@
 import { createDemo } from '../../engines/traverse/demo';
-import { filled, difficulty } from '../../engines/traverse/engine';
-import { rect, circle, type Thumbnail } from '../thumbnail';
+import { shelterOpen } from '../../engines/traverse/engine';
+import { car, log, turtle, worldOf } from '../universal/art';
+import { CAR_PAINTS, crossingScenery, hut, laneRuns } from './art';
+import { bakeArt, castSprite, thumbnailHero } from '../thumbnail-art';
+import type { Thumbnail } from '../thumbnail';
 export { createDemo };
+/** The game's crossing at its own scale (360 × 640), framed on the hero: same scenery,
+ * cars, logs, turtles, huts and character, each baked once and shown as bitmaps. */
+const K = 160 / 360, VIEW = 120 / K, RES = K * 2;
 export function createThumbnail(seed = 28): Thumbnail {
-    const demo = createDemo(seed);
-    let traffic = 0;
-    return { step: () => { demo.step(); traffic += 0.35; }, get restarts() { return demo.restarts; }, read: () => demo.engine.snapshot(), draw(c) {
-        c.save(); rect(c, 0, 0, 160, 120, '#101827');
-        const e = demo.engine;
-        for (let y = 0; y < 15; y++) {
-            const lane = e.board.lanes.find(l => l.y === y);
-            rect(c, 35, y * 8, 90, 7, lane?.kind === 'river' ? '#184f73' : lane ? '#32394e' : '#235448');
-            if (lane) {
-                const spacing = difficulty(e.level).spacing;
-                // Continuous vehicles and logs survive deaths, restarts and shelter waits.
-                for (let x = -spacing; x < 9 + spacing; x++) if (filled(lane, x, lane.kind === 'road' ? 0 : e.state.phase, e.level)) {
-                    const left = 36 + (x + (traffic * lane.direction % spacing)) * 10;
-                    const start = Math.max(35, left), end = Math.min(125, left + 9);
-                    if (end > start) rect(c, start, y * 8 + 1, end - start, 5, lane.kind === 'road' ? '#ff876b' : '#c49b67');
-                }
+    const demo = createDemo(seed), hero = thumbnailHero();
+    let frame = 0, camera = -1;
+    return { step: () => { demo.step(); frame++; }, get restarts() { return demo.restarts; }, read: () => demo.engine.snapshot(), draw(c) {
+        const e = demo.engine, s = e.state, world = worldOf(e.level);
+        const heroY = Math.max(64, 52 + s.player.y * 38);
+        const target = Math.max(0, Math.min(640 - VIEW, heroY - VIEW * .55));
+        camera = camera < 0 ? target : camera + (target - camera) * .25;
+        c.save(); c.scale(K, K); c.translate(0, -Math.round(camera));
+        bakeArt(c, `traverse-${world}-${String(e.level)}-${JSON.stringify(e.board.rocks ?? [])}-${e.board.lanes.map(l => `${l.kind[0] ?? ''}${String(l.y)}`).join('')}`, 0, 0, 360, 640, RES, g => { crossingScenery(g, world, e.board); });
+        for (const lane of e.board.lanes) {
+            const top = 64 + lane.y * 38;
+            if (top + 38 < camera || top > camera + VIEW) continue;
+            for (const [run, x] of laneRuns(lane, s.phase, e.level)) {
+                const left = 11 + run * 38, width = (x - run) * 38 - 4;
+                if (lane.kind === 'road') { const paint = CAR_PAINTS[(lane.y + run) % CAR_PAINTS.length] ?? 0xff5f5f; bakeArt(c, `traverse-car-${paint.toString(16)}-${String(width)}-${String(lane.direction)}`, left, top + 5, width, 30, RES, b => { car(b, 0, 2, width, 24, paint, lane.direction); }); }
+                else if (lane.diver) for (let k = run; k < x; k++) bakeArt(c, `traverse-turtle-${String(lane.direction)}`, 9 + k * 38, top + 6, 38, 26, RES, b => { turtle(b, 19, 13, 12, lane.direction); });
+                else bakeArt(c, `traverse-log-${String(width)}`, left, top + 6, width, 26, RES, b => { log(b, 0, 0, width, 26); });
             }
         }
-        for (const x of e.board.shelters) rect(c, 36 + x * 10, 0, 8, 7, '#64e4cc');
-        circle(c, 40 + e.state.player.x * 10, e.state.player.y * 8 + 4, 4, '#fff1b8'); c.restore();
+        for (const x of e.board.shelters) {
+            const state = s.occupied.includes(x) ? 'done' : shelterOpen(e.board, s.occupied, s.rescued ?? false, x) ? 'open' : 'closed';
+            bakeArt(c, `traverse-hut-${state}`, 10 + x * 38, 62, 38, 40, RES, b => { hut(b, state); });
+        }
+        castSprite(c, hero, 'face', 'concentre', 'marche', frame / 2, 3 + s.player.x * 38, heroY, 50, RES);
+        c.restore();
     } };
 }

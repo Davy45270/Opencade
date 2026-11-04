@@ -10,7 +10,7 @@ import { renderCharacter } from '../src/characters/phaser.ts';
 import { fingerReceipts } from '../src/games/finger-receipts.ts';
 import { fingerProof } from '../src/games/artificiers/finger.ts';
 import { AimDriver } from '../src/games/artificiers/driver.ts';
-import { countedGraphics, drawDynamic, drawScenery, themes, WORLD_SCALE, screenY, drawHero, HERO_SIZE, HERO_X, HERO_Y } from '../src/games/artificiers/art.ts';
+import { countedGraphics, drawDynamic, drawScenery, paintTerrain, themes, WORLD_SCALE, screenY, drawHero, HERO_SIZE, HERO_X, HERO_Y } from '../src/games/artificiers/art.ts';
 import { Progression } from '../src/shell/progression.ts';
 export function sceneChecks(source = readFileSync(new URL('../src/games/artificiers/scene.ts', import.meta.url), 'utf8')) {
     const code = transpile(source).replace(/^import .*;\s*$/gm, '').replace(/\bexport (class|const) /g, '$1 ');
@@ -58,7 +58,7 @@ export function sceneChecks(source = readFileSync(new URL('../src/games/artifici
             try { return fingerReceipts(inputs); }
             finally { ['window', 'location'].forEach((key, i) => { if (prior[i]) Object.defineProperty(globalThis, key, prior[i]); else Reflect.deleteProperty(globalThis, key); }); }
         },
-        sound: { playEffect: name => effects.push(name), stop() {} }, AimDriver, countedGraphics, drawDynamic, drawScenery, themes,
+        sound: { playEffect: name => effects.push(name), stop() {} }, AimDriver, countedGraphics, drawDynamic, drawScenery, paintTerrain, themes,
         renderTouchControls: (_inputs, buttons, callback) => { action = callback; assert.equal(buttons.length, 6); assert.ok(buttons.every(b => b.size >= 48)); },
         matchMedia: () => ({ matches: false }), document, window, location: { search: '?test=1' }, URLSearchParams: globalThis.URLSearchParams, HTMLElement: Element,
     };

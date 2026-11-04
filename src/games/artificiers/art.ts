@@ -1,5 +1,6 @@
 import type Phaser from 'phaser';
 import type { Engine } from '../../engines/artificiers/engine';
+import { CELL, COLS, type Terrain } from '../../engines/artificiers/terrain';
 import { characters, drawList, type CharacterId, type Animation } from '../../characters/model';
 import { renderCharacter } from '../../characters/phaser';
 export const themes = [
@@ -114,4 +115,25 @@ export function drawDynamic(g: Phaser.GameObjects.Graphics, e: Engine, reduced: 
     g.lineStyle(2, 0xd0f5fa); g.lineBetween(280, 581, 280 + e.wind, 581);
     g.fillStyle(0x446575); g.fillRoundedRect(22, 595, 205, 14, 6);
     g.fillStyle(0xffcf6e); g.fillRoundedRect(22, 595, 205 * (e.power - 65) / 180, 14, 6);
+}
+type Theme = (typeof themes)[number];
+/** Colour of one terrain cell: crystal, rock, grass on an exposed top, soil below. */
+export function terrainColour(terrain: Terrain, theme: Theme, x: number, y: number): string | null {
+    const i = y / CELL * COLS + x / CELL;
+    if (!terrain.mask[i]) return null;
+    const material = terrain.material[i];
+    return material === 3 ? '#c49359' : material === 2 ? theme.rock : !terrain.solid(x, y - 2) ? theme.grass : theme.soil;
+}
+/** Repaint the terrain cells of `rect` (360 × 640 world pixels) on a 2D context; returns the area painted. */
+export function paintTerrain(ctx: CanvasRenderingContext2D, terrain: Terrain, theme: Theme, rect: { x: number; y: number; width: number; height: number }): number {
+    const x0 = Math.floor(rect.x / CELL) * CELL, y0 = Math.floor(rect.y / CELL) * CELL;
+    const x1 = Math.min(360, Math.ceil((rect.x + rect.width) / CELL) * CELL), y1 = Math.min(640, Math.ceil((rect.y + rect.height) / CELL) * CELL);
+    ctx.clearRect(x0, y0, x1 - x0, y1 - y0);
+    for (let y = y0; y < y1; y += CELL) for (let x = x0; x < x1; x += CELL) {
+        const colour = terrainColour(terrain, theme, x, y);
+        if (!colour) continue;
+        ctx.fillStyle = colour; ctx.fillRect(x, y, CELL, CELL);
+        if ((x * 13 + y * 7) % 34 === 0) { ctx.fillStyle = 'rgba(255,240,200,.18)'; ctx.fillRect(x, y, 1, 1); }
+    }
+    return (x1 - x0) * (y1 - y0);
 }

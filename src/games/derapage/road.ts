@@ -63,6 +63,30 @@ export function drawUrban(g: UrbanGraphics, t: Track, project: (x: number, y: nu
     }
 }
 
+/** World rectangle of the static road layer (top left, and its size in pixels at the top-view scale 5). */
+export function roadBounds(t: Track): { left: number; top: number; width: number; height: number } {
+    const margin = Math.max(32, Math.max(...t.widths) / 2 + 20);
+    const left = Math.min(...t.points.map(p => p.x)) - margin;
+    const top = Math.min(...t.points.map(p => p.y)) - margin;
+    const width = Math.ceil((Math.max(...t.points.map(p => p.x)) + margin - left) * 5);
+    const height = Math.ceil((Math.max(...t.points.map(p => p.y)) + margin - top) * 5);
+    return { left, top, width, height };
+}
+/** The static road layer at the top-view scale 5, world (left, top) at the origin: ground texture,
+ * landscape, road, rails, road art, trees and roadside props. Shared by the scene and the thumbnail. */
+export function paintRoadLayer(g: Phaser.GameObjects.Graphics, t: Track, left: number, top: number): void {
+    const projectStatic = (x: number, y: number): Vec => ({ x: (x - left) * 5, y: (y - top) * 5 });
+    groundTexture(g,t,projectStatic);
+    kartLandscape(g,t,projectStatic,5,0,true);
+    drawRoad(g, t, projectStatic, 5);
+    drawUrban(g, t, projectStatic, 5);
+    kartRoadArt(g,t,projectStatic,5,0,true);
+    const theme=t.circuit.theme.kart;
+    if (theme) for (const tree of t.trees)
+        kartTree(g,theme,projectStatic(tree.x,tree.y),tree.radius,5,0,true);
+    for (const item of scenerySprites(t)) drawScenery(g,item,projectStatic(item.x,item.y),5);
+}
+
 /** Rasterize the exact joined road once, at the normal top-view resolution.
  * A single owned texture is replaced on track changes and released on shutdown. */
 export class RoadLayer {
@@ -75,22 +99,11 @@ export class RoadLayer {
     draw(t: Track, project: (x: number, y: number) => Vec, scale: number, rotation: number): void {
         if (this.track !== t) {
             this.destroy();
-            const margin = Math.max(32, Math.max(...t.widths) / 2 + 20);
-            this.left = Math.min(...t.points.map(p => p.x)) - margin;
-            this.top = Math.min(...t.points.map(p => p.y)) - margin;
-            const width = Math.ceil((Math.max(...t.points.map(p => p.x)) + margin - this.left) * 5);
-            const height = Math.ceil((Math.max(...t.points.map(p => p.y)) + margin - this.top) * 5);
+            const box = roadBounds(t);
+            this.left = box.left; this.top = box.top;
             const g = this.scene.make.graphics({ x: 0, y: 0 });
-            const projectStatic = (x: number, y: number): Vec => ({ x: (x - this.left) * 5, y: (y - this.top) * 5 });
-            groundTexture(g,t,projectStatic);
-            kartLandscape(g,t,projectStatic,5,0,true);
-            drawRoad(g, t, (x, y) => ({ x: (x - this.left) * 5, y: (y - this.top) * 5 }), 5);
-            drawUrban(g, t, (x, y) => ({ x: (x - this.left) * 5, y: (y - this.top) * 5 }), 5);
-            kartRoadArt(g,t,projectStatic,5,0,true);
-            const theme=t.circuit.theme.kart;
-            if (theme) for (const tree of t.trees)
-                kartTree(g,theme,projectStatic(tree.x,tree.y),tree.radius,5,0,true);
-            for (const item of scenerySprites(t)) drawScenery(g,item,projectStatic(item.x,item.y),5);
+            paintRoadLayer(g, t, box.left, box.top);
+            const { width, height } = box;
             g.generateTexture(this.key, width, height);
             g.destroy();
             this.image = this.scene.add.image(0, 0, this.key).setOrigin(0, 0);

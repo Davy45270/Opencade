@@ -3,6 +3,8 @@ vi.mock('phaser', () => ({ default: { Scene: class { key = 'mock'; } } }));
 import { games } from '../src/games/registry';
 import { startThumbnail, type ThumbnailPorts } from '../src/shell/thumbnails';
 import type { Thumbnail } from '../src/games/thumbnail';
+import { useSurfaces } from '../src/games/thumbnail-art';
+import { testSurfaces } from './raster-context';
 
 // Shared prototype method: two recordings of the same drawing compare equal (no per-call closures).
 class RecordedGradient {
@@ -28,6 +30,8 @@ test('V01 rendus déterministes de chaque jeu enregistré sur contexte 2D', () =
     expect(games.length).toBeGreaterThan(0);
     expect(new Set(games.map(game => game.id)).size).toBe(games.length);
     for (const game of games) { expect(typeof game.thumbnail, game.id).toBe('function'); expect(typeof game.demo, game.id).toBe('function'); }
+    // Baked layers go to test surfaces, as they go to canvases on the page: same code path.
+    useSurfaces(testSurfaces());
     for (const game of games) {
         expect(game.demo(28)).toBeDefined();
         const a = game.thumbnail(28), b = game.thumbnail(28);
@@ -36,6 +40,7 @@ test('V01 rendus déterministes de chaque jeu enregistré sur contexte 2D', () =
         expect(x.calls.length, game.id).toBeGreaterThan(100);
         expect(x.calls, game.id).toEqual(y.calls);
     }
+    useSurfaces(null);
 });
 for (const game of games) test(`V02 ${game.id} 2000 pas, évolution et redémarrages ordinaires`, () => {
     for (const status of ['won', 'lost']) {

@@ -14,7 +14,8 @@ import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { backdrop, CARD, paintCell, repaintBox, portals, roleProp, worldOf, WORLD_NAME, type World } from './art';
 /** Field geometry: 20 × 22 cells of 18 px under a 40 px band. */
-export const CELL = 18, FIELD_Y = 40;
+import { CELL, FIELD_Y } from './layout';
+export { CELL, FIELD_Y };
 export const ROLE_SYMBOL: Record<Role, string> = { block: '✋', build: '▟', dig: '⇣', bash: '⇢', float: '☂', climb: '⇡' };
 export const ROLE_NAME: Record<Role, string> = { block: 'Bloqueur', build: 'Bâtisseur', dig: 'Creuseur', bash: 'Mineur', float: 'Parachute', climb: 'Grimpeur' };
 /** Three role slots (a board never offers more than three roles) and the speed toggle. */

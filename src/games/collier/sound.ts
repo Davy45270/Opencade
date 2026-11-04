@@ -25,6 +25,12 @@ export const collierEffects: SoundEffects = {
         duration: .22,
         type: 'sine'
     }),
+    // Élan: a soft rising breath when the near-empty necklace hurries in.
+    élan: () => ({
+        frequency: 340,
+        duration: .2,
+        type: 'sine'
+    }),
     danger: () => ({
         frequency: 180,
         duration: .24,

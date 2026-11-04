@@ -84,6 +84,10 @@ const expected = {
     'avertissement-danger-supprime': 'C12',
     'son-bonus-supprime': 'C09',
     'signal-life-supprime': 'C12',
+    'elan-desactive': 'C40',
+    'elan-en-saut': 'C40',
+    'elan-file-vide': 'C40',
+    'elan-hors-etat': 'C41',
 };
 for (const mutation of mutations) {
     const result = run({ ...mutation, oracle: expected[mutation.name] });

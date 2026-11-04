@@ -3,7 +3,6 @@ import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { Engine, chooseShot, WEAPONS } from '../../engines/artificiers/engine';
 import { LEVELS, GAME_NAME } from '../../engines/artificiers/levels';
-import { CELL, COLS } from '../../engines/artificiers/terrain';
 import { selectedCharacter } from '../../characters/selection';
 import { characters, ids } from '../../characters/model';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
@@ -14,7 +13,7 @@ import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { AimDriver } from './driver';
-import { countedGraphics, drawDynamic, drawScenery, themes, WORLD_SCALE, screenY, drawHero, HERO_SIZE, HERO_X, HERO_Y } from './art';
+import { countedGraphics, drawDynamic, drawScenery, paintTerrain, themes, WORLD_SCALE, screenY, drawHero, HERO_SIZE, HERO_X, HERO_Y } from './art';
 export const artificiersButtons: readonly TouchButton[] = [
     { id: 'artificiers-left', label: '←', ariaLabel: 'Marcher à gauche', size: 56, placement: 'left', mode: 'hold' },
     { id: 'artificiers-right', label: '→', ariaLabel: 'Marcher à droite', size: 56, placement: 'left', mode: 'hold' },
@@ -212,20 +211,7 @@ export class ArtificiersScene extends Phaser.Scene {
         this.terrainPixels = 0;
         const ctx = texture.context, t = themes[e.config.world] ?? themes[0];
         if (!t) return;
-        for (const rect of e.terrain.dirty.splice(0)) {
-            const x0 = Math.floor(rect.x / CELL) * CELL, y0 = Math.floor(rect.y / CELL) * CELL;
-            const x1 = Math.min(360, Math.ceil((rect.x + rect.width) / CELL) * CELL), y1 = Math.min(640, Math.ceil((rect.y + rect.height) / CELL) * CELL);
-            ctx.clearRect(x0, y0, x1 - x0, y1 - y0);
-            this.terrainPixels += (x1 - x0) * (y1 - y0);
-            for (let y = y0; y < y1; y += CELL) for (let x = x0; x < x1; x += CELL) {
-                const i = y / CELL * COLS + x / CELL;
-                if (!e.terrain.mask[i]) continue;
-                const material = e.terrain.material[i];
-                ctx.fillStyle = material === 3 ? '#c49359' : material === 2 ? t.rock : !e.terrain.solid(x, y - 2) ? t.grass : t.soil;
-                ctx.fillRect(x, y, CELL, CELL);
-                if ((x * 13 + y * 7) % 34 === 0) { ctx.fillStyle = 'rgba(255,240,200,.18)'; ctx.fillRect(x, y, 1, 1); }
-            }
-        }
+        for (const rect of e.terrain.dirty.splice(0)) this.terrainPixels += paintTerrain(ctx, e.terrain, t, rect);
         if (this.terrainPixels) texture.refresh();
         this.budget.calls = 0; drawDynamic(g, e, this.reduced, true);
         this.heroes.forEach((sprite, i) => {

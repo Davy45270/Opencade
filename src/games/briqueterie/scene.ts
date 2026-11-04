@@ -2,7 +2,7 @@ import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { DecorCache } from '../ferraille/decor-cache';
-import { brickView, brickGarden, brickBackdrop, brickParticles, drawBrickBody, brickKey } from './presentation';
+import { brickView, brickGarden, brickBackdrop, brickParticles, drawBrickBody, brickKey, brickCatalogue, brickDecorId, brickEmblem, ballEmblem } from './presentation';
 import { GameCharacter } from '../../characters/game';
 import { ActionPaint, actionBackdrop } from '../../characters/action-phaser';
 import { designs } from '../../engines/briqueterie/levels';
@@ -80,7 +80,7 @@ export class BriqueterieScene extends Phaser.Scene {
         const color = Number.parseInt(this.art.colors.light.slice(1), 16);
         for (let level = 0; level < 30; level++) {
             preview.loadLevel(level, 28);
-            const view = brickView(level), catalogue = level === 0 ? 'feast' : level === 17 ? 'autumn' : level === 14 ? 'stars' : '';
+            const view = brickView(level), catalogue = brickCatalogue(level);
             for (const source of preview.state.bricks) for (const hp of source.kind === 'regen' ? [1, 2] : [source.hp]) for (const healAt of source.kind === 'regen' ? [0, 1] : [0]) {
                 const b = { ...source, hp, healAt, x: 2, y: 8, w: view.width, h: view.y(source.y + source.h) - view.y(source.y) };
                 this.decor.bake(brickKey(b, source, catalogue, color), 48, Math.ceil(b.h + 16), g => { drawBrickBody(g, b, source, catalogue, color); });
@@ -171,14 +171,14 @@ export class BriqueterieScene extends Phaser.Scene {
         g.clear();
         if (this.decor) {
             this.decor.begin();
-            const id = this.engine.level === 14 ? 'licorne' : this.engine.level === 17 ? 'pandaroux' : this.art?.id ?? 'panda';
+            const id = brickDecorId(this.engine.level, this.art?.id ?? 'panda');
             for (let part = 0; part < 5; part++) {
                 const width = part >= 1 && part <= 3 ? 440 : 360;
                 const shift = reduced || part === 0 || part === 4 ? 0 : this.artClock / 1000 * part * 2 % width;
                 for (let x = -shift; x < 360; x += width) this.decor.draw(`brick-118-${id}-${String(Math.floor(this.engine.level / 6))}-${String(part)}`, x, 0, width, 640, -6 + part * .1);
             }
-        } else actionBackdrop(g, this.engine.level === 14 ? 'licorne' : this.engine.level === 17 ? 'pandaroux' : this.art?.id ?? 'panda', Math.floor(this.engine.level / 6), this.artClock, reduced);
-        if (this.decor) brickParticles(g, this.engine.level === 14 ? 'licorne' : this.engine.level === 17 ? 'pandaroux' : this.art?.id ?? 'panda', Math.floor(this.engine.level / 6), this.artClock, reduced);
+        } else actionBackdrop(g, brickDecorId(this.engine.level, this.art?.id ?? 'panda'), Math.floor(this.engine.level / 6), this.artClock, reduced);
+        if (this.decor) brickParticles(g, brickDecorId(this.engine.level, this.art?.id ?? 'panda'), Math.floor(this.engine.level / 6), this.artClock, reduced);
         g.lineStyle(2, 0x70cfff); g.strokeRoundedRect(2, 2, 356, 636, 14);
         for (const source of s.bricks.filter(b => b.kind === 'gravity')) {
             const b = { ...source, x: view.x(source.x), w: source.w * view.zoom, y: view.y(source.y), h: view.y(source.y + source.h) - view.y(source.y) };
@@ -186,7 +186,7 @@ export class BriqueterieScene extends Phaser.Scene {
             g.lineStyle(1, 0x68d9ff, 0.5);
             for (let logicalY = source.y + 45; logicalY < source.y + 150; logicalY += 30) { const x = b.x + b.w / 2, y = view.y(logicalY); g.lineBetween(x - 6, y + 6, x, y); g.lineBetween(x, y, x + 6, y + 6); }
         }
-        const catalogue = this.engine.level === 0 ? 'feast' : this.engine.level === 17 ? 'autumn' : this.engine.level === 14 ? 'stars' : '';
+        const catalogue = brickCatalogue(this.engine.level);
         if (this.decor) this.decor.draw(`garden-118-${catalogue || this.art?.id || 'panda'}`, 0, 0, 360, 640, -1);
         else brickGarden(g, catalogue || this.art?.id || 'panda');
         if (catalogue === 'stars') for (let i = 0; i < 8; i++) {
@@ -204,7 +204,8 @@ export class BriqueterieScene extends Phaser.Scene {
         for (const source of s.bricks) {
             const b = { ...source, x: view.x(source.x - 2), y: view.y(source.y), w: view.width, h: view.y(source.y + source.h) - view.y(source.y) };
             const cx = b.x + b.w / 2, cy = b.y + b.h / 2;
-            if (!b.solid && (!b.kind || b.kind === 'plain') && !(catalogue === 'stars' && Math.floor(source.x / 34) % 2)) this.art?.icon(catalogue === 'stars' ? 'etoile' : catalogue === 'autumn' ? 'feuille' : catalogue === 'feast' && b.y > 110 ? 'bao' : this.art.theme.primary, cx, cy - 1, Math.min(34, b.h - 4));
+            const emblem = this.art ? brickEmblem(source, b, catalogue, this.art.theme.primary) : null;
+            if (emblem) this.art?.icon(emblem, cx, cy - 1, Math.min(34, b.h - 4));
             if (!b.solid && b.kind === 'plain' && b.h > 44) for (const dy of [-b.h / 2 + 13, b.h / 2 - 13]) this.art?.icon(catalogue === 'feast' ? (Math.floor(source.x / 34) % 2 ? 'bao' : 'bambou') : catalogue === 'stars' ? 'etoile' : catalogue === 'autumn' ? 'feuille' : this.art.theme.primary, cx, cy + dy, 22);
             if (b.kind === 'multi') this.art?.icon('etoile', cx, cy, 30);
             const color = Number.parseInt((this.art?.colors.light ?? '#ffb867').slice(1), 16);
@@ -222,7 +223,7 @@ export class BriqueterieScene extends Phaser.Scene {
         for (const ball of s.balls) {
             this.art?.ball(view.x(ball.x, ball.y), view.y(ball.y), ball.vx, ball.vy, (ball.pierce ?? 0) > 0 || s.balls.length > 1 || s.wideUntil > 0, reduced);
             g.lineStyle(1, 0xffffff, .8); g.strokeCircle(view.x(ball.x, ball.y), view.y(ball.y), 10);
-            this.art?.icon(this.art.id === 'panda' ? 'bao' : this.art.id === 'pandaroux' ? 'feuille' : this.art.id === 'dragon' ? 'feu' : this.art.id === 'singe' ? 'coeur' : 'etoile', view.x(ball.x, ball.y), view.y(ball.y), 24);
+            this.art?.icon(ballEmblem(this.art.id), view.x(ball.x, ball.y), view.y(ball.y), 24);
         }
         if (this.glow) { g.lineStyle(4, 0xffe0b5, this.glow); g.strokeRoundedRect(3, 3, 354, 634, 14); }
         this.specialGraphics?.clear();

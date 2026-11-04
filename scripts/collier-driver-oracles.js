@@ -36,7 +36,9 @@ for (const level of [0, 4, 29]) {
 }
 // Golden helper fingerprints for replayCollier's documented reference DOM boxes.
 // Receipts left read() (pass 121): same shots, swaps and game time (29/1/17400 ms, 45/1/34050 ms), new final-state fingerprints.
-const expected = { 0: 2002565211, 4: 1081950634 };
+// Élan (fewer than three visible beads hurry in): new transcripts, still won with zero misses
+// (L1 10 shots/1 swap/5700 ms instead of 29/1/17400 ms; L5 51/9/37800 ms instead of 45/1/34050 ms).
+const expected = { 0: 527225163, 4: 1719010492 };
 for (const level of [0, 4]) {
     const result = await replayCollier(level);
     assert.equal(result.fingerprint, expected[level], 'Same helper transcript and final snapshot');

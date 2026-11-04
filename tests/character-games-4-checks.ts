@@ -1,4 +1,6 @@
 import { isDeepStrictEqual } from 'node:util';
+import { rasterContext, testSurfaces } from './raster-context';
+import { useSurfaces } from '../src/games/thumbnail-art';
 import { Engine as Ferraille, DT } from '../src/engines/ferraille/engine';
 import { Engine as Briqueterie, STEP } from '../src/engines/briqueterie/engine';
 import { Engine as Essaim, TICK } from '../src/engines/essaim/engine';
@@ -67,15 +69,12 @@ export function decisiveShield(): void {
 }
 /** Record raster occupancy of actual thumbnail draw commands (no graphics runtime). */
 export function thumbnailMotion(): void {
-    const demo = createThumbnail(28), pixels = new Uint8Array(160 * 120);
-    let color = 0, unchanged = 0, hasPrevious = false;
-    const previous = new Uint8Array(160 * 120);
-    const context = { save() {}, restore() {}, beginPath() {}, fill() {}, set fillStyle(value: string) { color = Array.from(value).reduce((n, c) => (n * 31 + c.charCodeAt(0)) % 251, 1) + 1; },
-        fillRect(x: number, y: number, w: number, h: number) { for (let yy = Math.max(0, Math.ceil(y)); yy < Math.min(120, y + h); yy++) for (let xx = Math.max(0, Math.ceil(x)); xx < Math.min(160, x + w); xx++) pixels[yy * 160 + xx] = color; },
-        arc(x: number, y: number, r: number) { this.fillRect(x - r, y - r, r * 2, r * 2); },
-    };
+    useSurfaces(testSurfaces());
+    const demo = createThumbnail(28), { context, pixels } = rasterContext();
+    let unchanged = 0, hasPrevious = false;
+    const previous = new Uint16Array(160 * 120);
     for (let tick = 0; tick < 2000; tick++) {
-        demo.step(); demo.draw(context as unknown as CanvasRenderingContext2D);
+        demo.step(); demo.draw(context);
         const changed = !hasPrevious || pixels.some((value, at) => value !== previous[at]);
         unchanged = changed ? 0 : unchanged + 1;
         check(unchanged < 9, 'Traverse changes inside 600ms even at 15Hz (also <36 steps)'); previous.set(pixels); hasPrevious = true;

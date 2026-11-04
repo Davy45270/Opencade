@@ -83,7 +83,7 @@ for (const [name, file, before, after, check] of [
     ['flamme_tir_absente', 'actors-art', '    if (firing) {', '    if (firing && ticks < 0) {', m => artChecks(m)],
     ['flamme_horizontale', 'actors-art', '    if (firing) {', '    if (firing) { g.rotateCanvas(-angle);', m => artChecks(m)],
     ['arme_horizontale', 'actors-art', 'g.rotateCanvas(angle)', 'g.rotateCanvas(0)', m => artChecks(m)],
-    ['course_textures_identiques', 'paint', 'Math.sin(frame * Math.PI / 2 + (p.x < 115 ? 0 : Math.PI)) * 8', 'Math.sin(0 + (p.x < 115 ? 0 : Math.PI)) * 8', m => visualChecks(undefined, true, m.FerraillePaint)],
+    ['course_textures_identiques', 'world-art', 'Math.sin(frame * Math.PI / 2 + (p.x < 115 ? 0 : Math.PI)) * 8', 'Math.sin(0 + (p.x < 115 ? 0 : Math.PI)) * 8', m => visualChecks(undefined, true, m.FerraillePaint)],
     ['ennemi_hors_ecran', 'scene', 'const x = xx(e.x) - 10, y = yy(e.y) - 10;', 'const x = 10000, y = yy(e.y) - 10;', m => visualChecks(m.FerrailleScene)],
     ['course_tir_figee', 'scene', 'Boolean(h.vx && s.grounded)', 'Boolean(h.vx && s.grounded && !s.input.fire)', m => visualChecks(m.FerrailleScene)],
     ['visee_ignoree', 'scene', 'Math.atan2(aimY, aimX)', '0', m => visualChecks(m.FerrailleScene)],
@@ -92,7 +92,9 @@ for (const [name, file, before, after, check] of [
     ['lave_invisible', 'modules-art', 'g.fillRect(x, yy(296 - m.value), w, (24 + m.value) * scale);', 'g.fillRect(x, yy(296 - m.value), w, 0);', m => artChecks(undefined, m)],
     ['robot_sans_identite', 'actors-art', "const robot = kind === 'armored' || kind === 'kamikaze', flying = kind === 'drone', turret = kind === 'turret';", "const robot = kind === 'armored' && kind.length === 0, flying = kind === 'drone', turret = kind === 'turret';", m => artChecks(m)],
 ]) {
-    const mutant = await mutationModule(`../src/games/ferraille/${file}.ts`, before, after, { phaser: 'phaser' });
+    let mutant = await mutationModule(`../src/games/ferraille/${file}.ts`, before, after, { phaser: 'phaser' });
+    // The gait drawing lives in world-art.ts; FerraillePaint is checked against the mutated module.
+    if (file === 'world-art') mutant = await mutationModule('../src/games/ferraille/paint.ts', "from './world-art'", "from './world-art'", { phaser: 'phaser', './world-art': mutant.url });
     assert.throws(() => check(mutant.module), assert.AssertionError, name);
     visualMutations114.push({ name, killed: true });
 }

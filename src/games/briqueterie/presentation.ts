@@ -1,5 +1,5 @@
 import type { Engine } from '../../engines/briqueterie/engine';
-import { actionThemes, liveries } from '../../characters/arcade-art';
+import { actionThemes, liveries, type Emblem } from '../../characters/arcade-art';
 import type { CharacterId } from '../../characters/model';
 import type Phaser from 'phaser';
 import { designs } from '../../engines/briqueterie/levels';
@@ -121,4 +121,22 @@ export function brickParticles(g: Phaser.GameObjects.Graphics, id: CharacterId, 
         const x = 14 + (i * 73 + band * 13) % 332, y = 65 + ((i * 97 + t * (3 + i % 3)) % 490);
         g.fillStyle(number(l.trim), .12); g.fillCircle(x, y, 1 + i % 3);
     }
+}
+
+/** Authored decor catalogue of a level ('' = the companion's own scenery). */
+export function brickCatalogue(level: number): '' | 'feast' | 'autumn' | 'stars' {
+    return level === 0 ? 'feast' : level === 17 ? 'autumn' : level === 14 ? 'stars' : '';
+}
+/** Whose backdrop a level shows: two levels borrow another companion's world. */
+export function brickDecorId(level: number, hero: CharacterId): CharacterId {
+    return level === 14 ? 'licorne' : level === 17 ? 'pandaroux' : hero;
+}
+/** Emblem painted on a plain brick (null: the brick body carries its own mark). */
+export function brickEmblem(source: Brick, b: { y: number; solid: boolean; kind?: Brick['kind'] }, catalogue: string, primary: Emblem): Emblem | null {
+    if (b.solid || (b.kind && b.kind !== 'plain') || (catalogue === 'stars' && Math.floor(source.x / 34) % 2)) return null;
+    return catalogue === 'stars' ? 'etoile' : catalogue === 'autumn' ? 'feuille' : catalogue === 'feast' && b.y > 110 ? 'bao' : primary;
+}
+/** The emblem a companion's ball carries. */
+export function ballEmblem(id: CharacterId): Emblem {
+    return id === 'panda' ? 'bao' : id === 'pandaroux' ? 'feuille' : id === 'dragon' ? 'feu' : id === 'singe' ? 'coeur' : 'etoile';
 }

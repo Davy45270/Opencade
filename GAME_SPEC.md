@@ -3908,6 +3908,20 @@ et trois états presque finis résolus par les règles ordinaires.
 | 29 | Rails jumeaux | 6 | 80 | 8.48 | 910 | Ralentir, Reculer, Bombe, Viser | 13 | deux colliers |
 | 30 | Rails jumeaux | 6 | 82 | 8.64 | 905 | Ralentir, Reculer, Bombe, Viser | 13 | — |
 
+### Élan du collier
+
+Quand une chaîne a encore des perles en file et que moins de **3** perles sont
+visibles (hors tunnel), elle prend de l'élan. Sa vitesse monte vers 90 unités/s
+(le déploiement initial va à 100) en 0,5 s, selon une courbe douce (smoothstep) :
+aucun saut. L'élan se relâche quand 5 perles sont de nouveau visibles, quand la file
+est vide ou quand une perle passe la moitié du parcours. La vitesse redescend alors
+de la même façon. L'élan ne pousse donc jamais les dernières perles vers le trou.
+Il est calculé à pas fixe, à partir des seuls comptes et positions, sans horloge.
+C'est un état de la chaîne (`rush`, `rushOn`, absents quand ils sont neutres) :
+`snapshot()` le porte et `Engine.restore()` le reprend. Le son « élan » et des
+traînées derrière les perles d'entrée le signalent, ainsi que l'aide « Élan ! ».
+Avec le mouvement réduit, il n'y a pas de traînées.
+
 ### Oracle Collier
 
 Les corps partagés de `tests/collier-cases.ts` sont appelés par Vitest
@@ -3952,11 +3966,14 @@ cinq identités, vérifie tireur/meneur et compare les snapshots du vrai moteur.
 | C28 | Aucune secousse avec mouvement réduit ; quatre icônes de bonus distinctes |
 | C29 | Hauteur de titre réservée à deux lignes dans les cartes, calcul de l’alignement |
 | C30 | Lecture pilote légère : vrais écouteurs de scène, cibles et tête identiques au moteur, aucun appel à snapshot ; noms des formes cohérents |
+| C40 | Élan : 2 perles accélèrent sans saut ; 3, 4 ou 8 restent à la vitesse normale ; relâché à 5 perles puis descente douce ; file vide, tête au-delà de 50 %, partie gagnée ou perdue : rien ne change |
+| C41 | Snapshot pris pendant la montée de l'élan, restauré : même trajectoire pendant 400 pas ; sans l'élan, elle diverge |
 
 Le pilote déterministe vise les groupes visibles de sa couleur et échange si la
 réserve prolonge un meilleur groupe. Le validateur rejoue les trente niveaux sur
 la graine 300 avec de vrais tirs et vols, et vérifie trente défaites par inaction
-ainsi que six campagnes de tirs aléatoires perdantes. Il appelle également
+ainsi que six campagnes de tirs aléatoires perdantes. Il rejoue aussi chaque niveau sans l'élan : les
+30 niveaux sont gagnés dans les deux cas, et avec l'élan la tête reste sous 85 % du parcours. Il appelle également
 `measureDiversity` : couverture 30/30, moins de 10 % de voisins clones, au plus
 trois niveaux sans nouveau ressort. Ce sont des preuves du pilote, pas une mesure
 de difficulté humaine.

@@ -5,6 +5,13 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [0.5.1] — 2026-11-04
+
+- Accueil : chaque vignette du catalogue montre le jeu tel qu’il est aujourd’hui — mêmes décors, mêmes sprites, même palette et le personnage choisi — au lieu des anciennes formes simples. Les vignettes appellent le code de dessin de leur jeu (décors, véhicules, perles, briques, labyrinthes…) ; les calques fixes sont cuits une fois en image, si bien qu’une image de vignette ne coûte que quelques copies d’image.
+- Vignette du Collier du Singe : tout le chapiteau et une chaîne de 9 à 13 perles qui avance, tirée à un rythme lisible. Vignette de Dédale : le premier labyrinthe.
+- Contrôle `check-thumbnail-art` dans `test:node` : une vignette qui n’utilise aucune ressource de dessin de son jeu, ou qui recopie ses couleurs, fait échouer les tests.
+- Le Collier du Singe : quand il reste moins de trois perles sur le collier alors que la partie continue, la chaîne prend de l’élan, en douceur, pour amener vite les perles suivantes. Elle ralentit de même dès qu’il y en a cinq. Un souffle sonore, des traînées et l’aide « Élan ! » le signalent. L’élan ne pousse jamais les dernières perles vers le trou : les 30 niveaux restent gagnables.
+
 ## [0.5.0] — 2026-11-04
 
 - Menu ☰ de l’accueil : nouvelle entrée « Mes autres jeux ». Elle déplie les trois autres jeux de l’auteur (Opencadkid, TicTac, Petit Astronome), chacun avec son icône et une phrase. Un toucher ouvre le jeu dans le même onglet.

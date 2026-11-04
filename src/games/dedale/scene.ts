@@ -10,7 +10,7 @@ import { Progression } from '../../shell/progression';
 import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
-import { displayedWalls } from './board';
+import { mazeScenery, seedLight, sunLight, wispArt } from './art';
 import { sound } from '../../shell/services';
 export const dedaleButtons: readonly TouchButton[] = [
     { id: 'dedale-special', label: 'Lueur', ariaLabel: 'Lueur : chemin vers le soleil', size: 56, placement: 'right', mode: 'tap' },
@@ -171,72 +171,21 @@ export class DedaleScene extends Phaser.Scene {
     }
     private paintScenery(ctx: CanvasRenderingContext2D, maze: boolean[], size: number, left: number, top: number): void {
         this.sceneryPaints++;
-        const s = { maze, journey: this.engine.state.journey };
-        // Three worlds after the charter: hedge garden (1-10), autumn stone (11-20), crystal night (21-30).
-        const world = this.engine.level < 10 ? 0 : this.engine.level < 20 ? 1 : 2;
-        const themes: readonly (readonly [string, string, string, string, string, string])[] = [
-            ['#7fcff0', '#2f7a4a', '#e8d6a0', '#3f9a3f', '#7fd05a', '#22602a'],
-            ['#ffc88a', '#7a3a2a', '#e0b884', '#9a8a7a', '#cbbca8', '#5a4a40'],
-            ['#1a1440', '#3a2a7a', '#3c3470', '#5a4aa8', '#a89aff', '#2a2060'],
-        ];
-        const [skyTop, skyBottom, path, wall, wallTop, wallDark] = themes[world] ?? ['#7fcff0', '#2f7a4a', '#e8d6a0', '#3f9a3f', '#7fd05a', '#22602a'];
-        ctx.clearRect(0, 0, 360, 640);
-        // Sky in sixteen bands (plain fills: the board texture is painted once per state change).
-        const channel = (hex: string, i: number): number => Number.parseInt(hex.slice(1 + i * 2, 3 + i * 2), 16);
-        for (let band = 0; band < 16; band++) {
-            const t = band / 15, rgb = [0, 1, 2].map(i => Math.round(channel(skyTop, i) * (1 - t) + channel(skyBottom, i) * t));
-            ctx.fillStyle = `rgb(${rgb.join(',')})`; ctx.fillRect(0, band * 40, 360, 41);
-        }
-        ctx.fillStyle = path; ctx.beginPath(); ctx.roundRect(left - 2, top - 2, WIDTH * size + 4, HEIGHT * size + 4, 8); ctx.fill();
-        ctx.fillStyle = '#00000014';
-        for (let y = 0; y < HEIGHT; y++) for (let x = (y % 2); x < WIDTH; x += 2) ctx.fillRect(left + x * size, top + y * size, size, size);
-        // Walls merge with their wall neighbours into hedges (or stone runs), with a lit top and a shadow.
-        const walls = new Set(displayedWalls(s.maze));
-        const block = (color: string, inset: number, dy: number): void => {
-            ctx.fillStyle = color;
-            for (const at of walls) {
-                const x = at % WIDTH, y = Math.floor(at / WIDTH), px = left + x * size, py = top + y * size + dy;
-                const l = x > 0 && walls.has(at - 1) ? 0 : inset, r = x < WIDTH - 1 && walls.has(at + 1) ? 0 : inset;
-                const u = walls.has(at - WIDTH) ? 0 : inset, d = walls.has(at + WIDTH) ? 0 : inset;
-                ctx.fillRect(px + l, py + u, size - l - r, size - u - d);
-            }
-        };
-        block('#00000040', 1.5, 3); block(wallDark, 1.5, 0); block(wall, 2.5, -1.5);
-        ctx.fillStyle = wallTop;
-        for (const at of walls) if (!walls.has(at - WIDTH)) { const x = at % WIDTH, y = Math.floor(at / WIDTH); ctx.fillRect(left + x * size + 3, top + y * size + 1, size - 6, 3); }
-        // Leaf (or grain, or facet) speckles so a run of wall reads as hedge, stone or crystal.
-        ctx.fillStyle = wallDark;
-        for (const at of walls) { const x = left + (at % WIDTH) * size, y = top + Math.floor(at / WIDTH) * size; ctx.fillRect(x + 4 + (at % 3) * 3, y + 8, 3, 3); ctx.fillRect(x + 11 - (at % 2) * 4, y + 12, 2.5, 2.5); }
-        if (world === 0) { ctx.fillStyle = '#ff9cc8'; for (const at of walls) if ((at * 7) % 11 === 0) { ctx.beginPath(); ctx.arc(left + (at % WIDTH + .5) * size, top + (Math.floor(at / WIDTH) + .4) * size, 2, 0, Math.PI * 2); ctx.fill(); } }
-        if (s.journey?.shape === 'mirror') {
-            ctx.strokeStyle = '#b9fff055'; ctx.lineWidth = 1; ctx.setLineDash([4, 5]);
-            ctx.beginPath(); ctx.moveTo(180, top); ctx.lineTo(180, top + HEIGHT * size); ctx.stroke(); ctx.setLineDash([]);
-        }
-        // Veils keep the HUD lines readable over a bright sky.
-        ctx.fillStyle = '#0a141ccc'; ctx.beginPath(); ctx.roundRect(8, 8, 344, top - 14, 10); ctx.fill();
-        ctx.beginPath(); ctx.roundRect(8, top + HEIGHT * size + 8, 344, 632 - top - HEIGHT * size - 12, 10); ctx.fill();
+        mazeScenery(ctx, maze, this.engine.level, this.engine.state.journey, size, left, top);
     }
     private paintBoard(): void {
         const texture = this.board; if (!texture) return;
         const s = this.engine.state, signature = `${String(s.seeds.length)}|${String(s.suns.length)}|${String(s.journey?.held)}|${String(s.journey?.toggled)}|${String((s.journey?.turn ?? 0) % 4)}`;
         if (this.drawnMaze === s.maze && this.boardSignature === signature) return;
         this.drawnMaze = s.maze; this.boardSignature = signature;
-        const ctx = texture.context, size = 18.4, left = 5.2, top = 64, world = this.engine.level < 10 ? 0 : this.engine.level < 20 ? 1 : 2;
+        const ctx = texture.context, size = 18.4, left = 5.2, top = 64;
         const scenery = this.scenery;
         const key = `${String(this.engine.level)}:${s.maze.map(open => open ? 1 : 0).join('')}`;
         if (scenery && this.sceneryKey === key) ctx.clearRect(0, 0, 360, 640);
         else this.paintScenery(scenery?.context ?? ctx, s.maze, size, left, top);
         if (scenery) { this.sceneryKey = key; ctx.drawImage(scenery.canvas, 0, 0); }
-        ctx.fillStyle = world === 2 ? '#ffe8ab' : '#b8561e';
-        for (const i of s.seeds) { ctx.beginPath(); ctx.arc(left + (i % WIDTH + 0.5) * size, top + (Math.floor(i / WIDTH) + 0.5) * size, 2, 0, Math.PI * 2); ctx.fill(); }
-        for (const i of s.suns) {
-            const x = left + (i % WIDTH + 0.5) * size, y = top + (Math.floor(i / WIDTH) + 0.5) * size;
-            ctx.fillStyle = '#ffcf7130'; ctx.beginPath(); ctx.arc(x, y, 11, 0, Math.PI * 2); ctx.fill();
-            ctx.fillStyle = ctx.strokeStyle = '#ffdf88'; ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI * 2); ctx.fill();
-            ctx.beginPath();
-            for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; ctx.moveTo(x + Math.cos(a) * 7, y + Math.sin(a) * 7); ctx.lineTo(x + Math.cos(a) * 9, y + Math.sin(a) * 9); }
-            ctx.stroke();
-        }
+        for (const i of s.seeds) seedLight(ctx, i, this.engine.level, size, left, top);
+        for (const i of s.suns) sunLight(ctx, i, size, left, top);
         const j = s.journey;
         if (j) {
             const mark = (at: number, label: string, color: string, solid = false): void => {
@@ -286,20 +235,7 @@ export class DedaleScene extends Phaser.Scene {
         s.wisps.forEach(w => {
             if (!visible(s.journey, index(s.hero), index(w))) return;
             const x = left + (w.x + 0.5) * size, y = top + (w.y + 0.5) * size;
-            const colors = { tracker: 0xff618a, seer: 0xc399ff, roamer: 0xffbf49, shy: 0x48e5de };
-            if (w.returning) {
-                g.lineStyle(2, 0xffffff); g.strokeEllipse(x, y, size * 0.86, size * 0.65);
-                g.fillStyle(0xffffff); g.fillCircle(x - 3, y, 2.5); g.fillCircle(x + 3, y, 2.5);
-                g.fillStyle(0x101f2c); g.fillCircle(x - 3, y, 1); g.fillCircle(x + 3, y, 1);
-                return;
-            }
-            g.fillStyle(s.vulnerable > 0 ? 0x3574ff : colors[w.kind]);
-            g.fillRoundedRect(x - size * 0.45, y - size * 0.45, size * 0.9, size * 0.9, 5);
-            g.lineStyle(1.5, s.vulnerable > 0 ? 0xffffff : 0x101f2c);
-            g.strokeRoundedRect(x - size * 0.45, y - size * 0.45, size * 0.9, size * 0.9, 5);
-            g.fillStyle(0x101f2c); g.fillCircle(x - 3, y - 1, 2); g.fillCircle(x + 3, y - 1, 2);
-            if (s.vulnerable > 0) { g.lineStyle(2, 0xffffff); g.lineBetween(x - 4, y + 4, x + 4, y + 4); }
-            if (w.wait > 0) { g.lineStyle(1, 0xffffff); g.strokeCircle(x, y, size * 0.49); }
+            wispArt(g, w, x, y, s.vulnerable > 0, size);
         });
         const x = left + (s.hero.x + 0.5) * size, y = top + (s.hero.y + 0.5) * size;
         this.hero.draw(g, x - 14, y - 14, 28);

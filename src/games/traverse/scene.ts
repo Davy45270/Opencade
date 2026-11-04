@@ -12,7 +12,8 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
-import { backdrop, car, groundTile, hudVeil, log, stoneBlock, turtle, water, worldOf, SceneryLayer, BlockPool, baked } from '../universal/art';
+import { car, hudVeil, log, turtle, worldOf, SceneryLayer, BlockPool, baked } from '../universal/art';
+import { CAR_PAINTS, crossingScenery, hut, laneRuns } from './art';
 export const traverseButtons: readonly TouchButton[] = [
     { id: 'traverse-special', label: 'Bond', ariaLabel: 'Bond', size: 56, placement: 'right', mode: 'tap' },
     { id: 'traverse-left', label: '←', ariaLabel: 'Aller à gauche', size: 56, placement: 'left', mode: 'tap' },
@@ -176,23 +177,12 @@ export class TraverseScene extends Phaser.Scene {
         const layer = this.scenery, sg = layer?.g;
         if (layer && sg && layer.stale(this.engine.board)) {
             // Sky, grass strips and asphalt never move within a crossing.
-            backdrop(sg, world, 360, 640); hudVeil(sg, world, 4, 2, 352, 60);
-            for (let y = 0; y < 15; y++) {
-                const lane = this.engine.board.lanes.find(l => l.y === y), top = 64 + y * 38;
-                if (!lane) for (let x = 0; x < 9; x++) groundTile(sg, world, 9 + x * 38, top, 38, x + y * 3);
-                else if (lane.kind === 'river') water(sg, world, 9, top, 342, 37, 0);
-                else {
-                    sg.fillStyle(0x3b3f4c); sg.fillRect(9, top, 342, 37); sg.fillStyle(0x8a8f9c); sg.fillRect(9, top, 342, 2); sg.fillRect(9, top + 35, 342, 2);
-                    sg.fillStyle(0xf2f2e6, .7); for (let x = 0; x < 9; x++) sg.fillRect(20 + x * 38, top + 18, 16, 2);
-                }
-            }
-            this.paintedRocks = 0;
-            for (const r of this.engine.board.rocks ?? []) { stoneBlock(sg, world, 12 + r.x * 38, 67 + r.y * 38, 32, r.x + r.y); this.paintedRocks++; }
+            this.paintedRocks = crossingScenery(sg, world, this.engine.board); hudVeil(sg, world, 4, 2, 352, 60);
             layer.commit();
         }
         const u = this.under, pool = this.pieces; u?.clear(); pool?.begin();
         this.drawn = { red: 0, green: 0, rocks: 0, castaway: false, closedShelters: 0 };
-        const paints = [0xff5f5f, 0x4fa3ff, 0xffc93d, 0x9a6bff, 0x3fcf8e];
+        const paints = CAR_PAINTS;
         for (let y = 0; y < 15; y++) {
             const lane = this.engine.board.lanes.find(l => l.y === y), top = 64 + y * 38;
             if (lane?.kind === 'river' && u) {
@@ -202,16 +192,11 @@ export class TraverseScene extends Phaser.Scene {
             }
             if (lane) {
                 // Contiguous cells form one vehicle, log or row of turtles.
-                let run = -1;
-                for (let x = 0; x <= 9; x++) {
-                    const on = x < 9 && filled(lane, x, s.phase, this.engine.level);
-                    if (on && run < 0) run = x;
-                    if (on || run < 0) continue;
+                for (const [run, x] of laneRuns(lane, s.phase, this.engine.level)) {
                     const left = 11 + run * 38, width = (x - run) * 38 - 4;
                     if (lane.kind === 'road') { const paint = paints[(lane.y + run) % paints.length] ?? 0xff5f5f; pool?.show(baked(this, `car-${paint.toString(16)}-${String(width)}-${String(lane.direction)}`, width, 30, b => { car(b, 0, 2, width, 24, paint, lane.direction); }), left, top + 5); }
                     else if (lane.diver) { const key = baked(this, `turtle-${String(lane.direction)}`, 38, 26, b => { turtle(b, 19, 13, 12, lane.direction); }); for (let k = run; k < x; k++) pool?.show(key, 9 + k * 38, top + 6); }
                     else pool?.show(baked(this, `log-${String(width)}`, width, 26, b => { log(b, 0, 0, width, 26); }), left, top + 6);
-                    run = -1;
                 }
             }
             if (lane?.light) {
@@ -235,11 +220,7 @@ export class TraverseScene extends Phaser.Scene {
             // Shelter: a little hut; its door glows when open, a star once reached.
             const hx = 12 + x * 38, done = s.occupied.includes(x);
             const state = done ? 'done' : open ? 'open' : 'closed';
-            pool?.show(baked(this, `hut-${state}`, 38, 40, b => {
-                b.fillStyle(0x6b4226); b.fillRect(4, 16, 28, 22); b.fillStyle(0xb5532a); b.fillTriangle(0, 18, 18, 2, 36, 18);
-                b.fillStyle(done ? 0xffd479 : open ? 0x64e4cc : 0x2a3340); b.fillRoundedRect(11, 22, 14, 16, 4);
-                if (done) { b.fillStyle(0xfff3a0); b.fillCircle(18, 12, 4); }
-            }), hx - 2, 62);
+            pool?.show(baked(this, `hut-${state}`, 38, 40, b => { hut(b, state); }), hx - 2, 62);
         }
         // Short interpolation stays wholly inside the useful area, below the separate HUD.
         const blend = Math.min(1, this.engine.snapshot().frames / 4);

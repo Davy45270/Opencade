@@ -11,7 +11,8 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
-import { backdrop, hudVeil, palettes, worldOf, SceneryLayer, BlockPool } from '../universal/art';
+import { worldOf, SceneryLayer, BlockPool } from '../universal/art';
+import { PIECE_COLORS, settledColor, wellScenery } from './art';
 export const empiloButtons: readonly TouchButton[] = [
     { id: 'empilo-special', label: 'Réserve', ariaLabel: 'Mise de côté', size: 56, placement: 'right', mode: 'tap' },
     { id: 'empilo-left', label: '←', ariaLabel: 'Déplacer à gauche', size: 56, placement: 'left', mode: 'hold', repeatMs: 90 },
@@ -190,19 +191,12 @@ export class EmpiloScene extends Phaser.Scene {
     }
     private draw(): void {
         const g = this.graphics; if (!g) return;
-        const colors = [0x80e9dc, 0xffc582, 0xe9a6d2, 0xaeb6ff, 0x91c9ff, 0xe1e992, 0xd29af2, 0x9de1ae, 0xff8a5c];
+        const colors = PIECE_COLORS;
         const world = worldOf(this.engine.level), layer = this.scenery, sg = layer?.g;
         g.clear(); this.blocks?.begin();
         if (layer && sg && layer.stale(this.engine.level)) {
             // The well: stone frame around a dark shaft, so vivid blocks stay readable over the scenery.
-            backdrop(sg, world, 360, 640);
-            sg.fillStyle(palettes[world].stone); sg.fillRoundedRect(8, 24, 272, 470, 10); sg.fillStyle(0xffffff, .18); sg.fillRect(12, 27, 264, 4);
-            sg.fillStyle(palettes[world].veil, .9); sg.fillRect(18, 34, 252, 448);
-            hudVeil(sg, world, 8, 504, 344, 132); hudVeil(sg, world, 274, 220, 80, 200);
-            sg.lineStyle(1, 0x244659);
-            for (let x = 0; x <= 9; x++) sg.lineBetween(18 + x * 28, 34, 18 + x * 28, 482);
-            for (let y = 0; y <= 16; y++) sg.lineBetween(18, 34 + y * 28, 270, 34 + y * 28);
-            sg.lineStyle(2, 0x80e9dc); sg.strokeRect(17, 33, 254, 450);
+            wellScenery(sg, world);
             layer.commit();
         }
         const l = stratum(this.engine.level);
@@ -219,7 +213,7 @@ export class EmpiloScene extends Phaser.Scene {
             if (v === TILE.lock) { g.fillStyle(0x7b6a52); g.fillRoundedRect(20 + x * 28, 36 + y * 28, 24, 24, 4); g.lineStyle(2, 0xffd166); g.strokeCircle(32 + x * 28, 44 + y * 28, 5); g.fillStyle(0xffd166); g.fillRect(26 + x * 28, 46 + y * 28, 12, 9); return; }
             if (v === TILE.key) { this.crystal({ x, y }, 0x6fa5b4); g.lineStyle(3, 0xffd166); g.strokeCircle(28 + x * 28, 48 + y * 28, 4); g.lineBetween(32 + x * 28, 48 + y * 28, 40 + x * 28, 48 + y * 28); g.lineBetween(38 + x * 28, 48 + y * 28, 38 + x * 28, 52 + y * 28); return; }
             // Settled crystals keep vivid world colours, varied by position like a brick wall.
-            this.crystal({ x, y }, v === TILE.sealed ? 0xc59ee9 : [palettes[worldOf(this.engine.level)].accent, 0x4fa3ff, 0x3fcf8e, 0xffc93d, 0xff6fae][(x * 3 + y * 5) % 5] ?? 0x4fa3ff, 1, v === TILE.sealed);
+            this.crystal({ x, y }, settledColor(v, x, y, world), 1, v === TILE.sealed);
         }); });
         if (l.rise) {
             const left = l.rise - ((this.engine.state.locked ?? 0) % l.rise); this.drawn.riseLeft = left;

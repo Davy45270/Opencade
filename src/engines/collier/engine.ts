@@ -2,6 +2,14 @@ import { Random } from '../shared/random';
 import { levelAt, type Point, type Bonus, Path } from './levels';
 export const DIAMETER = 20;
 export const FIXED_MS = 1000 / 60;
+/** Élan: below this many visible beads, a chain that still has beads to feed hurries in. */
+export const RUSH_BELOW = 3;
+/** The élan lets go once this many beads are visible again (hysteresis, no flapping). */
+export const RUSH_REFILL = 5;
+/** Seconds to blend fully in or out of the élan: a ramp, never a jump. */
+export const RUSH_RAMP_S = .5;
+/** The élan never starts or continues while any bead is past this share of its path. */
+export const RUSH_HEAD_LIMIT = .5;
 export interface Bead {
     id: number;
     color: number;
@@ -14,6 +22,10 @@ export interface Chain {
     quota: number;
     runColor?: number;
     runLeft?: number;
+    /** Élan level, 0 to 1. Absent means 0: chains that never rushed keep their recorded shape. */
+    rush?: number;
+    /** Élan engaged (hysteresis latch). Absent means released. */
+    rushOn?: true;
 }
 export interface Flight extends Point {
     color: number;
@@ -176,7 +188,73 @@ export class Engine {
         const nearHole = (chain.beads.at(-1)?.s ?? 0) > path.length * .85;
         const acceleration = nearHole ? this.config.acceleration : 1;
         const slowing = this.slowMs > 0 ? .5 : 1;
-        return cruising * acceleration * slowing;
+        const base = cruising * acceleration;
+        const level = this.status === 'playing' ? chain.rush ?? 0 : 0;
+        // Smoothstep keeps both the speed and its rate of change continuous.
+        const blend = level * level * (3 - 2 * level);
+        return (base + Math.max(0, this.config.rushSpeed - base) * blend) * slowing;
+    }
+    /** Élan of one chain, 0 (normal) to 1 (full rush); the scene draws and sounds it. */
+    rush(chainIndex: number): number {
+        return this.chains[chainIndex]?.rush ?? 0;
+    }
+    get rushing(): boolean {
+        return this.chains.some(c => c.rushOn === true);
+    }
+    /** Fixed-step élan update: driven only by bead counts and positions, never by a clock. */
+    private updateRush(chain: Chain, path: Path, dt: number): void {
+        const visible = chain.beads.reduce((n, b) => n + (this.hidden(b.s) ? 0 : 1), 0);
+        const safe = (chain.beads.at(-1)?.s ?? 0) < path.length * RUSH_HEAD_LIMIT;
+        const feeding = chain.emitted < chain.quota && this.reverseMs <= 0 && safe;
+        const was = chain.rushOn === true;
+        const on = feeding && visible < (was ? RUSH_REFILL : RUSH_BELOW);
+        if (on && !was)
+            this.events.push('élan');
+        const level = Math.min(1, Math.max(0, (chain.rush ?? 0) + (on ? dt : -dt) / RUSH_RAMP_S));
+        // Neutral values are stored as absent fields, so the state stays canonical.
+        if (on)
+            chain.rushOn = true;
+        else
+            delete chain.rushOn;
+        if (level > 0)
+            chain.rush = level;
+        else
+            delete chain.rush;
+    }
+    /** Resume a snapshot() exactly: every field that moves a bead, including the élan, is state.
+     * Bead ids are labels only; the next id resumes above every id still present. */
+    restore(state: ReturnType<Engine['snapshot']>): void {
+        this.loadLevel(state.level, state.seed);
+        this.chains = state.chains.map(c => ({
+            beads: c.beads.map(b => ({ id: b.id, color: b.color, s: b.s, ...(b.bonus ? { bonus: b.bonus } : {}) })),
+            emitted: c.emitted,
+            quota: c.quota,
+            ...(c.runColor !== undefined ? { runColor: c.runColor } : {}),
+            ...(c.runLeft !== undefined ? { runLeft: c.runLeft } : {}),
+            ...(c.rush !== undefined ? { rush: c.rush } : {}),
+            ...(c.rushOn ? { rushOn: true as const } : {})
+        }));
+        this.status = state.status;
+        this.score = state.score;
+        this.remainingDistance = state.remainingDistance;
+        this.time = state.time;
+        this.remainder = state.remainder;
+        this.angle = state.angle;
+        this.current = state.current;
+        this.next = state.next;
+        this.flight = state.flight ? { ...state.flight } : null;
+        this.slowMs = state.slowMs;
+        this.reverseMs = state.reverseMs;
+        this.aimMs = state.aimMs;
+        this.bomb = state.bomb;
+        this.combo = state.combo;
+        this.maxCombo = state.maxCombo;
+        this.gapShots = state.gapShots;
+        this.shots = state.shots;
+        this.random.state = state.random;
+        this.bursts = state.bursts.map(b => ({ ...b }));
+        this.events = [];
+        this.nextId = Math.max(0, ...this.chains.flatMap(c => c.beads.map(b => b.id))) + 1;
     }
     activate(bonus: Bonus): void {
         if (bonus === 'slow')
@@ -308,6 +386,7 @@ export class Engine {
             const path = this.config.paths[ci];
             if (!path)
                 return;
+            this.updateRush(chain, path, dt);
             const beads = chain.beads;
             if (this.reverseMs > 0) {
                 const shift = Math.min(60 * dt, Math.max(0, beads[0]?.s ?? 0));

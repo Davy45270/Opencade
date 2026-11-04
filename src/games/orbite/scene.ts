@@ -11,7 +11,7 @@ import { browserStorage, readSave, writeSave, readValue, writeValue } from '../.
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
-import { backdrop, playerShip, probeShip, shieldColors, worldOf } from './art';
+import { backdrop, playerShip, probeShip, shieldCells, worldOf, PROBE_COLORS, SHIP_COLORS } from './art';
 export const orbiteButtons: readonly TouchButton[] = [
     { id: 'orbite-special', label: 'Rafale', ariaLabel: 'Rafale : tir doublé', size: 56, placement: 'right', mode: 'tap' },
     { id: 'orbite-left', label: '←', ariaLabel: 'Canon à gauche', size: 56, placement: 'left', mode: 'hold' },
@@ -32,7 +32,7 @@ export interface OrbiteHook {
 declare global { interface Window { __ORBITE_TEST__?: OrbiteHook } }
 const OPTIONS_KEY = 'arcade-lab:orbite:options:v1';
 /** Ship hull in each companion's colour (charter: one ship per companion). */
-const SHIP: Record<string, number> = { panda: 0x4fae4a, pandaroux: 0xe0552f, dragon: 0x3a7ae0, singe: 0xe04aa8, licorne: 0x9a6aff };
+const SHIP = SHIP_COLORS;
 export class OrbiteScene extends Phaser.Scene {
     private engine = new Engine();
     private hero = new GameCharacter();
@@ -194,12 +194,10 @@ export class OrbiteScene extends Phaser.Scene {
     }
     private draw(): void {
         const g = this.graphics; if (!g) return;
-        const s = this.engine.state, world = worldOf(this.engine.level), [shield, shieldLight] = shieldColors(world);
+        const s = this.engine.state, world = worldOf(this.engine.level);
         this.ensureBackdrop();
         g.clear();
-        g.lineStyle(1, shieldLight, 0.25); g.lineBetween(12, SHIELD_Y, 348, SHIELD_Y);
-        g.fillStyle(shield); for (const cell of s.shields) g.fillRect(cell.x, cell.y, 4, 4);
-        g.fillStyle(shieldLight, 0.55); for (const cell of s.shields) g.fillRect(cell.x, cell.y, 4, 1);
+        shieldCells(g, world, s.shields, SHIELD_Y);
         for (const well of s.wells ?? []) {
             for (const radius of [18, 30, 44]) { g.lineStyle(2, 0xbaadff, 0.6); g.strokeEllipse(well.x, well.y, radius * 2, radius); }
             g.fillStyle(0x080b20); g.fillCircle(well.x, well.y, 10);
@@ -226,7 +224,7 @@ export class OrbiteScene extends Phaser.Scene {
         for (const p of s.probes) {
             if (!this.engine.visible(p)) continue;
             this.renderedProbes.push(p.id);
-            const color = [0xffdb89, 0xbaadff, 0xff9ebb, 0x87d8ff, 0xa5f0ca][p.row] ?? 0xffffff;
+            const color = PROBE_COLORS[p.row] ?? 0xffffff;
             probeShip(g, p.x, p.y, color, Math.sin(s.ticks / 6 + p.column));
             if (p.kind === 'rotor') { g.lineStyle(3, 0x87d8ff); g.beginPath(); const start = Math.PI / 2 - (s.ticks + p.id * 11) % 120 * Math.PI / 60; g.arc(p.x, p.y, 16, start, start + Math.PI * 0.75); g.strokePath(); }
             if (p.kind === 'split') { g.lineStyle(2, 0xff8da9); g.lineBetween(p.x - 6, p.y - 5, p.x + 6, p.y + 5); g.lineBetween(p.x + 6, p.y - 5, p.x - 6, p.y + 5); }

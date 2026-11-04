@@ -117,6 +117,24 @@ export function crate(g: Graphics, arena: Arena, block: Block): void {
     g.fillStyle(ice ? 0xffffff : 0x493b32); for (const dx of [5, 24]) for (const dy of [5, 24]) g.fillCircle(dx, dy, 1);
     if (gold) star(g, 15, 15, 6, 0xfffaac);
 }
+/** One burning cell: a tinted glow, then arms joined to its burning neighbours [right, left, down, up].
+ * `time` already carries the cell's flicker phase (engine time + cell × 65). */
+export function fireCell(g: Graphics, id: CharacterId, x: number, y: number, neighbors: readonly boolean[], time: number, alpha: number): void {
+    const tint = id === 'panda' ? 0xc6ef58 : id === 'pandaroux' ? 0xff9c3d : id === 'dragon' ? 0xff5b27 : id === 'singe' ? 0xff66c9 : 0x9c8bff;
+    g.fillStyle(tint, .22 * alpha); g.fillRoundedRect(x - 15, y - 15, 30, 30, 9);
+    for (const [axis, dx, dy] of [[0, 1, 0], [2, 0, 1]] as const) {
+        const positive = neighbors[axis], negative = neighbors[axis + 1];
+        if (!positive && !negative) continue;
+        const flicker = Math.sin(time / 65) * 1.2;
+        // Shared boundaries have identical width; only exposed tips taper.
+        const shape = [[-15, negative ? -6 : 0], [-9, -8 - flicker], [0, -6], [9, -8 + flicker], [15, positive ? -6 : 0],
+            [15, positive ? 6 : 0], [9, 8 + flicker], [0, 6], [-9, 8 - flicker], [-15, negative ? 6 : 0]];
+        const points = shape.map(([along = 0, across = 0]) => ({ x: x + dx * along - dy * across, y: y + dy * along + dx * across }));
+        g.fillStyle(0xff8a26, alpha); g.fillPoints(points, true);
+        const core = [[-15, negative ? -2.5 : 0], [0, -3], [15, positive ? -2.5 : 0], [15, positive ? 2.5 : 0], [0, 3], [-15, negative ? 2.5 : 0]];
+        g.fillStyle(0xfff4b0, alpha); g.fillPoints(core.map(([along = 0, across = 0]) => ({ x: x + dx * along - dy * across, y: y + dy * along + dx * across })), true);
+    }
+}
 /** Each bomb keeps a distinct silhouette even without its color. */
 export function drawBomb(g: Graphics, id: CharacterId, x: number, y: number, r: number, phase: number): void {
     g.fillStyle(0x08101d, .55); g.fillEllipse(x + 1, y + r, r * 2.5, r * .8);

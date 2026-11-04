@@ -1,6 +1,7 @@
 import type Phaser from 'phaser';
 import { ActionPaint } from '../../characters/action-phaser';
 import { actionArt, fighterViews, type CraftView, type FighterView } from '../../characters/arcade-art';
+import { fighterBody, fighterGait } from './world-art';
 
 /** Local body and gait textures, baked once, with a separately aimed weapon. */
 export class FerraillePaint extends ActionPaint {
@@ -13,25 +14,9 @@ export class FerraillePaint extends ActionPaint {
     private readonly gait = new Map<string, string>();
     constructor(scene: Phaser.Scene, budget: number) {
         super(scene, budget);
-        const body = (view: FighterView) => {
-            const list = actionArt[this.id].fighters[view];
-            // Shared art puts the held weapon after this hand. Keep the character,
-            // backpack and hand; the live Graphics supplies the only barrel and flame.
-            const hand = list.findIndex(p => p.kind === 'ellipse' && p.rx === 26 && p.ry === 16 && (p.x === 159 || p.x === 81));
-            return hand < 0 ? list : list.slice(0, hand + 1);
-        };
-        for (const view of fighterViews) this.bodies.set(view, this.paint.texture(`114-fighter-${this.id}-${view}`, body(view), 192));
+        for (const view of fighterViews) this.bodies.set(view, this.paint.texture(`114-fighter-${this.id}-${view}`, fighterBody(this.id, view), 192));
         for (const view of ['marche', 'gauche', 'tir'] as const) for (let frame = 0; frame < 4; frame++) {
-            const list = body(view === 'tir' ? 'marche' : view).map(p => {
-                if (p.kind !== 'ellipse' || p.y < 170 || p.ry > 17) return p;
-                const step = Math.sin(frame * Math.PI / 2 + (p.x < 115 ? 0 : Math.PI)) * 8;
-                return { ...p, y: p.y + step, rotation: p.rotation + step / 40 };
-            });
-            if (view === 'tir') {
-                const feet = list.filter(p => p.kind === 'ellipse' && p.y >= 162 && p.ry <= 17);
-                list.splice(0, list.length, ...body('tir').filter(p => !(p.kind === 'ellipse' && p.y >= 162 && p.ry <= 17)), ...feet);
-            }
-            this.gait.set(`${view}-${String(frame)}`, this.paint.texture(`114-gait-fighter-${this.id}-${view}-${String(frame)}`, list, 192));
+            this.gait.set(`${view}-${String(frame)}`, this.paint.texture(`114-gait-fighter-${this.id}-${view}-${String(frame)}`, fighterGait(this.id, view, frame), 192));
         }
         if (this.id === 'singe') for (const view of ['gauche', 'droite'] as const) {
             const list = [...actionArt.singe.vehicles[view]];

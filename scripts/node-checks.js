@@ -25,6 +25,7 @@ export const nodeChecks = [
     ['test-dedale.js'],
     ['test-pwa.js'],
     ['measure-thumbnails.js'],
+    ['check-thumbnail-art.js'],
     // bubble-input-check and validate-derapage-historical are imported above.
     // Dérapage mutation audits are explicit offline commands.
     ['validate-artificiers.js'],

@@ -1,17 +1,36 @@
 import { createDemo } from '../../engines/bubble/demo';
-import { rect, circle, colors, type Thumbnail } from '../thumbnail';
-import { center } from '../../engines/bubble/engine';
+import { center, ORIGIN, type Color } from '../../engines/bubble/engine';
+import { aimBarrelDrawing, arcadeArt, launcherDrawing } from '../../characters/arcade-art';
+import { bubbleBackdropKey, drawBubbleBackdrop } from './backdrop';
+import { bakeArt, sprite, thumbnailHero } from '../thumbnail-art';
+import type { Thumbnail } from '../thumbnail';
 export { createDemo };
+/** The game's own board at its own scale: the world's baked scenery, the hero's bubbles, the
+ * launcher and its aiming barrel. The card shows the ceiling band and the launcher band. */
+const K = 160 / 360, RES = K * 2;
+const BANDS: readonly (readonly [number, number, number])[] = [[0, 170, 0], [520, 620, 170]];
 export function createThumbnail(seed = 28): Thumbnail {
-    const demo = createDemo(seed);
+    const demo = createDemo(seed), hero = thumbnailHero(), bubbles = arcadeArt[hero].bubbles;
+    const bubble = (c: CanvasRenderingContext2D, x: number, y: number, color: Color, size = 40): void => {
+        sprite(c, `bubble-${hero}-${String(color)}`, () => bubbles[color] ?? [], x - size / 2, y - size / 2, size, RES);
+    };
     return { step: () => { demo.step(); }, get restarts() { return demo.restarts; }, read: () => demo.engine.snapshot(), draw(c) {
-        c.save(); c.fillStyle = '#101827'; c.fillRect(0, 0, 160, 120); c.scale(160 / 360, 120 / 640);
-        const e = demo.engine;
-        for (const p of e.grid) { const q = center(p, e.drops); circle(c, q.x, q.y, 19, colors[p.color] ?? '#65e4d0'); circle(c, q.x - 5, q.y - 5, 4, '#ffffff'); }
-            rect(c, 164, 565, 32, 30, '#455773');
-            c.save(); c.translate(180, 570); c.rotate(e.angle); rect(c, -5, -45, 10, 45, '#65e4d0'); c.restore();
-            circle(c, 180, 570, 19, colors[e.next] ?? '#65e4d0');
-            const p = e.projectile(); if (p) circle(c, p.x, p.y, 19, colors[e.flight?.color ?? 0] ?? '#65e4d0');
+        const e = demo.engine, level = e.level;
+        c.save(); c.scale(K, K);
+        for (const [from, to, at] of BANDS) {
+            c.save(); c.beginPath(); c.rect(0, at, 360, to - from); c.clip(); c.translate(0, at - from);
+            bakeArt(c, `bubble-thumb-${bubbleBackdropKey(level)}`, 0, 0, 360, 640, RES, g => { drawBubbleBackdrop(g, level); });
+            for (const cell of e.grid) { const p = center(cell, e.drops); bubble(c, p.x, p.y, cell.color); }
+            const view = e.flight ? 'tir' : e.angle < -.3 ? 'gauche' : e.angle > .3 ? 'droite' : 'face';
+            sprite(c, `launcher-${hero}-${view}`, () => launcherDrawing(hero, view, 'concentre'), 157 - 63, 579 - 63, 126, RES);
+            c.save(); c.translate(ORIGIN.x, ORIGIN.y); c.rotate(e.angle);
+            sprite(c, `barrel-${hero}`, () => aimBarrelDrawing(hero), -53, -53, 106, RES);
+            c.restore();
+            if (!e.flight) bubble(c, ORIGIN.x, ORIGIN.y, e.next);
+            const p = e.projectile(); if (p && e.flight) bubble(c, p.x, p.y, e.flight.color);
+            bubble(c, 300, 585, e.queued, 32);
+            c.restore();
+        }
         c.restore();
     } };
 }

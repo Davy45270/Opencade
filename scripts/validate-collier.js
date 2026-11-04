@@ -28,14 +28,31 @@ for (const [id, oracle] of Object.entries({
 engineCases.C19(2000);
 engineCases.C20(true);
 const campaign = [];
+let rushTicks = 0, rushEpisodes = 0;
 for (let level = 0; level < 30; level++) {
     const player = new Engine(level, 300), idle = new Engine(level, 300), random = new Engine(level, 300);
-    let state = 300;
+    let state = 300, maxHead = 0;
     for (let n = 0; n < 30000 && player.status === 'playing'; n++) {
         if (n % 9 === 0)
             policy(player);
         player.step(FIXED_MS);
+        if (player.rushing)
+            rushTicks++;
+        rushEpisodes += player.events.filter(e => e === 'élan').length;
+        player.events.length = 0;
+        player.chains.forEach((c, i) => { maxHead = Math.max(maxHead, (c.beads.at(-1)?.s ?? 0) / (player.config.paths[i]?.length ?? 1)); });
     }
+    // Same pilot without the élan: the élan never turns a won level into a loss,
+    // and with it the chain head stays clear of the danger zone (85 %).
+    const steady = new Engine(level, 300);
+    steady.config.rushSpeed = 0;
+    for (let n = 0; n < 30000 && steady.status === 'playing'; n++) {
+        if (n % 9 === 0)
+            policy(steady);
+        steady.step(FIXED_MS);
+    }
+    assert.equal(steady.status, 'won', `Pilote sans élan niveau ${level + 1}`);
+    assert.ok(maxHead < .85, `Élan : tête à ${maxHead.toFixed(3)} niveau ${level + 1}`);
     for (let n = 0; n < 30000 && idle.status === 'playing'; n++)
         idle.step(FIXED_MS);
     assert.equal(player.status, 'won', `Pilote niveau ${level + 1}`);
@@ -55,9 +72,13 @@ for (let level = 0; level < 30; level++) {
         level: level + 1,
         shots: player.shots,
         ms: Math.round(player.time),
+        msWithoutRush: Math.round(steady.time),
+        maxHead: Math.round(maxHead * 1000) / 1000,
         idle: idle.status
     });
 }
+assert.ok(rushTicks > 0 && rushEpisodes > 0, 'Élan jamais déclenché dans la campagne');
+console.log(`Élan : ${String(rushEpisodes)} déclenchements, ${String(rushTicks)} pas fixes, 30/30 gagnés avec et sans.`);
 const diversity = measureDiversity(Array.from({ length: 30 }, (_, i) => {
     const l = levelAt(i);
     return {

@@ -3,7 +3,7 @@
   "seed": 300,
   "latencyGameMs": 150,
   "noisePx": 12,
-  "steps": 116,
+  "steps": 38,
   "advances": [
     {
       "step": 1,
@@ -194,399 +194,9 @@
       "step": 38,
       "ms": 150,
       "gameMs": 5700
-    },
-    {
-      "step": 39,
-      "ms": 150,
-      "gameMs": 5850
-    },
-    {
-      "step": 40,
-      "ms": 150,
-      "gameMs": 6000
-    },
-    {
-      "step": 41,
-      "ms": 150,
-      "gameMs": 6150
-    },
-    {
-      "step": 42,
-      "ms": 150,
-      "gameMs": 6300
-    },
-    {
-      "step": 43,
-      "ms": 150,
-      "gameMs": 6450
-    },
-    {
-      "step": 44,
-      "ms": 150,
-      "gameMs": 6600
-    },
-    {
-      "step": 45,
-      "ms": 150,
-      "gameMs": 6750
-    },
-    {
-      "step": 46,
-      "ms": 150,
-      "gameMs": 6900
-    },
-    {
-      "step": 47,
-      "ms": 150,
-      "gameMs": 7050
-    },
-    {
-      "step": 48,
-      "ms": 150,
-      "gameMs": 7200
-    },
-    {
-      "step": 49,
-      "ms": 150,
-      "gameMs": 7350
-    },
-    {
-      "step": 50,
-      "ms": 150,
-      "gameMs": 7500
-    },
-    {
-      "step": 51,
-      "ms": 150,
-      "gameMs": 7650
-    },
-    {
-      "step": 52,
-      "ms": 150,
-      "gameMs": 7800
-    },
-    {
-      "step": 53,
-      "ms": 150,
-      "gameMs": 7950
-    },
-    {
-      "step": 54,
-      "ms": 150,
-      "gameMs": 8100
-    },
-    {
-      "step": 55,
-      "ms": 150,
-      "gameMs": 8250
-    },
-    {
-      "step": 56,
-      "ms": 150,
-      "gameMs": 8400
-    },
-    {
-      "step": 57,
-      "ms": 150,
-      "gameMs": 8550
-    },
-    {
-      "step": 58,
-      "ms": 150,
-      "gameMs": 8700
-    },
-    {
-      "step": 59,
-      "ms": 150,
-      "gameMs": 8850
-    },
-    {
-      "step": 60,
-      "ms": 150,
-      "gameMs": 9000
-    },
-    {
-      "step": 61,
-      "ms": 150,
-      "gameMs": 9150
-    },
-    {
-      "step": 62,
-      "ms": 150,
-      "gameMs": 9300
-    },
-    {
-      "step": 63,
-      "ms": 150,
-      "gameMs": 9450
-    },
-    {
-      "step": 64,
-      "ms": 150,
-      "gameMs": 9600
-    },
-    {
-      "step": 65,
-      "ms": 150,
-      "gameMs": 9750
-    },
-    {
-      "step": 66,
-      "ms": 150,
-      "gameMs": 9900
-    },
-    {
-      "step": 67,
-      "ms": 150,
-      "gameMs": 10050
-    },
-    {
-      "step": 68,
-      "ms": 150,
-      "gameMs": 10200
-    },
-    {
-      "step": 69,
-      "ms": 150,
-      "gameMs": 10350
-    },
-    {
-      "step": 70,
-      "ms": 150,
-      "gameMs": 10500
-    },
-    {
-      "step": 71,
-      "ms": 150,
-      "gameMs": 10650
-    },
-    {
-      "step": 72,
-      "ms": 150,
-      "gameMs": 10800
-    },
-    {
-      "step": 73,
-      "ms": 150,
-      "gameMs": 10950
-    },
-    {
-      "step": 74,
-      "ms": 150,
-      "gameMs": 11100
-    },
-    {
-      "step": 75,
-      "ms": 150,
-      "gameMs": 11250
-    },
-    {
-      "step": 76,
-      "ms": 150,
-      "gameMs": 11400
-    },
-    {
-      "step": 77,
-      "ms": 150,
-      "gameMs": 11550
-    },
-    {
-      "step": 78,
-      "ms": 150,
-      "gameMs": 11700
-    },
-    {
-      "step": 79,
-      "ms": 150,
-      "gameMs": 11850
-    },
-    {
-      "step": 80,
-      "ms": 150,
-      "gameMs": 12000
-    },
-    {
-      "step": 81,
-      "ms": 150,
-      "gameMs": 12150
-    },
-    {
-      "step": 82,
-      "ms": 150,
-      "gameMs": 12300
-    },
-    {
-      "step": 83,
-      "ms": 150,
-      "gameMs": 12450
-    },
-    {
-      "step": 84,
-      "ms": 150,
-      "gameMs": 12600
-    },
-    {
-      "step": 85,
-      "ms": 150,
-      "gameMs": 12750
-    },
-    {
-      "step": 86,
-      "ms": 150,
-      "gameMs": 12900
-    },
-    {
-      "step": 87,
-      "ms": 150,
-      "gameMs": 13050
-    },
-    {
-      "step": 88,
-      "ms": 150,
-      "gameMs": 13200
-    },
-    {
-      "step": 89,
-      "ms": 150,
-      "gameMs": 13350
-    },
-    {
-      "step": 90,
-      "ms": 150,
-      "gameMs": 13500
-    },
-    {
-      "step": 91,
-      "ms": 150,
-      "gameMs": 13650
-    },
-    {
-      "step": 92,
-      "ms": 150,
-      "gameMs": 13800
-    },
-    {
-      "step": 93,
-      "ms": 150,
-      "gameMs": 13950
-    },
-    {
-      "step": 94,
-      "ms": 150,
-      "gameMs": 14100
-    },
-    {
-      "step": 95,
-      "ms": 150,
-      "gameMs": 14250
-    },
-    {
-      "step": 96,
-      "ms": 150,
-      "gameMs": 14400
-    },
-    {
-      "step": 97,
-      "ms": 150,
-      "gameMs": 14550
-    },
-    {
-      "step": 98,
-      "ms": 150,
-      "gameMs": 14700
-    },
-    {
-      "step": 99,
-      "ms": 150,
-      "gameMs": 14850
-    },
-    {
-      "step": 100,
-      "ms": 150,
-      "gameMs": 15000
-    },
-    {
-      "step": 101,
-      "ms": 150,
-      "gameMs": 15150
-    },
-    {
-      "step": 102,
-      "ms": 150,
-      "gameMs": 15300
-    },
-    {
-      "step": 103,
-      "ms": 150,
-      "gameMs": 15450
-    },
-    {
-      "step": 104,
-      "ms": 150,
-      "gameMs": 15600
-    },
-    {
-      "step": 105,
-      "ms": 150,
-      "gameMs": 15750
-    },
-    {
-      "step": 106,
-      "ms": 150,
-      "gameMs": 15900
-    },
-    {
-      "step": 107,
-      "ms": 150,
-      "gameMs": 16050
-    },
-    {
-      "step": 108,
-      "ms": 150,
-      "gameMs": 16200
-    },
-    {
-      "step": 109,
-      "ms": 150,
-      "gameMs": 16350
-    },
-    {
-      "step": 110,
-      "ms": 150,
-      "gameMs": 16500
-    },
-    {
-      "step": 111,
-      "ms": 150,
-      "gameMs": 16650
-    },
-    {
-      "step": 112,
-      "ms": 150,
-      "gameMs": 16800
-    },
-    {
-      "step": 113,
-      "ms": 150,
-      "gameMs": 16950
-    },
-    {
-      "step": 114,
-      "ms": 150,
-      "gameMs": 17100
-    },
-    {
-      "step": 115,
-      "ms": 150,
-      "gameMs": 17250
-    },
-    {
-      "step": 116,
-      "ms": 150,
-      "gameMs": 17400
     }
   ],
-  "gameMs": 17400,
+  "gameMs": 5700,
   "entries": [
     {
       "type": "touchStart",
@@ -825,14 +435,14 @@
         {
           "id": 0,
           "x": 364,
-          "y": 374
+          "y": 394
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 354,
-          "y": 381
+          "y": 401
         }
       ],
       "noise": [
@@ -842,7 +452,7 @@
           "y": -7
         }
       ],
-      "timeMs": 2700,
+      "timeMs": 2850,
       "missed": false
     },
     {
@@ -851,7 +461,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 2850,
+      "timeMs": 3000,
       "missed": false
     },
     {
@@ -863,14 +473,14 @@
         {
           "id": 0,
           "x": 365,
-          "y": 355
+          "y": 413
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 354,
-          "y": 343
+          "y": 401
         }
       ],
       "noise": [
@@ -880,7 +490,7 @@
           "y": 12
         }
       ],
-      "timeMs": 3300,
+      "timeMs": 3450,
       "missed": false
     },
     {
@@ -889,7 +499,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 3450,
+      "timeMs": 3600,
       "missed": false
     },
     {
@@ -901,14 +511,14 @@
         {
           "id": 0,
           "x": 345,
-          "y": 372
+          "y": 393
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 354,
-          "y": 378
+          "y": 399
         }
       ],
       "noise": [
@@ -939,14 +549,14 @@
         {
           "id": 0,
           "x": 362,
-          "y": 341
+          "y": 395
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 354,
-          "y": 343
+          "y": 397
         }
       ],
       "noise": [
@@ -956,7 +566,7 @@
           "y": -2
         }
       ],
-      "timeMs": 4500,
+      "timeMs": 4350,
       "missed": false
     },
     {
@@ -965,7 +575,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 4650,
+      "timeMs": 4500,
       "missed": false
     },
     {
@@ -977,14 +587,14 @@
         {
           "id": 0,
           "x": 342,
-          "y": 384
+          "y": 399
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 354,
-          "y": 378
+          "y": 393
         }
       ],
       "noise": [
@@ -994,7 +604,7 @@
           "y": 6
         }
       ],
-      "timeMs": 5100,
+      "timeMs": 4950,
       "missed": false
     },
     {
@@ -1003,7 +613,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 5250,
+      "timeMs": 5100,
       "missed": false
     },
     {
@@ -1015,14 +625,14 @@
         {
           "id": 0,
           "x": 345,
-          "y": 343
+          "y": 409
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 354,
-          "y": 343
+          "y": 409
         }
       ],
       "noise": [
@@ -1032,7 +642,7 @@
           "y": 0
         }
       ],
-      "timeMs": 5700,
+      "timeMs": 5400,
       "missed": false
     },
     {
@@ -1041,729 +651,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 5850,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 351,
-          "y": 390
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 378
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": -3,
-          "y": 12
-        }
-      ],
-      "timeMs": 6300,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 6450,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 348,
-          "y": 344
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 343
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": -6,
-          "y": 1
-        }
-      ],
-      "timeMs": 6900,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 7050,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 364,
-          "y": 371
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 378
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 10,
-          "y": -7
-        }
-      ],
-      "timeMs": 7500,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 7650,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 361,
-          "y": 340
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 343
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 7,
-          "y": -3
-        }
-      ],
-      "timeMs": 8100,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 8250,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 351,
-          "y": 383
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 378
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": -3,
-          "y": 5
-        }
-      ],
-      "timeMs": 8700,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 8850,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 352,
-          "y": 350
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 343
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": -2,
-          "y": 7
-        }
-      ],
-      "timeMs": 9300,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 9450,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 359,
-          "y": 369
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 378
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 5,
-          "y": -9
-        }
-      ],
-      "timeMs": 9900,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 10050,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 358,
-          "y": 333
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 343
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 4,
-          "y": -10
-        }
-      ],
-      "timeMs": 10500,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 10650,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 364,
-          "y": 373
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 378
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 10,
-          "y": -5
-        }
-      ],
-      "timeMs": 11100,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 11250,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 365,
-          "y": 334
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 343
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 11,
-          "y": -9
-        }
-      ],
-      "timeMs": 11700,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 11850,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 352,
-          "y": 379
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 378
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": -2,
-          "y": 1
-        }
-      ],
-      "timeMs": 12300,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 12450,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 359,
-          "y": 351
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 343
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 5,
-          "y": 8
-        }
-      ],
-      "timeMs": 12900,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 13050,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 360,
-          "y": 381
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 378
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 6,
-          "y": 3
-        }
-      ],
-      "timeMs": 13500,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 13650,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 335
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 343
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 0,
-          "y": -8
-        }
-      ],
-      "timeMs": 14100,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 14250,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 355,
-          "y": 387
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 378
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 1,
-          "y": 9
-        }
-      ],
-      "timeMs": 14700,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 14850,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 363,
-          "y": 353
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 343
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 9,
-          "y": 10
-        }
-      ],
-      "timeMs": 15300,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 15450,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 352,
-          "y": 373
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 378
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": -2,
-          "y": -5
-        }
-      ],
-      "timeMs": 15900,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 16050,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 358,
-          "y": 335
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 343
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 4,
-          "y": -8
-        }
-      ],
-      "timeMs": 16500,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 16650,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 355,
-          "y": 369
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 354,
-          "y": 378
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 1,
-          "y": -9
-        }
-      ],
-      "timeMs": 17100,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 17250,
+      "timeMs": 5550,
       "missed": false
     }
   ],
@@ -1773,11 +661,11 @@
     "level": 0,
     "seed": 300,
     "status": "won",
-    "score": 1575,
-    "remainingDistance": 1005.2666666666667,
-    "time": 17249.999999999825,
+    "score": 1365,
+    "remainingDistance": 985.0833333333334,
+    "time": 5550.000000000012,
     "remainder": 0,
-    "angle": -0.23801339121981718,
+    "angle": -0.010530633594485491,
     "current": 0,
     "next": 0,
     "flight": null,
@@ -8772,27 +7660,27 @@
     "combo": 2,
     "maxCombo": 2,
     "gapShots": 0,
-    "shots": 29,
+    "shots": 10,
     "danger": false,
-    "random": 3413230496,
+    "random": 70390017,
     "bursts": [
       {
-        "x": 290.15647551115353,
-        "y": 309.7306698647562,
+        "x": 289.7821626314659,
+        "y": 329.90464616141065,
         "color": 2,
-        "time": 17249.999999999825
+        "time": 5550.000000000012
       },
       {
-        "x": 289.79326594425476,
-        "y": 329.721649364837,
+        "x": 287.7463162762057,
+        "y": 349.794886432784,
         "color": 2,
-        "time": 17249.999999999825
+        "time": 5550.000000000012
       },
       {
-        "x": 287.7724531912177,
-        "y": 349.6134257682179,
+        "x": 284.0301669877603,
+        "y": 369.4402428784219,
         "color": 2,
-        "time": 17249.999999999825
+        "time": 5550.000000000012
       }
     ],
     "character": {
@@ -8819,387 +7707,10 @@
       "canvas": {
         "width": 360,
         "height": 736
-      },
-      "receipts": {
-        "sequence": 62,
-        "events": [
-          {
-            "sequence": 1,
-            "type": "pointerdown",
-            "x": 182.9921875,
-            "y": 447.09375
-          },
-          {
-            "sequence": 2,
-            "type": "pointerup",
-            "x": 182.9921875,
-            "y": 447.09375
-          },
-          {
-            "sequence": 3,
-            "type": "pointerdown",
-            "x": 222,
-            "y": 448
-          },
-          {
-            "sequence": 4,
-            "type": "pointerup",
-            "x": 222,
-            "y": 448
-          },
-          {
-            "sequence": 5,
-            "type": "pointerdown",
-            "x": 344,
-            "y": 560
-          },
-          {
-            "sequence": 6,
-            "type": "pointerup",
-            "x": 344,
-            "y": 560
-          },
-          {
-            "sequence": 7,
-            "type": "pointerdown",
-            "x": 359,
-            "y": 514
-          },
-          {
-            "sequence": 8,
-            "type": "pointerup",
-            "x": 359,
-            "y": 514
-          },
-          {
-            "sequence": 9,
-            "type": "pointerdown",
-            "x": 351,
-            "y": 441
-          },
-          {
-            "sequence": 10,
-            "type": "pointerup",
-            "x": 351,
-            "y": 441
-          },
-          {
-            "sequence": 11,
-            "type": "pointerdown",
-            "x": 362,
-            "y": 350
-          },
-          {
-            "sequence": 12,
-            "type": "pointerup",
-            "x": 362,
-            "y": 350
-          },
-          {
-            "sequence": 13,
-            "type": "pointerdown",
-            "x": 364,
-            "y": 374
-          },
-          {
-            "sequence": 14,
-            "type": "pointerup",
-            "x": 364,
-            "y": 374
-          },
-          {
-            "sequence": 15,
-            "type": "pointerdown",
-            "x": 365,
-            "y": 355
-          },
-          {
-            "sequence": 16,
-            "type": "pointerup",
-            "x": 365,
-            "y": 355
-          },
-          {
-            "sequence": 17,
-            "type": "pointerdown",
-            "x": 345,
-            "y": 372
-          },
-          {
-            "sequence": 18,
-            "type": "pointerup",
-            "x": 345,
-            "y": 372
-          },
-          {
-            "sequence": 19,
-            "type": "pointerdown",
-            "x": 362,
-            "y": 341
-          },
-          {
-            "sequence": 20,
-            "type": "pointerup",
-            "x": 362,
-            "y": 341
-          },
-          {
-            "sequence": 21,
-            "type": "pointerdown",
-            "x": 342,
-            "y": 384
-          },
-          {
-            "sequence": 22,
-            "type": "pointerup",
-            "x": 342,
-            "y": 384
-          },
-          {
-            "sequence": 23,
-            "type": "pointerdown",
-            "x": 345,
-            "y": 343
-          },
-          {
-            "sequence": 24,
-            "type": "pointerup",
-            "x": 345,
-            "y": 343
-          },
-          {
-            "sequence": 25,
-            "type": "pointerdown",
-            "x": 351,
-            "y": 390
-          },
-          {
-            "sequence": 26,
-            "type": "pointerup",
-            "x": 351,
-            "y": 390
-          },
-          {
-            "sequence": 27,
-            "type": "pointerdown",
-            "x": 348,
-            "y": 344
-          },
-          {
-            "sequence": 28,
-            "type": "pointerup",
-            "x": 348,
-            "y": 344
-          },
-          {
-            "sequence": 29,
-            "type": "pointerdown",
-            "x": 364,
-            "y": 371
-          },
-          {
-            "sequence": 30,
-            "type": "pointerup",
-            "x": 364,
-            "y": 371
-          },
-          {
-            "sequence": 31,
-            "type": "pointerdown",
-            "x": 361,
-            "y": 340
-          },
-          {
-            "sequence": 32,
-            "type": "pointerup",
-            "x": 361,
-            "y": 340
-          },
-          {
-            "sequence": 33,
-            "type": "pointerdown",
-            "x": 351,
-            "y": 383
-          },
-          {
-            "sequence": 34,
-            "type": "pointerup",
-            "x": 351,
-            "y": 383
-          },
-          {
-            "sequence": 35,
-            "type": "pointerdown",
-            "x": 352,
-            "y": 350
-          },
-          {
-            "sequence": 36,
-            "type": "pointerup",
-            "x": 352,
-            "y": 350
-          },
-          {
-            "sequence": 37,
-            "type": "pointerdown",
-            "x": 359,
-            "y": 369
-          },
-          {
-            "sequence": 38,
-            "type": "pointerup",
-            "x": 359,
-            "y": 369
-          },
-          {
-            "sequence": 39,
-            "type": "pointerdown",
-            "x": 358,
-            "y": 333
-          },
-          {
-            "sequence": 40,
-            "type": "pointerup",
-            "x": 358,
-            "y": 333
-          },
-          {
-            "sequence": 41,
-            "type": "pointerdown",
-            "x": 364,
-            "y": 373
-          },
-          {
-            "sequence": 42,
-            "type": "pointerup",
-            "x": 364,
-            "y": 373
-          },
-          {
-            "sequence": 43,
-            "type": "pointerdown",
-            "x": 365,
-            "y": 334
-          },
-          {
-            "sequence": 44,
-            "type": "pointerup",
-            "x": 365,
-            "y": 334
-          },
-          {
-            "sequence": 45,
-            "type": "pointerdown",
-            "x": 352,
-            "y": 379
-          },
-          {
-            "sequence": 46,
-            "type": "pointerup",
-            "x": 352,
-            "y": 379
-          },
-          {
-            "sequence": 47,
-            "type": "pointerdown",
-            "x": 359,
-            "y": 351
-          },
-          {
-            "sequence": 48,
-            "type": "pointerup",
-            "x": 359,
-            "y": 351
-          },
-          {
-            "sequence": 49,
-            "type": "pointerdown",
-            "x": 360,
-            "y": 381
-          },
-          {
-            "sequence": 50,
-            "type": "pointerup",
-            "x": 360,
-            "y": 381
-          },
-          {
-            "sequence": 51,
-            "type": "pointerdown",
-            "x": 354,
-            "y": 335
-          },
-          {
-            "sequence": 52,
-            "type": "pointerup",
-            "x": 354,
-            "y": 335
-          },
-          {
-            "sequence": 53,
-            "type": "pointerdown",
-            "x": 355,
-            "y": 387
-          },
-          {
-            "sequence": 54,
-            "type": "pointerup",
-            "x": 355,
-            "y": 387
-          },
-          {
-            "sequence": 55,
-            "type": "pointerdown",
-            "x": 363,
-            "y": 353
-          },
-          {
-            "sequence": 56,
-            "type": "pointerup",
-            "x": 363,
-            "y": 353
-          },
-          {
-            "sequence": 57,
-            "type": "pointerdown",
-            "x": 352,
-            "y": 373
-          },
-          {
-            "sequence": 58,
-            "type": "pointerup",
-            "x": 352,
-            "y": 373
-          },
-          {
-            "sequence": 59,
-            "type": "pointerdown",
-            "x": 358,
-            "y": 335
-          },
-          {
-            "sequence": 60,
-            "type": "pointerup",
-            "x": 358,
-            "y": 335
-          },
-          {
-            "sequence": 61,
-            "type": "pointerdown",
-            "x": 355,
-            "y": 369
-          },
-          {
-            "sequence": 62,
-            "type": "pointerup",
-            "x": 355,
-            "y": 369
-          }
-        ]
       }
     }
   },
-  "fingerprint": 1733511274,
+  "fingerprint": 2071298895,
   "level": 0,
   "box": {
     "x": 16,
@@ -9218,13 +7729,15 @@
       "sequence": 1,
       "type": "pointerdown",
       "x": 182.9921875,
-      "y": 447.09375
+      "y": 447.09375,
+      "target": "button#resume"
     },
     {
       "sequence": 2,
       "type": "pointerup",
       "x": 182.9921875,
-      "y": 447.09375
+      "y": 447.09375,
+      "target": "button#resume"
     }
   ],
   "geometry": {
@@ -9271,373 +7784,169 @@
       "sequence": 1,
       "type": "pointerdown",
       "x": 182.9921875,
-      "y": 447.09375
+      "y": 447.09375,
+      "target": "button#resume"
     },
     {
       "sequence": 2,
       "type": "pointerup",
       "x": 182.9921875,
-      "y": 447.09375
+      "y": 447.09375,
+      "target": "button#resume"
     },
     {
       "sequence": 3,
       "type": "pointerdown",
       "x": 222,
-      "y": 448
+      "y": 448,
+      "target": "canvas"
     },
     {
       "sequence": 4,
       "type": "pointerup",
       "x": 222,
-      "y": 448
+      "y": 448,
+      "target": "canvas"
     },
     {
       "sequence": 5,
       "type": "pointerdown",
       "x": 344,
-      "y": 560
+      "y": 560,
+      "target": "canvas"
     },
     {
       "sequence": 6,
       "type": "pointerup",
       "x": 344,
-      "y": 560
+      "y": 560,
+      "target": "canvas"
     },
     {
       "sequence": 7,
       "type": "pointerdown",
       "x": 359,
-      "y": 514
+      "y": 514,
+      "target": "canvas"
     },
     {
       "sequence": 8,
       "type": "pointerup",
       "x": 359,
-      "y": 514
+      "y": 514,
+      "target": "canvas"
     },
     {
       "sequence": 9,
       "type": "pointerdown",
       "x": 351,
-      "y": 441
+      "y": 441,
+      "target": "canvas"
     },
     {
       "sequence": 10,
       "type": "pointerup",
       "x": 351,
-      "y": 441
+      "y": 441,
+      "target": "canvas"
     },
     {
       "sequence": 11,
       "type": "pointerdown",
       "x": 362,
-      "y": 350
+      "y": 350,
+      "target": "canvas"
     },
     {
       "sequence": 12,
       "type": "pointerup",
       "x": 362,
-      "y": 350
+      "y": 350,
+      "target": "canvas"
     },
     {
       "sequence": 13,
       "type": "pointerdown",
       "x": 364,
-      "y": 374
+      "y": 394,
+      "target": "canvas"
     },
     {
       "sequence": 14,
       "type": "pointerup",
       "x": 364,
-      "y": 374
+      "y": 394,
+      "target": "canvas"
     },
     {
       "sequence": 15,
       "type": "pointerdown",
       "x": 365,
-      "y": 355
+      "y": 413,
+      "target": "canvas"
     },
     {
       "sequence": 16,
       "type": "pointerup",
       "x": 365,
-      "y": 355
+      "y": 413,
+      "target": "canvas"
     },
     {
       "sequence": 17,
       "type": "pointerdown",
       "x": 345,
-      "y": 372
+      "y": 393,
+      "target": "canvas"
     },
     {
       "sequence": 18,
       "type": "pointerup",
       "x": 345,
-      "y": 372
+      "y": 393,
+      "target": "canvas"
     },
     {
       "sequence": 19,
       "type": "pointerdown",
       "x": 362,
-      "y": 341
+      "y": 395,
+      "target": "canvas"
     },
     {
       "sequence": 20,
       "type": "pointerup",
       "x": 362,
-      "y": 341
+      "y": 395,
+      "target": "canvas"
     },
     {
       "sequence": 21,
       "type": "pointerdown",
       "x": 342,
-      "y": 384
+      "y": 399,
+      "target": "canvas"
     },
     {
       "sequence": 22,
       "type": "pointerup",
       "x": 342,
-      "y": 384
+      "y": 399,
+      "target": "canvas"
     },
     {
       "sequence": 23,
       "type": "pointerdown",
       "x": 345,
-      "y": 343
+      "y": 409,
+      "target": "canvas"
     },
     {
       "sequence": 24,
       "type": "pointerup",
       "x": 345,
-      "y": 343
-    },
-    {
-      "sequence": 25,
-      "type": "pointerdown",
-      "x": 351,
-      "y": 390
-    },
-    {
-      "sequence": 26,
-      "type": "pointerup",
-      "x": 351,
-      "y": 390
-    },
-    {
-      "sequence": 27,
-      "type": "pointerdown",
-      "x": 348,
-      "y": 344
-    },
-    {
-      "sequence": 28,
-      "type": "pointerup",
-      "x": 348,
-      "y": 344
-    },
-    {
-      "sequence": 29,
-      "type": "pointerdown",
-      "x": 364,
-      "y": 371
-    },
-    {
-      "sequence": 30,
-      "type": "pointerup",
-      "x": 364,
-      "y": 371
-    },
-    {
-      "sequence": 31,
-      "type": "pointerdown",
-      "x": 361,
-      "y": 340
-    },
-    {
-      "sequence": 32,
-      "type": "pointerup",
-      "x": 361,
-      "y": 340
-    },
-    {
-      "sequence": 33,
-      "type": "pointerdown",
-      "x": 351,
-      "y": 383
-    },
-    {
-      "sequence": 34,
-      "type": "pointerup",
-      "x": 351,
-      "y": 383
-    },
-    {
-      "sequence": 35,
-      "type": "pointerdown",
-      "x": 352,
-      "y": 350
-    },
-    {
-      "sequence": 36,
-      "type": "pointerup",
-      "x": 352,
-      "y": 350
-    },
-    {
-      "sequence": 37,
-      "type": "pointerdown",
-      "x": 359,
-      "y": 369
-    },
-    {
-      "sequence": 38,
-      "type": "pointerup",
-      "x": 359,
-      "y": 369
-    },
-    {
-      "sequence": 39,
-      "type": "pointerdown",
-      "x": 358,
-      "y": 333
-    },
-    {
-      "sequence": 40,
-      "type": "pointerup",
-      "x": 358,
-      "y": 333
-    },
-    {
-      "sequence": 41,
-      "type": "pointerdown",
-      "x": 364,
-      "y": 373
-    },
-    {
-      "sequence": 42,
-      "type": "pointerup",
-      "x": 364,
-      "y": 373
-    },
-    {
-      "sequence": 43,
-      "type": "pointerdown",
-      "x": 365,
-      "y": 334
-    },
-    {
-      "sequence": 44,
-      "type": "pointerup",
-      "x": 365,
-      "y": 334
-    },
-    {
-      "sequence": 45,
-      "type": "pointerdown",
-      "x": 352,
-      "y": 379
-    },
-    {
-      "sequence": 46,
-      "type": "pointerup",
-      "x": 352,
-      "y": 379
-    },
-    {
-      "sequence": 47,
-      "type": "pointerdown",
-      "x": 359,
-      "y": 351
-    },
-    {
-      "sequence": 48,
-      "type": "pointerup",
-      "x": 359,
-      "y": 351
-    },
-    {
-      "sequence": 49,
-      "type": "pointerdown",
-      "x": 360,
-      "y": 381
-    },
-    {
-      "sequence": 50,
-      "type": "pointerup",
-      "x": 360,
-      "y": 381
-    },
-    {
-      "sequence": 51,
-      "type": "pointerdown",
-      "x": 354,
-      "y": 335
-    },
-    {
-      "sequence": 52,
-      "type": "pointerup",
-      "x": 354,
-      "y": 335
-    },
-    {
-      "sequence": 53,
-      "type": "pointerdown",
-      "x": 355,
-      "y": 387
-    },
-    {
-      "sequence": 54,
-      "type": "pointerup",
-      "x": 355,
-      "y": 387
-    },
-    {
-      "sequence": 55,
-      "type": "pointerdown",
-      "x": 363,
-      "y": 353
-    },
-    {
-      "sequence": 56,
-      "type": "pointerup",
-      "x": 363,
-      "y": 353
-    },
-    {
-      "sequence": 57,
-      "type": "pointerdown",
-      "x": 352,
-      "y": 373
-    },
-    {
-      "sequence": 58,
-      "type": "pointerup",
-      "x": 352,
-      "y": 373
-    },
-    {
-      "sequence": 59,
-      "type": "pointerdown",
-      "x": 358,
-      "y": 335
-    },
-    {
-      "sequence": 60,
-      "type": "pointerup",
-      "x": 358,
-      "y": 335
-    },
-    {
-      "sequence": 61,
-      "type": "pointerdown",
-      "x": 355,
-      "y": 369
-    },
-    {
-      "sequence": 62,
-      "type": "pointerup",
-      "x": 355,
-      "y": 369
+      "y": 409,
+      "target": "canvas"
     }
   ]
 }

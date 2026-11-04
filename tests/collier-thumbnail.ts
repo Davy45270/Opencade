@@ -75,6 +75,17 @@ export function createC15(): () => void {
         },
         bezierCurveTo() {
         },
+        // Shared canvas kit (rounded rails, clips, baked bitmaps): no circle layer of their own.
+        arcTo() {
+        },
+        rect() {
+        },
+        clip() {
+        },
+        rotate() {
+        },
+        drawImage() {
+        },
         closePath() {
         },
         set fillStyle(value: string) {

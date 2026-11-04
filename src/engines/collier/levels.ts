@@ -1,4 +1,6 @@
 export const GAME_NAME = 'Le Collier du Singe';
+/** Cruise target of the élan, in path units per second (the opening deployment runs at 100). */
+export const RUSH_SPEED = 90;
 export interface Point {
     x: number;
     y: number;
@@ -234,6 +236,7 @@ export function levelAt(level: number) {
         shooter: { x: level >= 28 ? 190 : level >= 24 ? 210 : 180, y: 350 },
         tunnels: level >= 20 ? [[d.length * .36, d.length * .43] as const] : [],
         acceleration: level >= 24 ? 1.8 : 1.4,
+        rushSpeed: RUSH_SPEED,
         mechanics: [
             'chaîne',
             ...(level >= 4 ? ['Ralentir'] : []),

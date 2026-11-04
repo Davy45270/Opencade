@@ -4,9 +4,10 @@ import { readFileSync } from 'node:fs';
 import { replayCollierRecording } from './collier-finger-replay.js';
 import { createScene } from './collier-scene-oracles.js';
 
-// Unmodified game-only attachments from the 49bc8b4 mobile runs. No policy or
-// noise generator runs here: packets, transport receipts and advances are replayed.
-for (const [level, fingerprint] of [[1, 1733511274], [5, 526984081]]) {
+// Unmodified game-only attachments from the mobile runs recorded with the élan
+// (the near-empty necklace hurries in), which changed every trajectory.
+// No policy or noise generator runs here: packets, transport receipts and advances are replayed.
+for (const [level, fingerprint] of [[1, 2071298895], [5, 1861302993]]) {
     const recording = JSON.parse(readFileSync(new URL(`../tests/fixtures/collier-finger-${level}.json`, import.meta.url), 'utf8'));
     assert.equal(recording.level, level - 1);
     assert.equal(recording.fingerprint, fingerprint);

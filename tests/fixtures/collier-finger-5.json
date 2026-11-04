@@ -3,7 +3,7 @@
   "seed": 300,
   "latencyGameMs": 150,
   "noisePx": 12,
-  "steps": 227,
+  "steps": 252,
   "advances": [
     {
       "step": 1,
@@ -1139,9 +1139,134 @@
       "step": 227,
       "ms": 150,
       "gameMs": 34050
+    },
+    {
+      "step": 228,
+      "ms": 150,
+      "gameMs": 34200
+    },
+    {
+      "step": 229,
+      "ms": 150,
+      "gameMs": 34350
+    },
+    {
+      "step": 230,
+      "ms": 150,
+      "gameMs": 34500
+    },
+    {
+      "step": 231,
+      "ms": 150,
+      "gameMs": 34650
+    },
+    {
+      "step": 232,
+      "ms": 150,
+      "gameMs": 34800
+    },
+    {
+      "step": 233,
+      "ms": 150,
+      "gameMs": 34950
+    },
+    {
+      "step": 234,
+      "ms": 150,
+      "gameMs": 35100
+    },
+    {
+      "step": 235,
+      "ms": 150,
+      "gameMs": 35250
+    },
+    {
+      "step": 236,
+      "ms": 150,
+      "gameMs": 35400
+    },
+    {
+      "step": 237,
+      "ms": 150,
+      "gameMs": 35550
+    },
+    {
+      "step": 238,
+      "ms": 150,
+      "gameMs": 35700
+    },
+    {
+      "step": 239,
+      "ms": 150,
+      "gameMs": 35850
+    },
+    {
+      "step": 240,
+      "ms": 150,
+      "gameMs": 36000
+    },
+    {
+      "step": 241,
+      "ms": 150,
+      "gameMs": 36150
+    },
+    {
+      "step": 242,
+      "ms": 150,
+      "gameMs": 36300
+    },
+    {
+      "step": 243,
+      "ms": 150,
+      "gameMs": 36450
+    },
+    {
+      "step": 244,
+      "ms": 150,
+      "gameMs": 36600
+    },
+    {
+      "step": 245,
+      "ms": 150,
+      "gameMs": 36750
+    },
+    {
+      "step": 246,
+      "ms": 150,
+      "gameMs": 36900
+    },
+    {
+      "step": 247,
+      "ms": 150,
+      "gameMs": 37050
+    },
+    {
+      "step": 248,
+      "ms": 150,
+      "gameMs": 37200
+    },
+    {
+      "step": 249,
+      "ms": 150,
+      "gameMs": 37350
+    },
+    {
+      "step": 250,
+      "ms": 150,
+      "gameMs": 37500
+    },
+    {
+      "step": 251,
+      "ms": 150,
+      "gameMs": 37650
+    },
+    {
+      "step": 252,
+      "ms": 150,
+      "gameMs": 37800
     }
   ],
-  "gameMs": 34050,
+  "gameMs": 37800,
   "entries": [
     {
       "type": "touchStart",
@@ -1342,14 +1467,14 @@
         {
           "id": 0,
           "x": 44,
-          "y": 112
+          "y": 113
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 109
+          "y": 110
         }
       ],
       "noise": [
@@ -1380,14 +1505,14 @@
         {
           "id": 0,
           "x": 46,
-          "y": 125
+          "y": 112
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 132
+          "y": 119
         }
       ],
       "noise": [
@@ -1418,14 +1543,14 @@
         {
           "id": 0,
           "x": 47,
-          "y": 118
+          "y": 131
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 119
         }
       ],
       "noise": [
@@ -1456,14 +1581,14 @@
         {
           "id": 0,
           "x": 27,
-          "y": 122
+          "y": 170
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 128
+          "y": 176
         }
       ],
       "noise": [
@@ -1494,14 +1619,14 @@
         {
           "id": 0,
           "x": 44,
-          "y": 104
+          "y": 120
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 122
         }
       ],
       "noise": [
@@ -1532,14 +1657,14 @@
         {
           "id": 0,
           "x": 24,
-          "y": 134
+          "y": 167
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 128
+          "y": 161
         }
       ],
       "noise": [
@@ -1570,14 +1695,14 @@
         {
           "id": 0,
           "x": 27,
-          "y": 106
+          "y": 205
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 205
         }
       ],
       "noise": [
@@ -1607,15 +1732,15 @@
       "points": [
         {
           "id": 0,
-          "x": 33,
-          "y": 143
+          "x": 238,
+          "y": 439
         }
       ],
       "intended": [
         {
           "id": 0,
-          "x": 36,
-          "y": 131
+          "x": 241,
+          "y": 427
         }
       ],
       "noise": [
@@ -1646,14 +1771,14 @@
         {
           "id": 0,
           "x": 30,
-          "y": 107
+          "y": 230
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 229
         }
       ],
       "noise": [
@@ -1663,7 +1788,7 @@
           "y": 1
         }
       ],
-      "timeMs": 8700,
+      "timeMs": 8250,
       "missed": false
     },
     {
@@ -1672,7 +1797,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 8850,
+      "timeMs": 8400,
       "missed": false
     },
     {
@@ -1684,14 +1809,14 @@
         {
           "id": 0,
           "x": 46,
-          "y": 121
+          "y": 181
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 128
+          "y": 188
         }
       ],
       "noise": [
@@ -1701,7 +1826,7 @@
           "y": -7
         }
       ],
-      "timeMs": 9450,
+      "timeMs": 8850,
       "missed": false
     },
     {
@@ -1710,7 +1835,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 9600,
+      "timeMs": 9000,
       "missed": false
     },
     {
@@ -1722,14 +1847,14 @@
         {
           "id": 0,
           "x": 43,
-          "y": 103
+          "y": 210
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 213
         }
       ],
       "noise": [
@@ -1739,7 +1864,7 @@
           "y": -3
         }
       ],
-      "timeMs": 10200,
+      "timeMs": 9600,
       "missed": false
     },
     {
@@ -1748,7 +1873,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 10350,
+      "timeMs": 9750,
       "missed": false
     },
     {
@@ -1759,15 +1884,15 @@
       "points": [
         {
           "id": 0,
-          "x": 33,
-          "y": 133
+          "x": 238,
+          "y": 432
         }
       ],
       "intended": [
         {
           "id": 0,
-          "x": 36,
-          "y": 128
+          "x": 241,
+          "y": 427
         }
       ],
       "noise": [
@@ -1777,7 +1902,7 @@
           "y": 5
         }
       ],
-      "timeMs": 10950,
+      "timeMs": 10350,
       "missed": false
     },
     {
@@ -1786,7 +1911,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 11100,
+      "timeMs": 10500,
       "missed": false
     },
     {
@@ -1798,14 +1923,14 @@
         {
           "id": 0,
           "x": 34,
-          "y": 113
+          "y": 140
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 133
         }
       ],
       "noise": [
@@ -1813,6 +1938,82 @@
           "id": 0,
           "x": -2,
           "y": 7
+        }
+      ],
+      "timeMs": 10650,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 10800,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 246,
+          "y": 418
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 241,
+          "y": 427
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": 5,
+          "y": -9
+        }
+      ],
+      "timeMs": 11400,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 11550,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 40,
+          "y": 192
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 202
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": 4,
+          "y": -10
         }
       ],
       "timeMs": 11700,
@@ -1835,22 +2036,22 @@
       "points": [
         {
           "id": 0,
-          "x": 41,
-          "y": 119
+          "x": 251,
+          "y": 422
         }
       ],
       "intended": [
         {
           "id": 0,
-          "x": 36,
-          "y": 128
+          "x": 241,
+          "y": 427
         }
       ],
       "noise": [
         {
           "id": 0,
-          "x": 5,
-          "y": -9
+          "x": 10,
+          "y": -5
         }
       ],
       "timeMs": 12450,
@@ -1873,91 +2074,15 @@
       "points": [
         {
           "id": 0,
-          "x": 40,
-          "y": 96
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 36,
-          "y": 106
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 4,
-          "y": -10
-        }
-      ],
-      "timeMs": 13200,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 13350,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 46,
-          "y": 125
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 36,
-          "y": 130
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 10,
-          "y": -5
-        }
-      ],
-      "timeMs": 13950,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 14100,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
           "x": 47,
-          "y": 97
+          "y": 134
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 143
         }
       ],
       "noise": [
@@ -1967,7 +2092,7 @@
           "y": -9
         }
       ],
-      "timeMs": 14700,
+      "timeMs": 12750,
       "missed": false
     },
     {
@@ -1976,7 +2101,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 14850,
+      "timeMs": 12900,
       "missed": false
     },
     {
@@ -1988,14 +2113,14 @@
         {
           "id": 0,
           "x": 34,
-          "y": 132
+          "y": 191
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 131
+          "y": 190
         }
       ],
       "noise": [
@@ -2005,7 +2130,7 @@
           "y": 1
         }
       ],
-      "timeMs": 15450,
+      "timeMs": 13500,
       "missed": false
     },
     {
@@ -2014,7 +2139,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 15600,
+      "timeMs": 13650,
       "missed": false
     },
     {
@@ -2026,14 +2151,14 @@
         {
           "id": 0,
           "x": 41,
-          "y": 114
+          "y": 244
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 236
         }
       ],
       "noise": [
@@ -2043,7 +2168,7 @@
           "y": 8
         }
       ],
-      "timeMs": 16200,
+      "timeMs": 14250,
       "missed": false
     },
     {
@@ -2052,7 +2177,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 16350,
+      "timeMs": 14400,
       "missed": false
     },
     {
@@ -2064,14 +2189,14 @@
         {
           "id": 0,
           "x": 42,
-          "y": 134
+          "y": 177
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 131
+          "y": 174
         }
       ],
       "noise": [
@@ -2081,7 +2206,7 @@
           "y": 3
         }
       ],
-      "timeMs": 16950,
+      "timeMs": 15000,
       "missed": false
     },
     {
@@ -2090,7 +2215,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 17100,
+      "timeMs": 15150,
       "missed": false
     },
     {
@@ -2102,14 +2227,14 @@
         {
           "id": 0,
           "x": 36,
-          "y": 98
+          "y": 107
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 115
         }
       ],
       "noise": [
@@ -2119,7 +2244,7 @@
           "y": -8
         }
       ],
-      "timeMs": 17700,
+      "timeMs": 15750,
       "missed": false
     },
     {
@@ -2128,7 +2253,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 17850,
+      "timeMs": 15900,
       "missed": false
     },
     {
@@ -2140,14 +2265,14 @@
         {
           "id": 0,
           "x": 37,
-          "y": 140
+          "y": 129
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 131
+          "y": 120
         }
       ],
       "noise": [
@@ -2157,7 +2282,7 @@
           "y": 9
         }
       ],
-      "timeMs": 18450,
+      "timeMs": 16500,
       "missed": false
     },
     {
@@ -2166,7 +2291,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 18600,
+      "timeMs": 16650,
       "missed": false
     },
     {
@@ -2178,14 +2303,14 @@
         {
           "id": 0,
           "x": 45,
-          "y": 116
+          "y": 186
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 176
         }
       ],
       "noise": [
@@ -2195,7 +2320,7 @@
           "y": 10
         }
       ],
-      "timeMs": 19200,
+      "timeMs": 17250,
       "missed": false
     },
     {
@@ -2204,7 +2329,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 19350,
+      "timeMs": 17400,
       "missed": false
     },
     {
@@ -2215,15 +2340,15 @@
       "points": [
         {
           "id": 0,
-          "x": 34,
-          "y": 123
+          "x": 239,
+          "y": 422
         }
       ],
       "intended": [
         {
           "id": 0,
-          "x": 36,
-          "y": 128
+          "x": 241,
+          "y": 427
         }
       ],
       "noise": [
@@ -2233,7 +2358,7 @@
           "y": -5
         }
       ],
-      "timeMs": 19950,
+      "timeMs": 18000,
       "missed": false
     },
     {
@@ -2242,7 +2367,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 20100,
+      "timeMs": 18150,
       "missed": false
     },
     {
@@ -2254,14 +2379,14 @@
         {
           "id": 0,
           "x": 40,
-          "y": 98
+          "y": 152
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 160
         }
       ],
       "noise": [
@@ -2271,7 +2396,7 @@
           "y": -8
         }
       ],
-      "timeMs": 20700,
+      "timeMs": 18300,
       "missed": false
     },
     {
@@ -2280,7 +2405,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 20850,
+      "timeMs": 18450,
       "missed": false
     },
     {
@@ -2292,14 +2417,14 @@
         {
           "id": 0,
           "x": 37,
-          "y": 119
+          "y": 111
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 128
+          "y": 120
         }
       ],
       "noise": [
@@ -2309,7 +2434,7 @@
           "y": -9
         }
       ],
-      "timeMs": 21450,
+      "timeMs": 19050,
       "missed": false
     },
     {
@@ -2318,7 +2443,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 21600,
+      "timeMs": 19200,
       "missed": false
     },
     {
@@ -2330,14 +2455,14 @@
         {
           "id": 0,
           "x": 36,
-          "y": 104
+          "y": 180
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 182
         }
       ],
       "noise": [
@@ -2347,7 +2472,7 @@
           "y": -2
         }
       ],
-      "timeMs": 22200,
+      "timeMs": 19800,
       "missed": false
     },
     {
@@ -2356,7 +2481,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 22350,
+      "timeMs": 19950,
       "missed": false
     },
     {
@@ -2368,14 +2493,14 @@
         {
           "id": 0,
           "x": 34,
-          "y": 135
+          "y": 149
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 128
+          "y": 142
         }
       ],
       "noise": [
@@ -2385,7 +2510,7 @@
           "y": 7
         }
       ],
-      "timeMs": 22950,
+      "timeMs": 20550,
       "missed": false
     },
     {
@@ -2394,7 +2519,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 23100,
+      "timeMs": 20700,
       "missed": false
     },
     {
@@ -2406,14 +2531,14 @@
         {
           "id": 0,
           "x": 36,
-          "y": 100
+          "y": 155
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 161
         }
       ],
       "noise": [
@@ -2423,7 +2548,7 @@
           "y": -6
         }
       ],
-      "timeMs": 23700,
+      "timeMs": 21300,
       "missed": false
     },
     {
@@ -2432,7 +2557,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 23850,
+      "timeMs": 21450,
       "missed": false
     },
     {
@@ -2444,14 +2569,14 @@
         {
           "id": 0,
           "x": 26,
-          "y": 134
+          "y": 188
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 130
+          "y": 184
         }
       ],
       "noise": [
@@ -2461,7 +2586,7 @@
           "y": 4
         }
       ],
-      "timeMs": 24450,
+      "timeMs": 22050,
       "missed": false
     },
     {
@@ -2470,7 +2595,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 24600,
+      "timeMs": 22200,
       "missed": false
     },
     {
@@ -2482,14 +2607,14 @@
         {
           "id": 0,
           "x": 24,
-          "y": 114
+          "y": 215
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 207
         }
       ],
       "noise": [
@@ -2497,6 +2622,158 @@
           "id": 0,
           "x": -12,
           "y": 8
+        }
+      ],
+      "timeMs": 22800,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 22950,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 48,
+          "y": 240
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 230
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": 12,
+          "y": 10
+        }
+      ],
+      "timeMs": 23400,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 23550,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 48,
+          "y": 279
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 274
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": 12,
+          "y": 5
+        }
+      ],
+      "timeMs": 24000,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 24150,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 45,
+          "y": 305
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 297
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": 9,
+          "y": 8
+        }
+      ],
+      "timeMs": 24600,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 24750,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 33,
+          "y": 219
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 213
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": -3,
+          "y": 6
         }
       ],
       "timeMs": 25200,
@@ -2519,34 +2796,72 @@
       "points": [
         {
           "id": 0,
-          "x": 48,
-          "y": 141
+          "x": 43,
+          "y": 258
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 131
+          "y": 259
         }
       ],
       "noise": [
         {
           "id": 0,
-          "x": 12,
-          "y": 10
+          "x": 7,
+          "y": -1
         }
       ],
+      "timeMs": 25800,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
       "timeMs": 25950,
       "missed": false
     },
     {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 289
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 283
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": 0,
+          "y": 6
+        }
+      ],
+      "timeMs": 26400,
+      "missed": false
+    },
+    {
       "type": "touchEnd",
       "selectors": [],
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 26100,
+      "timeMs": 26550,
       "missed": false
     },
     {
@@ -2557,25 +2872,25 @@
       "points": [
         {
           "id": 0,
-          "x": 48,
-          "y": 111
+          "x": 29,
+          "y": 224
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 222
         }
       ],
       "noise": [
         {
           "id": 0,
-          "x": 12,
-          "y": 5
+          "x": -7,
+          "y": 2
         }
       ],
-      "timeMs": 26700,
+      "timeMs": 27000,
       "missed": false
     },
     {
@@ -2584,7 +2899,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 26850,
+      "timeMs": 27150,
       "missed": false
     },
     {
@@ -2595,37 +2910,37 @@
       "points": [
         {
           "id": 0,
-          "x": 45,
-          "y": 139
+          "x": 34,
+          "y": 257
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 131
+          "y": 268
         }
       ],
       "noise": [
         {
           "id": 0,
-          "x": 9,
-          "y": 8
+          "x": -2,
+          "y": -11
         }
       ],
-      "timeMs": 27450,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
       "timeMs": 27600,
       "missed": false
     },
     {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 27750,
+      "missed": false
+    },
+    {
       "type": "touchStart",
       "selectors": [
         "#game canvas"
@@ -2633,22 +2948,22 @@
       "points": [
         {
           "id": 0,
-          "x": 33,
-          "y": 112
+          "x": 46,
+          "y": 303
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 292
         }
       ],
       "noise": [
         {
           "id": 0,
-          "x": -3,
-          "y": 6
+          "x": 10,
+          "y": 11
         }
       ],
       "timeMs": 28200,
@@ -2671,25 +2986,139 @@
       "points": [
         {
           "id": 0,
-          "x": 43,
-          "y": 130
+          "x": 31,
+          "y": 242
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 131
+          "y": 231
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": -5,
+          "y": 11
+        }
+      ],
+      "timeMs": 28800,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 28950,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 39,
+          "y": 273
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 276
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": 3,
+          "y": -3
+        }
+      ],
+      "timeMs": 29400,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 29550,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 235,
+          "y": 424
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 241,
+          "y": 427
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": -6,
+          "y": -3
+        }
+      ],
+      "timeMs": 30000,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 30150,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 43,
+          "y": 296
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 302
         }
       ],
       "noise": [
         {
           "id": 0,
           "x": 7,
-          "y": -1
+          "y": -6
         }
       ],
-      "timeMs": 28950,
+      "timeMs": 30300,
       "missed": false
     },
     {
@@ -2698,83 +3127,45 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 29100,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 36,
-          "y": 112
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 36,
-          "y": 106
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": 0,
-          "y": 6
-        }
-      ],
-      "timeMs": 29700,
-      "missed": false
-    },
-    {
-      "type": "touchEnd",
-      "selectors": [],
-      "intended": [],
-      "noise": [],
-      "points": [],
-      "timeMs": 29850,
-      "missed": false
-    },
-    {
-      "type": "touchStart",
-      "selectors": [
-        "#game canvas"
-      ],
-      "points": [
-        {
-          "id": 0,
-          "x": 29,
-          "y": 130
-        }
-      ],
-      "intended": [
-        {
-          "id": 0,
-          "x": 36,
-          "y": 128
-        }
-      ],
-      "noise": [
-        {
-          "id": 0,
-          "x": -7,
-          "y": 2
-        }
-      ],
       "timeMs": 30450,
       "missed": false
     },
     {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 39,
+          "y": 352
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 342
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": 3,
+          "y": 10
+        }
+      ],
+      "timeMs": 30900,
+      "missed": false
+    },
+    {
       "type": "touchEnd",
       "selectors": [],
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 30600,
+      "timeMs": 31050,
       "missed": false
     },
     {
@@ -2785,25 +3176,25 @@
       "points": [
         {
           "id": 0,
-          "x": 34,
-          "y": 95
+          "x": 237,
+          "y": 435
         }
       ],
       "intended": [
         {
           "id": 0,
-          "x": 36,
-          "y": 106
+          "x": 241,
+          "y": 427
         }
       ],
       "noise": [
         {
           "id": 0,
-          "x": -2,
-          "y": -11
+          "x": -4,
+          "y": 8
         }
       ],
-      "timeMs": 31200,
+      "timeMs": 31650,
       "missed": false
     },
     {
@@ -2812,7 +3203,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 31350,
+      "timeMs": 31800,
       "missed": false
     },
     {
@@ -2823,22 +3214,22 @@
       "points": [
         {
           "id": 0,
-          "x": 46,
-          "y": 139
+          "x": 32,
+          "y": 286
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 128
+          "y": 289
         }
       ],
       "noise": [
         {
           "id": 0,
-          "x": 10,
-          "y": 11
+          "x": -4,
+          "y": -3
         }
       ],
       "timeMs": 31950,
@@ -2861,25 +3252,25 @@
       "points": [
         {
           "id": 0,
-          "x": 31,
-          "y": 117
+          "x": 37,
+          "y": 250
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 106
+          "y": 249
         }
       ],
       "noise": [
         {
           "id": 0,
-          "x": -5,
-          "y": 11
+          "x": 1,
+          "y": 1
         }
       ],
-      "timeMs": 32700,
+      "timeMs": 32550,
       "missed": false
     },
     {
@@ -2888,7 +3279,7 @@
       "intended": [],
       "noise": [],
       "points": [],
-      "timeMs": 32850,
+      "timeMs": 32700,
       "missed": false
     },
     {
@@ -2899,22 +3290,60 @@
       "points": [
         {
           "id": 0,
-          "x": 39,
-          "y": 125
+          "x": 249,
+          "y": 417
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 241,
+          "y": 427
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": 8,
+          "y": -10
+        }
+      ],
+      "timeMs": 33150,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 33300,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 29,
+          "y": 285
         }
       ],
       "intended": [
         {
           "id": 0,
           "x": 36,
-          "y": 128
+          "y": 275
         }
       ],
       "noise": [
         {
           "id": 0,
-          "x": 3,
-          "y": -3
+          "x": -7,
+          "y": 10
         }
       ],
       "timeMs": 33450,
@@ -2928,6 +3357,234 @@
       "points": [],
       "timeMs": 33600,
       "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 32,
+          "y": 246
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 236
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": -4,
+          "y": 10
+        }
+      ],
+      "timeMs": 34050,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 34200,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 47,
+          "y": 249
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 260
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": 11,
+          "y": -11
+        }
+      ],
+      "timeMs": 34650,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 34800,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 35,
+          "y": 214
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 220
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": -1,
+          "y": -6
+        }
+      ],
+      "timeMs": 35250,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 35400,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 40,
+          "y": 205
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 203
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": 4,
+          "y": 2
+        }
+      ],
+      "timeMs": 36000,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 36150,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 41,
+          "y": 233
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 228
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": 5,
+          "y": 5
+        }
+      ],
+      "timeMs": 36750,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 36900,
+      "missed": false
+    },
+    {
+      "type": "touchStart",
+      "selectors": [
+        "#game canvas"
+      ],
+      "points": [
+        {
+          "id": 0,
+          "x": 30,
+          "y": 303
+        }
+      ],
+      "intended": [
+        {
+          "id": 0,
+          "x": 36,
+          "y": 294
+        }
+      ],
+      "noise": [
+        {
+          "id": 0,
+          "x": -6,
+          "y": 9
+        }
+      ],
+      "timeMs": 37350,
+      "missed": false
+    },
+    {
+      "type": "touchEnd",
+      "selectors": [],
+      "intended": [],
+      "noise": [],
+      "points": [],
+      "timeMs": 37500,
+      "missed": false
     }
   ],
   "misses": 0,
@@ -2936,21 +3593,28 @@
     "level": 4,
     "seed": 300,
     "status": "won",
-    "score": 1797,
-    "remainingDistance": 986.5586666666667,
-    "time": 33866.666666667465,
+    "score": 1790,
+    "remainingDistance": 909.7376666666668,
+    "time": 37633.33333333358,
     "remainder": 0,
-    "angle": -2.101413771819042,
+    "angle": -2.6522412492744665,
     "current": 0,
     "next": 0,
-    "flight": null,
+    "flight": {
+      "x": 17.447516598789363,
+      "y": 263.4318115517583,
+      "color": 0,
+      "dx": -573.7146472983907,
+      "dy": -305.5347827584989,
+      "gap": false
+    },
     "chains": [
       {
         "beads": [],
         "emitted": 32,
         "quota": 32,
         "runColor": 0,
-        "runLeft": 1
+        "runLeft": 2
       }
     ],
     "paths": [
@@ -8498,34 +9162,34 @@
       "x": 180,
       "y": 350
     },
-    "slowMs": 499.9999999999988,
+    "slowMs": 0,
     "reverseMs": 0,
     "aimMs": 0,
     "bomb": false,
-    "combo": 2,
+    "combo": 3,
     "maxCombo": 2,
     "gapShots": 0,
-    "shots": 45,
+    "shots": 51,
     "danger": false,
-    "random": 3272972357,
+    "random": 3533721611,
     "bursts": [
       {
         "x": 30,
-        "y": 83.44133333333333,
+        "y": 160.2623333333331,
         "color": 0,
-        "time": 33866.666666667465
+        "time": 37633.33333333358
       },
       {
         "x": 30,
-        "y": 103.44133333333335,
+        "y": 180.2623333333331,
         "color": 0,
-        "time": 33866.666666667465
+        "time": 37633.33333333358
       },
       {
         "x": 30,
-        "y": 123.44133333333335,
+        "y": 200.26233333333326,
         "color": 0,
-        "time": 33866.666666667465
+        "time": 37633.33333333358
       }
     ],
     "character": {
@@ -8552,399 +9216,10 @@
       "canvas": {
         "width": 360,
         "height": 736
-      },
-      "receipts": {
-        "sequence": 94,
-        "events": [
-          {
-            "sequence": 31,
-            "type": "pointerdown",
-            "x": 43,
-            "y": 103
-          },
-          {
-            "sequence": 32,
-            "type": "pointerup",
-            "x": 43,
-            "y": 103
-          },
-          {
-            "sequence": 33,
-            "type": "pointerdown",
-            "x": 33,
-            "y": 133
-          },
-          {
-            "sequence": 34,
-            "type": "pointerup",
-            "x": 33,
-            "y": 133
-          },
-          {
-            "sequence": 35,
-            "type": "pointerdown",
-            "x": 34,
-            "y": 113
-          },
-          {
-            "sequence": 36,
-            "type": "pointerup",
-            "x": 34,
-            "y": 113
-          },
-          {
-            "sequence": 37,
-            "type": "pointerdown",
-            "x": 41,
-            "y": 119
-          },
-          {
-            "sequence": 38,
-            "type": "pointerup",
-            "x": 41,
-            "y": 119
-          },
-          {
-            "sequence": 39,
-            "type": "pointerdown",
-            "x": 40,
-            "y": 96
-          },
-          {
-            "sequence": 40,
-            "type": "pointerup",
-            "x": 40,
-            "y": 96
-          },
-          {
-            "sequence": 41,
-            "type": "pointerdown",
-            "x": 46,
-            "y": 125
-          },
-          {
-            "sequence": 42,
-            "type": "pointerup",
-            "x": 46,
-            "y": 125
-          },
-          {
-            "sequence": 43,
-            "type": "pointerdown",
-            "x": 47,
-            "y": 97
-          },
-          {
-            "sequence": 44,
-            "type": "pointerup",
-            "x": 47,
-            "y": 97
-          },
-          {
-            "sequence": 45,
-            "type": "pointerdown",
-            "x": 34,
-            "y": 132
-          },
-          {
-            "sequence": 46,
-            "type": "pointerup",
-            "x": 34,
-            "y": 132
-          },
-          {
-            "sequence": 47,
-            "type": "pointerdown",
-            "x": 41,
-            "y": 114
-          },
-          {
-            "sequence": 48,
-            "type": "pointerup",
-            "x": 41,
-            "y": 114
-          },
-          {
-            "sequence": 49,
-            "type": "pointerdown",
-            "x": 42,
-            "y": 134
-          },
-          {
-            "sequence": 50,
-            "type": "pointerup",
-            "x": 42,
-            "y": 134
-          },
-          {
-            "sequence": 51,
-            "type": "pointerdown",
-            "x": 36,
-            "y": 98
-          },
-          {
-            "sequence": 52,
-            "type": "pointerup",
-            "x": 36,
-            "y": 98
-          },
-          {
-            "sequence": 53,
-            "type": "pointerdown",
-            "x": 37,
-            "y": 140
-          },
-          {
-            "sequence": 54,
-            "type": "pointerup",
-            "x": 37,
-            "y": 140
-          },
-          {
-            "sequence": 55,
-            "type": "pointerdown",
-            "x": 45,
-            "y": 116
-          },
-          {
-            "sequence": 56,
-            "type": "pointerup",
-            "x": 45,
-            "y": 116
-          },
-          {
-            "sequence": 57,
-            "type": "pointerdown",
-            "x": 34,
-            "y": 123
-          },
-          {
-            "sequence": 58,
-            "type": "pointerup",
-            "x": 34,
-            "y": 123
-          },
-          {
-            "sequence": 59,
-            "type": "pointerdown",
-            "x": 40,
-            "y": 98
-          },
-          {
-            "sequence": 60,
-            "type": "pointerup",
-            "x": 40,
-            "y": 98
-          },
-          {
-            "sequence": 61,
-            "type": "pointerdown",
-            "x": 37,
-            "y": 119
-          },
-          {
-            "sequence": 62,
-            "type": "pointerup",
-            "x": 37,
-            "y": 119
-          },
-          {
-            "sequence": 63,
-            "type": "pointerdown",
-            "x": 36,
-            "y": 104
-          },
-          {
-            "sequence": 64,
-            "type": "pointerup",
-            "x": 36,
-            "y": 104
-          },
-          {
-            "sequence": 65,
-            "type": "pointerdown",
-            "x": 34,
-            "y": 135
-          },
-          {
-            "sequence": 66,
-            "type": "pointerup",
-            "x": 34,
-            "y": 135
-          },
-          {
-            "sequence": 67,
-            "type": "pointerdown",
-            "x": 36,
-            "y": 100
-          },
-          {
-            "sequence": 68,
-            "type": "pointerup",
-            "x": 36,
-            "y": 100
-          },
-          {
-            "sequence": 69,
-            "type": "pointerdown",
-            "x": 26,
-            "y": 134
-          },
-          {
-            "sequence": 70,
-            "type": "pointerup",
-            "x": 26,
-            "y": 134
-          },
-          {
-            "sequence": 71,
-            "type": "pointerdown",
-            "x": 24,
-            "y": 114
-          },
-          {
-            "sequence": 72,
-            "type": "pointerup",
-            "x": 24,
-            "y": 114
-          },
-          {
-            "sequence": 73,
-            "type": "pointerdown",
-            "x": 48,
-            "y": 141
-          },
-          {
-            "sequence": 74,
-            "type": "pointerup",
-            "x": 48,
-            "y": 141
-          },
-          {
-            "sequence": 75,
-            "type": "pointerdown",
-            "x": 48,
-            "y": 111
-          },
-          {
-            "sequence": 76,
-            "type": "pointerup",
-            "x": 48,
-            "y": 111
-          },
-          {
-            "sequence": 77,
-            "type": "pointerdown",
-            "x": 45,
-            "y": 139
-          },
-          {
-            "sequence": 78,
-            "type": "pointerup",
-            "x": 45,
-            "y": 139
-          },
-          {
-            "sequence": 79,
-            "type": "pointerdown",
-            "x": 33,
-            "y": 112
-          },
-          {
-            "sequence": 80,
-            "type": "pointerup",
-            "x": 33,
-            "y": 112
-          },
-          {
-            "sequence": 81,
-            "type": "pointerdown",
-            "x": 43,
-            "y": 130
-          },
-          {
-            "sequence": 82,
-            "type": "pointerup",
-            "x": 43,
-            "y": 130
-          },
-          {
-            "sequence": 83,
-            "type": "pointerdown",
-            "x": 36,
-            "y": 112
-          },
-          {
-            "sequence": 84,
-            "type": "pointerup",
-            "x": 36,
-            "y": 112
-          },
-          {
-            "sequence": 85,
-            "type": "pointerdown",
-            "x": 29,
-            "y": 130
-          },
-          {
-            "sequence": 86,
-            "type": "pointerup",
-            "x": 29,
-            "y": 130
-          },
-          {
-            "sequence": 87,
-            "type": "pointerdown",
-            "x": 34,
-            "y": 95
-          },
-          {
-            "sequence": 88,
-            "type": "pointerup",
-            "x": 34,
-            "y": 95
-          },
-          {
-            "sequence": 89,
-            "type": "pointerdown",
-            "x": 46,
-            "y": 139
-          },
-          {
-            "sequence": 90,
-            "type": "pointerup",
-            "x": 46,
-            "y": 139
-          },
-          {
-            "sequence": 91,
-            "type": "pointerdown",
-            "x": 31,
-            "y": 117
-          },
-          {
-            "sequence": 92,
-            "type": "pointerup",
-            "x": 31,
-            "y": 117
-          },
-          {
-            "sequence": 93,
-            "type": "pointerdown",
-            "x": 39,
-            "y": 125
-          },
-          {
-            "sequence": 94,
-            "type": "pointerup",
-            "x": 39,
-            "y": 125
-          }
-        ]
       }
     }
   },
-  "fingerprint": 526984081,
+  "fingerprint": 1861302993,
   "level": 4,
   "box": {
     "x": 16,
@@ -8963,13 +9238,15 @@
       "sequence": 1,
       "type": "pointerdown",
       "x": 182.9921875,
-      "y": 447.09375
+      "y": 447.09375,
+      "target": "button#resume"
     },
     {
       "sequence": 2,
       "type": "pointerup",
       "x": 182.9921875,
-      "y": 447.09375
+      "y": 447.09375,
+      "target": "button#resume"
     }
   ],
   "geometry": {
@@ -9016,565 +9293,855 @@
       "sequence": 1,
       "type": "pointerdown",
       "x": 182.9921875,
-      "y": 447.09375
+      "y": 447.09375,
+      "target": "button#resume"
     },
     {
       "sequence": 2,
       "type": "pointerup",
       "x": 182.9921875,
-      "y": 447.09375
+      "y": 447.09375,
+      "target": "button#resume"
     },
     {
       "sequence": 3,
       "type": "pointerdown",
       "x": 232,
-      "y": 426
+      "y": 426,
+      "target": "canvas"
     },
     {
       "sequence": 4,
       "type": "pointerup",
       "x": 232,
-      "y": 426
+      "y": 426,
+      "target": "canvas"
     },
     {
       "sequence": 5,
       "type": "pointerdown",
       "x": 26,
-      "y": 240
+      "y": 240,
+      "target": "canvas"
     },
     {
       "sequence": 6,
       "type": "pointerup",
       "x": 26,
-      "y": 240
+      "y": 240,
+      "target": "canvas"
     },
     {
       "sequence": 7,
       "type": "pointerdown",
       "x": 41,
-      "y": 229
+      "y": 229,
+      "target": "canvas"
     },
     {
       "sequence": 8,
       "type": "pointerup",
       "x": 41,
-      "y": 229
+      "y": 229,
+      "target": "canvas"
     },
     {
       "sequence": 9,
       "type": "pointerdown",
       "x": 33,
-      "y": 173
+      "y": 173,
+      "target": "canvas"
     },
     {
       "sequence": 10,
       "type": "pointerup",
       "x": 33,
-      "y": 173
+      "y": 173,
+      "target": "canvas"
     },
     {
       "sequence": 11,
       "type": "pointerdown",
       "x": 44,
-      "y": 112
+      "y": 113,
+      "target": "canvas"
     },
     {
       "sequence": 12,
       "type": "pointerup",
       "x": 44,
-      "y": 112
+      "y": 113,
+      "target": "canvas"
     },
     {
       "sequence": 13,
       "type": "pointerdown",
       "x": 46,
-      "y": 125
+      "y": 112,
+      "target": "canvas"
     },
     {
       "sequence": 14,
       "type": "pointerup",
       "x": 46,
-      "y": 125
+      "y": 112,
+      "target": "canvas"
     },
     {
       "sequence": 15,
       "type": "pointerdown",
       "x": 47,
-      "y": 118
+      "y": 131,
+      "target": "canvas"
     },
     {
       "sequence": 16,
       "type": "pointerup",
       "x": 47,
-      "y": 118
+      "y": 131,
+      "target": "canvas"
     },
     {
       "sequence": 17,
       "type": "pointerdown",
       "x": 27,
-      "y": 122
+      "y": 170,
+      "target": "canvas"
     },
     {
       "sequence": 18,
       "type": "pointerup",
       "x": 27,
-      "y": 122
+      "y": 170,
+      "target": "canvas"
     },
     {
       "sequence": 19,
       "type": "pointerdown",
       "x": 44,
-      "y": 104
+      "y": 120,
+      "target": "canvas"
     },
     {
       "sequence": 20,
       "type": "pointerup",
       "x": 44,
-      "y": 104
+      "y": 120,
+      "target": "canvas"
     },
     {
       "sequence": 21,
       "type": "pointerdown",
       "x": 24,
-      "y": 134
+      "y": 167,
+      "target": "canvas"
     },
     {
       "sequence": 22,
       "type": "pointerup",
       "x": 24,
-      "y": 134
+      "y": 167,
+      "target": "canvas"
     },
     {
       "sequence": 23,
       "type": "pointerdown",
       "x": 27,
-      "y": 106
+      "y": 205,
+      "target": "canvas"
     },
     {
       "sequence": 24,
       "type": "pointerup",
       "x": 27,
-      "y": 106
+      "y": 205,
+      "target": "canvas"
     },
     {
       "sequence": 25,
       "type": "pointerdown",
-      "x": 33,
-      "y": 143
+      "x": 238,
+      "y": 439,
+      "target": "canvas"
     },
     {
       "sequence": 26,
       "type": "pointerup",
-      "x": 33,
-      "y": 143
+      "x": 238,
+      "y": 439,
+      "target": "canvas"
     },
     {
       "sequence": 27,
       "type": "pointerdown",
       "x": 30,
-      "y": 107
+      "y": 230,
+      "target": "canvas"
     },
     {
       "sequence": 28,
       "type": "pointerup",
       "x": 30,
-      "y": 107
+      "y": 230,
+      "target": "canvas"
     },
     {
       "sequence": 29,
       "type": "pointerdown",
       "x": 46,
-      "y": 121
+      "y": 181,
+      "target": "canvas"
     },
     {
       "sequence": 30,
       "type": "pointerup",
       "x": 46,
-      "y": 121
+      "y": 181,
+      "target": "canvas"
     },
     {
       "sequence": 31,
       "type": "pointerdown",
       "x": 43,
-      "y": 103
+      "y": 210,
+      "target": "canvas"
     },
     {
       "sequence": 32,
       "type": "pointerup",
       "x": 43,
-      "y": 103
+      "y": 210,
+      "target": "canvas"
     },
     {
       "sequence": 33,
       "type": "pointerdown",
-      "x": 33,
-      "y": 133
+      "x": 238,
+      "y": 432,
+      "target": "canvas"
     },
     {
       "sequence": 34,
       "type": "pointerup",
-      "x": 33,
-      "y": 133
+      "x": 238,
+      "y": 432,
+      "target": "canvas"
     },
     {
       "sequence": 35,
       "type": "pointerdown",
       "x": 34,
-      "y": 113
+      "y": 140,
+      "target": "canvas"
     },
     {
       "sequence": 36,
       "type": "pointerup",
       "x": 34,
-      "y": 113
+      "y": 140,
+      "target": "canvas"
     },
     {
       "sequence": 37,
       "type": "pointerdown",
-      "x": 41,
-      "y": 119
+      "x": 246,
+      "y": 418,
+      "target": "canvas"
     },
     {
       "sequence": 38,
       "type": "pointerup",
-      "x": 41,
-      "y": 119
+      "x": 246,
+      "y": 418,
+      "target": "canvas"
     },
     {
       "sequence": 39,
       "type": "pointerdown",
       "x": 40,
-      "y": 96
+      "y": 192,
+      "target": "canvas"
     },
     {
       "sequence": 40,
       "type": "pointerup",
       "x": 40,
-      "y": 96
+      "y": 192,
+      "target": "canvas"
     },
     {
       "sequence": 41,
       "type": "pointerdown",
-      "x": 46,
-      "y": 125
+      "x": 251,
+      "y": 422,
+      "target": "canvas"
     },
     {
       "sequence": 42,
       "type": "pointerup",
-      "x": 46,
-      "y": 125
+      "x": 251,
+      "y": 422,
+      "target": "canvas"
     },
     {
       "sequence": 43,
       "type": "pointerdown",
       "x": 47,
-      "y": 97
+      "y": 134,
+      "target": "canvas"
     },
     {
       "sequence": 44,
       "type": "pointerup",
       "x": 47,
-      "y": 97
+      "y": 134,
+      "target": "canvas"
     },
     {
       "sequence": 45,
       "type": "pointerdown",
       "x": 34,
-      "y": 132
+      "y": 191,
+      "target": "canvas"
     },
     {
       "sequence": 46,
       "type": "pointerup",
       "x": 34,
-      "y": 132
+      "y": 191,
+      "target": "canvas"
     },
     {
       "sequence": 47,
       "type": "pointerdown",
       "x": 41,
-      "y": 114
+      "y": 244,
+      "target": "canvas"
     },
     {
       "sequence": 48,
       "type": "pointerup",
       "x": 41,
-      "y": 114
+      "y": 244,
+      "target": "canvas"
     },
     {
       "sequence": 49,
       "type": "pointerdown",
       "x": 42,
-      "y": 134
+      "y": 177,
+      "target": "canvas"
     },
     {
       "sequence": 50,
       "type": "pointerup",
       "x": 42,
-      "y": 134
+      "y": 177,
+      "target": "canvas"
     },
     {
       "sequence": 51,
       "type": "pointerdown",
       "x": 36,
-      "y": 98
+      "y": 107,
+      "target": "canvas"
     },
     {
       "sequence": 52,
       "type": "pointerup",
       "x": 36,
-      "y": 98
+      "y": 107,
+      "target": "canvas"
     },
     {
       "sequence": 53,
       "type": "pointerdown",
       "x": 37,
-      "y": 140
+      "y": 129,
+      "target": "canvas"
     },
     {
       "sequence": 54,
       "type": "pointerup",
       "x": 37,
-      "y": 140
+      "y": 129,
+      "target": "canvas"
     },
     {
       "sequence": 55,
       "type": "pointerdown",
       "x": 45,
-      "y": 116
+      "y": 186,
+      "target": "canvas"
     },
     {
       "sequence": 56,
       "type": "pointerup",
       "x": 45,
-      "y": 116
+      "y": 186,
+      "target": "canvas"
     },
     {
       "sequence": 57,
       "type": "pointerdown",
-      "x": 34,
-      "y": 123
+      "x": 239,
+      "y": 422,
+      "target": "canvas"
     },
     {
       "sequence": 58,
       "type": "pointerup",
-      "x": 34,
-      "y": 123
+      "x": 239,
+      "y": 422,
+      "target": "canvas"
     },
     {
       "sequence": 59,
       "type": "pointerdown",
       "x": 40,
-      "y": 98
+      "y": 152,
+      "target": "canvas"
     },
     {
       "sequence": 60,
       "type": "pointerup",
       "x": 40,
-      "y": 98
+      "y": 152,
+      "target": "canvas"
     },
     {
       "sequence": 61,
       "type": "pointerdown",
       "x": 37,
-      "y": 119
+      "y": 111,
+      "target": "canvas"
     },
     {
       "sequence": 62,
       "type": "pointerup",
       "x": 37,
-      "y": 119
+      "y": 111,
+      "target": "canvas"
     },
     {
       "sequence": 63,
       "type": "pointerdown",
       "x": 36,
-      "y": 104
+      "y": 180,
+      "target": "canvas"
     },
     {
       "sequence": 64,
       "type": "pointerup",
       "x": 36,
-      "y": 104
+      "y": 180,
+      "target": "canvas"
     },
     {
       "sequence": 65,
       "type": "pointerdown",
       "x": 34,
-      "y": 135
+      "y": 149,
+      "target": "canvas"
     },
     {
       "sequence": 66,
       "type": "pointerup",
       "x": 34,
-      "y": 135
+      "y": 149,
+      "target": "canvas"
     },
     {
       "sequence": 67,
       "type": "pointerdown",
       "x": 36,
-      "y": 100
+      "y": 155,
+      "target": "canvas"
     },
     {
       "sequence": 68,
       "type": "pointerup",
       "x": 36,
-      "y": 100
+      "y": 155,
+      "target": "canvas"
     },
     {
       "sequence": 69,
       "type": "pointerdown",
       "x": 26,
-      "y": 134
+      "y": 188,
+      "target": "canvas"
     },
     {
       "sequence": 70,
       "type": "pointerup",
       "x": 26,
-      "y": 134
+      "y": 188,
+      "target": "canvas"
     },
     {
       "sequence": 71,
       "type": "pointerdown",
       "x": 24,
-      "y": 114
+      "y": 215,
+      "target": "canvas"
     },
     {
       "sequence": 72,
       "type": "pointerup",
       "x": 24,
-      "y": 114
+      "y": 215,
+      "target": "canvas"
     },
     {
       "sequence": 73,
       "type": "pointerdown",
       "x": 48,
-      "y": 141
+      "y": 240,
+      "target": "canvas"
     },
     {
       "sequence": 74,
       "type": "pointerup",
       "x": 48,
-      "y": 141
+      "y": 240,
+      "target": "canvas"
     },
     {
       "sequence": 75,
       "type": "pointerdown",
       "x": 48,
-      "y": 111
+      "y": 279,
+      "target": "canvas"
     },
     {
       "sequence": 76,
       "type": "pointerup",
       "x": 48,
-      "y": 111
+      "y": 279,
+      "target": "canvas"
     },
     {
       "sequence": 77,
       "type": "pointerdown",
       "x": 45,
-      "y": 139
+      "y": 305,
+      "target": "canvas"
     },
     {
       "sequence": 78,
       "type": "pointerup",
       "x": 45,
-      "y": 139
+      "y": 305,
+      "target": "canvas"
     },
     {
       "sequence": 79,
       "type": "pointerdown",
       "x": 33,
-      "y": 112
+      "y": 219,
+      "target": "canvas"
     },
     {
       "sequence": 80,
       "type": "pointerup",
       "x": 33,
-      "y": 112
+      "y": 219,
+      "target": "canvas"
     },
     {
       "sequence": 81,
       "type": "pointerdown",
       "x": 43,
-      "y": 130
+      "y": 258,
+      "target": "canvas"
     },
     {
       "sequence": 82,
       "type": "pointerup",
       "x": 43,
-      "y": 130
+      "y": 258,
+      "target": "canvas"
     },
     {
       "sequence": 83,
       "type": "pointerdown",
       "x": 36,
-      "y": 112
+      "y": 289,
+      "target": "canvas"
     },
     {
       "sequence": 84,
       "type": "pointerup",
       "x": 36,
-      "y": 112
+      "y": 289,
+      "target": "canvas"
     },
     {
       "sequence": 85,
       "type": "pointerdown",
       "x": 29,
-      "y": 130
+      "y": 224,
+      "target": "canvas"
     },
     {
       "sequence": 86,
       "type": "pointerup",
       "x": 29,
-      "y": 130
+      "y": 224,
+      "target": "canvas"
     },
     {
       "sequence": 87,
       "type": "pointerdown",
       "x": 34,
-      "y": 95
+      "y": 257,
+      "target": "canvas"
     },
     {
       "sequence": 88,
       "type": "pointerup",
       "x": 34,
-      "y": 95
+      "y": 257,
+      "target": "canvas"
     },
     {
       "sequence": 89,
       "type": "pointerdown",
       "x": 46,
-      "y": 139
+      "y": 303,
+      "target": "canvas"
     },
     {
       "sequence": 90,
       "type": "pointerup",
       "x": 46,
-      "y": 139
+      "y": 303,
+      "target": "canvas"
     },
     {
       "sequence": 91,
       "type": "pointerdown",
       "x": 31,
-      "y": 117
+      "y": 242,
+      "target": "canvas"
     },
     {
       "sequence": 92,
       "type": "pointerup",
       "x": 31,
-      "y": 117
+      "y": 242,
+      "target": "canvas"
     },
     {
       "sequence": 93,
       "type": "pointerdown",
       "x": 39,
-      "y": 125
+      "y": 273,
+      "target": "canvas"
     },
     {
       "sequence": 94,
       "type": "pointerup",
       "x": 39,
-      "y": 125
+      "y": 273,
+      "target": "canvas"
+    },
+    {
+      "sequence": 95,
+      "type": "pointerdown",
+      "x": 235,
+      "y": 424,
+      "target": "canvas"
+    },
+    {
+      "sequence": 96,
+      "type": "pointerup",
+      "x": 235,
+      "y": 424,
+      "target": "canvas"
+    },
+    {
+      "sequence": 97,
+      "type": "pointerdown",
+      "x": 43,
+      "y": 296,
+      "target": "canvas"
+    },
+    {
+      "sequence": 98,
+      "type": "pointerup",
+      "x": 43,
+      "y": 296,
+      "target": "canvas"
+    },
+    {
+      "sequence": 99,
+      "type": "pointerdown",
+      "x": 39,
+      "y": 352,
+      "target": "canvas"
+    },
+    {
+      "sequence": 100,
+      "type": "pointerup",
+      "x": 39,
+      "y": 352,
+      "target": "canvas"
+    },
+    {
+      "sequence": 101,
+      "type": "pointerdown",
+      "x": 237,
+      "y": 435,
+      "target": "canvas"
+    },
+    {
+      "sequence": 102,
+      "type": "pointerup",
+      "x": 237,
+      "y": 435,
+      "target": "canvas"
+    },
+    {
+      "sequence": 103,
+      "type": "pointerdown",
+      "x": 32,
+      "y": 286,
+      "target": "canvas"
+    },
+    {
+      "sequence": 104,
+      "type": "pointerup",
+      "x": 32,
+      "y": 286,
+      "target": "canvas"
+    },
+    {
+      "sequence": 105,
+      "type": "pointerdown",
+      "x": 37,
+      "y": 250,
+      "target": "canvas"
+    },
+    {
+      "sequence": 106,
+      "type": "pointerup",
+      "x": 37,
+      "y": 250,
+      "target": "canvas"
+    },
+    {
+      "sequence": 107,
+      "type": "pointerdown",
+      "x": 249,
+      "y": 417,
+      "target": "canvas"
+    },
+    {
+      "sequence": 108,
+      "type": "pointerup",
+      "x": 249,
+      "y": 417,
+      "target": "canvas"
+    },
+    {
+      "sequence": 109,
+      "type": "pointerdown",
+      "x": 29,
+      "y": 285,
+      "target": "canvas"
+    },
+    {
+      "sequence": 110,
+      "type": "pointerup",
+      "x": 29,
+      "y": 285,
+      "target": "canvas"
+    },
+    {
+      "sequence": 111,
+      "type": "pointerdown",
+      "x": 32,
+      "y": 246,
+      "target": "canvas"
+    },
+    {
+      "sequence": 112,
+      "type": "pointerup",
+      "x": 32,
+      "y": 246,
+      "target": "canvas"
+    },
+    {
+      "sequence": 113,
+      "type": "pointerdown",
+      "x": 47,
+      "y": 249,
+      "target": "canvas"
+    },
+    {
+      "sequence": 114,
+      "type": "pointerup",
+      "x": 47,
+      "y": 249,
+      "target": "canvas"
+    },
+    {
+      "sequence": 115,
+      "type": "pointerdown",
+      "x": 35,
+      "y": 214,
+      "target": "canvas"
+    },
+    {
+      "sequence": 116,
+      "type": "pointerup",
+      "x": 35,
+      "y": 214,
+      "target": "canvas"
+    },
+    {
+      "sequence": 117,
+      "type": "pointerdown",
+      "x": 40,
+      "y": 205,
+      "target": "canvas"
+    },
+    {
+      "sequence": 118,
+      "type": "pointerup",
+      "x": 40,
+      "y": 205,
+      "target": "canvas"
+    },
+    {
+      "sequence": 119,
+      "type": "pointerdown",
+      "x": 41,
+      "y": 233,
+      "target": "canvas"
+    },
+    {
+      "sequence": 120,
+      "type": "pointerup",
+      "x": 41,
+      "y": 233,
+      "target": "canvas"
+    },
+    {
+      "sequence": 121,
+      "type": "pointerdown",
+      "x": 30,
+      "y": 303,
+      "target": "canvas"
+    },
+    {
+      "sequence": 122,
+      "type": "pointerup",
+      "x": 30,
+      "y": 303,
+      "target": "canvas"
     }
   ]
 }
