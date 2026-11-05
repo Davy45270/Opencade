@@ -3,7 +3,7 @@ import { Finger } from './finger-stepped';
 import type {} from '../../src/games/petits-pompiers/scene';
 for (const level of [0, 4]) test(`Petits Pompiers : doigt bruité, niveau ${String(level + 1)}`, async ({ page }, info) => {
     test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(240000);
-    await Finger.prepare(page); await page.goto('/?test=1#/petits-pompiers');
+    await Finger.prepare(page); await page.goto('/pompiers/?test=1');
     await expect.poll(() => page.evaluate(() => Boolean(window.__PETITS_POMPIERS_TEST__))).toBe(true);
     await page.locator('#level-list button').first().tap(); await page.locator('#pompiers-detente').tap();
     const cdp = await page.context().newCDPSession(page), finger = await Finger.create(page, cdp);

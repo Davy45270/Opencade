@@ -1,6 +1,6 @@
 import { test, expect, vi } from 'vitest';
 vi.mock('phaser', () => ({ default: { Scene: class { key = 'mock'; } } }));
-import { games } from '../src/games/registry';
+import { games } from '../src/games/all';
 import { startThumbnail, type ThumbnailPorts } from '../src/shell/thumbnails';
 import type { Thumbnail } from '../src/games/thumbnail';
 import { useSurfaces } from '../src/games/thumbnail-art';

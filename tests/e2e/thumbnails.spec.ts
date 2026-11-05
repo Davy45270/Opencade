@@ -54,7 +54,8 @@ test('V07 sortie et retour arrêtent puis relancent les compteurs', async ({ pag
     const thumbnail = page.locator('canvas[data-game="ferraille"]');
     await thumbnail.scrollIntoViewIfNeeded();
     await expect.poll(() => page.evaluate(() => window.__ARCADE_TEST__?.thumbnails().ferraille ?? 0)).toBeGreaterThan(1);
-    await page.locator('.game-card').first().click();
+    // A game played inside the catalogue (the first card, Petits Pompiers, now opens its own site).
+    await page.locator('.game-card:has(canvas[data-game="collier"])').click();
     await expect(page.locator('#home')).toBeHidden();
     const before = await page.evaluate(() => window.__ARCADE_TEST__?.thumbnails());
     await page.waitForTimeout(600);

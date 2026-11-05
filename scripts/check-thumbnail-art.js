@@ -2,7 +2,7 @@
 // Catalogue cards must not drift from their games: each thumbnail paints with drawing code
 // the game's own scene reaches (its art module, the shared world art, the cast drawings),
 // or the scene paints with the thumbnail's code. Hand-copied palettes are capped.
-import { existsSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -56,7 +56,9 @@ export function checkGame(id, base = root) {
     return problems;
 }
 export function registeredIds(base = root) {
-    return [...read(join(base, 'src/games/registry.ts')).matchAll(/from '\.\/([a-z-]+)\/thumbnail'/g)].map(m => m[1]);
+    // Catalogue games, then games with their own site (src/games/<id>/definition.ts).
+    const sites = readdirSync(join(base, 'src/games')).filter(id => existsSync(join(base, 'src/games', id, 'definition.ts')));
+    return [...[...read(join(base, 'src/games/registry.ts')).matchAll(/from '\.\/([a-z-]+)\/thumbnail'/g)].map(m => m[1]), ...sites];
 }
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
     const base = process.argv[2] ? resolve(process.argv[2]) : root;

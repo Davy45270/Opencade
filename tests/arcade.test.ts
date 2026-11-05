@@ -58,7 +58,7 @@ test('A01 registre non vide et identifiants uniques', async () => {
     vi.stubGlobal('navigator', undefined);
     vi.stubGlobal('screen', undefined);
     try {
-        const { games } = await import('../src/games/registry');
+        const { games } = await import('../src/games/all');
         expect(games.length).toBeGreaterThan(0);
         expect(new Set(games.map(game => game.id)).size).toBe(games.length);
         for (const game of games) {

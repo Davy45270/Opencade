@@ -1,10 +1,14 @@
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { test, expect } from './fixture';
 import { Finger } from './finger-stepped';
 
 // Read the registry without importing scene modules (and Phaser) in Node.
-const registry = readFileSync(new URL('../../src/games/registry.ts', import.meta.url), 'utf8');
-const ids = [...registry.slice(registry.indexOf('export const games:')).matchAll(/\bid: '([^']+)'/g)].map(([, id]) => {
+// Games with their own site (src/games/<id>/definition.ts) are read from their definition, after the catalogue's.
+const gamesDir = new URL('../../src/games/', import.meta.url);
+const sites = readdirSync(gamesDir).filter(id => existsSync(new URL(`${id}/definition.ts`, gamesDir))).map(id => readFileSync(new URL(`${id}/definition.ts`, gamesDir), 'utf8'));
+const catalogue = readFileSync(new URL('../../src/games/registry.ts', import.meta.url), 'utf8');
+const registry = [catalogue.slice(catalogue.indexOf('export const games:')), ...sites].join('\n');
+const ids = [...registry.matchAll(/\bid: '([^']+)'/g)].map(([, id]) => {
     if (!id) throw new Error('Identifiant de jeu absent');
     return id;
 });

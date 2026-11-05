@@ -1,11 +1,13 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import ts from 'typescript';
 import { renderTouchControls, virtualJoystick, type Inputs, type TouchButton } from '../../src/shell/input';
 
 const registry = readFileSync('src/games/registry.ts', 'utf8');
-const scenes = [...new Set([...registry.matchAll(/from '\.\/([^/]+)\/scene'/g)].map(match => `src/games/${match[1] ?? ''}/scene.ts`))];
+// Catalogue scenes, then the scenes of games with their own site (src/games/<id>/definition.ts).
+const siteGames = readdirSync('src/games').filter(id => existsSync(`src/games/${id}/definition.ts`));
+const scenes = [...new Set([...[...registry.matchAll(/from '\.\/([^/]+)\/scene'/g)].map(match => match[1] ?? ''), ...siteGames].map(id => `src/games/${id}/scene.ts`))];
 function parse(file: string) { return ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true); }
 function walk(node: ts.Node, visit: (node: ts.Node) => void) { visit(node); node.forEachChild(child => { walk(child, visit); }); }
 

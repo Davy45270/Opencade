@@ -5,6 +5,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Petits Pompiers a son propre site : `/pompiers/`, avec son appli installable (nom, icône, portée et service worker à lui), jouable hors connexion après une première visite, et rien d’autre que son jeu à télécharger. La carte du catalogue y mène, l’ancienne adresse `#/petits-pompiers` y redirige, et la progression est conservée. Le menu du jeu propose « Tous les jeux » pour revenir au catalogue.
 - Téléphone : la liste des niveaux défile de nouveau au doigt, dans tous les jeux, en portrait comme en paysage. Jusqu’ici, la zone de jeu bloquait tout glissé, y compris dans cette liste : au-delà d’un écran, les niveaux suivants restaient hors d’atteinte. En partie, un glissé sur le jeu ne fait toujours pas défiler la page.
 - Bubble : 100 niveaux de plus (31 à 130), en dix paliers de dix. Chaque palier s’ouvre sur un niveau plus facile pour souffler, a son décor (jungle, automne, volcan, cirque, ciel) et ajoute une mécanique déjà connue. Un solveur gagne chaque niveau avec sa vraie donne, et le regagne quand le plafond descend 20 % plus souvent ; ces parties sont rejouées par les tests.
 - Bubble : le niveau 9 « Cristal » devient plus abordable. Son plafond descend tous les 8 tirs au lieu de 7, et son dessin ne change pas.

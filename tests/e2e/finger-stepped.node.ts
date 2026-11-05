@@ -1,7 +1,7 @@
 // Browser-free: nice -n 19 ionice -c3 node --import ./scripts/ts-loader.js --test tests/e2e/finger-stepped.node.ts
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import type { Page, CDPSession } from '@playwright/test';
 import type { Inputs } from '../../src/shell/input';
 import { Engine as EmpiloEngine } from '../../src/engines/empilo/engine';
@@ -287,7 +287,8 @@ void test('stepped finger regressions without a browser', async t => {
         await t.test('the shared helper contains no registered game name', () => {
             const registry = readFileSync(new URL('../../src/games/registry.ts', import.meta.url), 'utf8');
             const helper = readFileSync(new URL('./finger-stepped.ts', import.meta.url), 'utf8');
-            const ids = [...registry.slice(registry.indexOf('export const games:')).matchAll(/\bid: '([^']+)'/g)].map(match => match[1] ?? '');
+            const sites = readdirSync(new URL('../../src/games/', import.meta.url)).filter(id => existsSync(new URL(`../../src/games/${id}/definition.ts`, import.meta.url)));
+            const ids = [...[...registry.slice(registry.indexOf('export const games:')).matchAll(/\bid: '([^']+)'/g)].map(match => match[1] ?? ''), ...sites];
             assert.ok(ids.length >= 12);
             for (const id of ids) assert.ok(id && !helper.toLowerCase().includes(id.toLowerCase()), `Nom de jeu dans l’aide : ${id}`);
         });

@@ -12,7 +12,6 @@ import { PlaySession, setupPause } from './pause';
 import { setupGameMenu } from './menu';
 import { installAdaptiveLayout } from './layout';
 import { clearHud } from './hud';
-import './other-games-menu';
 declare global {
     interface Window {
         __ARCADE_TEST__?: { open(id: string): void; current(): string | null; thumbnails(): Record<string, number>; games: Record<string, GameTestHook | undefined> };
@@ -78,7 +77,7 @@ export function startApp({ games, links = [], order = games.map(entry => entry.i
                 stats.textContent = `Meilleur score : ${String(save.best)} · Niveaux débloqués : ${String(save.unlocked)}/${String(entry.levelCount)}`;
                 content.append(name, stats); button.append(icon, content);
                 const href = 'href' in entry ? entry.href : undefined;
-                button.addEventListener('click', () => { if (href) location.assign(href); else location.hash = `/${entry.id}`; });
+                button.addEventListener('click', () => { if (href) location.assign(`${href}${location.search}`); else location.hash = `/${entry.id}`; });
                 cards?.append(button);
                 thumbnailFrames[entry.id] ??= 0;
                 thumbnails.push(startThumbnail(icon, entry.thumbnail(), browserThumbnailPorts(), () => { thumbnailFrames[entry.id] = (thumbnailFrames[entry.id] ?? 0) + 1; }));

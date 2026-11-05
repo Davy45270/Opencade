@@ -8,6 +8,7 @@ export function manifestFor(site?: { id: string } & Site): Partial<ManifestOptio
         ...(site ? { id: './' } : {}),
         name: site?.name ?? 'Opencade',
         short_name: site?.shortName ?? 'Opencade',
+        ...(site ? { description: site.description } : {}),
         lang: 'fr',
         display: 'standalone',
         orientation: 'portrait',

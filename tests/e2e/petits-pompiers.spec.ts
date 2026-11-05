@@ -20,6 +20,8 @@ async function playerClip(page: Page) {
 }
 test('Petits Pompiers : accueil, cinq mascottes distinctes et sélection du mode', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium', prints = new Set<string>();
+    // Five round trips catalogue → own site, each a full page load with Phaser (it was one page before): a time budget, not an oracle.
+    test.setTimeout(120_000);
     await page.emulateMedia({ reducedMotion: 'reduce' });
     for (const id of ids) {
         await page.goto('/?test=1');
@@ -27,13 +29,15 @@ test('Petits Pompiers : accueil, cinq mascottes distinctes et sélection du mode
         if (mobile) await page.getByRole('button', { name: `Choisir ${characters[id].fr}`, exact: true }).tap(); else await page.getByRole('button', { name: `Choisir ${characters[id].fr}`, exact: true }).click();
         const card = page.locator('.game-card').filter({ hasText: 'Petits Pompiers' });
         if (mobile) await card.tap(); else await card.click();
+        // The card opens the game's own site: wait for that page before reading its hook.
+        await page.waitForURL(/\/pompiers\/\?test=1$/);
         await expect.poll(() => page.evaluate(() => Boolean(window.__PETITS_POMPIERS_TEST__))).toBe(true);
         await choose(page, mobile);
         expect((await read(page)).character).toBe(id); expect((await read(page)).mode).toBe('detente');
         prints.add((await page.screenshot({ clip: await playerClip(page) })).toString('base64'));
     }
     expect(prints.size).toBe(ids.length);
-    await page.goto('/?test=1#/petits-pompiers');
+    await page.goto('/pompiers/?test=1');
     if (await page.locator('#level-select').isHidden()) {
         if (mobile) { await page.locator('#pause').tap(); await page.locator('#levels').tap(); }
         else await page.locator('#levels').click();
@@ -55,7 +59,7 @@ test('Petits Pompiers : niveau 1 gagné par les commandes, pause, défi et déte
     const external: string[] = [];
     page.on('request', request => { if (new URL(request.url()).origin !== 'http://127.0.0.1:4173') external.push(request.url()); });
     await page.clock.install();
-    await page.goto('/?test=1#/petits-pompiers');
+    await page.goto('/pompiers/?test=1');
     await expect(page.locator('#level-select')).toBeVisible();
     await page.screenshot({ path: info.outputPath(`petits-pompiers-${platform}-accueil.png`) });
     await choose(page, mobile);
@@ -127,13 +131,13 @@ test('Petits Pompiers : niveau 1 gagné par les commandes, pause, défi et déte
     await advance(page, 60000); expect((await read(page)).status).toBe('playing'); expect((await read(page)).player.hearts).toBe(3);
 });
 test('Petits Pompiers : défi choisi par deux gros boutons, crochet réservé aux tests', async ({ page }, info) => {
-    await page.goto('/?test=1#/petits-pompiers'); await choose(page, info.project.name === 'mobile-chromium', 'defi'); expect((await read(page)).mode).toBe('defi');
-    await page.goto('/#/petits-pompiers'); await expect(page.locator('#game canvas')).toBeVisible(); expect(await page.evaluate(() => window.__PETITS_POMPIERS_TEST__)).toBeUndefined();
+    await page.goto('/pompiers/?test=1'); await choose(page, info.project.name === 'mobile-chromium', 'defi'); expect((await read(page)).mode).toBe('defi');
+    await page.goto('/pompiers/'); await expect(page.locator('#game canvas')).toBeVisible(); expect(await page.evaluate(() => window.__PETITS_POMPIERS_TEST__)).toBeUndefined();
 });
 
 test('Petits Pompiers : décors forêt et port', async ({ page }, info) => {
     test.skip(info.project.name !== 'mobile-chromium');
-    await page.goto('/?test=1#/petits-pompiers'); await choose(page, true);
+    await page.goto('/pompiers/?test=1'); await choose(page, true);
     for (const level of [7, 14]) {
         await page.evaluate(level => { window.__PETITS_POMPIERS_TEST__?.load(level, 28, 'detente'); }, level);
         await page.screenshot({ path: info.outputPath(`petits-pompiers-mobile-niveau${String(level + 1)}.png`) });

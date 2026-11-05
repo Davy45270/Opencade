@@ -49,7 +49,7 @@ export const GAME_SPECS = {
     'marmaille': ['marmaille'],
     'orbite': ['orbite'],
     'pepites': ['pepites', 'pepites-finger'],
-    'petits-pompiers': ['petits-pompiers', 'petits-pompiers-finger', 'petits-pompiers-touch'],
+    'petits-pompiers': ['petits-pompiers', 'petits-pompiers-finger', 'petits-pompiers-touch', 'site-pompiers'],
     'serpentin': ['serpentin'],
 };
 /** Games held out of the public catalogue (absent from the registry) until they return; their specs stay owned here. */
@@ -102,7 +102,7 @@ export const SPEC_SECONDS = {
     'essaim': 269, 'ferraille-levels': 245, 'ferraille': 342, 'game': 23, 'gourmandises-finger': 17, 'gourmandises': 32, 'habillage-action': 221,
     'habillage': 19, 'levels': 18, 'marmaille': 19, 'mobile-layout': 721, 'mobile': 3, 'offline': 6, 'orbite': 143, 'pepites-finger': 107,
     'pepites': 34, 'perf-fps': 86, 'petits-pompiers-finger': 62, 'petits-pompiers-touch': 9, 'petits-pompiers': 118, 'pwa-update': 36,
-    'serpentin': 73, 'sound': 9, 'thumbnails': 44, 'touch-edges': 27, 'traverse': 21,
+    'serpentin': 73, 'site-pompiers': 30, 'sound': 9, 'thumbnails': 44, 'touch-edges': 27, 'traverse': 21,
     // Touch-shell specs: provisional estimates until a measured run replaces them.
     'bombercade-touch': 15, 'bubble-touch': 15, 'derapage-touch': 15, 'essaim-touch': 15, 'gourmandises-touch': 15, 'pause-page': 30,
     'level-list-scroll': 40,
@@ -122,14 +122,14 @@ export const SPLIT_SPECS = {
 /** N2 shell zones: the specs that exercise that part of the shell, added to the N2 selection. */
 const ZONES = [
     [/^src\/characters\//, CROSS_SPECS.personnages],
-    [/^(src\/shell\/pwa[^/]*|pwa-manifest\.ts|public\/icons\/.*)$/, CROSS_SPECS.pwa],
+    [/^(src\/shell\/pwa[^/]*|src\/site\.ts|pwa-manifest\.ts|public\/icons\/.*)$/, CROSS_SPECS.pwa],
     [/^(src\/shell\/other-games[^/]*|public\/autres-jeux\/.*)$/, ['autres-jeux']],
     [/^src\/shell\/sound\.ts$/, ['sound']],
     [/^src\/shell\/(levels|progression|storage)\.ts$/, ['levels']],
     [/^src\/shell\/(device|gestures|input)\.ts$/, ['device', 'touch-edges']],
     [/^src\/shell\/(menu|panels|pause)\.ts$/, ['game']],
 ];
-const SHELL = /^(src\/shell\/|src\/main\.ts$|src\/style\.css$|src\/vite-env\.d\.ts$|index\.html$|pwa-manifest\.ts$|public\/|src\/characters\/|src\/content\/|src\/engines\/shared\/|src\/games\/universal\/|src\/games\/[^/]+\.ts$)/;
+const SHELL = /^(src\/shell\/|src\/main\.ts$|src\/site\.ts$|src\/style\.css$|src\/vite-env\.d\.ts$|index\.html$|pwa-manifest\.ts$|public\/|src\/characters\/|src\/content\/|src\/engines\/shared\/|src\/games\/universal\/|src\/games\/[^/]+\.ts$)/;
 const DOCS = /(\.md$|^docs\/|^LICENSE$)/;
 const TOOLING = /^(package(-lock)?\.json$|playwright\.config\.|vite\.config\.|vitest\.config\.|tsconfig[^/]*$|eslint[^/]*$|\.github\/|\.nvmrc$|\.editorconfig$|\.gitignore$|scripts\/)/;
 const SPEC_ARG = /^tests\/e2e\/[A-Za-z0-9._-]+\.spec\.ts(:\d+)?$/;
@@ -141,11 +141,12 @@ const idPattern = id => new RegExp(`^${id.replace(/[-]/g, '\\-')}([-._/]|$)`);
 const idsByLength = () => Object.keys(GAME_SPECS).sort((a, b) => b.length - a.length);
 const gameIn = name => idsByLength().find(id => idPattern(id).test(name));
 
-/** Ids of the games array in src/games/registry.ts (drift check against GAME_SPECS). */
+/** Ids of the games array in src/games/registry.ts, then of the games with their own site (drift check against GAME_SPECS). */
 export function registryIds(root) {
     const source = readFileSync(join(root, 'src/games/registry.ts'), 'utf8');
     const block = source.slice(source.indexOf('export const games'));
-    return [...block.matchAll(/^\s*(?:\{[^\n]*?\bid: '([a-z-]+)'|id: '([a-z-]+)',$)/gm)].map(m => m[1] ?? m[2]);
+    const sites = readdirSync(join(root, 'src/games')).filter(id => existsSync(join(root, 'src/games', id, 'definition.ts')));
+    return [...[...block.matchAll(/^\s*(?:\{[^\n]*?\bid: '([a-z-]+)'|id: '([a-z-]+)',$)/gm)].map(m => m[1] ?? m[2]), ...sites];
 }
 /** Line of the test() call whose title is `title`: what `playwright test file:line` addresses. */
 export function testLine(root, spec, title) {
