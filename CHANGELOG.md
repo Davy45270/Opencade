@@ -5,6 +5,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Téléphone : la liste des niveaux défile de nouveau au doigt, dans tous les jeux, en portrait comme en paysage. Jusqu’ici, la zone de jeu bloquait tout glissé, y compris dans cette liste : au-delà d’un écran, les niveaux suivants restaient hors d’atteinte. En partie, un glissé sur le jeu ne fait toujours pas défiler la page.
 - Bubble : 100 niveaux de plus (31 à 130), en dix paliers de dix. Chaque palier s’ouvre sur un niveau plus facile pour souffler, a son décor (jungle, automne, volcan, cirque, ciel) et ajoute une mécanique déjà connue. Un solveur gagne chaque niveau avec sa vraie donne, et le regagne quand le plafond descend 20 % plus souvent ; ces parties sont rejouées par les tests.
 - Bubble : le niveau 9 « Cristal » devient plus abordable. Son plafond descend tous les 8 tirs au lieu de 7, et son dessin ne change pas.
 - Bubble : les billes spéciales se reconnaissent au premier coup d’œil, même sans distinguer les couleurs. Chacune a son symbole cerné, et la bombe comme le tir arc-en-ciel sont animés. Une bulle d’une ligne présente chaque effet la première fois qu’il apparaît, et la pause en donne la légende.

@@ -108,7 +108,11 @@ export function renderTouchControls(inputs: Inputs, buttons: readonly TouchButto
         });
         if (!spec.compactMenu && !spec.setting && !spec.corner) slots.get(spec.placement)?.append(button);
     }
-    inputs.on(document.querySelector('#play-area'), 'touchmove', event => { event.preventDefault(); }, { passive: false });
+    // Play gestures never scroll the page; the level list, a panel over the play area, scrolls under the finger.
+    inputs.on(document.querySelector('#play-area'), 'touchmove', event => {
+        if (event.target instanceof Element && event.target.closest('#level-select')) return;
+        event.preventDefault();
+    }, { passive: false });
     inputs.on(document.querySelector('#game'), 'pointerdown', event => {
         if ((event as PointerEvent).pointerType === 'touch') document.body.classList.add('touch');
     });
