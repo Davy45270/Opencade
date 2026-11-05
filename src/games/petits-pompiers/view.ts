@@ -4,21 +4,36 @@ import { contextualAction, forkEngine } from './controls';
 export interface Box { x: number; y: number; width: number; height: number }
 export interface View { x: number; y: number; scale: number }
 export const worldBox: Box = { x: 0, y: 112, width: 360, height: 528 };
+/** The canvas the map is drawn in: `top` is where the HUD ends (the map runs under it, edge to edge). */
+export interface Frame { width: number; height: number; top: number }
+export const FIXED_FRAME: Frame = { width: 360, height: 640, top: 112 };
+/** Map extent drawn by the arena (sky band and border included), in world units. */
+export const MAP = { left: 8, top: 124, right: 352, bottom: 446 } as const;
+/** A tile stays at least this wide on screen (CSS px): large enough for a child's finger. */
+export const MIN_TILE_PX = 44;
 const clamp = (n: number, min: number, max: number): number => Math.max(min, Math.min(max, n));
-/** World coordinates stay unchanged; only the cached images and dynamic layer move. */
-export function cameraView(e: Engine, previous?: View, reduced = false): View {
-    const scale = 2.2;
-    const x = clamp(180 - (OX + e.player.x / TILE * UNIT) * scale, 360 - (OX + WIDTH * UNIT) * scale, -OX * scale);
+/** Map zoom for a frame: tiles at least MIN_TILE_PX, and the map always covers the whole frame (no band). */
+export function mapScale(frame: Frame): number {
+    if (frame === FIXED_FRAME) return 2.2;
+    return Math.max(MIN_TILE_PX / UNIT, frame.width / (MAP.right - MAP.left), frame.height / (MAP.bottom - MAP.top));
+}
+/** World coordinates stay unchanged; only the cached images and dynamic layer move.
+ *  The camera follows the player inside the part of the frame under the HUD. */
+export function cameraView(e: Engine, previous?: View, reduced = false, frame: Frame = FIXED_FRAME): View {
+    const scale = mapScale(frame), fixed = frame === FIXED_FRAME;
+    const px = OX + e.player.x / TILE * UNIT, py = OY + e.player.y / TILE * UNIT;
+    const x = fixed ? clamp(180 - px * scale, 360 - (OX + WIDTH * UNIT) * scale, -OX * scale) : clamp(frame.width / 2 - px * scale, frame.width - MAP.right * scale, -MAP.left * scale);
     // Leave headroom for the tall helmet at the north edge and feet at the south edge.
-    const y = clamp(376 - (OY + e.player.y / TILE * UNIT) * scale, 640 - (OY + HEIGHT * UNIT) * scale, worldBox.y + 72 - OY * scale);
+    const y = fixed ? clamp((worldBox.y + 640) / 2 - py * scale, 640 - (OY + HEIGHT * UNIT) * scale, worldBox.y + 72 - OY * scale)
+        : clamp((frame.top + frame.height) / 2 - py * scale, frame.height - MAP.bottom * scale, -MAP.top * scale);
     const blend = previous && !reduced ? .18 : 1;
     return { x: (previous?.x ?? x) + (x - (previous?.x ?? x)) * blend, y: (previous?.y ?? y) + (y - (previous?.y ?? y)) * blend, scale };
 }
 export function onScreen(view: View, p: { x: number; y: number }) { return { x: view.x + p.x * view.scale, y: view.y + p.y * view.scale }; }
-export function edgeGuide(e: Engine, view: View): { x: number; y: number; angle: number; outside: boolean } {
-    const goal = onScreen(view, position(e.nextObjective().at)), center = { x: 180, y: 376 };
+export function edgeGuide(e: Engine, view: View, frame: Frame = FIXED_FRAME): { x: number; y: number; angle: number; outside: boolean } {
+    const goal = onScreen(view, position(e.nextObjective().at)), center = { x: frame.width / 2, y: (frame.top + frame.height) / 2 };
     const dx = goal.x - center.x, dy = goal.y - center.y;
-    const ratio = Math.min(1, 158 / Math.max(1, Math.abs(dx)), 238 / Math.max(1, Math.abs(dy)));
+    const ratio = Math.min(1, (frame.width / 2 - 22) / Math.max(1, Math.abs(dx)), ((frame.height - frame.top) / 2 - 26) / Math.max(1, Math.abs(dy)));
     const player = onScreen(view, { x: OX + e.player.x / TILE * UNIT, y: OY + e.player.y / TILE * UNIT });
     return { x: center.x + dx * ratio, y: center.y + dy * ratio, angle: Math.atan2(goal.y - player.y, goal.x - player.x), outside: ratio < 1 };
 }

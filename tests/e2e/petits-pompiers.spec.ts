@@ -11,9 +11,11 @@ async function choose(page: Page, mobile: boolean, mode: 'detente' | 'defi' = 'd
 }
 async function playerClip(page: Page) {
     return page.evaluate(() => {
-        const p = window.__PETITS_POMPIERS_TEST__?.playerArea(), r = document.querySelector('#game canvas')?.getBoundingClientRect();
-        if (!p || !r) throw new Error('Zone mascotte absente');
-        return { x: r.x + p.x / 360 * r.width, y: r.y + p.y / 640 * r.height, width: p.width / 360 * r.width, height: p.height / 640 * r.height };
+        const p = window.__PETITS_POMPIERS_TEST__?.playerArea(), c = document.querySelector<HTMLCanvasElement>('#game canvas'), r = c?.getBoundingClientRect();
+        if (!p || !c || !r) throw new Error('Zone mascotte absente');
+        // Full-screen canvas: playerArea is in canvas pixels (the game size), not in a fixed 360×640 world.
+        const k = r.width / c.width;
+        return { x: r.x + p.x * k, y: r.y + p.y * k, width: p.width * k, height: p.height * k };
     });
 }
 test('Petits Pompiers : accueil, cinq mascottes distinctes et sélection du mode', async ({ page }, info) => {

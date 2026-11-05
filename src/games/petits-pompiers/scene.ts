@@ -16,7 +16,9 @@ import { contextualAction, actionIcons, sectorDirection } from './controls';
 import { dynamicArt, firefighter, drop, flame, victim, toolArt, OX, OY, UNIT } from './art';
 import { ArenaLayer } from './arena';
 import { mascotGallery } from './gallery';
-import { cameraView, edgeGuide, hudLayout, onScreen, tutorialAction, worldBox, type View } from './view';
+import { cameraView, edgeGuide, hudLayout, onScreen, tutorialAction, type Frame, type View } from './view';
+/** Rendered size of the HUD counters, in CSS px. */
+const COUNTER_PX = 18;
 export const pompiersButtons: readonly TouchButton[] = [
     { id: 'pompiers-action', label: '💧', ariaLabel: 'Action contextuelle', size: 64, placement: 'right', mode: 'hold' },
     { id: 'pompiers-tool', label: '🧰', ariaLabel: 'Changer d’outil', size: 56, placement: 'right', mode: 'hold' },
@@ -27,6 +29,10 @@ export interface PompiersHook {
     loadLevel(level: number, seed?: number): void;
     hudText(): string;
     hudCells(): ReturnType<typeof hudLayout>;
+    /** Rendered (CSS px) font size of the HUD counters. */
+    counterPx(): number;
+    /** Canvas frame (CSS px), HUD box and map zoom: the full-screen shell's measurements. */
+    frame(): Frame & { hud: { x: number; y: number; width: number; height: number }; tilePx: number };
     usefulArea(): { x: number; y: number; width: number; height: number };
     advance(ms: number): void;
     pilotAction(): Intent;
@@ -46,6 +52,9 @@ export class PetitsPompiersScene extends Phaser.Scene {
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: Phaser.GameObjects.Graphics;
     private hudLabels: Phaser.GameObjects.Text[] = [];
+    private hudLayer?: Phaser.GameObjects.Container;
+    private overlay?: Phaser.GameObjects.Graphics;
+    private safe?: HTMLElement;
     private view?: View;
     private gallery?: HTMLCanvasElement;
     private instruction?: Phaser.GameObjects.Text;
@@ -83,12 +92,20 @@ export class PetitsPompiersScene extends Phaser.Scene {
     }
     create(): void {
         document.body.classList.add('petits-pompiers');
+        // Full-screen shell: the safe-area insets are read from a probe, the canvas cannot read env().
+        this.safe = document.createElement('div'); this.safe.setAttribute('aria-hidden', 'true');
+        this.safe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;top:env(safe-area-inset-top);left:env(safe-area-inset-left);right:env(safe-area-inset-right);height:0';
+        document.body.append(this.safe);
         const style = document.createElement('style');
-        style.textContent = 'body.petits-pompiers #touch-controls{height:120px;min-height:120px;flex-basis:120px;margin-bottom:max(12px,env(safe-area-inset-bottom));touch-action:none}body.petits-pompiers #touch-controls .left{flex:0 0 120px}body.petits-pompiers .joystick{position:relative;border:0;border-radius:0;background:none;touch-action:none}body.petits-pompiers .joystick::before{content:"";position:absolute;inset:0;border:3px solid #ffe095;border-radius:50%;background:radial-gradient(circle,#8bbcac 0 16%,#295e69 17% 61%,#7ab8b7 62%);pointer-events:none}body.petits-pompiers .joystick::after{content:"✥";position:absolute;inset:30px;text-align:center;color:#fff0ba;font-size:40px;pointer-events:none}body.petits-pompiers #touch-controls #pompiers-action{width:80px;height:80px;min-width:80px!important;min-height:80px!important;position:relative;border-radius:50%;font-size:16px;background:#f2bf63;color:#253d50;border:3px solid #fff0b7}body.petits-pompiers #pompiers-action[data-tutorial="true"]::after{content:"👇";position:absolute;left:20px;top:-42px;font-size:32px;pointer-events:none}body.petits-pompiers #touch-controls #pompiers-tool{border-radius:18px;background:#477787;font-size:16px}#pompiers-mode{flex-wrap:wrap;align-content:center;padding:12px;box-sizing:border-box;position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;gap:16px;background:#183b4fed}#pompiers-mode button{min-width:130px;min-height:130px;font-size:24px;border-radius:26px;background:#ffdf91;color:#253d50;touch-action:none}';
+        style.textContent = 'body.petits-pompiers #touch-controls{height:120px;min-height:120px;flex-basis:120px;margin-bottom:max(12px,env(safe-area-inset-bottom));touch-action:none}body.petits-pompiers #touch-controls .left{flex:0 0 120px}body.petits-pompiers .joystick{position:relative;border:0;border-radius:0;background:none;touch-action:none}body.petits-pompiers .joystick::before{content:"";position:absolute;inset:0;border:3px solid #ffe095;border-radius:50%;background:radial-gradient(circle,#8bbcac 0 16%,#295e69 17% 61%,#7ab8b7 62%);pointer-events:none}body.petits-pompiers .joystick::after{content:"✥";position:absolute;inset:30px;text-align:center;color:#fff0ba;font-size:40px;pointer-events:none}body.petits-pompiers #touch-controls #pompiers-action{width:80px;height:80px;min-width:80px!important;min-height:80px!important;position:relative;border-radius:50%;font-size:16px;background:#f2bf63;color:#253d50;border:3px solid #fff0b7}body.petits-pompiers #pompiers-action[data-tutorial="true"]::after{content:"👇";position:absolute;left:20px;top:-42px;font-size:32px;pointer-events:none}body.petits-pompiers #touch-controls #pompiers-tool{border-radius:18px;background:#9fd3e0;border:3px solid #fff0b7;font-size:16px}#pompiers-mode{flex-wrap:wrap;align-content:center;padding:12px;box-sizing:border-box;position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;gap:16px;background:#183b4fed}#pompiers-mode button{min-width:130px;min-height:130px;font-size:24px;border-radius:26px;background:#ffdf91;color:#253d50;touch-action:none}';
         document.head.append(style);
         this.arena = new ArenaLayer(this); this.graphics = this.add.graphics().setDepth(3);
-        this.hud = this.add.graphics().setDepth(4);
-        for (let i = 0; i < 7; i++) this.hudLabels.push(this.add.text(0, 0, '', { fontFamily: 'system-ui', fontSize: '18px', fontStyle: 'bold', color: '#263c51' }).setDepth(5));
+        this.hud = this.add.graphics();
+        for (let i = 0; i < 7; i++) this.hudLabels.push(this.add.text(0, 0, '', { fontFamily: 'system-ui', fontSize: '18px', fontStyle: 'bold', color: '#263c51' }));
+        // The HUD cells float over the map in the top-left corner, scaled to the screen, never under the ⏸.
+        this.hudLayer = this.add.container(0, 0, [this.hud, ...this.hudLabels]).setDepth(5);
+        this.overlay = this.add.graphics().setDepth(4);
+        this.cameras.main.setBackgroundColor('#eef4e9');
         this.instruction = this.add.text(180, 455, '', { fontFamily: 'system-ui', fontSize: '30px', color: '#263c51' }).setOrigin(.5, 0).setDepth(5);
         this.gallery = mascotGallery(); document.querySelector('#level-select')?.prepend(this.gallery);
         renderTouchControls(this.inputs, pompiersButtons, (id, held) => { if (this.session.paused || this.selecting) return; if (id === 'pompiers-action') this.held.action = held; else this.held.tool = held; });
@@ -112,7 +129,12 @@ export class PetitsPompiersScene extends Phaser.Scene {
             loadLevel: (level, seed) => { this.start(level, seed); this.session.menuOpen = false; this.session.onChange?.(); },
             hudText: () => `Petits Pompiers · SCORE ${String(this.engine.stars * 100)}`,
             hudCells: () => hudLayout(this.engine),
-            usefulArea: () => ({ ...worldBox }),
+            counterPx: () => parseFloat(String(this.hudLabels[0]?.style.fontSize ?? 0)) * this.hudScale().scale * this.cssScale(),
+            frame: () => {
+                const f = this.frame(), h = this.hudScale(), k = this.cssScale(), view = this.view ?? cameraView(this.engine, undefined, true, f);
+                return { width: f.width * k, height: f.height * k, top: f.top * k, hud: { x: h.x * k, y: h.y * k, width: 352 * h.scale * k, height: (f.top - h.y) * k }, tilePx: UNIT * view.scale * k };
+            },
+            usefulArea: () => { const f = this.frame(); return { x: 0, y: f.top, width: f.width, height: f.height - f.top }; },
             advance: ms => { if (!Number.isFinite(ms) || ms < 0) throw new RangeError('Durée'); this.manual = true; this.advance(ms); },
             pilotAction: () => this.pilot.readAction(this.engine),
             scenario: name => {
@@ -126,9 +148,9 @@ export class PetitsPompiersScene extends Phaser.Scene {
                 this.contextTick = -1; this.draw();
             },
             renderStats: () => ({ backgroundBakes: this.arena?.bakes ?? 0, dynamicCommands: (this.graphics?.commandBuffer.length ?? 0) + (this.hud?.commandBuffer.length ?? 0) }),
-            playerArea: () => { const view = this.view ?? cameraView(this.engine), p = onScreen(view, { x: OX + this.engine.player.x / 32 * UNIT, y: OY + this.engine.player.y / 32 * UNIT }); return { x: Math.max(0, p.x - 26 * view.scale), y: Math.max(112, p.y - 38 * view.scale), width: 52 * view.scale, height: 56 * view.scale }; },
+            playerArea: () => { const view = this.view ?? cameraView(this.engine), p = onScreen(view, { x: OX + this.engine.player.x / 32 * UNIT, y: OY + this.engine.player.y / 32 * UNIT }); return { x: Math.max(0, p.x - 26 * view.scale), y: Math.max(this.frame().top, p.y - 38 * view.scale), width: 52 * view.scale, height: 56 * view.scale }; },
         };
-        const cleanup = (): void => { this.arena?.destroy(); this.inputs.dispose(); this.modePanel?.remove(); this.gallery?.remove(); style.remove(); document.body.classList.remove('petits-pompiers'); delete window.__PETITS_POMPIERS_TEST__; sound.stop(); };
+        const cleanup = (): void => { this.arena?.destroy(); this.inputs.dispose(); this.modePanel?.remove(); this.gallery?.remove(); style.remove(); this.safe?.remove(); document.body.classList.remove('petits-pompiers'); delete window.__PETITS_POMPIERS_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.start(Math.max(0, this.progress.save.unlocked - 1));
         this.selecting = true; this.session.state = 'playing'; this.session.onChange?.(); renderLevels(LEVELS, this.progress.save, index => { this.chooseMode(index); }); this.panels();
@@ -159,18 +181,34 @@ export class PetitsPompiersScene extends Phaser.Scene {
     }
     updatePaused(): void { this.clearInput(); this.draw(); }
     update(_time: number, delta: number): void { if (!this.manual) this.advance(Math.min(delta, 100)); else this.draw(); }
+    /** Canvas px per CSS px (1 in RESIZE; kept general). */
+    private cssScale(): number { const w = this.game.canvas.getBoundingClientRect().width; return w > 0 ? w / this.scale.width : 1; }
+    /** HUD placement: inside the safe area, 0.6× to 1.4× its 352 px design, leaving 60 px for the ⏸. */
+    private hudScale(): { x: number; y: number; scale: number } {
+        const r = this.safe?.getBoundingClientRect(), canvas = this.game.canvas.getBoundingClientRect(), k = 1 / this.cssScale();
+        const left = Math.max(0, (r?.left ?? 0) - canvas.left) * k, top = Math.max(0, (r?.top ?? 0) - canvas.top) * k, right = Math.max(0, canvas.right - (r?.right ?? canvas.right)) * k;
+        // Landscape: the HUD keeps at most a third of the height so the map stays playable.
+        return { x: left, y: top, scale: Math.min(1.4, Math.max(.6, Math.min((this.scale.width - left - right - 60) / 352, (this.scale.height - top) * .32 / 104))) };
+    }
+    /** The map covers the whole canvas; the camera centres the player in the part under the HUD. */
+    private frame(): Frame { const h = this.hudScale(); return { width: this.scale.width, height: this.scale.height, top: h.y + 104 * h.scale }; }
     private draw(): void {
         const g = this.graphics; if (!g) return;
-        const e = this.engine, reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
-        this.view = cameraView(e, this.view, reduced);
+        const e = this.engine, reduced = matchMedia('(prefers-reduced-motion: reduce)').matches, frame = this.frame(), place = this.hudScale();
+        this.view = cameraView(e, this.view, reduced, frame);
+        this.hudLayer?.setPosition(place.x, place.y).setScale(place.scale);
+        const overlay = this.overlay; overlay?.clear();
         this.arena?.sync(e); this.arena?.view(this.view);
         g.clear(); dynamicArt(g, e, reduced); g.setPosition(this.view.x, this.view.y).setScale(this.view.scale);
         const hud = this.hud;
         if (hud) {
-            hud.clear(); hud.fillStyle(0xeef4e9); hud.fillRect(0, 0, 360, 112);
+            hud.clear();
             const cells = hudLayout(e);
+            // Counters are read by children: at least 18 px on screen, whatever the HUD scale.
+            const shown = place.scale * this.cssScale(), font = Math.min(28, Math.max(18, Math.ceil(COUNTER_PX / (shown || 1))));
             this.hudLabels.forEach((label, i) => {
                 const cell = cells[i]; label.setText(cell?.text ?? '');
+                if (label.style.fontSize !== `${String(font)}px`) label.setFontSize(font);
                 if (!cell) return;
                 const { x, y, width, height } = cell.box;
                 hud.fillStyle(cell.done ? 0xc9ebd1 : 0xffffff); hud.fillRoundedRect(x, y, width, height, 12);
@@ -180,22 +218,22 @@ export class PetitsPompiersScene extends Phaser.Scene {
                 } else if (cell.id === 'extinguish') flame(hud, x + 19, y + 26, 18);
                 else if (cell.id === 'rescue_person' || cell.id === 'rescue_animal') victim(hud, x + 19, y + 23, cell.id === 'rescue_person' ? 'person' : 'cat', 24);
                 else if (cell.id === 'heal') toolArt(hud, 'kit', x + 19, y + 25);
-                label.setPosition(x + (['hearts', 'time'].includes(cell.id) ? 7 : 37), y + (height === 50 ? 17 : 7));
+                label.setOrigin(0, .5).setPosition(x + (['hearts', 'time'].includes(cell.id) ? 7 : 37), y + height / 2);
                 if (cell.done) { hud.lineStyle(3, 0x258653); hud.lineBetween(x + width - 17, y + 9, x + width - 12, y + 14); hud.lineBetween(x + width - 12, y + 14, x + width - 5, y + 5); }
             });
-            if (e.status === 'won') firefighter(hud, e.character, 180, 566, 110, reduced ? 0 : e.time, 0, 1, false, true, false);
-            const guide = edgeGuide(e, this.view);
-            if (e.status === 'playing' && (guide.outside || e.nextObjective().type === 'exit')) {
+            if (e.status === 'won' && overlay) firefighter(overlay, e.character, frame.width / 2, frame.height - 74, 110, reduced ? 0 : e.time, 0, 1, false, true, false);
+            const guide = edgeGuide(e, this.view, frame);
+            if (overlay && e.status === 'playing' && (guide.outside || e.nextObjective().type === 'exit')) {
                 const { x, y, angle } = guide, dx = Math.cos(angle), dy = Math.sin(angle);
-                hud.lineStyle(7, 0x263c51); hud.lineBetween(x - dx * 15, y - dy * 15, x + dx * 9, y + dy * 9);
-                hud.fillStyle(0xffdc65); hud.fillTriangle(x + dx * 16, y + dy * 16, x - dx * 5 - dy * 11, y - dy * 5 + dx * 11, x - dx * 5 + dy * 11, y - dy * 5 - dx * 11);
+                overlay.lineStyle(7, 0x263c51); overlay.lineBetween(x - dx * 15, y - dy * 15, x + dx * 9, y + dy * 9);
+                overlay.fillStyle(0xffdc65); overlay.fillTriangle(x + dx * 16, y + dy * 16, x - dx * 5 - dy * 11, y - dy * 5 + dx * 11, x - dx * 5 + dy * 11, y - dy * 5 - dx * 11);
             }
         }
         const context = this.actionContext(), button = document.querySelector('#pompiers-action');
         if (button) { button.innerHTML = `<span aria-hidden="true" style="font-size:34px;pointer-events:none">${actionIcons[context]}</span>`; button.setAttribute('data-action', context); button.setAttribute('aria-label', `Action : ${{ spray: 'jet d’eau', foam: 'mousse', refill: 'remplir', pickup: 'porter', deposit: 'déposer', heal: 'soigner', break: 'déblayer', climb: 'monter', call: 'appeler' }[context]}`); }
         const showAction = this.index === 0 && tutorialAction(e, context);
         button?.setAttribute('data-tutorial', String(showAction));
-        this.instruction?.setText(e.status === 'won' ? '⭐'.repeat(e.stars) : '');
+        this.instruction?.setText(e.status === 'won' ? '⭐'.repeat(e.stars) : '').setPosition(frame.width / 2, frame.height * .71);
         const status = document.querySelector('#status'); if (status) status.textContent = `${e.level.name} · ${e.mode} · eau ${String(Math.round(e.player.water))} · ${e.status}`;
     }
 }

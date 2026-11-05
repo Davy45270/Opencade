@@ -6,7 +6,7 @@ import { ids } from '../src/characters/model.ts';
 import { ArenaLayer } from '../src/games/petits-pompiers/arena.ts';
 import { dynamicArt, firefighter } from '../src/games/petits-pompiers/art.ts';
 import { contextualAction, stickDirection, sectorDirection, forkEngine } from '../src/games/petits-pompiers/controls.ts';
-import { cameraView, edgeGuide, hudLayout, onScreen, tutorialAction, waterEnd, worldBox } from '../src/games/petits-pompiers/view.ts';
+import { cameraView, edgeGuide, hudLayout, onScreen, tutorialAction, waterEnd, worldBox, FIXED_FRAME } from '../src/games/petits-pompiers/view.ts';
 import { fingerProof } from '../src/games/petits-pompiers/finger.ts';
 import { TouchPilot } from '../src/games/petits-pompiers/driver.ts';
 import { mutationModule } from './mutation-module.js';
@@ -75,7 +75,8 @@ try {
         assert.equal(bakes, before); assert.equal(arena.bakes, backgrounds);
         const state = JSON.stringify(e.snapshot()), expected = forkEngine(e); expected.previous = { ...IDLE }; expected.input({ ...IDLE, action: true }); expected.step(FIXED);
         assert.equal(contextualAction(e), expected.job?.kind ?? 'spray'); assert.equal(JSON.stringify(e.snapshot()), state);
-        const context = { engine: e, graphics: g, arena, index: level, actionContext: () => contextualAction(e) };
+        // The full-screen scene reads its frame and HUD placement from the canvas; the oracle draws in the fixed 360×640 frame.
+        const context = { engine: e, graphics: g, arena, index: level, actionContext: () => contextualAction(e), frame: () => FIXED_FRAME, hudScale: () => ({ x: 0, y: 0, scale: 1 }), cssScale: () => 1 };
         PetitsPompiersScene.prototype.draw.call(context); assert(g.commandBuffer.length < 2600);
     }
     for (const id of ids) { g.clear(); firefighter(g, id, 100, 100, 48, 0, 0, 1, false, false, false); commands.add(JSON.stringify(g.commandBuffer)); }
@@ -118,6 +119,7 @@ try {
         append(...children) { this.children.push(...children); }
         prepend(...children) { this.children.unshift(...children); }
         getContext() { return null; }
+        getBoundingClientRect() { return this.tagName === 'canvas' ? { left: 0, top: 0, right: 360, bottom: 640, width: 360, height: 640 } : { left: 0, top: 0, right: 360, bottom: 0, width: 360, height: 0 }; }
         replaceChildren(...children) { this.children = children; }
         remove() { const i = elements.indexOf(this); if (i >= 0) elements.splice(i, 1); }
     }
@@ -126,8 +128,8 @@ try {
         querySelector: selector => selector === '#touch-controls .left' ? elements.find(e => e.className === 'touch-slot left') : selector.startsWith('#') ? nodes[selector.slice(1)] ?? elements.find(e => e.id === selector.slice(1)) ?? null : null });
     globalThis.window = new EventTarget(); globalThis.location = { search: '?test=1' };
     const cleanups = [];
-    const text = (x, y) => { const t = { x, y, text: '', setText(value) { t.text = value; return t; }, setDepth() { return t; }, setOrigin() { return t; }, setPosition(x, y) { t.x = x; t.y = y; return t; } }; return t; };
-    Object.assign(scene, { make: platform.make, textures: platform.textures, add: { ...platform.add, graphics: chainGraphics, text },
+    const text = (x, y) => { const t = { x, y, text: '', style: { fontSize: '18px' }, setFontSize(size) { t.style.fontSize = `${String(size)}px`; return t; }, setText(value) { t.text = value; return t; }, setDepth() { return t; }, setOrigin() { return t; }, setPosition(x, y) { t.x = x; t.y = y; return t; } }; return t; };
+    Object.assign(scene, { make: platform.make, textures: platform.textures, add: { ...platform.add, graphics: chainGraphics, text, container() { const c = { setDepth: () => c, setPosition: () => c, setScale: () => c, destroy() {} }; return c; } }, scale: { width: 360, height: 640 }, cameras: { main: { setBackgroundColor() {} } },
         events: { once: (name, callback) => { if (name === 'shutdown') cleanups.push(callback); } }, game: { canvas: new ElementStub('canvas') } });
     try {
         scene.create(); assert.equal(scene.session.state, 'playing'); assert.equal(scene.session.menuOpen, false);
@@ -175,7 +177,7 @@ try {
         for (const id of ids) {
             scene.engine.character = id; scene.draw();
             assert.equal(helmets(scene.graphics).length, 0, 'no mascot left on the truck');
-            const celebration = helmets(scene.hud); assert.equal(celebration.length, 1, 'one celebration mascot');
+            const celebration = helmets(scene.overlay); assert.equal(celebration.length, 1, 'one celebration mascot'); assert.equal(helmets(scene.hud).length, 0, 'no mascot in the scaled HUD');
             const helmet = celebration[0], size = 110, scale = size / 240;
             assert.equal(helmet[1], 180 - size / 2 + 69 * scale, 'celebration centered');
             assert.equal(scene.instruction.x, 180); assert(scene.instruction.y < helmet[2], 'stars above mascot');

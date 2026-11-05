@@ -52,6 +52,7 @@ function route(): void {
     if (home) home.hidden = Boolean(definition);
     if (play) play.hidden = !definition;
     document.body.classList.toggle('playing', Boolean(definition));
+    document.body.classList.toggle('fill-screen', definition?.fill === true);
     if (!definition) {
         setupCharacters(sessionInputs, testing);
         const cards = document.querySelector('#game-cards');
@@ -93,7 +94,8 @@ function route(): void {
     game = new Phaser.Game({
         type: Phaser.AUTO, parent: 'game', width: 360, height: 640,
         backgroundColor: '#101827', scene: [scene],
-        scale: { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
+        // A full-screen game draws at the play area's size; the others keep their 360×640 world scaled to fit.
+        scale: definition.fill ? { mode: Phaser.Scale.RESIZE } : { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
         render: { antialias: true }, input: { activePointers: 2 },
     });
     const container = document.querySelector('#game');

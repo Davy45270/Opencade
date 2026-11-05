@@ -14,6 +14,7 @@ for (const viewport of windows) for (const id of ids) {
             const box = (element: Element) => { const r = element.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; };
             const required = (selector: string) => { const e = document.querySelector(selector); if (!e) throw new Error(selector); return e; };
             const canvas = box(required('canvas'));
+            const world = required('canvas') as HTMLCanvasElement;
             const body = getComputedStyle(document.body);
             const useful = window.__ARCADE_TEST__?.games[id]?.usefulArea();
             if (!useful) throw new Error('Zone utile absente');
@@ -22,7 +23,8 @@ for (const viewport of windows) for (const id of ids) {
                 availableWidth: innerWidth - parseFloat(body.paddingLeft) - parseFloat(body.paddingRight),
                 availableHeight: innerHeight - box(required('#topbar')).height - box(required('#touch-controls')).height,
                 game: box(required('#game')), bar: box(required('#topbar')), row: box(required('#touch-controls')),
-                useful: { x: canvas.x + useful.x * canvas.width / 360, y: canvas.y + useful.y * canvas.height / 640, width: useful.width * canvas.width / 360, height: useful.height * canvas.height / 640 },
+                // usefulArea is in game pixels: the 360×640 world of a FIT game, the canvas size of a full-screen (RESIZE) game.
+                useful: { x: canvas.x + useful.x * canvas.width / world.width, y: canvas.y + useful.y * canvas.height / world.height, width: useful.width * canvas.width / world.width, height: useful.height * canvas.height / world.height },
                 controls: Array.from(document.querySelectorAll('#touch-controls button, #touch-controls label, .joystick')).filter(e => e.getBoundingClientRect().width > 0).map(e => { const r = box(e); return { id: e.id || e.className, ...r, receivesPointer: e.contains(document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2)) }; }),
                 targets: Array.from(document.querySelectorAll('#topbar button')).filter(e => e.getBoundingClientRect().width > 0).map(box),
                 buttons: Array.from(document.querySelectorAll('#touch-controls button')).filter(e => e.getBoundingClientRect().width > 0).map(e => ({
