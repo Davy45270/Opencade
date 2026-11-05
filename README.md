@@ -20,7 +20,7 @@ The detailed game specification, [GAME_SPEC.md](GAME_SPEC.md), is in French.
 
 # Opencade
 
-The selected companion now plays in Caisses, Traverse, Alunir, Dérapage, Bubble Lab and Serpentin, with shared procedural art, reactions and equally balanced tactical specials.
+The selected companion now plays in Caisses, Traverse, Alunir, Pistouille, Bubble Lab and Serpentin, with shared procedural art, reactions and equally balanced tactical specials.
 
 Ferraille now spans 30 authored stages with six enemy behaviors, flame/ricochet/grenade pickups, wagon rides, hostage rescues and vulnerable multi-phase guardians.
 
@@ -61,7 +61,7 @@ Phone portrait captures taken during play (`node scripts/screenshots.js` regener
 <tr>
 <td align="center" width="33%"><img src="docs/screenshots/game-caisses.webp" alt="Caisses" width="240"><br><b>Caisses</b><br>Push crates onto their targets, with unlimited undo.</td>
 <td align="center" width="33%"><img src="docs/screenshots/game-traverse.webp" alt="Traverse" width="240"><br><b>Traverse</b><br>Hop across traffic, logs and diving floats to the shelters.</td>
-<td align="center" width="33%"><img src="docs/screenshots/game-derapage.webp" alt="Dérapage" width="240"><br><b>Dérapage</b><br>Drift a kart around 30 tracks and race for the podium.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-derapage.webp" alt="Pistouille" width="240"><br><b>Pistouille</b><br>Drift a kart around 30 tracks and race for the podium.</td>
 </tr>
 <tr>
 <td align="center" width="33%"><img src="docs/screenshots/game-pepites.webp" alt="Pépites" width="240"><br><b>Pépites</b><br>Dig through the mine, dodge falling boulders and gather every nugget.</td>
@@ -100,11 +100,11 @@ while pausing play.
 | **Alunir** | Land a lunar module gently while managing rotation, thrust and fuel over rough terrain and gusts. | Up/W: thrust; Left/Right or A/D: rotate; touch: hold the rotation and Thrust buttons. |
 | **Caisses** | Push one to six crates onto targets, with unlimited undo and solver-proven records to beat. | Arrows or Q/S/D and Shift+Z: move; Z/Backspace: undo; R: restart; touch: swipe or direction pad, Undo button. |
 | **Traverse** | Reach shelters across traffic, moving logs and diving floats. | Arrows or ZQSD: step; mouse click or touch tap: up; swipe or direction pad: step. |
-| **Dérapage** | Steer a kart, charge drifts and race for the podium across seven original cups. | Arrows: absolute direction, including diagonals; Space/Shift: drift; X/Ctrl: bonus; touch: place a 360° joystick anywhere on the road view (10 px dead zone), point where to go, release to hold heading; Drift 88 px and Bonus 56 px; rotating camera and relative steering remain in ☰. |
+| **Pistouille** (formerly Dérapage) | Steer a kart, charge drifts and race for the podium across seven original cups. | Arrows: absolute direction, including diagonals; Space/Shift: drift; X/Ctrl: bonus; touch: place a 360° joystick anywhere on the road view (10 px dead zone), point where to go, release to hold heading; Drift 88 px and Bonus 56 px; rotating camera and relative steering remain in ☰. |
 
-Dérapage now has 30 hand-drawn layouts with cup themes, a full-width finish checker and geometry-based diversity checks.
+Pistouille now has 30 hand-drawn layouts with cup themes, a full-width finish checker and geometry-based diversity checks.
 
-Dérapage includes simulation-time race/lap clocks, best laps, coloured crossing deltas and per-circuit records retained across reloads. The mobile HUD stays above the road; race results include times and ranking. Z28/Z29 cover replay timing and resilient persistence.
+Pistouille includes simulation-time race/lap clocks, best laps, coloured crossing deltas and per-circuit records retained across reloads. The mobile HUD stays above the road; race results include times and ranking. Z28/Z29 cover replay timing and resilient persistence.
 
 Names, rules, levels, artwork and sounds are original. Graphics and synthesized
 sounds are generated in code, with no external game assets, fonts or audio files.
@@ -223,7 +223,7 @@ and the [security policy](SECURITY.md) before contributing.
 
 [MIT](LICENSE) © 2026 David Sevin. Phaser is also MIT licensed.
 
-Dérapage adds alternating slalom gates with time penalties, snow and downhill acceleration, banked BMX turns and jumps, and continuous urban rails.
+Pistouille adds alternating slalom gates with time penalties, snow and downhill acceleration, banked BMX turns and jumps, and continuous urban rails.
 
 Essaim validation (weapons, diversity, 60 campaign wins and mutations): `nice -n 19 ionice -c3 node scripts/validate-essaim.js`. E2E captures run on the test host.
 
@@ -235,7 +235,7 @@ Orbite (pass 64): regenerate/check the 60 ordinary-input victories with
 `nice -n 19 ionice -c3 taskset -c 0,1 node scripts/validate-orbite.js`
 (`--record` to regenerate). Each unit test replays one short recording; long campaigns run only in Node.
 
-Dérapage (pass 67) defaults to a north-up thumb joystick with visible heading, optional light assistance, non-sticky rails and a wide introductory circuit; records migrate by circuit name.
+Pistouille (pass 67) defaults to a north-up thumb joystick with visible heading, optional light assistance, non-sticky rails and a wide introductory circuit; records migrate by circuit name.
 
 The home footer and ☰ menu show the running build; use “Forcer la mise à jour” to refresh the PWA without deleting game saves.
 

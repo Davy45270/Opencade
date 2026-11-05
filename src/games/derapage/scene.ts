@@ -289,7 +289,7 @@ export class DerapageScene extends Phaser.Scene {
             this.start(this.engine.level + 1); });
         for (const id of ['retry-level', 'replay-level', 'restart'])
             this.inputs.on(document.querySelector(`#${id}`), 'click', () => { this.recordedLaps = 0; this.newRecord = false; this.progress.retry(); this.engine.loadLevel(this.engine.level, this.engine.seed); this.manual = false; this.panels(); });
-        this.game.canvas.setAttribute('aria-label', 'Dérapage : course de karts, vue de dessus');
+        this.game.canvas.setAttribute('aria-label', 'Pistouille : course de karts, vue de dessus');
         if (new URLSearchParams(location.search).get('test') === '1')
             window.__DERAPAGE_TEST__ = {
             ...fingerProof,
@@ -695,12 +695,12 @@ export class DerapageScene extends Phaser.Scene {
         const timing = s.timing;
         const delta = timing.lastLapDeltaMs;
         const crossing = timing.lapTimesMs.length === 0 || this.sceneTime-this.lapCrossedAt >= 2000 ? '' : `Écart ${delta === null ? '—' : `${delta < 0 ? '−' : '+'}${formatTime(Math.abs(delta))}`} ${this.newRecord ? 'Nouveau record !' : ''}`;
-        const text = `DÉRAPAGE ${String(e.level + 1)}/30 · PLACE ${String(s.order.indexOf(0) + 1)}/6 · TOUR ${String(Math.min(3, p.lap + 1))}/3
+        const text = `PISTOUILLE ${String(e.level + 1)}/30 · PLACE ${String(s.order.indexOf(0) + 1)}/6 · TOUR ${String(Math.min(3, p.lap + 1))}/3
 SCORE ${String(s.score)} · COURSE ${formatTime(timing.raceMs)} · TOUR ${formatTime(timing.currentLapMs)}
 MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${(p.noticeMs ?? 0) > 0 ? 'Porte manquée +2,0 s' : p.item ?? '—'}${crossing ? ` · ${crossing}` : ''}
 ÉLAN ${p.specialLap === p.lap ? '0' : '1'}/1 · COUPE ${String(s.cup.races)}/4 · ${s.cup.order.map(id => `${String(id + 1)}:${String(s.cup.scores[id])}`).join(' ')}`;
         if (this.hud) {
-            this.game.canvas.setAttribute('aria-label', `Dérapage : course de karts, vue ${this.active3d ? '3D' : 'de dessus'}`);
+            this.game.canvas.setAttribute('aria-label', `Pistouille : course de karts, vue ${this.active3d ? '3D' : 'de dessus'}`);
             const box = this.game.canvas.getBoundingClientRect(), scale = box.width / 360;
             const content = `${text}|${crossing}|${String(delta)}|${String(box.x)},${String(box.y)},${String(box.width)}`;
             this.hud.style.visibility = this.session.paused || this.selecting ? 'hidden' : 'visible';

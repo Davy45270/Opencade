@@ -20,7 +20,7 @@ La spécification détaillée des jeux, [GAME_SPEC.md](GAME_SPEC.md), est en fra
 
 # Opencade
 
-Le compagnon choisi joue dans Caisses, Traverse, Alunir, Dérapage, Bubble Lab et Serpentin, avec dessins procéduraux partagés, réactions et spéciaux tactiques de même puissance.
+Le compagnon choisi joue dans Caisses, Traverse, Alunir, Pistouille, Bubble Lab et Serpentin, avec dessins procéduraux partagés, réactions et spéciaux tactiques de même puissance.
 
 Ferraille propose 30 étapes avec six comportements ennemis, flammes/ricochets/grenades, wagonnet, otages et gardiens à faiblesse, dont un réacteur en trois phases.
 
@@ -63,7 +63,7 @@ Captures en portrait sur téléphone, prises en cours de partie (`node scripts/s
 <tr>
 <td align="center" width="33%"><img src="docs/screenshots/game-caisses.webp" alt="Caisses" width="240"><br><b>Caisses</b><br>Pousser les caisses sur leurs cibles, avec annulation illimitée.</td>
 <td align="center" width="33%"><img src="docs/screenshots/game-traverse.webp" alt="Traverse" width="240"><br><b>Traverse</b><br>Rejoindre les abris à travers la circulation, les troncs et les flotteurs.</td>
-<td align="center" width="33%"><img src="docs/screenshots/game-derapage.webp" alt="Dérapage" width="240"><br><b>Dérapage</b><br>Faire déraper un kart sur 30 circuits et viser le podium.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-derapage.webp" alt="Pistouille" width="240"><br><b>Pistouille</b><br>Faire déraper un kart sur 30 circuits et viser le podium.</td>
 </tr>
 <tr>
 <td align="center" width="33%"><img src="docs/screenshots/game-pepites.webp" alt="Pépites" width="240"><br><b>Pépites</b><br>Creuser la mine, esquiver les rochers qui tombent et ramasser chaque pépite.</td>
@@ -103,11 +103,11 @@ partie en pause.
 | **Alunir** | Poser doucement un module lunaire en dosant rotation, poussée et carburant, entre relief et rafales. | Haut/W : poussée ; Gauche/Droite ou A/D : rotation ; toucher : maintenir les boutons de rotation et Poussée. |
 | **Caisses** | Pousser une à six caisses sur leurs cibles, avec annulation illimitée et records prouvés par solveur. | Flèches ou Q/S/D et Maj+Z : déplacer ; Z/Retour arrière : annuler ; R : recommencer ; toucher : glisser ou croix, bouton Annuler. |
 | **Traverse** | Rejoindre les abris entre trafic routier, rondins mobiles et flotteurs plongeants. | Flèches ou ZQSD : un pas ; clic souris ou tap : monter ; glisser ou croix : un pas. |
-| **Dérapage** | Piloter un kart, charger les dérapages et viser le podium en sept coupes originales. | Flèches : direction absolue et diagonales ; Espace/Maj : dérapage ; X/Ctrl : bonus ; toucher : poser le joystick 360° partout sur la vue de piste (zone morte 10 px), pointer où aller, relâcher pour garder le cap ; Dérapage 88 px et Bonus 56 px ; caméra tournante et braquage relatif disponibles dans ☰. |
+| **Pistouille** (anciennement Dérapage) | Piloter un kart, charger les dérapages et viser le podium en sept coupes originales. | Flèches : direction absolue et diagonales ; Espace/Maj : dérapage ; X/Ctrl : bonus ; toucher : poser le joystick 360° partout sur la vue de piste (zone morte 10 px), pointer où aller, relâcher pour garder le cap ; Dérapage 88 px et Bonus 56 px ; caméra tournante et braquage relatif disponibles dans ☰. |
 
-Dérapage propose 30 tracés dessinés à la main, des thèmes par coupe, un damier sur toute la largeur et une preuve de diversité géométrique.
+Pistouille propose 30 tracés dessinés à la main, des thèmes par coupe, un damier sur toute la largeur et une preuve de diversité géométrique.
 
-Dérapage affiche les chronos de course et de tour en temps de simulation, le meilleur tour, les écarts colorés et les records par circuit conservés après rechargement. Le HUD mobile reste au-dessus de la piste ; le résultat récapitule temps et classement. Z28/Z29 couvrent le rejeu et la persistance tolérante aux erreurs.
+Pistouille affiche les chronos de course et de tour en temps de simulation, le meilleur tour, les écarts colorés et les records par circuit conservés après rechargement. Le HUD mobile reste au-dessus de la piste ; le résultat récapitule temps et classement. Z28/Z29 couvrent le rejeu et la persistance tolérante aux erreurs.
 
 Les noms, règles, niveaux, graphismes et sons sont originaux. Les graphismes et
 sons synthétisés sont produits par le code, sans ressource de jeu externe,
@@ -228,7 +228,7 @@ et la [politique de sécurité](SECURITY.md) avant de contribuer.
 
 [MIT](LICENSE) © 2026 David Sevin. Phaser est également distribué sous licence MIT.
 
-Dérapage ajoute les portes de slalom avec pénalités, la neige et la gravité en descente, les virages relevés et sauts BMX et les rails urbains continus.
+Pistouille ajoute les portes de slalom avec pénalités, la neige et la gravité en descente, les virages relevés et sauts BMX et les rails urbains continus.
 
 Validation Essaim (armes, diversité, 60 victoires et mutations) : `nice -n 19 ionice -c3 node scripts/validate-essaim.js`. Les captures E2E sont réservées à l’hôte de test.
 
@@ -240,7 +240,7 @@ Orbite (passe 64) : régénérer/vérifier les 60 victoires par commandes normal
 `nice -n 19 ionice -c3 taskset -c 0,1 node scripts/validate-orbite.js`
 (`--record` pour régénérer). Chaque test rejoue un enregistrement court ; les campagnes longues restent dans Node.
 
-Dérapage (passe 67) propose par défaut un joystick au nord fixe avec cap visible, aide légère désactivable, rails sans collage et premier circuit large ; les records migrent par nom de circuit.
+Pistouille (passe 67) propose par défaut un joystick au nord fixe avec cap visible, aide légère désactivable, rails sans collage et premier circuit large ; les records migrent par nom de circuit.
 
 Le compagnon choisi sur l'accueil joue désormais dans Caisses, Traverse et Alunir, avec un spécial tactique et des animations dessinées par le code.
 

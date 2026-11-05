@@ -12,6 +12,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 - Menu ☰ de l’accueil : nouvelle entrée « Donner mon avis ». Un simple lien ouvre, dans un nouvel onglet (`rel="noopener"`), les formulaires publics du dépôt. Le jeu n’envoie rien et n’embarque aucun traceur.
 - Deux formulaires courts en français (« Quelque chose ne marche pas », « J'ai une idée ») remplacent les anciens, plus techniques ; le ticket vierge est désactivé. `CONTRIBUTING.md` explique comment signaler.
 - Petits Pompiers : scène jouable, commandes tactiles, mascottes en tenue, sons synthétisés, vignette et preuves de scène.
+- Le jeu de kart Dérapage s’appelle désormais « Pistouille ». Seul le nom affiché change : l’adresse `#/derapage`, les records et la progression sont conservés.
 
 ## [0.5.1] — 2026-11-04
 
