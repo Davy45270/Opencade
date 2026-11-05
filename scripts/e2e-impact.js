@@ -3,7 +3,7 @@
 //   node scripts/e2e-impact.js --base <rev> [--head <rev>]     diff base..head (merge base), human report
 //   node scripts/e2e-impact.js --files a.ts b.ts                same, from an explicit file list
 //   node scripts/e2e-impact.js --base <rev> --args              spec arguments only (empty for N0: then run nothing)
-//   node scripts/e2e-impact.js ... --github                     writes level/specs/count/shards to $GITHUB_OUTPUT
+//   node scripts/e2e-impact.js ... --github                     writes level/specs/count/shards/parts to $GITHUB_OUTPUT
 //   node scripts/e2e-impact.js --specs "tests/e2e/x.spec.ts"    explicit list (workflow_dispatch), validated
 //   node scripts/e2e-impact.js --base <rev> --run [-- <playwright options>]   builds the PWA fixtures and runs the
 //       selection; an empty selection runs nothing (a bare `playwright test` would run the whole suite).
@@ -17,6 +17,8 @@
 //   N3  dependencies, tooling, CI and any file that cannot be classified: home + thumbnails + ONE short test per game.
 // The full suite is never selected: more than MAX_FULL_GAMES games named fall back to their short test, and
 // select() refuses a result that would cover every spec file.
+// CI parts: partition() spreads the selection over the parts by estimated seconds (largest first, to the lightest part),
+// not by file count like playwright --shard; a spec of SPLIT_SPECS is cut by game id with --grep-invert.
 import { execFileSync, spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -99,6 +101,18 @@ export const SPEC_SECONDS = {
     'habillage': 19, 'levels': 18, 'marmaille': 19, 'mobile-layout': 721, 'mobile': 3, 'offline': 6, 'orbite': 143, 'pepites-finger': 107,
     'pepites': 34, 'perf-fps': 86, 'petits-pompiers-finger': 62, 'petits-pompiers-touch': 9, 'petits-pompiers': 118, 'pwa-update': 36,
     'serpentin': 73, 'sound': 9, 'thumbnails': 44, 'touch-edges': 27, 'traverse': 21,
+};
+/**
+ * Specs split across CI parts by game id: their per-id tests are titled `... <id> <width>x<height>`. Weights are the
+ * seconds of each id's tests on the GitHub runner (CI run 42019649998, 2026-11-05), scaled to SPEC_SECONDS; '' is the
+ * rest of the spec (other titles, ids missing here), which stays whole in one part.
+ */
+export const SPLIT_SPECS = {
+    'mobile-layout': {
+        'ferraille': 38.0, 'alunir': 33.9, 'briqueterie': 33.9, 'petits-pompiers': 24.7, 'pepites': 24.5, 'essaim': 22.8, 'collier': 22.5,
+        'derapage': 18.1, 'bombercade': 17.6, 'gourmandises': 16.7, 'orbite': 16.4, 'marmaille': 15.0, 'dedale': 14.2, 'serpentin': 13.8,
+        'traverse': 13.7, 'bubble': 13.3, 'caisses': 12.7, 'empilo': 11.7, '': 5.1,
+    },
 };
 /** N2 shell zones: the specs that exercise that part of the shell, added to the N2 selection. */
 const ZONES = [
@@ -216,8 +230,13 @@ export function select(files, root) {
     if (missing.length) throw new Error(`specs absentes de ${E2E_DIR} : ${missing.join(', ')}`);
     if (allSpecs.every(s => specs.has(s))) throw new Error('la sélection couvrirait toute la suite E2E : refusé');
     const list = [...[...specs].sort().map(specPath), ...[...tests.keys()].sort()];
-    const seconds = [...specs].reduce((t, s) => t + (SPEC_SECONDS[s] ?? 120), 0) + [...tests.values()].reduce((t, s) => t + s, 0);
-    return { level, games, specs: list, seconds: Math.round(seconds), shards: shardCount(list.length, seconds), reasons, notes };
+    const cost = Object.fromEntries([...[...specs].map(s => [specPath(s), SPEC_SECONDS[s] ?? 120]), ...tests]);
+    return result({ level, games, specs: list, reasons, notes }, cost);
+}
+function result(r, cost) {
+    const seconds = r.specs.reduce((t, s) => t + cost[s], 0);
+    const shards = shardCount(r.specs.length, seconds);
+    return { ...r, seconds: Math.round(seconds), shards, parts: partition(r.specs, cost, shards) };
 }
 export function shardCount(count, seconds) {
     if (!count) return 0;
@@ -230,8 +249,45 @@ export function manual(text, root) {
     if (bad.length) throw new Error(`specs refusées : ${bad.join(' ')}`);
     const allSpecs = readdirSync(join(root, E2E_DIR)).filter(f => f.endsWith('.spec.ts'));
     if (allSpecs.every(f => list.includes(`${E2E_DIR}/${f}`))) throw new Error('la sélection couvrirait toute la suite E2E : refusé');
-    const seconds = list.reduce((t, s) => t + (s.includes(':') ? 30 : SPEC_SECONDS[s.slice(E2E_DIR.length + 1, -8)] ?? 120), 0);
-    return { level: 'manuel', games: [], specs: list, seconds, shards: shardCount(list.length, seconds), reasons: [], notes: ['liste donnée à la main'] };
+    const cost = Object.fromEntries(list.map(s => [s, s.includes(':') ? 30 : SPEC_SECONDS[s.slice(E2E_DIR.length + 1, -8)] ?? 120]));
+    return result({ level: 'manuel', games: [], specs: [...new Set(list)], reasons: [], notes: ['liste donnée à la main'] }, cost);
+}
+const escape = text => text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+/**
+ * Spreads the selection over `count` CI parts by estimated seconds: units (a spec file, a file:line test, one game id of a
+ * SPLIT_SPECS spec) from the longest, each to the lightest part. Each part gets its playwright arguments (`specs`, in
+ * selection order) and, when it holds only some ids of a split spec, a `grepInvert` pattern on Playwright's grep title
+ * (`<project> <file> <title>`): the part that holds the rest drops the other parts' ids, every other part drops all
+ * but its own ids. The union of the parts is the selection, each test in exactly one part.
+ */
+export function partition(specs, cost, count) {
+    if (!count) return [];
+    const units = [];
+    for (const arg of specs) {
+        const split = arg.includes(':') ? undefined : SPLIT_SPECS[arg.slice(E2E_DIR.length + 1, -8)];
+        if (!split || count < 2) { units.push({ arg, seconds: cost[arg] }); continue; }
+        const weight = Object.values(split).reduce((t, w) => t + w, 0);
+        for (const [id, w] of Object.entries(split)) units.push({ arg, id, seconds: cost[arg] * w / weight });
+    }
+    units.sort((a, b) => b.seconds - a.seconds || a.arg.localeCompare(b.arg) || (a.id ?? '').localeCompare(b.id ?? ''));
+    const parts = Array.from({ length: count }, () => ({ units: [], seconds: 0 }));
+    for (const unit of units) {
+        const part = parts.reduce((low, p) => p.seconds < low.seconds ? p : low);
+        part.units.push(unit); part.seconds += unit.seconds;
+    }
+    return parts.map(part => {
+        const inverts = [];
+        for (const arg of new Set(part.units.filter(u => u.id !== undefined).map(u => u.arg))) {
+            const all = units.filter(u => u.arg === arg), mine = part.units.filter(u => u.arg === arg);
+            if (mine.length === all.length) continue;
+            const file = ` ${escape(arg.slice(E2E_DIR.length + 1))} `;
+            const ids = list => `(?:${list.map(u => escape(u.id)).join('|')})`;
+            inverts.push(mine.some(u => u.id === '')
+                ? `${file}.* ${ids(all.filter(u => !mine.includes(u)))} \\d+x\\d+`
+                : `${file}(?!.* ${ids(mine)} \\d+x\\d+)`);
+        }
+        return { specs: specs.filter(arg => part.units.some(u => u.arg === arg)), grepInvert: inverts.join('|'), seconds: Math.round(part.seconds) };
+    });
 }
 /** Changed paths between the merge base of base and head, or null when base is absent, zero or unknown. */
 export function changedFiles(base, head, root) {
@@ -267,12 +323,14 @@ function main(args) {
     for (const x of result.reasons) lines.push(`  ${x.level} ${x.file} — ${x.why}`);
     lines.push(result.specs.length ? 'Specs :' : 'Aucun E2E à lancer.');
     for (const s of result.specs) lines.push(`  ${s}`);
+    if (result.parts.length > 1) result.parts.forEach((p, i) => lines.push(`Part ${i + 1}/${result.parts.length} : ~${Math.round(p.seconds / 60)} min estimées, ${p.specs.join(' ')}${p.grepInvert ? ` --grep-invert '${p.grepInvert}'` : ''}`));
     process.stdout.write(`${lines.join('\n')}\n`);
     if (args.includes('--github')) {
         const out = process.env.GITHUB_OUTPUT;
         if (!out) throw new Error('GITHUB_OUTPUT absent');
         const shards = Array.from({ length: Math.max(1, result.shards) }, (_, i) => i + 1);
-        appendFileSync(out, `level=${result.level}\nspecs=${result.specs.join(' ')}\ncount=${result.specs.length}\ntotal=${Math.max(1, result.shards)}\nshards=${JSON.stringify(shards)}\n`);
+        const parts = result.parts.length ? result.parts : [{ specs: [], grepInvert: '' }];
+        appendFileSync(out, `level=${result.level}\nspecs=${result.specs.join(' ')}\ncount=${result.specs.length}\ntotal=${Math.max(1, result.shards)}\nshards=${JSON.stringify(shards)}\nparts=${JSON.stringify(parts.map(p => ({ specs: p.specs, grepInvert: p.grepInvert })))}\n`);
         if (process.env.GITHUB_STEP_SUMMARY) appendFileSync(process.env.GITHUB_STEP_SUMMARY, `### E2E ciblé : ${result.level}\n\n\`\`\`\n${lines.join('\n')}\n\`\`\`\n`);
     }
     if (args.includes('--run') && result.specs.length) {

@@ -49,6 +49,7 @@ jobs:
       count: ${{ steps.sel.outputs.count }}
       total: ${{ steps.sel.outputs.total }}
       shards: ${{ steps.sel.outputs.shards }}
+      parts: ${{ steps.sel.outputs.parts }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
@@ -132,13 +133,19 @@ jobs:
           SPECS: ${{ needs.select.outputs.specs }}
           SHARD: ${{ matrix.shard }}
           TOTAL: ${{ needs.select.outputs.total }}
+          # Parts balanced by estimated duration in the select job (not playwright --shard, which splits by count).
+          PARTS: ${{ needs.select.outputs.parts }}
         run: |
-          echo "Niveau $LEVEL, part $SHARD/$TOTAL, specs :"
-          printf '  %s\n' $SPECS
           [ -n "$SPECS" ] || { echo "sélection vide inattendue : refus de lancer la suite complète"; exit 1; }
-          if [ "$TOTAL" -gt 1 ]; then SHARD_ARG="--shard=$SHARD/$TOTAL"; else SHARD_ARG=""; fi
+          PART_SPECS=$(node -p 'JSON.parse(process.env.PARTS)[Number(process.env.SHARD) - 1].specs.join(" ")')
+          PART_GREP=$(node -p 'JSON.parse(process.env.PARTS)[Number(process.env.SHARD) - 1].grepInvert')
+          echo "Niveau $LEVEL, part $SHARD/$TOTAL, specs :"
+          printf '  %s\n' $PART_SPECS
+          [ -n "$PART_SPECS" ] || { echo "part vide inattendue : refus de lancer la suite complète"; exit 1; }
+          EXTRA=()
+          if [ -n "$PART_GREP" ]; then echo "  --grep-invert $PART_GREP"; EXTRA=(--grep-invert "$PART_GREP"); fi
           # shellcheck disable=SC2086 # one argument per spec
-          npm run test:e2e -- $SPECS $SHARD_ARG
+          npm run test:e2e -- $PART_SPECS "${EXTRA[@]}"
       - name: Rapport Playwright
         if: failure() && env.RUN_E2E == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2

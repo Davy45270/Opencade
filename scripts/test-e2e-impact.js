@@ -1,10 +1,12 @@
 // Checks of scripts/e2e-impact.js on file lists taken from real commits (frozen here: CI clones are shallow).
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
+import process from 'node:process';
 import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath, URL } from 'node:url';
-import { CROSS_SPECS, GAME_SPECS, LIGHT_SPECS, SMOKE_TESTS, SPEC_SECONDS, changedFiles, classify, manual, registryIds, select, testLine } from './e2e-impact.js';
+import { CROSS_SPECS, GAME_SPECS, LIGHT_SPECS, SMOKE_TESTS, SPEC_SECONDS, SPLIT_SPECS, changedFiles, classify, manual, registryIds, select, testLine } from './e2e-impact.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const allSpecs = readdirSync(join(root, 'tests/e2e')).filter(f => f.endsWith('.spec.ts')).map(f => f.slice(0, -8));
@@ -18,6 +20,9 @@ const POMPIERS = ['scripts/petits-pompiers-scene-oracle.js', 'src/games/petits-p
     'src/main.ts', 'src/style.css', 'tests/e2e/mobile-layout.spec.ts', 'tests/e2e/petits-pompiers-touch.spec.ts', 'tests/e2e/petits-pompiers.spec.ts'];
 // The PT01 fix (reload the page for each viewport size), published right after f49f464.
 const PT01 = ['tests/e2e/petits-pompiers-touch.spec.ts'];
+// git diff --name-only 43031be d719c8c (targeted E2E in CI): N3 with a Pompiers spec, 25 targets, two parts.
+const TARGETED = ['.github/workflows/ci.yml', 'CONTRIBUTING.md', 'docs/node-tests.md', 'scripts/e2e-impact.js', 'scripts/node-checks.js',
+    'scripts/test-e2e-impact.js', 'tests/e2e/petits-pompiers-touch.spec.ts'];
 // d8168da (docs: changelog for 0.3.2).
 const DOC = ['CHANGELOG.md'];
 // A release commit: changelog and package files (chore(release): 0.4.0).
@@ -102,4 +107,43 @@ test('manual list is validated', () => {
     assert.deepEqual(manual('tests/e2e/arcade.spec.ts tests/e2e/caisses.spec.ts:70', root).specs, ['tests/e2e/arcade.spec.ts', 'tests/e2e/caisses.spec.ts:70']);
     assert.throws(() => manual('--grep .', root), /refusées/);
     assert.throws(() => manual('tests/e2e/absente.spec.ts', root), /refusées/);
+});
+
+/** Tests Playwright would run for these arguments (`--list`: no browser, no server), as `project › file:line › title`. */
+function listed(args) {
+    const r = spawnSync(process.execPath, ['node_modules/@playwright/test/cli.js', 'test', '--list', '--reporter=json', ...args], { cwd: root, encoding: 'utf8', maxBuffer: 64 << 20 });
+    assert.equal(r.status, 0, r.stderr);
+    const out = [];
+    const walk = suite => {
+        for (const spec of suite.specs ?? []) for (const t of spec.tests) out.push(`${t.projectName} › ${spec.file}:${String(spec.line)} › ${spec.title}`);
+        for (const child of suite.suites ?? []) walk(child);
+    };
+    for (const suite of JSON.parse(r.stdout).suites) walk(suite);
+    return out.sort();
+}
+const gap = parts => { const s = parts.map(p => p.seconds); return (Math.max(...s) - Math.min(...s)) / Math.max(...s); };
+const partArgs = p => [...p.specs, ...(p.grepInvert ? ['--grep-invert', p.grepInvert] : [])];
+for (const [name, list, level] of [['Pompiers N2 (3737b5d..f49f464)', POMPIERS, 'N2'], ['N3 ciblé (43031be..d719c8c)', TARGETED, 'N3'], ['N3 smoke (release)', RELEASE, 'N3']]) {
+    test(`parts by duration, ${name}: gap under 30 %, union of the parts = the selection, no duplicate`, () => {
+        const r = select(list, root);
+        assert.equal(r.level, level);
+        assert.equal(r.parts.length, r.shards);
+        assert.ok(gap(r.parts) < 0.3, `écart estimé ${(100 * gap(r.parts)).toFixed(0)} % : ${r.parts.map(p => p.seconds).join(' / ')} s`);
+        assert.equal(r.parts.reduce((t, p) => t + p.seconds, 0) - r.seconds <= r.parts.length, true);
+        const whole = listed(r.specs), union = r.parts.flatMap(p => listed(partArgs(p))).sort();
+        assert.ok(whole.length > 0);
+        assert.deepEqual(union, whole);
+        assert.equal(new Set(union).size, union.length, 'un test dans deux parts');
+    });
+}
+test('partition: before the fix, file sharding left one part with mobile-layout alone; the split spec ids cover the registry', () => {
+    const r = select(TARGETED, root);
+    assert.equal(r.shards, 2);
+    assert.ok(r.parts.every(p => p.specs.includes('tests/e2e/mobile-layout.spec.ts')), 'mobile-layout coupé entre les deux parts');
+    assert.ok(r.parts.every(p => p.grepInvert));
+    const ids = Object.keys(SPLIT_SPECS['mobile-layout']).filter(Boolean);
+    for (const id of ids) assert.ok(GAME_SPECS[id], id);
+    assert.deepEqual(select(['tests/e2e/mobile-layout.spec.ts'], root).parts.length, 1);
+    assert.equal(select(['tests/e2e/mobile-layout.spec.ts'], root).parts[0].grepInvert, '');
+    assert.deepEqual(select(DOC, root).parts, []);
 });
