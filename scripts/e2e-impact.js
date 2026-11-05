@@ -59,7 +59,7 @@ export const HELD_BACK = {
 /** Cross-game specs, grouped by what they exercise. None is tied to a single game. */
 export const CROSS_SPECS = {
     'accueil': ['arcade', 'autres-jeux', 'thumbnails'],
-    'coquille': ['mobile-layout', 'mobile', 'game', 'levels', 'sound', 'device', 'touch-edges', 'pause-page'],
+    'coquille': ['mobile-layout', 'mobile', 'game', 'levels', 'sound', 'device', 'touch-edges', 'pause-page', 'level-list-scroll'],
     'personnages': ['characters', 'character-pixels', 'character-finger', 'character-finger-2', 'character-finger-3', 'character-finger-4', 'habillage', 'habillage-action'],
     'pwa': ['offline', 'pwa-update'],
     'mesure': ['perf-fps'],
@@ -105,6 +105,7 @@ export const SPEC_SECONDS = {
     'serpentin': 73, 'sound': 9, 'thumbnails': 44, 'touch-edges': 27, 'traverse': 21,
     // Touch-shell specs: provisional estimates until a measured run replaces them.
     'bombercade-touch': 15, 'bubble-touch': 15, 'derapage-touch': 15, 'essaim-touch': 15, 'gourmandises-touch': 15, 'pause-page': 30,
+    'level-list-scroll': 40,
 };
 /**
  * Specs split across CI parts by game id: their per-id tests are titled `... <id> <width>x<height>`. Weights are the
