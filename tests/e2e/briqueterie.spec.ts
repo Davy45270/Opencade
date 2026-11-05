@@ -1,4 +1,4 @@
-import { openGameMenu, test, expect, point, measureLayout } from './fixture';
+import { openGameMenu, test, expect, point, measureLayout, goHome } from './fixture';
 import type { Page } from '@playwright/test';
 import type {} from '../../src/games/briqueterie/scene';
 async function read(page: Page) { return page.evaluate(() => window.__BRIQUETERIE_TEST__?.read()); }
@@ -8,7 +8,7 @@ async function tap(page: Page, selector: string, mobile: boolean): Promise<void>
     if (mobile) await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2); else await page.locator(selector).click();
 }
 async function layout(page: Page): Promise<void> {
-    const { canvas, controls, scroll, height } = await measureLayout(page, ['#pause', '#briqueterie-left', '#briqueterie-launch', '#briqueterie-right']);
+    const { canvas, controls, scroll, height } = await measureLayout(page, ['#pause', '#briqueterie-special']);
     const pause = controls[0]; if (!pause) throw new Error('Pause absente');
     expect(pause.width).toBeGreaterThanOrEqual(44); expect(pause.height).toBeGreaterThanOrEqual(44);
     expect(pause.x < canvas.x + canvas.width && pause.x + pause.width > canvas.x && pause.y < canvas.y + canvas.height && pause.y + pause.height > canvas.y).toBe(false);
@@ -16,6 +16,10 @@ async function layout(page: Page): Promise<void> {
     const viewport = page.viewportSize(); expect(canvas.x + canvas.width).toBeLessThanOrEqual(viewport?.width ?? 0); expect(canvas.y + canvas.height).toBeLessThanOrEqual(viewport?.height ?? 0);
     expect(scroll).toBeLessThanOrEqual(height);
     for (const b of controls.slice(1).filter(box => box.width > 0 && box.height > 0)) { expect(b.width).toBeGreaterThanOrEqual(56); expect(b.height).toBeGreaterThanOrEqual(56); expect(b.y).toBeGreaterThanOrEqual(canvas.y + canvas.height); expect(b.y + b.height).toBeLessThanOrEqual(viewport?.height ?? 0); }
+}
+/** Launch: a tap on the canvas (above the drag zone) on touch screens, Space otherwise. */
+async function launch(page: Page, mobile: boolean): Promise<void> {
+    if (mobile) { const p = await point(page, 180, 300); await page.touchscreen.tap(p.x, p.y); } else await page.keyboard.press('Space');
 }
 async function drag(page: Page, mobile: boolean, x: number): Promise<void> {
     const start = await point(page, 180, 620), end = await point(page, x, 620);
@@ -33,7 +37,7 @@ test('K08 K12 victoire par lancement réel, progression et reprise', async ({ pa
     await expect(page.locator('#pause-title')).toHaveText('Prêt ?');
     const ready = await read(page); await page.waitForTimeout(200); expect(await read(page)).toEqual(ready);
     await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.scenario('finish'); });
-    if (mobile) { await tap(page, '#resume', true); await tap(page, '#briqueterie-launch', true); } else await page.keyboard.press('Space');
+    if (mobile) { await tap(page, '#resume', true); await launch(page, true); } else await page.keyboard.press('Space');
     await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(10000); });
     await expect.poll(async () => (await read(page))?.status).toBe('won');
     await expect(page.locator('#result-title')).toContainText('réussi');
@@ -65,10 +69,14 @@ test('K02 contrôles, glisser tactile et pause', async ({ page }, info) => {
     await tap(page, '#resume', mobile);
     await drag(page, mobile, 260); expect((await read(page))?.paddle).toBeCloseTo(260, 0);
     if (mobile) {
-        const box = await page.locator('#briqueterie-left').boundingBox(); if (!box) throw new Error('Contrôle absent');
+        // Relative drag: landing off-centre does not move the paddle, the travel does; no arrow buttons.
+        await expect(page.locator('#briqueterie-left, #briqueterie-right, #briqueterie-launch')).toHaveCount(0);
+        const before = (await read(page))?.paddle ?? 0;
+        const a = await point(page, 60, 620), b = await point(page, 20, 620);
         const client = await page.context().newCDPSession(page);
-        await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: box.x + 28, y: box.y + 28 }] });
-        await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(200); });
+        await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [a] });
+        expect((await read(page))?.paddle).toBeCloseTo(before, 0);
+        await client.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [b] });
         await expect.poll(async () => (await read(page))?.paddle, { timeout: 30000 }).toBeLessThan(240);
         await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await client.detach();
     } else { await page.keyboard.down('KeyA'); await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(200); }); await expect.poll(async () => (await read(page))?.paddle, { timeout: 30000 }).toBeLessThan(240); await page.keyboard.up('KeyA'); }
@@ -81,7 +89,7 @@ test('K07 défaite par chute réelle puis rejouer', async ({ page }, info) => {
     await page.goto('/?test=1#/briqueterie'); await expect.poll(() => page.evaluate(() => Boolean(window.__BRIQUETERIE_TEST__))).toBe(true);
     await tap(page, '#resume', mobile);
     await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.scenario('fall'); });
-    if (mobile) await tap(page, '#briqueterie-launch', true); else await page.keyboard.press('Space');
+    await launch(page, mobile);
     await expect.poll(async () => (await read(page))?.ready).toBe(false);
     await drag(page, mobile, 300);
     await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(10000); });
@@ -91,8 +99,8 @@ test('K07 défaite par chute réelle puis rejouer', async ({ page }, info) => {
     await page.screenshot({ path: `test-results/screenshots/briqueterie-lost-${info.project.name}.png` });
     await tap(page, '#retry-level', mobile); expect((await read(page))?.status).toBe('playing'); expect((await read(page))?.score).toBe(0); expect((await read(page))?.lives).toBe(3); expect((await read(page))?.ready).toBe(true);
 });
-test('K12 crochet inerte sans mode test et sortie nettoyée', async ({ page }, info) => {
+test('K12 crochet inerte sans mode test et sortie nettoyée', async ({ page }) => {
     await page.goto('/#/briqueterie'); await expect(page.locator('#game canvas')).toBeVisible();
     expect(await page.evaluate(() => window.__BRIQUETERIE_TEST__)).toBeUndefined();
-    await tap(page, '#topbar [data-home]', info.project.name === 'mobile-chromium'); await expect(page.locator('#home')).toBeVisible(); await expect(page.locator('#game canvas')).toHaveCount(0);
+    await goHome(page); await expect(page.locator('#home')).toBeVisible(); await expect(page.locator('#game canvas')).toHaveCount(0);
 });

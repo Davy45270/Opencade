@@ -1,4 +1,4 @@
-import { openGameMenu, test, expect, point, measureLayout } from './fixture';
+import { openGameMenu, test, expect, point, measureLayout, goHome } from './fixture';
 import type { Page } from '@playwright/test';
 async function read(page: Page) { return page.evaluate(() => window.__ORBITE_TEST__?.read()); }
 async function open(page: Page): Promise<void> {
@@ -22,13 +22,12 @@ async function drag(page: Page, from: number, to: number, y = 618): Promise<void
 }
 async function layout(page: Page): Promise<void> {
     const { canvas, controls, scroll, height } = await measureLayout(page,
-        ['#pause', '#sound', '#orbite-fire', '#orbite-left', '#orbite-right', '.orbite-options', '#levels', '#restart']);
+        ['#pause', '#sound', '#orbite-special', '#levels', '#restart']);
     const viewport = page.viewportSize(); if (!viewport) throw new Error('Viewport absent');
     expect(canvas.x).toBeGreaterThanOrEqual(0); expect(canvas.y).toBeGreaterThanOrEqual(0);
     expect(canvas.x + canvas.width).toBeLessThanOrEqual(viewport.width); expect(canvas.y + canvas.height).toBeLessThanOrEqual(viewport.height);
     for (const box of controls) {
-        expect(box.width).toBeGreaterThanOrEqual(box.selector === '#orbite-fire' ? 64 : 44);
-        expect(box.height).toBeGreaterThanOrEqual(box.selector === '#orbite-fire' ? 64 : 44);
+        expect(box.width).toBeGreaterThanOrEqual(44); expect(box.height).toBeGreaterThanOrEqual(44);
         expect(box.x < canvas.x + canvas.width && box.x + box.width > canvas.x && box.y < canvas.y + canvas.height && box.y + box.height > canvas.y).toBe(false);
         expect(box.x).toBeGreaterThanOrEqual(0); expect(box.x + box.width).toBeLessThanOrEqual(viewport.width);
         expect(box.y).toBeGreaterThanOrEqual(0); expect(box.y + box.height).toBeLessThanOrEqual(viewport.height);
@@ -40,7 +39,8 @@ test('V04 V08 victoire par tir réel, niveau suivant et déblocage repris', asyn
     await expect(page.locator('#pause-title')).toHaveText('Prêt ?');
     const ready = await read(page); await page.waitForTimeout(200); expect(await read(page)).toEqual(ready);
     await page.evaluate(() => { window.__ORBITE_TEST__?.scenario('finish'); });
-    if (mobile) await tap(page, '#orbite-fire', true); else await page.keyboard.press('Space');
+    // Touch screens: no fire button, the cannon fires on its own once the game starts.
+    if (mobile) await tap(page, '#resume', true); else await page.keyboard.press('Space');
     await page.evaluate(() => { window.__ORBITE_TEST__?.advance(10000); });
     await expect.poll(async () => (await read(page))?.status).toBe('won');
     await expect(page.locator('#result-title')).toContainText('réussi');
@@ -92,21 +92,35 @@ test('V01 V03 V12 guidage clavier souris doigt, tir auto sauvé et pause', async
         // 600 ms covers the return from keyboard guidance at 260 px/s.
         await page.evaluate(() => { window.__ORBITE_TEST__?.advance(600); }); await expect.poll(async () => (await read(page))?.cannon).toBeCloseTo(280);
     }
-    await tap(page, '#orbite-fire', mobile); await page.evaluate(() => { window.__ORBITE_TEST__?.advance(100); });
+    // Automatic fire is on by default: shots without any fire input.
+    expect((await read(page))?.autoFire).toBe(true);
+    await page.evaluate(() => { window.__ORBITE_TEST__?.advance(100); });
     await expect.poll(async () => (await read(page))?.shots.some(s => s.owner === 'player')).toBe(true);
     if (mobile) await tap(page, '#pause', true); else await page.keyboard.press('KeyP');
     const paused = await read(page); await page.waitForTimeout(200); expect(await read(page)).toEqual(paused);
     if (mobile) await tap(page, '#resume', true); else await page.keyboard.press('Escape');
     await page.evaluate(() => { window.__ORBITE_TEST__?.advance(100); });
     await expect.poll(async () => (await read(page))?.ticks ?? 0).toBeGreaterThan(paused?.ticks ?? 0);
-    await tap(page, '.orbite-options', mobile); expect((await read(page))?.autoFire).toBe(true);
-    await page.reload(); await expect(page.locator('#orbite-auto')).toBeChecked(); await tap(page, '#resume', mobile);
+    if (mobile) {
+        // The setting lives in the pause page (a toggle, no checkbox) and is saved.
+        await expect(page.locator('#orbite-auto')).toHaveAttribute('aria-pressed', 'true');
+        await expect(page.locator('input[type=checkbox]')).toHaveCount(0);
+        // One icon in play: Rafale.
+        expect(await page.evaluate(() => [...document.querySelectorAll('#touch-controls button')].filter(b => b.getBoundingClientRect().width > 0).map(b => b.id))).toEqual(['orbite-special']);
+        // Reached from the pause page (⏸), where it stays usable during the game.
+        await tap(page, '#pause', true); await tap(page, '#orbite-auto', true); expect((await read(page))?.autoFire).toBe(false);
+        await page.reload(); await expect.poll(() => page.evaluate(() => Boolean(window.__ORBITE_TEST__))).toBe(true);
+        await expect(page.locator('#orbite-auto')).toHaveAttribute('aria-pressed', 'false');
+        await tap(page, '#resume', true); await tap(page, '#pause', true);
+        await tap(page, '#orbite-auto', true); expect((await read(page))?.autoFire).toBe(true);
+        await tap(page, '#resume', true);
+    }
     await page.evaluate(() => { window.__ORBITE_TEST__?.advance(100); });
     await expect.poll(async () => (await read(page))?.shots.some(s => s.owner === 'player')).toBe(true); await layout(page);
 });
-test('V12 crochet inerte sans test et nettoyage à la sortie', async ({ page }, info) => {
-    const mobile = info.project.name === 'mobile-chromium'; await open(page);
-    await tap(page, '#topbar [data-home]', mobile); await expect(page.locator('#game canvas')).toHaveCount(0);
+test('V12 crochet inerte sans test et nettoyage à la sortie', async ({ page }) => {
+    await open(page);
+    await goHome(page); await expect(page.locator('#game canvas')).toHaveCount(0);
     expect(await page.evaluate(() => window.__ORBITE_TEST__)).toBeUndefined(); await expect(page.locator('#orbite-auto')).toHaveCount(0);
     await page.goto('/#/orbite'); await expect(page.locator('#game canvas')).toBeVisible();
     expect(await page.evaluate(() => [window.__ARCADE_TEST__, window.__ORBITE_TEST__])).toEqual([undefined, undefined]);

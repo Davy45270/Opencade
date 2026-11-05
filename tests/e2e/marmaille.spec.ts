@@ -84,3 +84,26 @@ test('MA-E3 doigt bruité : niveaux 2, 9, 15 et 25 gagnés', async ({ page }, in
         await finger.release(); await cdp.detach();
     }
 });
+test('MA20 tactile : pas de panneau de texte en bas, rôles et stocks visibles, ⏩ pictogramme près de la pause', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'Commandes tactiles');
+    for (const [width, height] of [[405, 480], [360, 640], [780, 412]] as const) {
+        const size = `${String(width)}×${String(height)}`;
+        await page.setViewportSize({ width, height });
+        await open(page); await play(page);
+        await page.evaluate(() => { window.__MARMAILLE_TEST__?.loadLevel(1); window.__MARMAILLE_TEST__?.advance(0); });
+        expect(await page.evaluate(() => window.__MARMAILLE_TEST__?.textPanel()), size).toBe(false);
+        await expect(page.locator('#hud .hud-item')).not.toHaveCount(0);
+        await expect(page.locator('#marmaille-r0')).toBeVisible(); await expect(page.locator('#marmaille-r0')).toHaveText('✋1');
+        const fast = page.locator('#marmaille-fast');
+        await expect(fast).toHaveText('⏩'); expect(await page.locator('#topbar #marmaille-fast').count(), size).toBe(1);
+        const [f, p] = await Promise.all([fast.boundingBox(), page.locator('#pause').boundingBox()]);
+        if (!f || !p) throw new Error('⏩ ou ⏸ absent');
+        expect(Math.hypot(f.x - p.x, f.y - p.y), size).toBeLessThan(70);
+        expect(f.width).toBeGreaterThanOrEqual(44); expect(f.x + f.width).toBeLessThanOrEqual(width);
+        const hud = await page.locator('#hud').boundingBox();
+        if (hud) expect(hud.x + hud.width, `${size} HUD sous ⏩`).toBeLessThanOrEqual(f.x + 1);
+    }
+    await page.locator('#marmaille-fast').tap();
+    await expect(page.locator('#marmaille-fast')).toHaveAttribute('aria-pressed', 'true');
+    expect((await page.evaluate(() => window.__MARMAILLE_TEST__?.read()))?.fast).toBe(true);
+});

@@ -18,7 +18,8 @@ import { analogSteer } from '../../engines/derapage/physics';
 import { circuitKey } from '../../engines/derapage/circuits';
 import { nearest, at, boostStrip } from '../../engines/derapage/track';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
-import { PlaySession } from '../../shell/pause';
+import { MOBILE_PLAY, PlaySession } from '../../shell/pause';
+import { setHud } from '../../shell/hud';
 import { Progression } from '../../shell/progression';
 import { browserStorage, readSave, writeSave, recordCircuitLap, readValue, writeValue } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
@@ -29,9 +30,11 @@ export function formatTime(ms: number | null): string {
     const cs = Math.floor(ms / 10);
     return `${String(Math.floor(cs / 6000)).padStart(2, '0')}:${String(Math.floor(cs / 100) % 60).padStart(2, '0')}.${String(cs % 100).padStart(2, '0')}`;
 }
+/** A thumb at ≥ 85 % of full deflection, held 250 ms, drifts. */
+const STRONG_TURN = .85, STRONG_TURN_MS = 250;
 export const derapageButtons: readonly TouchButton[] = [
     { id: 'derapage-special', label: 'Élan', ariaLabel: 'Élan : mini turbo', size: 56, placement: 'center', mode: 'tap' },
-    { id: 'derapage-drift', label: 'Dérapage', ariaLabel: 'Dérapage', size: 64, placement: 'right', mode: 'hold' },
+    // Drift: hold a strong turn with the thumb (no button); keyboard Space/Shift unchanged.
     { id: 'derapage-bonus', label: 'Bonus', ariaLabel: 'Bonus', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface DerapageHook {
@@ -124,6 +127,10 @@ export class DerapageScene extends Phaser.Scene {
     private tiltEnabled = false;
     private mouseEnabled = false;
     private pendingBonus = false;
+    /** How long the thumb has held a strong turn; past STRONG_TURN_MS it drifts. */
+    private strongTurnMs = 0;
+    /** Touch play: only the lap chronos stay in the canvas HUD (place, race time and lap count are in the DOM HUD). */
+    private touchPlay = false;
     private soundFrame = 0;
     private sceneTime = 0;
     private traces: {
@@ -229,7 +236,12 @@ export class DerapageScene extends Phaser.Scene {
             this.held.add(id);
         };
         renderTouchControls(this.inputs, derapageButtons, (id, held) => { action(id.replace('derapage-', ''), held); });
-        const indicator = document.createElement('output'); indicator.id = 'derapage-steering'; indicator.setAttribute('aria-label', 'Braquage'); document.querySelector('#touch-controls .left')?.append(indicator); this.inputs.cleanup(() => { indicator.remove(); });
+        // Touch play: no written instruction under the thumbs; the DOM HUD replaces the canvas text.
+        const mobile = matchMedia(MOBILE_PLAY);
+        // Touch play keeps the lap chronos (current lap, best, lap delta) on the canvas; the rest moves to the DOM HUD.
+        const placeHud = (): void => { this.touchPlay = mobile.matches; this.hudContent = ''; };
+        this.inputs.on(mobile, 'change', placeHud);
+        placeHud();
         const keys: Record<string, string> = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', Space: 'drift', ShiftLeft: 'drift', ShiftRight: 'drift', KeyC: 'special', KeyX: 'bonus', ControlLeft: 'bonus', ControlRight: 'bonus' };
         for (const type of ['keydown', 'keyup'])
             this.inputs.on(document, type, event => { const e = event as KeyboardEvent; const id = keys[e.code]; if (id) {
@@ -239,6 +251,8 @@ export class DerapageScene extends Phaser.Scene {
         this.inputs.on(window, 'blur', () => { this.held.clear(); this.pointer = 0; this.thumb = null; });
         const area = document.querySelector<HTMLElement>('#game');
         if (area) {
+            // A second finger on the canvas while steering fires the bonus.
+            this.inputs.on(area, 'pointerdown', event => { const e = event as PointerEvent; if (e.pointerType === 'touch' && this.thumb && e.pointerId !== this.thumb.id && e.target === this.game.canvas) { e.preventDefault(); action('bonus', true); action('bonus', false); } });
             this.inputs.on(area, 'pointerdown', event => { const e = event as PointerEvent; if (e.pointerType !== 'mouse' && !this.thumb && acceptsThumb(e.target === this.game.canvas, e.clientY, this.game.canvas.getBoundingClientRect().top, this.game.canvas.getBoundingClientRect().height, this.active3d || this.cameraFixed)) {
                 e.preventDefault();
                 area.setPointerCapture(e.pointerId);
@@ -364,7 +378,11 @@ export class DerapageScene extends Phaser.Scene {
             const dy = Number(this.held.has('down')) - Number(this.held.has('up'));
             this.heading = dx || dy ? Math.atan2(dy, dx) : thumbDirection(this.thumb);
             if (this.active3d) this.heading = screenHeading(this.heading, k.angle);
-            this.engine.input({ mode: this.active3d || this.cameraFixed ? 'joystick' : undefined, heading: this.heading, assist: this.assistance, steer: Number(this.held.has('right')) - Number(this.held.has('left')) + this.pointer + (this.tiltEnabled ? this.tilt : 0), drift: this.held.has('drift'), bonus: this.pendingBonus });
+            // Strong turn held: full analog steer, or a joystick heading far from the kart's angle.
+            const turn = this.thumb ? (this.active3d || this.cameraFixed ? (thumbIntensity(this.thumb) >= .8 && this.heading !== undefined ? Math.abs(Math.atan2(Math.sin(this.heading - k.angle), Math.cos(this.heading - k.angle))) / 1.2 : 0) : Math.abs(this.pointer)) : 0;
+            this.strongTurnMs = turn >= STRONG_TURN ? this.strongTurnMs + ms : 0;
+            const drift = this.held.has('drift') || this.strongTurnMs >= STRONG_TURN_MS;
+            this.engine.input({ mode: this.active3d || this.cameraFixed ? 'joystick' : undefined, heading: this.heading, assist: this.assistance, steer: Number(this.held.has('right')) - Number(this.held.has('left')) + this.pointer + (this.tiltEnabled ? this.tilt : 0), drift, bonus: this.pendingBonus });
             this.pendingBonus = false;
             this.engine.step(ms);
             if (k.hits > hits) {
@@ -703,10 +721,13 @@ MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${(p.noticeMs ?? 0) > 0 ? 'Por
                         span.dataset.lapDelta = 'true';
                         span.style.color = delta === null || delta < 0 ? '#80efac' : '#ff9b9b';
                     }
+                    span.style.display = this.touchPlay && i > 2 ? 'none' : 'block';
                     if (changed || layoutChanged) {
-                        span.style.fontSize = `${String((i === 0 ? 24 : i === 1 ? 12 : i === 2 ? 10 : 8.5) * scale)}px`;
+                        // Touch play: the chronos are game counters, >= 18 px rendered whatever the canvas scale (never shrunk to fit).
+                        const size = (i === 0 ? 24 : i === 1 ? 12 : i === 2 ? 10 : 8.5) * scale, chrono = this.touchPlay && i <= 2;
+                        span.style.fontSize = `${String(chrono ? Math.max(18, size) : size)}px`;
                         const width = span.getBoundingClientRect().width;
-                        if (width > 249 * scale && i !== 0)
+                        if (!chrono && width > 249 * scale && i !== 0)
                             span.style.fontSize = `${String(9 * scale * 249 * scale / width)}px`;
                     }
                 });
@@ -729,10 +750,21 @@ MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${(p.noticeMs ?? 0) > 0 ? 'Por
         }
         const viewButton = document.querySelector('#derapage-view');
         if (viewButton) viewButton.textContent = this.cadence.fallback ? 'Vue : dessus · repli automatique' : `Vue : ${this.view3d ? '3D' : 'dessus'}`;
+        this.touchHud(s.order.indexOf(0) + 1, Math.min(3, p.lap + 1), formatTime(timing.raceMs), p.specialLap === p.lap ? 0 : 1, p.item != null);
         const indicator = document.querySelector<HTMLElement>('#derapage-steering');
         if (indicator) { indicator.textContent = this.active3d || this.cameraFixed ? this.thumb ? `Direction ✓ ${String(Math.round(thumbIntensity(this.thumb)*100))} %` : 'Posez le pouce, puis pointez la direction' : `◀ ━ ${this.pointer.toFixed(2)} ━ ▶`; if (this.cadence.fallback) indicator.textContent = 'Vue de dessus : cadence 3D insuffisante'; indicator.setAttribute('aria-valuenow', String(this.pointer)); }
         const status = document.querySelector('#status');
         if (status)
             status.textContent = `Score : ${String(e.score)} · ${text}`;
+    }
+    /** Touch play: place, lap and race time in the DOM HUD; Élan stock and a held bonus on their icons. */
+    private touchHud(place: number, lap: number, time: string, elan: number, bonus: boolean): void {
+        setHud('left', [{ icon: 'P', value: `${String(place)}/6`, label: 'Place' }]);
+        setHud('center', [{ value: time, label: 'Chrono' }]);
+        setHud('right', [{ icon: 'T', value: `${String(lap)}/3`, label: 'Tour' }]);
+        const special = document.querySelector('#derapage-special');
+        if (special && special.getAttribute('data-count') !== String(elan)) special.setAttribute('data-count', String(elan));
+        const item = document.querySelector('#derapage-bonus');
+        if (item && item.getAttribute('aria-pressed') !== String(bonus)) item.setAttribute('aria-pressed', String(bonus));
     }
 }

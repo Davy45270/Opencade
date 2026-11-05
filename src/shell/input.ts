@@ -12,10 +12,14 @@ export interface TouchButton {
     id: string;
     label: string;
     ariaLabel: string;
-    size: 44 | 56 | 64;
+    size: 44 | 56 | 64 | 72;
     placement: 'left' | 'center' | 'right';
     mode: 'tap' | 'hold';
     compactMenu?: boolean;
+    /** A setting rather than a play action: on touch screens it lives in the pause page, never under the thumbs. */
+    setting?: boolean;
+    /** A play-speed toggle: on touch screens it sits beside the ⏸, at the top right, out of the thumbs' reach. */
+    corner?: boolean;
     repeatMs?: number;
     repeatDelayMs?: number;
 }
@@ -34,8 +38,30 @@ export function renderTouchControls(inputs: Inputs, buttons: readonly TouchButto
         button.setAttribute('aria-label', spec.ariaLabel);
         button.style.minWidth = button.style.minHeight = `${String(spec.size)}px`;
         button.style.order = String(['left', 'center', 'right'].indexOf(spec.placement));
+        if (spec.setting) {
+            // Toggles stay in the pause page (aria-pressed shows their state); hidden off touch play.
+            const mobile = matchMedia('(pointer: coarse), (width < 600px)');
+            const place = (): void => { button.hidden = !mobile.matches; };
+            button.classList.add('compact-menu-control', 'setting-control');
+            document.querySelector('#game-menu')?.append(button);
+            inputs.on(mobile, 'change', place);
+            inputs.cleanup(() => { button.remove(); });
+            place();
+        }
+        else if (spec.corner) {
+            const mobile = matchMedia('(pointer: coarse), (width < 600px)');
+            const place = (): void => {
+                const pause = document.querySelector('#topbar #pause');
+                if (mobile.matches && pause) pause.before(button); else slots.get(spec.placement)?.append(button);
+                button.classList.toggle('corner-control', mobile.matches);
+                document.body.classList.toggle('has-corner-control', mobile.matches);
+            };
+            inputs.on(mobile, 'change', place);
+            inputs.cleanup(() => { button.remove(); document.body.classList.remove('has-corner-control'); });
+            place();
+        }
         // Secondary commands stay reachable in the menu when six targets cannot fit.
-        if (spec.compactMenu) {
+        else if (spec.compactMenu) {
             const compact = matchMedia('(width < 380px)');
             const place = (): void => {
                 const parent = compact.matches ? document.querySelector('#game-menu') : slots.get(spec.placement);
@@ -76,10 +102,11 @@ export function renderTouchControls(inputs: Inputs, buttons: readonly TouchButto
         inputs.on(button, 'click', event => {
             event.preventDefault();
             const inMenu = button.classList.contains('compact-menu-control');
-            if (inMenu) document.querySelector<HTMLButtonElement>('#game-menu-toggle')?.click();
+            // A play action run from the pause page closes it (the ⏸ toggles the page on touch screens).
+            if (inMenu && !spec.setting && document.body.classList.contains('menu-open')) document.querySelector<HTMLButtonElement>('#pause')?.click();
             if (inMenu || (event as MouseEvent).detail === 0) { action(spec.id, true); if (spec.mode === 'hold') action(spec.id, false); }
         });
-        if (!spec.compactMenu) slots.get(spec.placement)?.append(button);
+        if (!spec.compactMenu && !spec.setting && !spec.corner) slots.get(spec.placement)?.append(button);
     }
     inputs.on(document.querySelector('#play-area'), 'touchmove', event => { event.preventDefault(); }, { passive: false });
     inputs.on(document.querySelector('#game'), 'pointerdown', event => {
@@ -145,4 +172,13 @@ export function keyboardControls(inputs: Inputs, aim: (delta: number) => void, s
         if (event.code === 'ArrowRight') aim(0.08);
         if (event.code === 'Space') shoot();
     });
+}
+
+/** Optional grouped cross (Dédale, Serpentin): the four `${prefix}-left|up|down|right` arrows of the
+ *  left slot, shown only when the player asked for them in the pause page (swipes are the default). */
+export function applyGroupedCross(prefix: string, on: boolean, setting: string): void {
+    for (const name of ['left', 'up', 'down', 'right']) { const b = document.querySelector<HTMLElement>(`#${prefix}-${name}`); if (b) b.hidden = !on; }
+    const slot = document.querySelector<HTMLElement>('#touch-controls .touch-slot.left'); if (slot) slot.dataset.group = on ? 'cross' : '';
+    document.body.classList.toggle('grouped-cross', on);
+    document.querySelector(`#${setting}`)?.setAttribute('aria-pressed', String(on));
 }

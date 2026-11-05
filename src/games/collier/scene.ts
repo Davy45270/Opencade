@@ -17,14 +17,8 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
-export const collierButtons: readonly TouchButton[] = [{
-        id: 'collier-swap',
-        label: '⇄',
-        ariaLabel: 'Échanger les perles',
-        size: 56,
-        placement: 'center',
-        mode: 'tap'
-    }];
+// No touch button: aim and release on the canvas, touch the shooter or the next pearl to swap.
+export const collierButtons: readonly TouchButton[] = [];
 const palette = [
     0x65e4d0,
     0xffb867,

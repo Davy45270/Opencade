@@ -5,6 +5,9 @@ function fingerReceived(selector: string, before: FingerState, after: FingerStat
     if (selector === '#resume') return true;
     if (selector.endsWith('-special')) return changed('specialUses', 'specialUsed', 'specialCooldown', 'specialArmed', 'karts');
     if ((selector.includes('canvas') || selector === '#essaim-steer') && !target) return false;
+    // A gesture on the well: the landing is received once, then a move or a drop proves it.
+    const down = (state: FingerState) => (state.fingerInput as { down?: boolean } | undefined)?.down === true;
+    if (selector.includes('canvas') && down(after) && !down(before)) return true;
     return changed('active', 'dealt', 'status', 'reserve');
 }
 

@@ -10,8 +10,10 @@ registerHooks({ resolve(name, context, next) {
 const { AlunirScene } = await import('../src/games/alunir/scene.ts');
 const { Engine, LEVELS } = await import('../src/engines/alunir/engine.ts');
 export function objectiveDrawingChecks(Scene = AlunirScene) {
-    const previous = globalThis.document;
+    const previous = globalThis.document, previousMedia = globalThis.matchMedia;
     globalThis.document = { querySelector: () => null };
+    // Desktop play: the shell's MOBILE_PLAY query does not match (the touch HUD row is a DOM element).
+    globalThis.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
     try {
         for (let level = 0; level < 30; level++) for (const progressed of [false, true]) {
             const scene = new Scene(), e = new Engine(); e.loadLevel(level);
@@ -49,7 +51,7 @@ export function objectiveDrawingChecks(Scene = AlunirScene) {
             }
 
         }
-    } finally { globalThis.document = previous; }
+    } finally { globalThis.document = previous; globalThis.matchMedia = previousMedia; }
 }
 objectiveDrawingChecks();
 const mutations = [

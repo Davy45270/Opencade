@@ -27,9 +27,10 @@ test('R01 R02 R06 R08 R09 victoire, défaite, progression et zone utile', async 
     await activate('#next-level'); expect((await read(page))?.level).toBe(1);
     await page.reload(); await expect.poll(() => page.evaluate(() => Boolean(window.__TRAVERSE_TEST__))).toBe(true);
     await activate('#resume');
-    if (mobile) await activate('#game-menu-toggle'); await activate('#levels'); await expect(page.locator('#level-list button').nth(1)).toBeEnabled(); await activate('#close-levels');
+    if (mobile) await activate('#pause'); await activate('#levels'); await expect(page.locator('#level-list button').nth(1)).toBeEnabled(); await activate('#close-levels');
     await page.evaluate(() => window.__TRAVERSE_TEST__?.scenario('danger'));
-    if (mobile) await page.locator('#traverse-up').tap(); else await page.keyboard.press('ArrowUp');
+    // Touch: a tap on the road steps forward (no arrows).
+    if (mobile) { const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent'); await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2); } else await page.keyboard.press('ArrowUp');
     await page.evaluate(() => window.__TRAVERSE_TEST__?.advance(500));
     expect((await read(page))?.status).toBe('lost'); await expect(page.locator('#retry-level')).toBeVisible();
     await page.screenshot({ path: `test-results/screenshots/traverse-lost-${info.project.name}.png` });
@@ -74,4 +75,29 @@ test('R11 traversées d\'introduction annoncées, HUD hors de la zone utile', as
         if (level === 25) expect(m?.closedShelters).toBe(4);
         await page.screenshot({ path: `test-results/screenshots/traverse-intro-${String(level + 1)}-${info.project.name}.png` });
     }
+});
+test('T20 tactile : aucune flèche, Bond accessible, voies visibles', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'Commandes tactiles');
+    await page.goto('/?test=1#/traverse');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__TRAVERSE_TEST__))).toBe(true);
+    await page.locator('#resume').tap();
+    for (const name of ['left', 'up', 'down', 'right']) await expect(page.locator(`#traverse-${name}`)).toHaveCount(0);
+    await expect(page.locator('#traverse-special')).toBeVisible();
+    const geometry = await page.evaluate(() => {
+        const r = (e: Element | null) => { const b = e?.getBoundingClientRect(); return { x: b?.x ?? 0, y: b?.y ?? 0, w: b?.width ?? 0, h: b?.height ?? 0 }; };
+        return { canvas: r(document.querySelector('#game canvas')), bond: r(document.querySelector('#traverse-special')), pause: r(document.querySelector('#pause')), vw: innerWidth, vh: innerHeight };
+    });
+    // The whole road (every lane) is on screen and no control covers it.
+    const { canvas, bond, pause } = geometry;
+    expect(canvas.y).toBeGreaterThanOrEqual(0); expect(canvas.y + canvas.h).toBeLessThanOrEqual(geometry.vh + 1);
+    for (const c of [bond, pause]) expect(c.x >= canvas.x + canvas.w || c.x + c.w <= canvas.x || c.y >= canvas.y + canvas.h || c.y + c.h <= canvas.y).toBe(true);
+    // A swipe right queues a side step; a tap queues a step forward.
+    await page.evaluate(() => { window.__TRAVERSE_TEST__?.advance(0); });
+    const x = canvas.x + canvas.w / 2, y = canvas.y + canvas.h / 2, cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + 40, y }] });
+    expect((await read(page))?.queue).toContain('right');
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await cdp.detach();
+    expect((await read(page))?.queue).not.toContain('up');
+    await page.touchscreen.tap(x, y); expect((await read(page))?.queue).toContain('up');
 });

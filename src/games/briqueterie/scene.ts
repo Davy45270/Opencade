@@ -7,8 +7,9 @@ import { GameCharacter } from '../../characters/game';
 import { ActionPaint, actionBackdrop } from '../../characters/action-phaser';
 import { designs } from '../../engines/briqueterie/levels';
 import { Engine, LEVELS } from '../../engines/briqueterie/engine';
-import { Inputs, horizontalDrag, renderTouchControls, type TouchButton } from '../../shell/input';
-import { PlaySession } from '../../shell/pause';
+import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
+import { MOBILE_PLAY, PlaySession } from '../../shell/pause';
+import { setHud } from '../../shell/hud';
 import { Progression } from '../../shell/progression';
 import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
@@ -16,9 +17,7 @@ import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 export const briqueterieButtons: readonly TouchButton[] = [
     { id: 'briqueterie-special', label: 'Balle forte', ariaLabel: 'Balle forte', size: 56, placement: 'right', mode: 'tap' },
-    { id: 'briqueterie-left', label: '←', ariaLabel: 'Raquette à gauche', size: 56, placement: 'left', mode: 'hold' },
-    { id: 'briqueterie-launch', label: 'Lancer', ariaLabel: 'Lancer la balle', size: 56, placement: 'center', mode: 'tap' },
-    { id: 'briqueterie-right', label: '→', ariaLabel: 'Raquette à droite', size: 56, placement: 'right', mode: 'hold' },
+    // Paddle: relative drag in the lower third of the canvas; launch: tap the canvas (no button).
 ];
 export interface BriqueterieHook {
     performance(): { frames: number; gameMs: number };
@@ -28,7 +27,7 @@ export interface BriqueterieHook {
     power(kind: 'wide' | 'multi' | 'life'): void;
     usefulArea(): { x: number; y: number; width: number; height: number };
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; drag: { origin: number; start: number } | null }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'fall'): void;
 }
@@ -48,6 +47,8 @@ export class BriqueterieScene extends Phaser.Scene {
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: Phaser.GameObjects.Text;
     private prompt?: Phaser.GameObjects.Text;
+    /** Relative paddle drag: paddle x and finger x (world units) where the finger landed. */
+    private drag: { id: number; origin: number; start: number } | null = null;
     private left = false;
     private right = false;
     private glow = 0;
@@ -89,10 +90,23 @@ export class BriqueterieScene extends Phaser.Scene {
 
         this.hud = this.add.text(14, 14, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', wordWrap: { width: 332 } }).setDepth(5);
         this.prompt = this.add.text(180, 500, '', { fontFamily: 'system-ui', fontSize: '14px', wordWrap: { width: 330 }, color: '#ffe0b5', align: 'center' }).setOrigin(0.5).setDepth(5);
-        renderTouchControls(this.inputs, briqueterieButtons, (id, held) => { if (id.endsWith('special')) { if (held) this.special(); } else if (id.endsWith('launch')) { if (held) this.launch(); } else if (id.endsWith('left')) this.left = held; else this.right = held; });
+        renderTouchControls(this.inputs, briqueterieButtons, (id, held) => { if (id.endsWith('special') && held) this.special(); });
+        const mobile = matchMedia(MOBILE_PLAY);
+        const placeHud = (): void => { this.hud?.setVisible(!mobile.matches); };
+        this.inputs.on(mobile, 'change', placeHud);
+        placeHud();
         const area = this.game.canvas;
         const move = (x: number): void => { if (!this.session.paused && !this.selecting) { this.engine.move(x); this.draw(); } };
-        horizontalDrag(this.inputs, area, 360, move);
+        // Relative drag in the lower third: the paddle moves by the finger's travel, so it stays above the finger.
+        const worldX = (e: PointerEvent): number => { const r = area.getBoundingClientRect(); return (e.clientX - r.left) * 360 / r.width; };
+        this.inputs.on(area, 'pointerdown', event => {
+            const e = event as PointerEvent, r = area.getBoundingClientRect();
+            if (e.pointerType === 'mouse' || this.drag || (e.clientY - r.top) * 640 / r.height < 640 * 2 / 3) return;
+            e.preventDefault(); area.setPointerCapture(e.pointerId);
+            this.drag = { id: e.pointerId, origin: this.engine.state.paddle, start: worldX(e) };
+        });
+        this.inputs.on(area, 'pointermove', event => { const e = event as PointerEvent; if (this.drag?.id === e.pointerId) { e.preventDefault(); move(this.drag.origin + worldX(e) - this.drag.start); } });
+        for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) this.inputs.on(area, type, event => { if (this.drag?.id === (event as PointerEvent).pointerId) this.drag = null; });
         this.inputs.on(area, 'pointermove', event => { const e = event as PointerEvent; if (e.pointerType === 'mouse') { const r = area.getBoundingClientRect(); move((e.clientX - r.left) * 360 / r.width); } });
         this.inputs.on(area, 'pointerup', () => { this.launch(); });
         this.inputs.on(document, 'keydown', event => {
@@ -119,7 +133,7 @@ export class BriqueterieScene extends Phaser.Scene {
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.snapshot().ticks * 1000 / 60 }),
             fingerReceipts: receipts,
-            read: () => ({ fingerInput: { paused: this.session.paused }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            read: () => ({ fingerInput: { paused: this.session.paused, drag: this.drag ? { origin: this.drag.origin, start: this.drag.start } : null }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             scenario: name => {
                 this.start(0, 455, true);
@@ -229,6 +243,11 @@ export class BriqueterieScene extends Phaser.Scene {
         this.specialGraphics?.clear();
         this.hero.advance(0, this.session.paused, this.engine.status, (s.strongPending || s.balls.some(b => (b.pierce ?? 0) > 0)));
         if ((s.strongPending || s.balls.some(b => (b.pierce ?? 0) > 0)) && this.specialGraphics) this.hero.drawEffect(this.specialGraphics, view.x(s.balls[0]?.x ?? s.paddle, s.balls[0]?.y ?? 560) - 32.5, view.y(s.balls[0]?.y ?? 560) - 32.5, 65);
+        setHud('left', [{ icon: '♥', value: String(s.lives), label: 'Vies' }]);
+        setHud('center', [{ icon: '★', value: String(s.score), label: 'Score' }]);
+        setHud('right', [{ icon: 'N', value: String(this.engine.level + 1), label: 'Niveau' }]);
+        const strong = document.querySelector('#briqueterie-special');
+        if (strong && strong.getAttribute('data-count') !== (s.specialUsed ? '0' : '1')) strong.setAttribute('data-count', s.specialUsed ? '0' : '1');
         this.hud?.setText(`Balle forte ${s.specialUsed ? 'UTILISÉE' : 'PRÊTE'} · N${String(this.engine.level + 1)}   VIES ${String(s.lives)}   SCORE ${String(s.score)}   ×${String(s.balls.length)}\n${LEVELS[this.engine.level]?.name ?? ''}`);
         this.prompt?.setText(s.ready && this.engine.status === 'playing' ? `${designs[this.engine.level]?.rest ? 'Respiration · ' : (this.engine.level + 1) % 5 === 0 ? 'Défi · ' : ''}À vous de lancer !\n${[...new Set(s.bricks.map(b => b.kind))].filter(k => k && k !== 'plain').map(k => ({ moving: '↔ coulisse', explosive: '✳ explosion', regen: '+ repousse rapide', portal: '◉ portail', angle: '/ déviation', key: '⚿ ouvre les verrous', locked: '× verrou', multi: '••• multi-balle', gravity: '↑ zone inversée', anchor: '○ attache', hanging: '│ suspension' } as Record<string, string>)[k ?? 'plain']).join(' · ')}\nTap · Espace · Lancer` : '');
         const status = document.querySelector('#status'); if (status) status.textContent = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'won' ? 'Victoire' : this.engine.status === 'lost' ? 'Défaite' : s.ready ? 'Prêt' : 'En jeu'}`;

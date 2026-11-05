@@ -187,14 +187,12 @@ void test('stepped finger regressions without a browser', async t => {
                 [orbiteProof, '#orbite-fire', {}, { fingerInput: { firing: true } }, { fingerInput: { firing: false } }],
                 [orbiteProof, '#game canvas', {}, { target: 180 }, { target: 160 }],
                 [essaimProof, '#essaim-fire', {}, { fingerInput: { firing: true } }, { fingerInput: { firing: false } }],
-                [essaimProof, '#essaim-steer', { cannon: 180 }, { target: 180 }, { target: 160 }],
+                // Relative steering: origin + (x - start) × ratio = 170 + (180 - 160) × .5 = 180.
+                [essaimProof, '#essaim-steer', { cannon: 180 }, { target: 180, fingerInput: { steer: { origin: 170, start: 160, ratio: .5 } } }, { target: 190, fingerInput: { steer: { origin: 170, start: 160, ratio: .5 } } }],
                 [essaimProof, '#game canvas', {}, { target: 180 }, { target: 160 }],
                 [bubbleProof, '#game canvas', {}, { angle: 0, fingerInput: { aimingPointer: 0 } }, { angle: 0, fingerInput: { aimingPointer: null } }],
-                [bubbleProof, '#touch-swap', { next: 1, queued: 2 }, { next: 2, queued: 1 }, { next: 1, queued: 2 }],
-                [briqueterieProof, '#game canvas', {}, { paddle: 180, width: 40 }, { paddle: 160, width: 40 }],
-                [briqueterieProof, '#briqueterie-launch', {}, { ready: false }, { ready: true }],
-                [caissesProof, '#caisses-right', { moves: 0 }, { moves: 1 }, { moves: 0 }],
-                [empiloProof, '#empilo-right', { dealt: 0 }, { dealt: 1 }, { dealt: 0 }],
+                [caissesProof, '#game canvas', { moves: 0, fingerInput: { down: true } }, { moves: 1, fingerInput: { down: true } }, { moves: 0, fingerInput: { down: true } }],
+                [empiloProof, '#game canvas', { dealt: 0, fingerInput: { down: true } }, { dealt: 1, fingerInput: { down: true } }, { dealt: 0, fingerInput: { down: true } }],
                 [gourmandisesProof, '#gourmandises-hammer', {}, { armedTool: 'hammer' }, { armedTool: null }],
                 [gourmandisesProof, '#game canvas', {}, { fingerInput: { down: { x: 180, y: 400 } } }, { fingerInput: { down: null } }],
             ];
@@ -206,6 +204,15 @@ void test('stepped finger regressions without a browser', async t => {
                 assert.equal(proof.fingerReceived('#example-special', { specialUses: 0 }, { specialUses: 0 }), false);
             }
             assert.equal(caissesProof.fingerReceived('#caisses-special', {}, { fingerInput: { pulling: true } }), true);
+            // Caisses: the swipe's landing is received once, then only a move proves the gesture.
+            assert.equal(caissesProof.fingerReceived('#game canvas', { fingerInput: { down: false } }, { fingerInput: { down: true } }, target), true);
+            assert.equal(caissesProof.fingerReceived('#game canvas', { fingerInput: { down: false } }, { fingerInput: { down: false } }, target), false);
+            // Briqueterie: relative drag in the lower third, a tap above it (launch proven on release).
+            const low = { ...target, y: 600 };
+            assert.equal(briqueterieProof.fingerReceived('#game canvas', {}, { paddle: 180, width: 40, fingerInput: { drag: { origin: 170, start: 170 } } }, low), true);
+            assert.equal(briqueterieProof.fingerReceived('#game canvas', {}, { paddle: 160, width: 40, fingerInput: { drag: { origin: 170, start: 170 } } }, low), false);
+            assert.equal(briqueterieProof.fingerReleased(['#game canvas'], { ready: true, fingerInput: { drag: null } }, { ready: false }), true);
+            assert.equal(briqueterieProof.fingerReleased(['#game canvas'], { ready: true, fingerInput: { drag: null } }, { ready: true }), false);
             for (const [proof, idle, held] of [
                 [alunirProof, { held: [] }, { held: ['alunir-left'] }],
                 [ferrailleProof, { controls: { x: 0, y: 0, jump: false, fire: false } }, { controls: { x: 1 } }],
@@ -217,9 +224,11 @@ void test('stepped finger regressions without a browser', async t => {
                 assert.equal(proof.fingerReleased(['#game canvas'], {}, { fingerInput: idle }), true);
                 assert.equal(proof.fingerReleased(['#game canvas'], {}, { fingerInput: held }), false);
             }
-            assert.equal(bubbleProof.fingerReleased(['#game canvas'], { inFlight: false, shots: 2 }, { shots: 3 }), true);
-            assert.equal(bubbleProof.fingerReleased(['#game canvas'], { inFlight: false, shots: 2 }, { shots: 2 }), false);
-            assert.equal(bubbleProof.fingerReleased(['#touch-swap'], { inFlight: false, shots: 2 }, { shots: 2 }), true);
+            assert.equal(bubbleProof.fingerReleased(['#game canvas'], { inFlight: false, shots: 2, fingerInput: { aimingPointer: 0 } }, { shots: 3 }), true);
+            assert.equal(bubbleProof.fingerReleased(['#game canvas'], { inFlight: false, shots: 2, fingerInput: { aimingPointer: 0 } }, { shots: 2 }), false);
+            assert.equal(bubbleProof.fingerReceived('#game canvas', { next: 1, queued: 2 }, { next: 2, queued: 1 }, { ...target, x: 300, y: 585 }), true);
+            assert.equal(bubbleProof.fingerReceived('#game canvas', { next: 1, queued: 2 }, { next: 1, queued: 2 }, { ...target, x: 300, y: 585 }), false);
+            assert.equal(bubbleProof.fingerReleased(['#game canvas'], { inFlight: false, shots: 2, fingerInput: { aimingPointer: null } }, { shots: 2 }), true);
         });
         await t.test('scene declarations run in the page after delivery with snapshots and target', async () => {
             const calls: string[] = [];

@@ -156,7 +156,8 @@ check('capture and touch regression source guards', () => {
     assert.doesNotMatch(s, /cdp.send\('Input.dispatchTouchEvent'/);
     // Piloted time: game time only moves through tests/e2e/finger-stepped.ts; a spec may only enter the manual clock (advance(0)).
     assert.doesNotMatch(s, /__[A-Z]+_TEST__(?:\?\.|\.)advance\((?!0\))/);
-    assert.match(readFileSync('src/style.css', 'utf8'), /#serpentin-special, body\.empilo #touch-controls #empilo-special \{ font-size: 16px; letter-spacing: -0\.06em; \}/);
+    // Empilo lost its Réserve button (the reserve tile is touched): only Serpentin keeps the narrow label rule.
+    assert.match(readFileSync('src/style.css', 'utf8'), /body\.serpentin #touch-controls #serpentin-special \{ font-size: 16px; letter-spacing: -0\.06em; \}/);
     assert.doesNotMatch(readFileSync('tests/e2e/habillage.spec.ts', 'utf8'), /setTimeout\(2000\)/);
 });
 const report = { pass: 80, browserRun: false, simulatedClock: '60 Hz engine steps', latencyMs: 150, noisePx: 12, seeds: { buttons: 70, canvas: 72, engines: 28, snake: 454 }, results, timings };

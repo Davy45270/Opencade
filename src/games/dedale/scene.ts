@@ -4,20 +4,25 @@ import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
 import { Engine, LEVELS, WIDTH, HEIGHT, visible, index, type Direction } from '../../engines/dedale/engine';
-import { Inputs, renderTouchControls, directionalSwipe, type TouchButton } from '../../shell/input';
-import { PlaySession } from '../../shell/pause';
+import { Inputs, applyGroupedCross, renderTouchControls, directionalSwipe, type TouchButton } from '../../shell/input';
+import { MOBILE_PLAY, PlaySession } from '../../shell/pause';
 import { Progression } from '../../shell/progression';
-import { browserStorage, readSave, writeSave } from '../../shell/storage';
+import { browserStorage, readSave, readValue, writeSave, writeValue } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { mazeScenery, seedLight, sunLight, wispArt } from './art';
 import { sound } from '../../shell/services';
+const CROSS_KEY = 'arcade-lab:dedale:cross:v1';
+/** Lueur lasts 180 ticks (engine). */
+const LUEUR_TICKS = 180;
 export const dedaleButtons: readonly TouchButton[] = [
+    // Swipes steer; the grouped cross is an option (pause page), hidden by default.
     { id: 'dedale-special', label: 'Lueur', ariaLabel: 'Lueur : chemin vers le soleil', size: 56, placement: 'right', mode: 'tap' },
     { id: 'dedale-left', label: '←', ariaLabel: 'Aller à gauche', size: 56, placement: 'left', mode: 'tap' },
-    { id: 'dedale-up', label: '↑', ariaLabel: 'Monter', size: 56, placement: 'center', mode: 'tap' },
-    { id: 'dedale-down', label: '↓', ariaLabel: 'Descendre', size: 56, placement: 'center', mode: 'tap' },
-    { id: 'dedale-right', label: '→', ariaLabel: 'Aller à droite', size: 56, placement: 'right', mode: 'tap' },
+    { id: 'dedale-up', label: '↑', ariaLabel: 'Monter', size: 56, placement: 'left', mode: 'tap' },
+    { id: 'dedale-down', label: '↓', ariaLabel: 'Descendre', size: 56, placement: 'left', mode: 'tap' },
+    { id: 'dedale-right', label: '→', ariaLabel: 'Aller à droite', size: 56, placement: 'left', mode: 'tap' },
+    { id: 'dedale-cross', label: 'Croix', ariaLabel: 'Croix de direction', size: 56, placement: 'right', mode: 'tap', setting: true },
 ];
 export interface DedaleHook {
     performance(): { frames: number; gameMs: number };
@@ -40,6 +45,7 @@ export class DedaleScene extends Phaser.Scene {
     private testAdvancing = false;
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: Phaser.GameObjects.Text;
+    private cross = readValue(browserStorage(), CROSS_KEY) === 'on';
     private title?: Phaser.GameObjects.Text;
     private glow = 0;
     private panelSignature = '';
@@ -66,7 +72,7 @@ export class DedaleScene extends Phaser.Scene {
     create(): void {
         const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('dedale');
-        const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('dedale'); delete window.__DEDALE_TEST__; sound.stop(); };
+        const cleanup = (): void => { this.inputs.dispose(); applyGroupedCross('dedale', false, 'dedale-cross'); document.body.classList.remove('dedale'); delete window.__DEDALE_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         const board = this.textures.createCanvas('dedale-board', 360, 640);
@@ -84,8 +90,10 @@ export class DedaleScene extends Phaser.Scene {
         };
         renderTouchControls(this.inputs, dedaleButtons, (id, held) => {
             if (id === 'dedale-special') { if (held && !this.session.paused && !this.selecting) this.engine.special(); }
+            else if (id === 'dedale-cross') { if (held) { this.cross = !this.cross; writeValue(browserStorage(), CROSS_KEY, this.cross ? 'on' : 'off'); this.applyCross(); } }
             else if (held) direction(id.replace('dedale-', '') as Direction);
         });
+        this.applyCross();
         const area = document.querySelector<HTMLElement>('#game');
         if (area) directionalSwipe(this.inputs, area, direction, 16, true);
         const keys: Record<string, Direction> = { ArrowUp: 'up', KeyW: 'up', KeyZ: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', KeyQ: 'left', ArrowRight: 'right', KeyD: 'right' };
@@ -169,6 +177,8 @@ export class DedaleScene extends Phaser.Scene {
         if (this.testAdvancing) return;
         this.panels(); this.draw();
     }
+    /** The optional cross: four arrows grouped under one thumb (left slot). */
+    private applyCross(): void { applyGroupedCross('dedale', this.cross, 'dedale-cross'); }
     private paintScenery(ctx: CanvasRenderingContext2D, maze: boolean[], size: number, left: number, top: number): void {
         this.sceneryPaints++;
         mazeScenery(ctx, maze, this.engine.level, this.engine.state.journey, size, left, top);
@@ -256,7 +266,10 @@ export class DedaleScene extends Phaser.Scene {
         // Name what this board really holds (see lessons.ts).
         const lesson = dedaleLesson(this.engine.level);
         this.title?.setText(`${j ? shapes[j.shape].toLocaleUpperCase('fr') : 'DÉDALE'} · ${['ÉVEIL', 'SENTIERS', 'PASSAGES', 'REFLETS', 'OMBRES', 'AURORE'][Math.floor(this.engine.level / 5)] ?? ''}`);
-        this.hud?.setText(`DÉDALE ${String(this.engine.level + 1)} · ${j ? shapes[j.shape] : ''} · VIES ${'◆'.repeat(s.lives)}\nLUEUR ${String(this.engine.specialUses)}/1 · ${(this.engine.specialTicks / 60).toFixed(1)} s\nSCORE ${String(s.score)} · LUMIÈRES ${String(s.seeds.length + s.suns.length)}\n${j?.remaining ? `DÉFI · ${String(Math.ceil(j.remaining / 1000))} s` : [5, 10, 16, 21, 26].includes(this.engine.level) ? 'RESPIRATION · soleils de 12 secondes' : s.vulnerable > 0 ? `SOLEIL ${(s.vulnerable / 1000).toFixed(1)} s` : 'Les follets vous cherchent'}\n${lesson}\n${this.engine.level === 29 ? 'FINAL · toutes les mécaniques réunies' : 'Flèches / ZQSD · glisser pour tourner'}`);
+        this.hud?.setText(`DÉDALE ${String(this.engine.level + 1)} · ${j ? shapes[j.shape] : ''} · VIES ${'◆'.repeat(s.lives)}\nLUEUR ${String(this.engine.specialUses)}/1 · ${(this.engine.specialTicks / 60).toFixed(1)} s\nSCORE ${String(s.score)} · LUMIÈRES ${String(s.seeds.length + s.suns.length)}\n${j?.remaining ? `DÉFI · ${String(Math.ceil(j.remaining / 1000))} s` : [5, 10, 16, 21, 26].includes(this.engine.level) ? 'RESPIRATION · soleils de 12 secondes' : s.vulnerable > 0 ? `SOLEIL ${(s.vulnerable / 1000).toFixed(1)} s` : 'Les follets vous cherchent'}\n${lesson}\n${this.engine.level === 29 ? 'FINAL · toutes les mécaniques réunies' : matchMedia(MOBILE_PLAY).matches ? 'Glisser pour tourner' : 'Flèches / ZQSD · glisser pour tourner'}`);
+        // Lueur's ring: its remaining light while lit, full while available.
+        const lueur = document.querySelector<HTMLElement>('#dedale-special'), ring = (this.engine.specialTicks > 0 ? Math.min(1, this.engine.specialTicks / LUEUR_TICKS) : this.engine.specialUses > 0 ? 1 : 0).toFixed(2);
+        if (lueur && lueur.dataset.ring !== ring) { lueur.dataset.ring = ring; lueur.style.setProperty('--ring', ring); }
         const status = document.querySelector('#status');
         if (status) status.textContent = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'playing' ? 'En jeu' : this.engine.status === 'won' ? 'Victoire' : 'Défaite'}`;
     }

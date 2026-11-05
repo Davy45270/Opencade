@@ -35,28 +35,31 @@ export const MAX_SHARDS = 4;
 export const GAME_SPECS = {
     'alunir': ['alunir', 'alunir-levels'],
     'artificiers': ['artificiers', 'artificiers-finger'],
-    'bombercade': ['bombercade', 'bombercade-finger'],
+    'bombercade': ['bombercade', 'bombercade-finger', 'bombercade-touch'],
     'briqueterie': ['briqueterie'],
-    'bubble': ['bubble-catalogue', 'bubble-snap-finger'],
+    'bubble': ['bubble-catalogue', 'bubble-snap-finger', 'bubble-touch'],
     'caisses': ['caisses'],
     'collier': ['collier', 'collier-finger'],
     'dedale': ['dedale'],
-    'derapage': ['derapage', 'derapage-3d', 'derapage-catalogue'],
+    'derapage': ['derapage', 'derapage-3d', 'derapage-catalogue', 'derapage-touch'],
     'empilo': ['empilo'],
-    'essaim': ['essaim', 'essaim-signature'],
     'ferraille': ['ferraille', 'ferraille-levels'],
-    'gourmandises': ['gourmandises', 'gourmandises-finger'],
+    'gourmandises': ['gourmandises', 'gourmandises-finger', 'gourmandises-touch'],
     'marmaille': ['marmaille'],
     'orbite': ['orbite'],
     'pepites': ['pepites', 'pepites-finger'],
     'petits-pompiers': ['petits-pompiers', 'petits-pompiers-finger', 'petits-pompiers-touch'],
     'serpentin': ['serpentin'],
+};
+/** Games held out of the public catalogue (absent from the registry) until they return; their specs stay owned here. */
+export const HELD_BACK = {
     'traverse': ['traverse'],
+    'essaim': ['essaim', 'essaim-signature', 'essaim-touch'],
 };
 /** Cross-game specs, grouped by what they exercise. None is tied to a single game. */
 export const CROSS_SPECS = {
     'accueil': ['arcade', 'autres-jeux', 'thumbnails'],
-    'coquille': ['mobile-layout', 'mobile', 'game', 'levels', 'sound', 'device', 'touch-edges'],
+    'coquille': ['mobile-layout', 'mobile', 'game', 'levels', 'sound', 'device', 'touch-edges', 'pause-page'],
     'personnages': ['characters', 'character-pixels', 'character-finger', 'character-finger-2', 'character-finger-3', 'character-finger-4', 'habillage', 'habillage-action'],
     'pwa': ['offline', 'pwa-update'],
     'mesure': ['perf-fps'],
@@ -81,7 +84,6 @@ export const SMOKE_TESTS = {
     'dedale': ['dedale', 'D12 crochet inerte et nettoyage lors du retour à l’accueil', 5.0],
     'derapage': ['derapage', 'Z30 Z34 porte et saut en vue de jeu', 2.9],
     'empilo': ['empilo', 'E11 E08 niveau 30 et mise en page', 5.6],
-    'essaim': ['essaim', 'G12 crochet inerte sans test et nettoyage à la sortie', 7.3],
     'ferraille': ['ferraille', 'F-SCENE-03 les six descriptions de rendu sont distinctes deux à deux', 3.0],
     'gourmandises': ['gourmandises', 'canyon des flèches, boucle et permutation réelle sur le tapis', 6.5],
     'marmaille': ['marmaille', 'MA-E2 sans rôle, la falaise est perdue', 2.3],
@@ -89,7 +91,6 @@ export const SMOKE_TESTS = {
     'pepites': ['pepites', 'P13 mise en page : mine entière visible, boutons de 56 px sous le canevas, HUD lisible', 14.4],
     'petits-pompiers': ['petits-pompiers', 'Petits Pompiers : défi choisi par deux gros boutons, crochet réservé aux tests', 12.7],
     'serpentin': ['serpentin', 'N14 écluses : ouverte, clignotante la dernière demi-seconde, puis fermée', 5.9],
-    'traverse': ['traverse', 'R01 glisser tactile unique, pause et crochet de production absent', 3.5],
 };
 /** Seconds per spec file (all projects), same measurements; used only to size CI shards. */
 export const SPEC_SECONDS = {
@@ -101,6 +102,8 @@ export const SPEC_SECONDS = {
     'habillage': 19, 'levels': 18, 'marmaille': 19, 'mobile-layout': 721, 'mobile': 3, 'offline': 6, 'orbite': 143, 'pepites-finger': 107,
     'pepites': 34, 'perf-fps': 86, 'petits-pompiers-finger': 62, 'petits-pompiers-touch': 9, 'petits-pompiers': 118, 'pwa-update': 36,
     'serpentin': 73, 'sound': 9, 'thumbnails': 44, 'touch-edges': 27, 'traverse': 21,
+    // Touch-shell specs: provisional estimates until a measured run replaces them.
+    'bombercade-touch': 15, 'bubble-touch': 15, 'derapage-touch': 15, 'essaim-touch': 15, 'gourmandises-touch': 15, 'pause-page': 30,
 };
 /**
  * Specs split across CI parts by game id: their per-id tests are titled `... <id> <width>x<height>`. Weights are the
@@ -109,9 +112,9 @@ export const SPEC_SECONDS = {
  */
 export const SPLIT_SPECS = {
     'mobile-layout': {
-        'ferraille': 38.0, 'alunir': 33.9, 'briqueterie': 33.9, 'petits-pompiers': 24.7, 'pepites': 24.5, 'essaim': 22.8, 'collier': 22.5,
+        'ferraille': 38.0, 'alunir': 33.9, 'briqueterie': 33.9, 'petits-pompiers': 24.7, 'pepites': 24.5, 'collier': 22.5,
         'derapage': 18.1, 'bombercade': 17.6, 'gourmandises': 16.7, 'orbite': 16.4, 'marmaille': 15.0, 'dedale': 14.2, 'serpentin': 13.8,
-        'traverse': 13.7, 'bubble': 13.3, 'caisses': 12.7, 'empilo': 11.7, '': 5.1,
+        'bubble': 13.3, 'caisses': 12.7, 'empilo': 11.7, '': 5.1,
     },
 };
 /** N2 shell zones: the specs that exercise that part of the shell, added to the N2 selection. */

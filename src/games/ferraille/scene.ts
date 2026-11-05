@@ -19,9 +19,10 @@ import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 export const ferrailleButtons: readonly TouchButton[] = [
-    { id: 'ferraille-special', label: 'Super-tir', ariaLabel: 'Super-tir', size: 56, placement: 'right', mode: 'tap' },
-    { id: 'ferraille-jump', label: 'Saut', ariaLabel: 'Sauter', size: 64, placement: 'right', mode: 'hold' },
-    { id: 'ferraille-fire', label: 'Tir', ariaLabel: 'Tirer', size: 64, placement: 'right', mode: 'hold' },
+    // Main action last: Saut (72 px) sits under the thumb, bottom of the column or end of the row.
+    { id: 'ferraille-special', label: 'Super', ariaLabel: 'Super-tir', size: 56, placement: 'right', mode: 'tap' },
+    { id: 'ferraille-fire', label: 'Tir', ariaLabel: 'Tirer', size: 56, placement: 'right', mode: 'hold' },
+    { id: 'ferraille-jump', label: 'Saut', ariaLabel: 'Sauter', size: 72, placement: 'right', mode: 'hold' },
 ];
 const HUD = { x: 10, y: 8, width: 340, height: 98 };
 export interface FerrailleHook {
@@ -31,6 +32,8 @@ export interface FerrailleHook {
         hud: { x: number; y: number; width: number; height: number };
         ground: { x: number; y: number; width: number; height: number };
         visibleWorldBottom: number;
+        /** The hero's drawn box, in world (360×640) coordinates. */
+        hero: { x: number; y: number; width: number; height: number };
     };
     advance(ms: number): void;
     hudText(): string;
@@ -187,7 +190,8 @@ export class FerrailleScene extends Phaser.Scene {
     }
     rendering: { palette: number[]; layers: { factor: number; x: number }[]; camera: number; boss: ReturnType<typeof bossAppearance> | null; reducedMotion: boolean } = { palette: [], layers: [], camera: 0, boss: null, reducedMotion: false };
     private layout() {
-        const top = Math.max(88, this.engine.state.hero.y - 146);
+        const h = this.engine.state.hero, top = Math.max(88, h.y - 146);
+        const camera = Math.max(0, Math.min(this.engine.state.columns * TILE - VIEW.width / VIEW.scale, h.x - 42));
         const groundTop = Math.max(VIEW.worldTop, Math.min(VIEW.height, (16 * TILE - top) * VIEW.scale + VIEW.worldTop));
         const groundBottom = Math.max(groundTop, Math.min(VIEW.height, (20 * TILE - top) * VIEW.scale + VIEW.worldTop));
         return {
@@ -196,6 +200,7 @@ export class FerrailleScene extends Phaser.Scene {
             ground: { x: 0, y: groundTop, width: VIEW.width, height: groundBottom - groundTop },
             // Camera reach at the physical fall threshold, including the standing body.
             visibleWorldBottom: Math.max(88, 340 - 146) + (VIEW.height - VIEW.worldTop) / VIEW.scale,
+            hero: { x: (h.x - camera) * VIEW.scale, y: (h.y - top) * VIEW.scale + VIEW.worldTop, width: h.w * VIEW.scale, height: h.h * VIEW.scale },
         };
     }
     private draw(): void {

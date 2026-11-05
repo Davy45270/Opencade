@@ -7,17 +7,15 @@ import { CELL, MINE_GROUND, TOP, creature, mineTile } from './art';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { swipeDirection } from '../../shell/gestures';
 import { PlaySession } from '../../shell/pause';
+import { setHud } from '../../shell/hud';
 import { Progression } from '../../shell/progression';
 import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 export const pepitesButtons: readonly TouchButton[] = [
-    { id: 'pepites-left', label: '←', ariaLabel: 'Creuser à gauche', size: 56, placement: 'left', mode: 'hold' },
-    { id: 'pepites-up', label: '↑', ariaLabel: 'Creuser vers le haut', size: 56, placement: 'left', mode: 'hold' },
-    { id: 'pepites-down', label: '↓', ariaLabel: 'Creuser vers le bas', size: 56, placement: 'right', mode: 'hold' },
-    { id: 'pepites-right', label: '→', ariaLabel: 'Creuser à droite', size: 56, placement: 'right', mode: 'hold' },
-    { id: 'pepites-special', label: 'Étai', ariaLabel: 'Étai : figer les rochers', size: 56, placement: 'center', mode: 'tap' },
+    // Drag then hold on the mine to dig; Étai is the only button.
+    { id: 'pepites-special', label: 'Étai', ariaLabel: 'Étai : figer les rochers', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface PepitesHook {
     advance(ms: number): void;
@@ -50,7 +48,7 @@ export class PepitesScene extends Phaser.Scene {
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('pepites'); delete window.__PEPITES_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.graphics = this.add.graphics();
-        this.hud = this.add.text(10, 528, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 6 });
+        this.hud = this.add.text(10, TOP + H * CELL + 8, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 6 });
         const ready = (): boolean => {
             if (this.session.state === 'ready') this.session.send('start');
             return !this.session.paused && !this.selecting && this.engine.status === 'playing';
@@ -130,6 +128,9 @@ export class PepitesScene extends Phaser.Scene {
         if (this.engine.specialTurns > 0) { g.lineStyle(3, 0xffd34d, 0.8); g.strokeRect(1, TOP + 1, W * CELL - 2, H * CELL - 2); }
         if (this.flash) { g.fillStyle(0xffffff, this.flash * 0.2); g.fillRect(0, TOP, W * CELL, H * CELL); }
         const ending = this.engine.status === 'lost' ? ({ crushed: 'Écrasé !', caught: 'Attrapé !', blast: 'Explosion !', time: 'Temps écoulé !', drown: 'Noyé !' })[this.engine.reason ?? 'crushed'] : this.engine.status === 'won' ? 'Mine terminée !' : mineTip(this.engine.level);
+        setHud('left', [{ icon: '◆', value: `${String(s.nuggets)}/${String(m.goal)}`, label: 'Pépites' }]);
+        setHud('center', [{ icon: '⏱', value: String(Math.ceil(s.timeLeft / 1000)), label: 'Temps' }]);
+        setHud('right', [{ icon: '★', value: String(s.score), label: 'Score' }]);
         this.hud?.setText(`MINE ${String(this.engine.level + 1)}/30 · ${m.name.toUpperCase()}\nPÉPITES ${String(s.nuggets)}/${String(m.goal)}${open ? ' · SORTIE OUVERTE' : ''} · ⏱ ${String(Math.ceil(s.timeLeft / 1000))} s · SCORE ${String(s.score)}\nÉTAI ${String(this.engine.specialUses)}/1${this.engine.specialTurns ? ` · ${String(this.engine.specialTurns)} tours` : ''} · ${ending}`);
         const status = document.querySelector('#status'); if (status) status.textContent = `Score : ${String(s.score)} · ${this.engine.status === 'playing' ? 'En jeu' : this.engine.status === 'won' ? 'Victoire' : 'Défaite'}`;
     }

@@ -32,11 +32,16 @@ test('P13 mise en page : mine entière visible, boutons de 56 px sous le canevas
         await page.screenshot({ path: `test-results/screenshots/pepites-mine-${String(level + 1)}-${info.project.name}.png` });
     }
     if (mobile) {
+        // One icon (Étai) under the canvas, no arrows: the mine is dug by dragging.
         const canvas = await page.locator('#game canvas').boundingBox();
-        for (const id of ['left', 'up', 'down', 'right', 'special']) {
-            const b = await page.locator(`#pepites-${id}`).boundingBox();
-            expect(b?.width).toBeGreaterThanOrEqual(56); expect(b?.height).toBeGreaterThanOrEqual(56);
-            expect(b?.y ?? 0).toBeGreaterThanOrEqual((canvas?.y ?? 0) + (canvas?.height ?? 0) - 1);
-        }
+        for (const id of ['left', 'up', 'down', 'right']) await expect(page.locator(`#pepites-${id}`)).toHaveCount(0);
+        const b = await page.locator('#pepites-special').boundingBox();
+        expect(b?.width).toBeGreaterThanOrEqual(56); expect(b?.height).toBeGreaterThanOrEqual(56);
+        expect(b?.y ?? 0).toBeGreaterThanOrEqual((canvas?.y ?? 0) + (canvas?.height ?? 0) - 1);
+        // The top band is back to the mine (row 0 at the canvas top); the ⏸ and counters sit in the HUD row above.
+        expect((await page.evaluate(() => window.__PEPITES_TEST__?.usefulArea()))?.y).toBe(0);
+        const pause = await page.locator('#pause').boundingBox();
+        expect((pause?.y ?? 0) + (pause?.height ?? 0)).toBeLessThanOrEqual((canvas?.y ?? 0) + 1);
+        await expect(page.locator('#hud')).toBeVisible(); await expect(page.locator('#hud')).toContainText('/');
     }
 });

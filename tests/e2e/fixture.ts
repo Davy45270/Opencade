@@ -43,12 +43,13 @@ export async function point(page: Page, x: number, y: number) {
 
 /** Measure one layout in one browser call, without repeated frame waits. */
 export async function measureLayout(page: Page, selectors: readonly string[]) {
-    const menuSelectors = selectors.filter(selector => ['#levels', '#restart'].includes(selector));
-    const toggle = page.locator('#game-menu-toggle');
-    const mobileMenu = menuSelectors.length > 0 && await toggle.isVisible();
+    const menuSelectors = selectors.filter(selector => ['#levels', '#restart', '#sound'].includes(selector));
+    const toggle = page.locator('#pause');
+    const mobileMenu = menuSelectors.length > 0 && await mobilePlay(page);
+    // Already paused through the ⏸: the pause page is open, measure it as it is and leave it open.
+    const alreadyOpen = mobileMenu && await toggle.getAttribute('aria-expanded') === 'true';
     if (mobileMenu) {
-        await expect(toggle, 'Menu fermé avant la mesure').toHaveAttribute('aria-expanded', 'false');
-        await toggle.tap();
+        if (!alreadyOpen) await toggle.tap();
         try {
             await expect(toggle).toHaveAttribute('aria-expanded', 'true');
             // The floating menu pauses play and may cover the canvas. Its buttons
@@ -69,13 +70,15 @@ export async function measureLayout(page: Page, selectors: readonly string[]) {
                 await control.click({ trial: true });
             }
         } finally {
-            await toggle.tap();
+            if (!alreadyOpen) await toggle.tap();
         }
-        await expect(toggle, 'Fermeture réelle au toucher').toHaveAttribute('aria-expanded', 'false');
-        await expect(page.locator('#game-menu')).toBeHidden();
+        if (!alreadyOpen) {
+            await expect(toggle, 'Fermeture réelle au toucher').toHaveAttribute('aria-expanded', 'false');
+            await expect(page.locator('#game-menu')).toBeHidden();
+        }
     }
     const measuredSelectors = mobileMenu
-        ? [...selectors.filter(selector => !menuSelectors.includes(selector)), '#game-menu-toggle'] : selectors;
+        ? [...selectors.filter(selector => !menuSelectors.includes(selector) && selector !== '#pause'), '#pause'] : selectors;
     const result = await page.evaluate(selectors => {
         const box = (selector: string) => {
             const element = document.querySelector(selector);
@@ -94,9 +97,25 @@ export async function measureLayout(page: Page, selectors: readonly string[]) {
 }
 
 export async function openGameMenu(page: Page, selector: string): Promise<boolean> {
-    if (['#levels', '#restart'].includes(selector) && await page.locator('#game-menu-toggle').isVisible() && !await page.locator(selector).isVisible()) {
-        await page.locator('#game-menu-toggle').click();
+    if (['#levels', '#restart', '#sound', '#game-menu [data-home]'].includes(selector) && await mobilePlay(page) && !await page.locator(selector).isVisible()) {
+        await page.locator('#pause').click();
         return true;
     }
     return false;
+}
+/** Touch play: no bar, the ⏸ opens the single pause page (home, sound, levels, restart). */
+export async function mobilePlay(page: Page): Promise<boolean> {
+    return page.evaluate(() => document.body.classList.contains('playing') && matchMedia('(pointer: coarse), (width < 600px)').matches);
+}
+export async function goHome(page: Page): Promise<void> {
+    if (await mobilePlay(page)) {
+        if (!await page.locator('#game-menu [data-home]').isVisible()) await page.locator('#pause').click();
+        await page.locator('#game-menu [data-home]').click();
+    } else await page.locator('#topbar [data-home]').click();
+}
+/** Toggles the global sound; on touch play through the pause page, closed again afterwards. */
+export async function clickSound(page: Page): Promise<void> {
+    const opened = await openGameMenu(page, '#sound');
+    await page.locator('#sound').click();
+    if (opened) await page.locator('#pause').click();
 }

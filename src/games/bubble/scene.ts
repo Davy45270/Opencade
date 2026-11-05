@@ -6,7 +6,8 @@ import { expressions } from '../../characters/model';
 import { ArcadePaint } from '../../characters/arcade-phaser';
 import { bubbleBackdropKey, drawBubbleBackdrop } from './backdrop';
 import { Settle, settleTarget } from './settle';
-import { PlaySession } from '../../shell/pause';
+import { MOBILE_PLAY, PlaySession } from '../../shell/pause';
+import { setBrief, setHud } from '../../shell/hud';
 import { bubbleButtons } from '../registry';
 import Phaser from 'phaser';
 import { sound } from '../../shell/services';
@@ -59,6 +60,8 @@ declare global {
         __BUBBLE_TEST__?: TestHook;
     }
 }
+/** Next (queued) bubble: tap it to swap; the reach makes a ≥ 56 px target on the Fold cover screen. */
+const NEXT = { x: 300, y: 585 }, NEXT_REACH = 42;
 /** Features drawn in each baked scenery texture (textures outlive a scene restart, so this map does too). */
 const decorFeatures = new Map<string, string[]>();
 export class LabScene extends Phaser.Scene {
@@ -112,16 +115,17 @@ export class LabScene extends Phaser.Scene {
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         renderTouchControls(this.inputs, bubbleButtons, (id, held) => {
-            if (!held || this.selecting || this.session.paused) return;
-            if (id === 'bubble-special') this.engine.special();
-            else if (id === 'touch-fire') this.engine.shoot();
-            else if (id === 'touch-swap') this.engine.swap();
-            else if (id === 'touch-mode') {
+            if (!held) return;
+            // A setting, changed from the pause page.
+            if (id === 'touch-mode') {
                 this.tapToShoot = !this.tapToShoot;
                 document.querySelector('#touch-mode')?.setAttribute('aria-pressed', String(this.tapToShoot));
+                return;
             }
-            else this.engine.aim(this.engine.angle + (id === 'touch-left' ? -0.08 : 0.08));
+            if (this.selecting || this.session.paused) return;
+            if (id === 'bubble-special') this.engine.special();
         });
+        document.querySelector('#touch-mode')?.setAttribute('aria-pressed', 'false');
         this.progress = new Progression(readSave(this.storage, 'bubble', LEVELS.length), LEVELS.length);
         const showLevels = (): void => {
             this.selecting = !this.selecting;
@@ -151,7 +155,13 @@ export class LabScene extends Phaser.Scene {
         this.obstacles = this.add.graphics().setDepth(3);
         this.hud = this.add.text(18, 482, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff' });
         this.hud.setDepth(4);
-        this.add.text(266, 612, 'SUIVANTE', { fontFamily: 'system-ui', fontSize: '11px', color: '#e5f3ff' }).setDepth(4);
+        const nextLabel = this.add.text(266, 612, 'SUIVANTE', { fontFamily: 'system-ui', fontSize: '11px', color: '#e5f3ff' }).setDepth(4);
+        // Touch play: the canvas text would render at 6-8 px over the trajectory; the DOM HUD and
+        // the pause page carry it instead (the text keeps updating for hudText()).
+        const mobile = matchMedia(MOBILE_PLAY);
+        const placeHud = (): void => { this.hud?.setVisible(!mobile.matches); nextLabel.setVisible(!mobile.matches); };
+        this.inputs.on(mobile, 'change', placeHud);
+        placeHud();
         const aim = (pointer: Phaser.Input.Pointer): void => {
             if (!this.session.paused && !this.selecting && pointer.y < ORIGIN.y - 15)
                 this.engine.aim(Math.atan2(pointer.x - ORIGIN.x, ORIGIN.y - pointer.y));
@@ -161,6 +171,8 @@ export class LabScene extends Phaser.Scene {
         });
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             if (this.aimingPointer !== null) return;
+            // Tapping the next bubble swaps it (below the aiming line, so no shot is lost).
+            if (!this.session.paused && !this.selecting && Math.hypot(pointer.x - NEXT.x, pointer.y - NEXT.y) <= NEXT_REACH) { this.engine.swap(); return; }
             if (!this.session.paused && !this.selecting && pointer.wasTouch && !this.tapToShoot) {
                 this.aimingPointer = pointer.id;
                 aim(pointer);
@@ -221,6 +233,21 @@ export class LabScene extends Phaser.Scene {
                 fingerReceipts: receipts,
                 read: () => ({ fingerInput: { paused: this.session.paused, aimingPointer: this.aimingPointer }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             };
+        }
+    }
+    /** Touch play: level, score and drop countdown in the DOM HUD; goal and tip in the pause page; Joker stock as a badge. */
+    private touchHud(hint: string): void {
+        const level = LEVELS[this.engine.level];
+        setHud('left', [{ icon: 'N', value: String(this.engine.level + 1), label: `Niveau ${String(this.engine.level + 1)}` }]);
+        setHud('center', [{ icon: '★', value: String(this.engine.score), label: 'Score' }]);
+        setHud('right', [{ icon: '↓', value: String(this.engine.shotsBeforeDrop ?? '—'), label: 'Tirs avant la descente' }]);
+        setBrief([`${level?.name ?? ''} : ${level?.mechanics?.includes('star') ? 'libérer les étoiles' : 'vider le plafond'}.`, hint].filter(Boolean).join(' '));
+        const joker = document.querySelector('#bubble-special');
+        if (joker) {
+            const count = String(this.engine.specialUses);
+            if (joker.getAttribute('data-count') !== count) joker.setAttribute('data-count', count);
+            const armed = String(this.engine.specialArmed);
+            if (joker.getAttribute('aria-pressed') !== armed) joker.setAttribute('aria-pressed', armed);
         }
     }
     /** Whole aiming path up to the impact, so a finger covering the launcher still sees where it lands. */
@@ -421,10 +448,11 @@ export class LabScene extends Phaser.Scene {
         const projectile = this.engine.projectile();
         if (projectile && this.engine.flight)
             this.bubble(projectile.x, projectile.y, this.engine.flight.color);
-        this.bubble(300, 585, this.engine.queued, 0.9, 0.8);
+        this.bubble(NEXT.x, NEXT.y, this.engine.queued, 0.9, 0.8);
         const mechanic = LEVELS[this.engine.level]?.mechanics?.at(-1), catalogue = LEVELS[this.engine.level]?.catalogue;
         const hint = catalogue ? CATALOGUE_HINTS[catalogue] ?? '' : mechanic ? HINTS[mechanic] ?? '' : '';
         this.hud?.setText(`NIVEAU ${String(this.engine.level + 1)} · ${LEVELS[this.engine.level]?.name ?? ''}\nDESCENTE ${String(this.engine.shotsBeforeDrop ?? '—')} · ${LEVELS[this.engine.level]?.mechanics?.includes('star') ? 'LIBÉRER LES ÉTOILES' : 'VIDER LE PLAFOND'}\nJOKER ${String(this.engine.specialUses)}/1${this.engine.specialArmed ? ' · prêt' : ''} · SCORE ${String(this.engine.score)}\n${livery.joker} · TIRS ${String(this.engine.shots)}\n${hint}`);
+        this.touchHud(hint);
         const status = document.querySelector('#status');
         const text = `Score : ${String(this.engine.score)} · ${this.engine.status === 'playing' ? 'En jeu' : this.engine.status === 'won' ? 'Victoire' : 'Défaite'}`;
         if (status && status.textContent !== text)

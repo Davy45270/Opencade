@@ -14,8 +14,12 @@ import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { color, drawBomb, fireCell, heart, star, powerIcon, palettes } from './art';
-import { ArenaLayer } from './arena';
+import { ArenaLayer, helpBubble } from './arena';
+import { setBrief } from '../../shell/hud';
 import { cardinalDirection } from './controls';
+/** World rows below the arena (its last row ends at 530, actors overhang to about 537). */
+const FREE_BOTTOM = 100;
+const HINT_MS = 5000;
 export const bombercadeButtons: readonly TouchButton[] = [
     { id: 'bombercade-bomb', label: 'Bombe', ariaLabel: 'Poser une bombe', size: 64, placement: 'right', mode: 'tap' },
     { id: 'bombercade-special', label: '✦', ariaLabel: 'Pouvoir spécial', size: 56, placement: 'right', mode: 'tap' },
@@ -26,6 +30,8 @@ export interface BombercadeHook {
     renderStats(): { dynamicCommands: number };
     pilotAction(): Action;
     hudText(): string;
+    /** The help bubble is drawn (only during the first seconds of a level). */
+    hintShown(): boolean;
     usefulArea(): { x: number; y: number; width: number; height: number };
     loadLevel(index: number, seed?: number): void;
     advance(ms: number): void;
@@ -65,6 +71,7 @@ export class BombercadeScene extends Phaser.Scene {
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: Phaser.GameObjects.Text;
     private hint?: Phaser.GameObjects.Text;
+    private brief = '';
     private heading?: Phaser.GameObjects.Text;
     private counter?: Phaser.GameObjects.Text;
     private timer?: Phaser.GameObjects.Text;
@@ -88,7 +95,10 @@ export class BombercadeScene extends Phaser.Scene {
         style.textContent = 'body.bombercade #touch-controls{height:120px;min-height:120px;flex-basis:120px;margin-bottom:max(12px,env(safe-area-inset-bottom))}body.bombercade #touch-controls #bombercade-bomb{width:64px;height:64px;min-width:64px!important;min-height:64px!important}body.bombercade #touch-controls .left{flex:0 0 120px}body.bombercade .joystick{position:relative;touch-action:none;border:0;border-radius:0;background:none}body.bombercade .joystick::before{content:"";position:absolute;inset:0;box-sizing:border-box;border:3px solid #64e4cc;border-radius:50%;background:radial-gradient(circle,#546c86 0 14%,#173b50 15% 62%,#80c9bf 63% 66%,#173b50 67%);pointer-events:none}body.bombercade .joystick span{position:absolute;color:#fff;font-size:24px;line-height:28px;pointer-events:none}body.bombercade .joystick span:nth-child(1){top:5px;left:43px}body.bombercade .joystick span:nth-child(2){bottom:5px;left:43px}body.bombercade .joystick span:nth-child(3){left:7px;top:42px}body.bombercade .joystick span:nth-child(4){right:7px;top:42px}';
         style.textContent += 'body.bombercade #touch-controls #bombercade-bomb{position:relative;border-radius:50%;font-size:16px;background:radial-gradient(circle at 35% 25%,#ffe4a3,#edab4c 65%,#b96830);border:3px solid #fff0b2;box-shadow:0 4px 0 #744527,inset 0 2px 0 #fff6d8}body.bombercade #bombercade-bomb svg{width:44px;height:44px;pointer-events:none}';
         document.head.append(style);
-        const cleanup = (): void => { this.arena?.destroy(); this.inputs.dispose(); style.remove(); document.body.classList.remove('bombercade'); delete window.__BOMBERCADE_TEST__; sound.stop(); };
+        // The rows under the arena carry no game information once the help bubble has gone:
+        // in the side layout the joystick and the bomb may overhang them (src/shell/layout.ts).
+        document.body.dataset.freeBottom = String(FREE_BOTTOM);
+        const cleanup = (): void => { this.arena?.destroy(); this.inputs.dispose(); style.remove(); document.body.classList.remove('bombercade'); delete document.body.dataset.freeBottom; delete window.__BOMBERCADE_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.arena = new ArenaLayer(this);
         this.graphics = this.add.graphics().setDepth(3);
@@ -144,6 +154,7 @@ export class BombercadeScene extends Phaser.Scene {
                 return this.testPilot.readAction(this.engine);
             },
             hudText: () => this.hud?.text ?? '',
+            hintShown: () => this.hint?.visible === true,
             usefulArea: () => ({ x: 15, y: 140, width: 330, height: 390 }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             advance: ms => { if (!Number.isFinite(ms) || ms < 0) throw new RangeError('Temps invalide'); this.manual = true; if (!this.session.paused && !this.selecting) { this.engine.advance(ms); this.feedback(); this.sync(); } },
@@ -262,7 +273,12 @@ export class BombercadeScene extends Phaser.Scene {
         });
         const tips = { special: 'Bonus ✦ : une charge de pouvoir.', reinforced: 'Blocs cerclés : deux impacts.', conveyor: 'Tapis : un pas supplémentaire.', portal: 'Anneaux : transport par paire.', ice: 'Glaçons : un impact les pousse.', gold: 'Objectif : casse tous les blocs dorés.', sudden: 'Dernières secondes : attention aux anneaux !', candy: 'Pousse les bombes : elles rebondissent !' };
         const newest = level.mechanics.at(-1);
-        this.hint?.setText(newest ? tips[newest] : 'Pose une bombe, éloigne-toi et tourne dans un autre couloir !');
+        const tip = newest ? tips[newest] : 'Pose une bombe, éloigne-toi et tourne dans un autre couloir !';
+        // The help is a brief bubble at the start of a level, then stays in the pause page.
+        const hinting = e.time < HINT_MS;
+        if (hinting) helpBubble(g);
+        this.hint?.setText(tip).setVisible(hinting);
+        if (tip !== this.brief) { this.brief = tip; setBrief(tip); }
         const remain = Math.max(0, Math.ceil((level.deadline - e.time) / 1000));
         const specialNames = { panda: 'Pluie de bambous', pandaroux: 'Roulade', dragon: 'Souffle', singe: 'Pirouette', licorne: 'Étoile filante' };
         const text = `${GAME_NAME} · ${String(e.level + 1)}/30 · SCORE ${String(e.score)}\n${characters[e.player.character].fr} · ${'♥'.repeat(Math.max(0, e.player.hearts))} · ${String(e.actors.slice(1).filter(a => a.hearts).length)} rival(aux) · ${String(remain)} s\n${level.arena} · ${level.name}\n${specialNames[e.player.character]} : ${String(e.player.charges)}${remain <= 10 && e.has('sudden') ? ' · Anneau imminent !' : ''}`;

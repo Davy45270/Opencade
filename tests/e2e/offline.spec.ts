@@ -1,4 +1,4 @@
-import { test, expect } from './fixture';
+import { test, expect, goHome } from './fixture';
 
 test('PWA : accueil, victoire et sauvegarde sans connexion', async ({ page, context }, info) => {
     const mobile = info.project.name === 'mobile-chromium';
@@ -22,15 +22,14 @@ test('PWA : accueil, victoire et sauvegarde sans connexion', async ({ page, cont
         // Same near-finished state as the ordinary Dédale E2E: the last seed
         // still requires a real movement and the normal engine win condition.
         await page.evaluate(() => { window.__DEDALE_TEST__?.scenario('finish'); });
-        if (mobile) await page.locator('#dedale-up').tap();
-        else await page.keyboard.press('ArrowUp');
+        await page.keyboard.press('ArrowUp');
         await page.evaluate(() => { window.__DEDALE_TEST__?.advance(10000); });
         await expect.poll(() => page.evaluate(() => window.__DEDALE_TEST__?.read().status)).toBe('won');
         await expect(page.locator('#result')).toBeVisible();
         await expect(page.locator('#result-title')).toContainText('réussi');
         await page.reload();
         await expect(page.locator('#game canvas')).toBeVisible();
-        await page.locator('#topbar [data-home]').click();
+        await goHome(page);
         await expect(page.locator('h1')).toHaveText('Opencade');
         await expect(page.getByRole('button', { name: /^Dédale/ })).toContainText('Niveaux débloqués : 2/30');
     } finally {

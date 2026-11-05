@@ -47,9 +47,10 @@ const { brickView } = await import('../src/games/briqueterie/presentation.ts');
 const { levelCatalogue } = await import('../src/content/level-catalogue.ts');
 let elements = new Map();
 class Element extends EventTarget {
-    style = {}; children = []; classList = { add() {}, remove() {}, contains() { return false; } }; textContent = '';
+    style = { setProperty(k, v) { this[k] = v; }, removeProperty(k) { Reflect.deleteProperty(this, k); } }; children = []; classList = { add() {}, remove() {}, contains() { return false; }, toggle() {} }; textContent = '';
     constructor() { super(); setMaxListeners(80, this); }
-    setAttribute() {} setPointerCapture() {} remove() {} matches() { return false; }
+    attrs = {}; dataset = {};
+    setAttribute(k, v) { this.attrs[k] = String(v); } getAttribute(k) { return this.attrs[k] ?? null; } removeAttribute(k) { Reflect.deleteProperty(this.attrs, k); } setPointerCapture() {} remove() {} matches() { return false; }
     getBoundingClientRect() { return { x: 0, y: 0, left: 0, top: 0, width: 360, height: 640 }; }
     append(...items) { for (const item of items) { this.children.push(item); if (item.id) elements.set('#' + item.id, item); if (item.className?.startsWith('touch-slot')) elements.set('#touch-controls .' + item.className.split(' ')[1], item); } }
     replaceChildren() { this.children = []; }
@@ -70,7 +71,7 @@ for (const game of ['ferraille', 'briqueterie', 'essaim']) for (const id of ids)
         const object = { texture: { key: '' }, visible: true, destroyed: false, setPosition(x, y) { this.x = x; this.y = y; return this; }, setDisplaySize(w, h) { this.w = w; this.h = h; return this; }, setAlpha(alpha) { this.alpha = alpha; return this; }, setDepth(depth) { this.depth = depth; return this; }, setRotation(rotation) { this.rotation = rotation; return this; }, setTexture(key) { this.texture.key = key; return this; }, setVisible(value) { this.visible = value; return this; }, destroy() { this.destroyed = true; } };
         const proxy = new Proxy(object, { get: (target, key) => target[key] ?? (() => proxy) }); images.push(proxy); return proxy;
     };
-    scene.add = { graphics: () => graphics, image, text: () => { const t = { text: '', setText(v) { this.text = v; return this; }, setOrigin() { return this; }, setDepth() { return this; } }; return t; } };
+    scene.add = { graphics: () => graphics, image, text: () => { const t = { text: '', setText(v) { this.text = v; return this; }, setOrigin() { return this; }, setDepth() { return this; }, setVisible(v) { this.visible = v; return this; } }; return t; } };
     scene.make = { graphics: () => graphics }; scene.textures = { exists: key => textures.has(key) }; scene.events = { once: (name, callback) => cleanup.set(name, callback) };
     let refreshes = 0; scene.scale = { refresh() { refreshes++; } }; scene.game = { canvas: new Element() }; scene.cameras = { main: { shake() {}, shakeEffect: { reset() {} } } };
     // Inspect one real image at a time; retaining whole-scene histories creates
@@ -136,12 +137,17 @@ for (const game of ['ferraille', 'briqueterie', 'essaim']) for (const id of ids)
     }
     if (game === 'briqueterie') {
         hook.loadLevel(0, 28); scene.engine.move(260);
-        const down = new Event('pointerdown', { cancelable: true }); Object.assign(down, { pointerId: 2, pointerType: 'touch' });
-        elements.get('#briqueterie-left').dispatchEvent(down);
+        // K02 on the touch gesture that replaced the ← → hold buttons: a finger held in the lower third and
+        // dragged left moves the paddle by its travel (relative); above the lower third it does nothing.
+        const area = scene.game.canvas, pointer = (type, x, y) => { const e = new Event(type, { cancelable: true }); Object.assign(e, { pointerId: 2, pointerType: 'touch', clientX: x, clientY: y }); area.dispatchEvent(e); };
+        pointer('pointerdown', 300, 200); pointer('pointermove', 200, 200);
+        assert.equal(hook.read().paddle, 260, 'K02 a finger above the lower third does not steer');
+        pointer('pointerup', 200, 200); hook.loadLevel(0, 28); scene.engine.move(260);
+        pointer('pointerdown', 300, 600); pointer('pointermove', 200, 600);
         const refreshBefore = refreshes;
-        hook.advance(200); assert(hook.read().paddle < 240, 'K02 held touch moves in simulation time');
+        hook.advance(200); assert(hook.read().paddle < 240, 'K02 held touch moves the paddle by the finger travel');
         assert.equal(refreshes, refreshBefore, 'K02 simulation does not repeatedly resize the field');
-        const up = new Event('pointerup'); Object.assign(up, { pointerId: 2 }); elements.get('#briqueterie-left').dispatchEvent(up);
+        pointer('pointerup', 200, 600);
     }
     if (game === 'ferraille') {
         hook.loadLevel(0, 28);

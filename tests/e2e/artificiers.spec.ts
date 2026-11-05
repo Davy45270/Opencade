@@ -79,3 +79,33 @@ test('Artificiers : ouverture, glisser réel et trois ambiances', async ({ page,
     }
     expect(errors).toEqual([]);
 });
+test('A20 tactile : « 2 joueurs » hors des commandes de jeu, vent et puissance ≥ 18 px rendus, corde accessible', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'Commandes tactiles');
+    test.setTimeout(120_000);
+    // A finger lands where the control is drawn (as in the other touch tests), whatever overlay Playwright suspects.
+    const touch = async (selector: string) => {
+        const r = await page.locator(selector).evaluate(e => { const b = e.getBoundingClientRect(); return { x: b.x + b.width / 2, y: b.y + b.height / 2, w: b.width }; });
+        if (!r.w) throw new Error(`Contrôle absent : ${selector}`);
+        await page.touchscreen.tap(r.x, r.y);
+    };
+    for (const [width, height] of [[405, 480], [780, 412], [360, 640]] as const) {
+        await page.setViewportSize({ width, height });
+        await page.goto('/?test=1#/artificiers');
+        await expect.poll(() => state(page)).not.toBeNull();
+        await touch('#resume');
+        await page.evaluate(() => { window.__ARTIFICIERS_TEST__?.advance(50); });
+        const size = `${String(width)}×${String(height)}`;
+        const inBar = await page.evaluate(() => [...document.querySelectorAll('#touch-controls button')].filter(b => b.getBoundingClientRect().width > 0).map(b => b.textContent));
+        expect(inBar, size).not.toContain('1 / 2'); expect(inBar, size).not.toContain('2 joueurs');
+        expect(await page.locator('#game-menu #artificiers-mode').count(), size).toBe(1);
+        const px = await page.evaluate(() => window.__ARTIFICIERS_TEST__?.readoutPx());
+        expect(px?.wind ?? 0, size).toBeGreaterThanOrEqual(18); expect(px?.power ?? 0, size).toBeGreaterThanOrEqual(18);
+        const rope = await page.locator('#artificiers-rope').boundingBox();
+        expect(rope, size).not.toBeNull();
+        if (rope) { expect(rope.width).toBeGreaterThanOrEqual(56); expect(rope.x).toBeGreaterThanOrEqual(0); expect(rope.x + rope.width).toBeLessThanOrEqual(width); expect(rope.y + rope.height).toBeLessThanOrEqual(height); }
+    }
+    // Chosen before the game, from the pause page.
+    await touch('#pause'); await touch('#artificiers-mode');
+    await expect(page.locator('#artificiers-mode')).toHaveAttribute('aria-pressed', 'true');
+    expect(await page.evaluate(() => window.__ARTIFICIERS_TEST__?.read().mode)).toBe('duo');
+});

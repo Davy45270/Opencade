@@ -35,7 +35,7 @@ test('Z08 Z09 podium, défaite, progression, commandes réelles et HUD séparé'
     await page.screenshot({ path: `test-results/screenshots/derapage-won-${info.project.name}.png` });
     await activate('#next-level'); expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().level)).toBe(1);
     await page.reload(); await expect(page.locator('#resume')).toBeVisible(); await activate('#resume');
-    if (mobile) await activate('#game-menu-toggle'); await activate('#levels'); await expect(page.locator('#level-list button').nth(1)).toBeEnabled(); await activate('#close-levels');
+    if (mobile) await activate('#pause'); await activate('#levels'); await expect(page.locator('#level-list button').nth(1)).toBeEnabled(); await activate('#close-levels');
     await page.evaluate(() => window.__DERAPAGE_TEST__?.scenario('danger'));
     await driveGate();
     expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().status)).toBe('lost'); await expect(page.locator('#retry-level')).toBeVisible();
@@ -51,10 +51,13 @@ test('Z02 Z03 maintien tactile ou clavier et absence de crochet en production', 
     await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(2000));
     const before = await page.evaluate(() => window.__DERAPAGE_TEST__?.read().karts[0]?.angle);
     if (info.project.name === 'mobile-chromium') {
-        const right = await page.locator('#game canvas').boundingBox(), drift = await page.locator('#derapage-drift').boundingBox(); if (!right || !drift) throw new Error('Boutons absents');
+        // One thumb, no button: a strong turn held drifts.
+        const field = await page.locator('#game canvas').boundingBox(); if (!field) throw new Error('Canevas absent');
+        await expect(page.locator('#derapage-drift')).toHaveCount(0);
         const cdp = await page.context().newCDPSession(page);
-        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: right.x + 32, y: right.y + 32, id: 1 }, { x: drift.x + 32, y: drift.y + 32, id: 2 }] });
-        await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: right.x + 65, y: right.y + 32, id: 1 }, { x: drift.x + 32, y: drift.y + 32, id: 2 }] });
+        const x = field.x + field.width * .3, y = field.y + field.height * .6;
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y, id: 1 }] });
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + FULL_DEFLECTION + 4, y, id: 1 }] });
         await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(700));
         expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().controls.steer)).toBeGreaterThan(0);
         expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().karts[0]?.driftMs)).toBeGreaterThan(0);
@@ -73,12 +76,12 @@ test('Z25 commandes analogiques mobiles, tailles et captures', async ({ page }, 
     await page.goto('/?test=1#/derapage'); await page.locator('#resume').tap();
     await page.evaluate(() => { window.__DERAPAGE_TEST__?.loadLevel(14, 28); window.__DERAPAGE_TEST__?.advance(2000); });
     const canvas = await page.locator('#game canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
-    const drift = await page.locator('#derapage-drift').boundingBox(), bonus = await page.locator('#derapage-bonus').boundingBox();
-    if (!drift || !bonus) throw new Error('Commandes absentes');
-    expect(drift.width).toBeGreaterThanOrEqual(88); expect(drift.height).toBeGreaterThanOrEqual(88);
-    expect(bonus.width).toBeGreaterThanOrEqual(56); expect(bonus.height).toBeGreaterThanOrEqual(56);
-    expect(bonus.y + bonus.height).toBeLessThanOrEqual(drift.y);
-    for (const box of [drift, bonus]) expect(box.y).toBeGreaterThanOrEqual(canvas.y + canvas.height);
+    // Two icons only (Élan, Bonus), no written instruction under the thumbs.
+    const special = await page.locator('#derapage-special').boundingBox(), bonus = await page.locator('#derapage-bonus').boundingBox();
+    if (!special || !bonus) throw new Error('Commandes absentes');
+    for (const box of [special, bonus]) { expect(box.width).toBeGreaterThanOrEqual(56); expect(box.height).toBeGreaterThanOrEqual(56); }
+    for (const box of [special, bonus]) expect(box.x + box.width <= canvas.x || box.x >= canvas.x + canvas.width || box.y >= canvas.y + canvas.height).toBe(true);
+    expect(await page.evaluate(() => [...document.querySelectorAll('#touch-controls button, #touch-controls output')].filter(e => e.getClientRects().length > 0).map(e => e.id).sort())).toEqual(['derapage-bonus', 'derapage-special']);
     await expect(page.locator('#derapage-left, #derapage-right')).toHaveCount(0);
     const cdp = await page.context().newCDPSession(page);
     const x = canvas.x + canvas.width * .25, y = canvas.y + canvas.height * .6;
@@ -120,7 +123,8 @@ test('Z28 Z29 chronos mobiles réservés, franchissement piloté et record persi
     await page.evaluate(() => { window.__DERAPAGE_TEST__?.loadLevel(0, 28); window.__DERAPAGE_TEST__?.advance(1000); });
     const hud = page.locator('[data-derapage-hud]');
     await expect(hud).toBeVisible();
-    await expect(hud).toContainText('COURSE 00:01.00');
+    // Touch play: the race time moved to the DOM HUD row; the lap chronos stay on the canvas.
+    await expect(page.locator('#hud .hud-slot.center')).toContainText('00:01.00');
     await expect(hud).toContainText('TOUR 00:01.00');
     await expect(hud).toContainText('MEILLEUR');
     const bounds = await page.evaluate(() => window.__DERAPAGE_TEST__?.bounds());
@@ -169,9 +173,9 @@ test('Z30 Z34 porte et saut en vue de jeu', async ({ page }, info) => {
 test('Z37 mobile : joystick nord en haut, indicateurs et préférence caméra', async ({ page }, info) => {
     test.skip(info.project.name !== 'mobile-chromium');
     await page.goto('/?test=1#/derapage'); await page.locator('#resume').tap();
-    await page.locator('#game-menu-toggle').tap();
+    await page.locator('#pause').tap();
     await expect(page.locator('#derapage-assist')).toHaveText('Aide : oui');
-    await page.locator('#derapage-assist').tap(); await page.locator('#game-menu-toggle').tap();
+    await page.locator('#derapage-assist').tap(); await page.locator('#pause').tap();
     const canvas = await page.locator('#game canvas').boundingBox();
     if (!canvas) throw new Error('Canevas absent');
     const x = canvas.x + canvas.width * .75, y = canvas.y + canvas.height * .55;
@@ -191,14 +195,15 @@ test('Z37 mobile : joystick nord en haut, indicateurs et préférence caméra', 
         const before = angle;
         await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
         await page.evaluate(() => window.__DERAPAGE_TEST__?.advance(100));
-        expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().karts[0]?.angle)).toBe(before);
+        const after = await page.evaluate(() => { const s = window.__DERAPAGE_TEST__?.read(); return { angle: s?.karts[0]?.angle, status: s?.status, time: s?.time, controls: s?.controls, body: document.body.className, title: document.querySelector('#pause-title')?.textContent }; });
+        expect(after.angle, JSON.stringify(after)).toBe(before);
     }
     await cdp.detach();
-    await page.locator('#game-menu-toggle').tap();
+    await page.locator('#pause').tap();
     await expect(page.locator('#derapage-camera')).toHaveText('Caméra : fixe');
     await page.locator('#derapage-camera').tap();
     await expect(page.locator('#derapage-camera')).toHaveText('Caméra : tournante');
-    await page.reload(); await page.locator('#resume').tap(); await page.locator('#game-menu-toggle').tap();
+    await page.reload(); await page.locator('#resume').tap(); await page.locator('#pause').tap();
     await expect(page.locator('#derapage-camera')).toHaveText('Caméra : tournante');
 });
 

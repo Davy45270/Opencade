@@ -11,6 +11,8 @@ import './games/gourmandises/style.css';
 import { Inputs } from './shell/input';
 import { PlaySession, setupPause } from './shell/pause';
 import { setupGameMenu } from './shell/menu';
+import { installAdaptiveLayout } from './shell/layout';
+import { clearHud } from './shell/hud';
 import './shell/other-games-menu';
 declare global {
     interface Window {
@@ -38,6 +40,7 @@ function route(): void {
     gameResizeObserver = undefined;
     sessionInputs.dispose();
     sessionInputs = new Inputs();
+    clearHud();
     const id = location.hash.replace(/^#\/?/, '');
     const definition = games.find(entry => entry.id === id);
     current = definition?.id ?? null;
@@ -101,7 +104,7 @@ function route(): void {
     const container = document.querySelector('#game');
     const activeGame = game;
     if (container) {
-        // FIT must follow container changes even without a window resize.
+        // FIT and RESIZE must follow container changes even without a window resize.
         gameResizeObserver = new ResizeObserver(() => {
             activeGame.scale.getParentBounds();
             activeGame.scale.refresh();
@@ -114,5 +117,6 @@ document.querySelectorAll('[data-home]').forEach(button => {
     button.addEventListener('click', () => { location.hash = '/'; });
 });
 route();
+installAdaptiveLayout();
 
 import './games/artificiers/style.css';

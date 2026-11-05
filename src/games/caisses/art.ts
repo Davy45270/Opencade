@@ -4,7 +4,8 @@ import { backdrop, floorTile, groundTile, iceTile, stoneBlock, type World } from
 type G = Phaser.GameObjects.Graphics;
 /** Drawing shared by the scene and the catalogue thumbnail (one source, no drift). */
 export function workshopLayout(b: Board): { unit: number; ox: number; oy: number } {
-    const unit = Math.min(344 / b.width, 470 / b.height);
+    // Full world width: the outer ring is walls, so its ground rim may run off the edge.
+    const unit = Math.min(360 / b.width, 470 / b.height);
     return { unit, ox: (360 - b.width * unit) / 2, oy: 140 + (470 - b.height * unit) / 2 };
 }
 /** Sky, ground slab, walls, ice and floor: they never move within a workshop. */

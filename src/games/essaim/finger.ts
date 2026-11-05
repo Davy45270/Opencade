@@ -9,7 +9,11 @@ function fingerReceived(selector: string, before: FingerState, after: FingerStat
     if (selector.endsWith('-fire')) return scene?.firing === true;
     if (selector.includes('canvas') || selector === '#essaim-steer') {
         if (!target) return false;
-        if (selector === '#essaim-steer') return near(after.target, Math.max(18, Math.min(342, Number(before.cannon) + target.x / 3 - 60)));
+        if (selector === '#essaim-steer') {
+            // Relative: the ship moves by the finger's travel since it landed (pad units × pad/canvas width).
+            const steer = (after.fingerInput as { steer?: { origin: number; start: number; ratio: number } | null } | undefined)?.steer;
+            return steer != null && near(after.target, Math.max(18, Math.min(342, steer.origin + (target.x - steer.start) * steer.ratio)));
+        }
         return near(after.target, Math.max(18, Math.min(342, Math.round(target.x))));
     }
     return false;

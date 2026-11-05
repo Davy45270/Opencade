@@ -1,6 +1,6 @@
-import { test, expect } from './fixture';
+import { test, expect, goHome } from './fixture';
 
-const ids = ['petits-pompiers', 'bombercade', 'marmaille', 'gourmandises', 'pepites', 'collier', 'derapage', 'traverse', 'caisses', 'alunir', 'ferraille', 'dedale', 'essaim', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin'];
+const ids = ['petits-pompiers', 'bombercade', 'marmaille', 'gourmandises', 'pepites', 'collier', 'derapage', 'caisses', 'alunir', 'ferraille', 'dedale', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin'];
 const windows = [{ width: 390, height: 844 }, { width: 360, height: 640 }, { width: 390, height: 600 }];
 for (const viewport of windows) for (const id of ids) {
     test(`M01 M02 M02b M03 ${id} ${String(viewport.width)}x${String(viewport.height)}`, async ({ page }, testInfo) => {
@@ -50,12 +50,16 @@ for (const viewport of windows) for (const id of ids) {
             expect(m.bar.height).toBeLessThanOrEqual(44);
             // Documented exceptions: Ferraille's joystick (120 px) and Dérapage's large Drift button with Bonus above it (88 + 56 px).
             expect(m.row.height).toBeLessThanOrEqual(id === 'bombercade' || id === 'petits-pompiers' ? 120 : id === 'ferraille' ? 120 : id === 'derapage' ? 156 : 64);
-            expect(m.buttons.length, 'M02b boutons visibles').toBeGreaterThan(0);
+            // Collier has no touch button at all (aim, release, touch the shooter to swap).
+            if (id === 'collier') expect(m.buttons.length, 'M02b aucune commande').toBe(0);
+            // Marmaille: a board without any role has an empty bar; its one command (⏩) sits beside the ⏸.
+            else if (id === 'marmaille') await expect(page.locator('#topbar #marmaille-fast'), 'M02b ⏩ près de la pause').toBeVisible();
+            else expect(m.buttons.length, 'M02b boutons visibles').toBeGreaterThan(0);
             for (const button of m.buttons) {
                 expect(button.scrollWidth, `M02b ${button.id} largeur`).toBeLessThanOrEqual(button.clientWidth);
                 expect(button.scrollHeight, `M02b ${button.id} hauteur`).toBeLessThanOrEqual(button.clientHeight);
             }
-            expect([...new Set(m.buttons.map(button => button.fontSize))], 'M02b police commune').toEqual(['16px']);
+            if (m.buttons.length) expect([...new Set(m.buttons.map(button => button.fontSize))], 'M02b police commune').toEqual(['16px']);
             for (const target of m.targets) { expect(target.width).toBeGreaterThanOrEqual(44); expect(target.height).toBeGreaterThanOrEqual(44); }
             for (const c of m.controls) {
                 expect(c.receivesPointer, c.id).toBe(true);
@@ -80,7 +84,7 @@ for (const viewport of windows) for (const id of ids) {
         await expect.poll(() => page.evaluate(id => Boolean(window.__ARCADE_TEST__?.games[id]), id)).toBe(true);
         if (id === 'petits-pompiers') { await page.locator('#level-list button').first().tap(); await page.locator('#pompiers-detente').tap(); }
         if (id !== 'bubble' && id !== 'caisses') await page.locator('#resume').tap();
-        await page.locator('#game-menu-toggle').tap();
+        await page.locator('#pause').tap();
         const gameState = (id: string) => page.evaluate(id => window.__ARCADE_TEST__?.games[id]?.read(), id);
         const before = await gameState(id);
         await expect(page.locator('#levels')).toBeVisible();
@@ -93,24 +97,24 @@ for (const viewport of windows) for (const id of ids) {
             await page.touchscreen.tap(canvas.x + canvas.width / 2, canvas.y + canvas.height / 4);
             await page.locator('#levels').blur();
             await page.keyboard.press('Space');
-            await page.locator('#touch-fire').dispatchEvent('click', { detail: 0 });
+            await page.locator('#bubble-special').dispatchEvent('click', { detail: 0 });
         }
         await page.waitForTimeout(300);
         expect(await gameState(id)).toEqual(before);
         await page.keyboard.press('Tab');
-        expect(await page.evaluate(() => document.activeElement?.closest('#game-menu') !== null || document.activeElement.id === 'game-menu-toggle')).toBe(true);
+        expect(await page.evaluate(() => document.activeElement?.closest('#game-menu') !== null || document.activeElement.id === 'pause')).toBe(true);
         await page.keyboard.press('Escape');
-        await expect(page.locator('#game-menu-toggle')).toBeFocused();
-        await expect(page.locator('#game-menu-toggle')).toHaveAttribute('aria-expanded', 'false');
+        await expect(page.locator('#pause')).toBeFocused();
+        await expect(page.locator('#pause')).toHaveAttribute('aria-expanded', 'false');
         // A real menu action opens the selector, then a real restart restores level 1.
-        await page.locator('#game-menu-toggle').tap();
+        await page.locator('#pause').tap();
         await expect(page.locator('#levels')).toBeFocused();
         await page.keyboard.press('Enter');
         await expect(page.locator('#level-select')).toBeVisible();
         await page.locator('#close-levels').tap();
-        await page.locator('#game-menu-toggle').tap();
+        await page.locator('#pause').tap();
         await page.locator('#restart').tap();
-        await expect(page.locator('#game-menu-toggle')).toHaveAttribute('aria-expanded', 'false');
+        await expect(page.locator('#pause')).toHaveAttribute('aria-expanded', 'false');
     });
 
 }
@@ -125,36 +129,44 @@ test('M01 conteneur redimensionné sans resize puis sortie et retour au jeu', as
     await expect.poll(async () => (await page.locator('#game canvas').boundingBox())?.height).toBeCloseTo(320, 0);
     await page.locator('#game').evaluate(element => { (element as HTMLElement).style.removeProperty('height'); });
     await expect.poll(async () => (await page.locator('#game canvas').boundingBox())?.height).toBeCloseTo(initial.height, 0);
-    await page.locator('#topbar [data-home]').tap();
+    await goHome(page);
     await expect(page.locator('#game canvas')).toHaveCount(0);
     await page.getByRole('button', { name: /Serpentin/ }).tap();
     await expect.poll(async () => (await page.locator('#game canvas').boundingBox())?.height).toBeCloseTo(initial.height, 0);
 });
 
-for (const id of ['caisses', 'bubble'] as const) test(`M02 commandes regroupées ${id} à 360 px`, async ({ page }) => {
+for (const id of ['bubble'] as const) test(`M02 commandes regroupées ${id} à 360 px`, async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 640 });
     await page.goto(`/?test=1#/${id}`);
-    const selector = id === 'caisses' ? '#caisses-undo' : '#touch-mode';
+    const selector = '#touch-mode';
     const control = page.locator(selector);
     await expect(page.locator(`#game-menu ${selector}`)).toHaveCount(1);
     await expect(control).toBeHidden();
-    if (id === 'caisses') {
-        await page.locator('#caisses-right').tap();
-        expect((await page.evaluate(() => window.__CAISSES_TEST__?.read()))?.moves).toBe(1);
-    }
-    await page.locator('#game-menu-toggle').tap();
+    await page.locator('#pause').tap();
     await expect(control).toBeVisible();
     const box = await control.boundingBox();
     if (!box) throw new Error('Commande regroupée absente');
     expect(box.width).toBeGreaterThanOrEqual(56); expect(box.height).toBeGreaterThanOrEqual(56);
     await control.tap();
-    await expect(page.locator('#game-menu-toggle')).toHaveAttribute('aria-expanded', 'false');
-    if (id === 'caisses') expect((await page.evaluate(() => window.__CAISSES_TEST__?.read()))?.moves).toBe(0);
-    else await expect(control).toHaveAttribute('aria-pressed', 'true');
+    // A setting stays in the pause page and shows its state.
+    await expect(control).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('#pause')).toHaveAttribute('aria-expanded', 'true');
+    await page.locator('#resume').tap();
+    await expect(page.locator('#pause')).toHaveAttribute('aria-expanded', 'false');
+    await expect(control).toHaveAttribute('aria-pressed', 'true');
+    // A setting lives in the pause page at every size.
     await page.setViewportSize({ width: 390, height: 600 });
-    await expect(page.locator(`#touch-controls ${selector}`)).toBeVisible();
+    await expect(page.locator(`#game-menu ${selector}`)).toHaveCount(1);
     await page.setViewportSize({ width: 360, height: 640 });
     await expect(page.locator(`#game-menu ${selector}`)).toHaveCount(1);
-    await page.locator('#topbar [data-home]').tap();
+    await goHome(page);
     await expect(control).toHaveCount(0);
+});
+test('M02 Caisses : Annuler reste dans la barre à 360 px', async ({ page }) => {
+    await page.setViewportSize({ width: 360, height: 640 });
+    await page.goto('/?test=1#/caisses');
+    const undo = page.locator('#touch-controls #caisses-undo');
+    await expect(undo).toBeVisible(); await expect(page.locator('#game-menu #caisses-undo')).toHaveCount(0);
+    const box = await undo.boundingBox(); if (!box) throw new Error('Annuler absent');
+    expect(box.width).toBeGreaterThanOrEqual(56); expect(box.height).toBeGreaterThanOrEqual(56);
 });

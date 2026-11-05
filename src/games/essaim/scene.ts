@@ -3,8 +3,9 @@ import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
 import { Engine, LEVELS, CANNON_Y, difficulty, type Weapon } from '../../engines/essaim/engine';
-import { Inputs, horizontalDrag, renderTouchControls, type TouchButton } from '../../shell/input';
-import { PlaySession } from '../../shell/pause';
+import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
+import { MOBILE_PLAY, PlaySession } from '../../shell/pause';
+import { setHud } from '../../shell/hud';
 import { Progression } from '../../shell/progression';
 import { browserStorage, readSave, writeSave, readValue, writeValue } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
@@ -12,18 +13,19 @@ import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { EssaimArt } from './art';
 export const essaimButtons: readonly TouchButton[] = [
+    // Steering, no button: relative drag in the left zone (#essaim-steer), or finger under the ship in the low zone of the canvas.
     { id: 'essaim-special', label: 'Écu', ariaLabel: 'Bouclier', size: 56, placement: 'right', mode: 'tap' },
-    { id: 'essaim-left', label: '←', ariaLabel: 'Vaisseau à gauche', size: 56, placement: 'left', mode: 'hold' },
-    { id: 'essaim-right', label: '→', ariaLabel: 'Vaisseau à droite', size: 56, placement: 'left', mode: 'hold' },
     { id: 'essaim-fire', label: 'Tir', ariaLabel: 'Tir', size: 64, placement: 'right', mode: 'hold' },
 ];
 export interface EssaimHook {
     performance(): { frames: number; gameMs: number };
     advance(ms: number): void;
     hudText(): string;
+    /** Whether the canvas text HUD is drawn (hidden in touch play, where the DOM HUD replaces it). */
+    hudShown(): boolean;
     usefulArea(): { x: number; y: number; width: number; height: number };
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; firing: boolean; signatureHeld: boolean }; cumulativeScore: number; progression: string; autoFire: boolean; character: ReturnType<GameCharacter['snapshot']> };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; firing: boolean; signatureHeld: boolean; steer: { origin: number; start: number; ratio: number } | null }; cumulativeScore: number; progression: string; autoFire: boolean; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger' | 'special'): void;
     weapon(kind: Weapon): void;
@@ -53,6 +55,8 @@ export class EssaimScene extends Phaser.Scene {
     private right = false;
     private firing = false;
     private signatureHeld = false;
+    /** Relative steering in progress: ship x and finger position at landing (pad units 0..360 and client px). */
+    private steer: { origin: number; start: number; ratio: number; x: number } | null = null;
     private autoFire = (readValue(browserStorage(), OPTIONS_KEY) ?? readValue(browserStorage(), 'arcade-lab:essaim:options:v1')) !== 'off';
     constructor(private session = new PlaySession(true)) { super('essaim'); }
     private panels(): void {
@@ -83,21 +87,41 @@ export class EssaimScene extends Phaser.Scene {
         const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('essaim'); delete window.__ESSAIM_TEST__; sound.stop(); this.art?.destroy(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.art = new EssaimArt(this);
-        this.hud = this.add.text(12, 592, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 1 }).setDepth(5);
+        this.hud = this.add.text(12, 584, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 1 }).setDepth(5);
         renderTouchControls(this.inputs, essaimButtons, (id, held) => {
             if (id === 'essaim-special') { if (held) this.special(); } else if (id === 'essaim-fire') this.fire(held);
-            else if (id === 'essaim-left') this.left = held;
-            else this.right = held;
         });
+        const mobile = matchMedia(MOBILE_PLAY);
+        const placeHud = (): void => { this.hud?.setVisible(!mobile.matches); };
+        this.inputs.on(mobile, 'change', placeHud);
+        placeHud();
         const steering = document.querySelector<HTMLElement>('#touch-controls .left');
         if (steering) {
             steering.id = 'essaim-steer'; steering.setAttribute('aria-label', 'Glisser au pouce gauche pour guider');
-            let origin = this.engine.state.cannon;
-            this.inputs.on(steering, 'pointerdown', () => { origin = this.engine.state.cannon; }, { capture: true });
-            horizontalDrag(this.inputs, steering, 120, x => {
+            // No button: the left slot is the drag zone itself (an invisible sizer keeps its area).
+            // The ship moves by the finger's travel from where it landed, 1:1 with the canvas scale.
+            const zone = document.createElement('span'); zone.className = 'steer-zone'; zone.setAttribute('aria-hidden', 'true');
+            steering.append(zone);
+            let active: number | null = null;
+            const ratio = (): number => steering.getBoundingClientRect().width / Math.max(1, this.game.canvas.getBoundingClientRect().width);
+            this.inputs.on(steering, 'pointerdown', event => {
+                const e = event as PointerEvent;
+                if (active !== null) return;
+                e.preventDefault(); active = e.pointerId; steering.setPointerCapture(e.pointerId);
+                const r = steering.getBoundingClientRect();
+                this.steer = { origin: this.engine.state.cannon, start: (e.clientX - r.left) * 360 / r.width, ratio: ratio(), x: e.clientX };
                 if (this.session.paused || this.selecting) return;
                 this.left = this.right = false;
-                this.engine.moveTo(origin + x - 60);
+                this.engine.moveTo(this.steer.origin);
+            });
+            this.inputs.on(steering, 'pointermove', event => {
+                const e = event as PointerEvent;
+                if (e.pointerId !== active || !this.steer || this.session.paused || this.selecting) return;
+                e.preventDefault();
+                this.engine.moveTo(this.steer.origin + (e.clientX - this.steer.x) * 360 / Math.max(1, this.game.canvas.getBoundingClientRect().width));
+            });
+            for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) this.inputs.on(steering, type, event => {
+                if ((event as PointerEvent).pointerId === active) { active = null; this.steer = null; }
             });
         }
         const options = document.createElement('label'); options.className = 'essaim-options';
@@ -169,10 +193,11 @@ export class EssaimScene extends Phaser.Scene {
             },
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
+            hudShown: () => this.hud?.visible ?? false,
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.state.ticks * 1000 / 60 }),
             fingerReceipts: receipts,
-            read: () => ({ fingerInput: { paused: this.session.paused, firing: this.firing, signatureHeld: this.signatureHeld }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state, autoFire: this.autoFire }),
+            read: () => ({ fingerInput: { paused: this.session.paused, firing: this.firing, signatureHeld: this.signatureHeld, steer: this.steer ? { origin: this.steer.origin, start: this.steer.start, ratio: this.steer.ratio } : null }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state, autoFire: this.autoFire }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             weapon: kind => { this.start(0, 458, true); this.engine.state.pickups = []; this.engine.step(1200); this.engine.equip(kind); this.draw(); },
             lastWave: () => {
@@ -243,6 +268,22 @@ export class EssaimScene extends Phaser.Scene {
         // FIT is refreshed by the shell ResizeObserver, not on every rendered frame.
         this.panels(); this.draw();
     }
+    /** Touch play: lives and score in the HUD corners, wave in the middle; shield and charge as rings. */
+    private touchHud(): void {
+        const s = this.engine.state;
+        setHud('left', [{ icon: '◆', value: String(s.lives), label: 'Vies' }]);
+        setHud('center', [{ icon: 'V', value: String(s.wave), label: 'Vague' }]);
+        setHud('right', [{ icon: '★', value: String(s.score), label: 'Score' }]);
+        const ring = (selector: string, value: number): void => {
+            const button = document.querySelector<HTMLElement>(selector);
+            const text = value.toFixed(2);
+            if (button && button.dataset.ring !== text) { button.dataset.ring = text; button.style.setProperty('--ring', text); }
+        };
+        const ticks = s.specialTicks ?? 0;
+        ring('#essaim-special', ticks > 0 ? Math.min(1, ticks / 120) : s.specialUsed ? 0 : 1);
+        // Charge weapon: its charge; otherwise the signature gauge (cooldown counts as empty).
+        ring('#essaim-fire', this.engine.has('charge') ? Math.min(1, s.charge / 1500) : s.signature?.cooldown ? 0 : Math.min(1, s.signature?.charge ?? 0));
+    }
     private draw(): void {
         const start = this.timingFrame ? performance.now() : 0;
         const s = this.engine.state;
@@ -253,7 +294,8 @@ export class EssaimScene extends Phaser.Scene {
         this.hero.advance(0, this.session.paused, this.engine.status, (s.specialTicks ?? 0) > 0);
         if ((s.specialTicks ?? 0) > 0 && this.specialGraphics) this.hero.drawEffect(this.specialGraphics, s.cannon - 46, CANNON_Y - 46, 92);
         this.hud?.setText(`${weapons} · Signature ${s.signature?.cooldown ? `${String(Math.ceil(s.signature.cooldown / 1000))}s` : `${String(Math.round((s.signature?.charge ?? 0) * 100))}%`}\n${s.double > 0 ? 'DOUBLE ' : ''}${this.engine.challenge ? 'DÉFI ' : ''}${LEVELS[this.engine.level]?.name ?? 'Essaim'}     VIES ${'◆'.repeat(s.lives)}\nSCORE ${String(s.score)}     VAGUE ${String(s.wave)} · ${String(s.enemies.length)} · Bouclier ${(s.specialTicks ?? 0) > 0 ? `${String(Math.ceil((s.specialTicks ?? 0) / 60))}s` : s.specialUsed ? 'UTILISÉ' : 'PRÊT'}`);
-        const fireButton = document.querySelector('#essaim-fire'); if (fireButton) fireButton.textContent = this.autoFire ? 'Charge' : 'Tir';
+        const fireButton = document.querySelector('#essaim-fire'); if (fireButton && fireButton.textContent !== (this.autoFire ? 'Charge' : 'Tir')) fireButton.textContent = this.autoFire ? 'Charge' : 'Tir';
+        this.touchHud();
         const status = document.querySelector('#status');
         const statusText = `Score : ${String(s.score)} · Vies : ${String(s.lives)} · ${this.engine.status === 'won' ? 'Victoire' : this.engine.status === 'lost' ? 'Défaite' : 'En jeu'}`;
         if (status && status.textContent !== statusText) status.textContent = statusText;

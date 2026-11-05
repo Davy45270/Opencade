@@ -46,15 +46,18 @@ void test('every registered touch button and shared joystick is a Chromium click
     class Element {
         tagName: string; id = ''; className = ''; style = {}; children: Element[] = [];
         attributes = new Map<string, string>(); listeners = new Set<string>();
-        classList = { toggle() {} };
+        classList = { toggle() {}, add() {}, remove() {}, contains() { return false; } };
+        remove() {}
         constructor(tag: string) { this.tagName = tag.toUpperCase(); }
         setAttribute(key: string, value: string) { this.attributes.set(key, value); }
         append(child: Element) { this.children.push(child); }
         replaceChildren() { this.children = []; }
     }
     const prior = ['document', 'matchMedia'].map(key => Object.getOwnPropertyDescriptor(globalThis, key));
-    const root = new Element('div');
-    Object.defineProperty(globalThis, 'document', { configurable: true, value: { querySelector: () => root, createElement: (tag: string) => new Element(tag) } });
+    // Settings (setting: true) are rendered in the pause page (#game-menu); the ⏸ is absent here, so corner buttons stay in their slot.
+    const root = new Element('div'), menu = new Element('div'), body = new Element('body');
+    const select = (selector: string) => selector === '#game-menu' ? menu : selector === '#topbar #pause' ? null : root;
+    Object.defineProperty(globalThis, 'document', { configurable: true, value: { body, querySelector: select, createElement: (tag: string) => new Element(tag) } });
     Object.defineProperty(globalThis, 'matchMedia', { configurable: true, value: () => ({ matches: false }) });
     const inputs = { on: (target: { listeners?: Set<string> } | null, event: string) => { target?.listeners?.add(event); }, cleanup() {} } as unknown as Inputs;
     try {
@@ -64,8 +67,9 @@ void test('every registered touch button and shared joystick is a Chromium click
             if (!ts.isVariableDeclaration(node) || !node.name.getText().endsWith('Buttons') || !node.initializer || !ts.isArrayLiteralExpression(node.initializer)) return;
             // Read literal definitions without importing Phaser.
             const buttons = literal(node.initializer) as TouchButton[];
+            menu.replaceChildren();
             renderTouchControls(inputs, buttons, () => {});
-            const rendered = root.children.flatMap(slot => slot.children);
+            const rendered = [...root.children.flatMap(slot => slot.children), ...menu.children];
             assert.equal(rendered.length, buttons.length, file);
             for (const button of rendered) {
                 assert.ok(button.tagName === 'BUTTON' || (button.attributes.get('role') === 'button' && button.listeners.has('click')), `${file}: ${button.id}`);

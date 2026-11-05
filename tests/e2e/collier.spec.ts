@@ -27,7 +27,8 @@ test('Collier : victoire, niveau suivant, défaite, reprise et captures', async 
     else
         await page.locator('#resume').click();
     await page.screenshot({ path: `test-results/screenshots/collier-play-${info.project.name}.png` });
-    // Real reserve/hero taps exercise the canvas targets, independently of ⇄.
+    // No touch button (⇄ removed): real reserve/hero taps on the canvas swap.
+    if (isMobile) expect(await page.evaluate(() => [...document.querySelectorAll('#touch-controls button')].filter(b => b.getBoundingClientRect().width > 0).length)).toBe(0);
     await page.evaluate(() => {
         window.__COLLIER_TEST__?.scenario('combo');
         window.__COLLIER_TEST__?.advance(0);

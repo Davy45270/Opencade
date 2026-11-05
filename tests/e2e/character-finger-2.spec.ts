@@ -18,6 +18,8 @@ for (const game of games) test(`P-${game} doigt bruité : niveaux 1 et 10`, asyn
     await page.setViewportSize({ width: 390, height: 844 });
     const character = game === 'derapage' ? 'dragon' : game === 'bubble' ? 'pandaroux' : 'licorne';
     await page.addInitScript(character => { localStorage.setItem('arcade-lab:character:v1', character); }, character);
+    // Serpentin's noisy finger plays the optional grouped cross (swipes are the default).
+    if (game === 'serpentin') await page.addInitScript(() => { localStorage.setItem('arcade-lab:serpentin:cross:v1', 'on'); });
     await Finger.prepare(page);
     await page.goto(`/?test=1#/${game}`);
     await expect.poll(() => page.evaluate(game => Boolean(game === 'derapage' ? window.__DERAPAGE_TEST__ : game === 'bubble' ? window.__BUBBLE_TEST__ : window.__SERPENTIN_TEST__), game), { timeout: 30000 }).toBe(true);
@@ -42,7 +44,12 @@ for (const game of games) test(`P-${game} doigt bruité : niveaux 1 et 10`, asyn
             if (game === 'bubble') {
                 const model = new Bubble(); model.loadLevel(level, 28); let used = false;
                 for (const shot of solutions[level] ?? []) {
-                    if (shot.swap) { await finger.press(['#touch-swap']); model.swap(); }
+                    if (shot.swap) {
+                        // Swap by touching the next bubble (world 300, 585); the hook proves next and queued traded places.
+                        const b = await page.locator('#game canvas').boundingBox(); if (!b) throw new Error('canvas');
+                        await finger.touch('touchStart', [{ id: 8, x: b.x + 300 * b.width / 360, y: b.y + 585 * b.height / 640 }]); await finger.release();
+                        model.swap();
+                    }
                     const target = model.trace(shot.angle).target, struck = model.trace(shot.angle).struck;
                     if (!used && struck?.color === model.next) {
                         await finger.press(['#bubble-special']); used = true; model.special();

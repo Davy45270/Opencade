@@ -13,10 +13,9 @@ import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { backdrop, playerShip, probeShip, shieldCells, worldOf, PROBE_COLORS, SHIP_COLORS } from './art';
 export const orbiteButtons: readonly TouchButton[] = [
+    // The cannon follows a horizontal drag in the lower half; it fires on its own by default.
     { id: 'orbite-special', label: 'Rafale', ariaLabel: 'Rafale : tir doublé', size: 56, placement: 'right', mode: 'tap' },
-    { id: 'orbite-left', label: '←', ariaLabel: 'Canon à gauche', size: 56, placement: 'left', mode: 'hold' },
-    { id: 'orbite-right', label: '→', ariaLabel: 'Canon à droite', size: 56, placement: 'left', mode: 'hold' },
-    { id: 'orbite-fire', label: 'Tir', ariaLabel: 'Tir', size: 64, placement: 'right', mode: 'hold' },
+    { id: 'orbite-auto', label: 'Tir auto', ariaLabel: 'Tir automatique', size: 56, placement: 'right', mode: 'tap', setting: true },
 ];
 export interface OrbiteHook {
     performance(): { frames: number; gameMs: number };
@@ -46,7 +45,8 @@ export class OrbiteScene extends Phaser.Scene {
     private left = false;
     private right = false;
     private firing = false;
-    private autoFire = readValue(browserStorage(), OPTIONS_KEY) === 'on';
+    // On unless turned off: a finger steering the cannon is enough to play.
+    private autoFire = readValue(browserStorage(), OPTIONS_KEY) !== 'off';
     private renderedProbes: number[] = [];
     private glow = 0;
     private glowColor = 0x78ead5;
@@ -71,15 +71,13 @@ export class OrbiteScene extends Phaser.Scene {
         this.graphics = this.add.graphics();
         this.hud = this.add.text(16, 14, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 3 });
         renderTouchControls(this.inputs, orbiteButtons, (id, held) => {
-            if (id === 'orbite-special') { if (held && !this.session.paused && !this.selecting) this.engine.special(); }
-            else if (id === 'orbite-fire') this.fire(held);
-            else if (id === 'orbite-left') this.left = held;
-            else this.right = held;
+            if (!held) return;
+            if (id === 'orbite-special') { if (!this.session.paused && !this.selecting) this.engine.special(); return; }
+            // A setting, changed from the pause page.
+            this.autoFire = !this.autoFire; writeValue(browserStorage(), OPTIONS_KEY, this.autoFire ? 'on' : 'off');
+            document.querySelector('#orbite-auto')?.setAttribute('aria-pressed', String(this.autoFire));
         });
-        const options = document.createElement('label'); options.className = 'orbite-options';
-        const auto = document.createElement('input'); auto.id = 'orbite-auto'; auto.type = 'checkbox'; auto.checked = this.autoFire;
-        options.append(auto, document.createTextNode('Tir auto')); document.querySelector('#touch-controls .center')?.append(options);
-        this.inputs.on(auto, 'change', () => { this.autoFire = auto.checked; writeValue(browserStorage(), OPTIONS_KEY, this.autoFire ? 'on' : 'off'); });
+        document.querySelector('#orbite-auto')?.setAttribute('aria-pressed', String(this.autoFire));
         const area = this.game.canvas;
         let pointer: number | null = null;
         const move = (e: PointerEvent): void => {
@@ -89,14 +87,21 @@ export class OrbiteScene extends Phaser.Scene {
             const x = (e.clientX - rect.left) * 360 / rect.width;
             this.engine.moveTo(e.pointerType === 'touch' ? Math.round(x) : x);
         };
+        let trigger: number | null = null;
         this.inputs.on(area, 'pointerdown', event => {
             const e = event as PointerEvent, rect = area.getBoundingClientRect();
+            // Without automatic fire, a finger held on the upper half fires.
+            if (e.pointerType === 'touch' && e.clientY < rect.top + rect.height / 2 && !this.autoFire && trigger === null) { e.preventDefault(); trigger = e.pointerId; this.fire(true); return; }
             if (pointer !== null || e.clientY < rect.top + rect.height / 2) return;
             e.preventDefault(); pointer = e.pointerId; area.setPointerCapture(e.pointerId);
             if (this.session.state === 'ready') this.session.send('start'); move(e);
         });
         this.inputs.on(area, 'pointermove', event => { const e = event as PointerEvent; if (e.pointerId === pointer || e.pointerType === 'mouse' && e.buttons === 0) move(e); });
-        for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) this.inputs.on(area, type, event => { if ((event as PointerEvent).pointerId === pointer) pointer = null; });
+        for (const type of ['pointerup', 'pointercancel', 'lostpointercapture']) this.inputs.on(area, type, event => {
+            const id = (event as PointerEvent).pointerId;
+            if (id === pointer) pointer = null;
+            if (id === trigger) { trigger = null; this.fire(false); }
+        });
         this.inputs.on(area, 'click', event => { if ((event as MouseEvent).detail && (event as PointerEvent).pointerType !== 'touch') { this.fire(true); this.fire(false); } });
         this.inputs.on(document, 'keydown', event => {
             const e = event as KeyboardEvent;

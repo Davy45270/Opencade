@@ -96,7 +96,8 @@ for (const [width, height] of [[360, 640], [390, 844], [390, 600]]) for (const g
     const buttons = [...declaration.matchAll(/\{([^}]+)\}/g)].map(([, spec]) => ({
         id: spec.match(/id: '([^']+)'/)[1], label: spec.match(/ariaLabel: '([^']+)'/)[1],
         size: Number(spec.match(/size: (\d+)/)[1]), placement: spec.match(/placement: '([^']+)'/)[1],
-        menu: spec.includes('compactMenu: true') && width < compactBreakpoint,
+        // Settings (setting: true) live in the pause page on touch screens, never in the play row.
+        menu: (spec.includes('compactMenu: true') && width < compactBreakpoint) || spec.includes('setting: true'),
     }));
     const path = [node('body', '', ['playing', 'touch', game]), node('main'), node('section', 'play'), node('div', 'touch-controls')];
     const row = style(path, width), gap = parseFloat(row.gap);
@@ -110,10 +111,7 @@ for (const [width, height] of [[360, 640], [390, 844], [390, 600]]) for (const g
             assert.ok(w >= 56 && h >= 56, `${b.id}: target ${w}x${h}`);
             return [w, h];
         });
-        if (game === 'derapage' && placement === 'left') {
-            const s = style([...slotPath, node('output', 'derapage-steering')], width);
-            sizes.push([parseFloat(s.width), parseFloat(s['min-height'])]);
-        }
+        // Dérapage's written steering indicator was removed from the row with its DOM HUD.
         if (!sizes.length) return [0, 0];
         const column = slot['flex-direction']?.startsWith('column');
         const sum = axis => sizes.reduce((n, s) => n + s[axis], 0) + (sizes.length - 1) * parseFloat(slot.gap);
@@ -151,8 +149,10 @@ const root = new Element(), menu = new Element(), toggle = new Element();
 const media = new EventTarget(); media.matches = true;
 let menuOpen = true;
 toggle.addEventListener('click', () => { menuOpen = !menuOpen; });
+// The touch shell: the ⏸ (#pause) toggles the single pause page, open while body has menu-open.
 globalThis.document = {
-    querySelector: selector => ({ '#touch-controls': root, '#game-menu': menu, '#game-menu-toggle': toggle })[selector] ?? null,
+    body: { classList: { contains: name => name === 'menu-open' && menuOpen, add() {}, remove() {}, toggle() {} } },
+    querySelector: selector => ({ '#touch-controls': root, '#game-menu': menu, '#pause': toggle })[selector] ?? null,
     createElement: () => new Element(),
 };
 globalThis.matchMedia = () => media;

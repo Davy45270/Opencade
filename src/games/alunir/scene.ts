@@ -4,16 +4,17 @@ import Phaser from 'phaser';
 import { DecorCache } from '../ferraille/decor-cache';
 import { lunarSky, lunarGround, lunarCrater, lunarModule, scoreMark, moduleBounds, heroBounds } from './presentation';
 import { GameCharacter } from '../../characters/game';
-import { Engine, LEVELS, meteorAt, required } from '../../engines/alunir/engine';
+import { Engine, LEVELS, LIMITS, meteorAt, required } from '../../engines/alunir/engine';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
-import { PlaySession } from '../../shell/pause';
+import { MOBILE_PLAY, PlaySession } from '../../shell/pause';
+import { setHud } from '../../shell/hud';
 import { Progression } from '../../shell/progression';
 import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 export const alunirButtons: readonly TouchButton[] = [
-    { id: 'alunir-special', label: 'Stable', ariaLabel: 'Stabilisation', size: 56, placement: 'right', mode: 'tap' },
+    { id: 'alunir-special', label: '⚖', ariaLabel: 'Stabiliser', size: 56, placement: 'right', mode: 'tap' },
     { id: 'alunir-left', label: '↺', ariaLabel: 'Tourner à gauche', size: 56, placement: 'left', mode: 'hold' },
     { id: 'alunir-right', label: '↻', ariaLabel: 'Tourner à droite', size: 56, placement: 'left', mode: 'hold' },
     { id: 'alunir-thrust', label: 'Poussée', ariaLabel: 'Poussée', size: 64, placement: 'right', mode: 'hold' },
@@ -214,7 +215,14 @@ export class AlunirScene extends Phaser.Scene {
         lunarModule(g, e, this.hero, reduced);
         g.restore();
         const l = e.plan(), intro = s.ticks < 120 ? `\n${l.idea}` : '';
-        this.hud?.setText(`${s.ticks < 120 ? l.name : ''}${intro}\nALUNIR ${String(this.engine.level + 1)}/30 · ×${String(required(this.engine.terrain.pads[0]).multiplier)} · SCORE ${String(s.score)} · F ${s.fuel.toFixed(0)} · STAB ${String(this.engine.specialUses)}/2 (${(this.engine.specialTicks / 60).toFixed(1)} s)\nVX ${s.vx.toFixed(2)} /0,6 · VY ${s.vy.toFixed(2)} /1,2 · ${(s.angle * 180 / Math.PI).toFixed(0)}° /10°`);
+        // Touch screens: speed and angle are gauges in the HUD row (readable, red past the landing limit).
+        const touch = matchMedia(MOBILE_PLAY).matches, degrees = s.angle * 180 / Math.PI;
+        if (touch) {
+            setHud('left', [{ icon: 'VX', value: Math.abs(s.vx).toFixed(1), label: 'Vitesse horizontale', gauge: Math.abs(s.vx) / LIMITS.vx }, { icon: 'VY', value: s.vy.toFixed(1), label: 'Vitesse verticale', gauge: Math.max(0, s.vy) / LIMITS.vy }]);
+            setHud('center', [{ icon: '∠', value: `${Math.abs(degrees).toFixed(0)}°`, label: 'Angle', gauge: Math.abs(s.angle) / LIMITS.angle }]);
+            setHud('right', [{ icon: 'F', value: s.fuel.toFixed(0), label: 'Carburant' }]);
+        }
+        this.hud?.setText(`${s.ticks < 120 ? l.name : ''}${intro}\nALUNIR ${String(this.engine.level + 1)}/30 · ×${String(required(this.engine.terrain.pads[0]).multiplier)} · SCORE ${String(s.score)} · F ${s.fuel.toFixed(0)} · STAB ${String(this.engine.specialUses)}/2 (${(this.engine.specialTicks / 60).toFixed(1)} s)${touch ? '' : `\nVX ${s.vx.toFixed(2)} /0,6 · VY ${s.vy.toFixed(2)} /1,2 · ${degrees.toFixed(0)}° /10°`}`);
         // Place the two-line HUD on the opposite side of the module at every frame.
         const top = moduleBounds(s.x, s.y, s.angle).y;
         this.hud?.setY(top < 100 ? 550 : 10);

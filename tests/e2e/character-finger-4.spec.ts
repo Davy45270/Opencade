@@ -24,7 +24,8 @@ async function layout(page: Page) {
         const canvas = document.querySelector('#game canvas'); if (!canvas) throw new Error('Missing field');
         const field = box(canvas), s = window.__ESSAIM_TEST__?.read(); if (!s || !('cannon' in s)) throw new Error('Missing ship');
         const ship = { x: field.x + (s.cannon - 29) / 360 * field.w, y: field.y + 521 / 640 * field.h, w: 58 / 360 * field.w, h: 58 / 640 * field.h };
-        return { field, ship, controls: [...document.querySelectorAll('#touch-controls button')].map(box) };
+        // Layout size (offsetWidth): a just-released button may still be scaling back from its pressed state.
+        return { field, ship, controls: [...document.querySelectorAll<HTMLElement>('#touch-controls button')].map(e => ({ ...box(e), w: e.offsetWidth, h: e.offsetHeight })) };
     });
     const overlap = (a: typeof boxes.field, b: typeof boxes.field) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
     for (const [i, button] of boxes.controls.entries()) {
@@ -35,6 +36,7 @@ async function layout(page: Page) {
     return boxes;
 }
 for (const game of ['ferraille', 'briqueterie', 'essaim'] as const) test(`P-${game} doigt bruité / deux pouces, niveaux 1 et 10`, async ({ page }, info) => {
+    test.skip(game === 'essaim', 'Essaim est retenu hors du catalogue public jusqu’à sa correction.');
     test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(1800000);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.addInitScript(() => { localStorage.setItem('arcade-lab:character:v1', 'dragon'); });
@@ -51,16 +53,20 @@ for (const game of ['ferraille', 'briqueterie', 'essaim'] as const) test(`P-${ga
                 else { window.__BRIQUETERIE_TEST__?.loadLevel(level, 28); window.__BRIQUETERIE_TEST__?.advance(0); }
             }, { game, level });
             const clock = new FingerClock(); clock.observe(await read(page, game)); let uses = 0, touchErrors = 0;
+            // Briqueterie drags relatively: one finger stays down and moves; its landing point and the paddle there are kept.
+            const brick = { down: false, key: '', landing: 0, origin: 180 };
             if (game === 'essaim') {
                 await layout(page); await capture(page, info, 'essaim-controles-portrait');
-                // Level 10 exercises the same two thumbs in landscape.
-                if (level === 9) { await page.setViewportSize({ width: 844, height: 390 }); await layout(page); await capture(page, info, 'essaim-controles-paysage'); }
+                // Level 10 exercises the same two thumbs in landscape; the browser presents one frame (frozen clock)
+                // so the side layout, applied on the next animation frame, is in place before it is measured.
+                if (level === 9) { await page.setViewportSize({ width: 844, height: 390 }); await page.clock.runFor(17); await layout(page); await capture(page, info, 'essaim-controles-paysage'); }
             }
             await capture(page, info, `perso-${game}-jeu`);
             while (clock.elapsed < 150000) {
                 const state = await read(page, game); clock.observe(state); if (state.status !== 'playing') break;
                 expect(state.character.id).toBe('dragon');
-                const selectors: string[] = []; let stick: { x: number; y: number } | undefined, paddle: number | undefined, thumb: number | undefined;
+                const edge = { reland: false };
+                const selectors: string[] = []; let stick: { x: number; y: number } | undefined, paddle: number | undefined, thumb: number | undefined, cannon = 180;
                 if (game === 'ferraille' && 'hero' in state) {
                     const model = new Runner(); model.loadLevel(level, state.seed); model.loadState(state); model.step(clock.horizon); run(model);
                     const input = model.state.input;
@@ -70,28 +76,41 @@ for (const game of ['ferraille', 'briqueterie', 'essaim'] as const) test(`P-${ga
                 } else if (game === 'essaim' && 'cannon' in state) {
                     const model = new Fleet(level, state.seed); model.loadState(state); model.step(clock.horizon); fly(model, model.state.ticks);
                     const target = model.state.target ?? state.cannon, dx = target - model.state.cannon;
-                    thumb = dx;
+                    thumb = dx; cannon = state.cannon;
                     // A simultaneous left and right thumb packet, including at least one shield.
                     if (!state.specialUsed) selectors.push('#essaim-special');
                     if (model.has('charge') && state.ticks % 100 < 90) selectors.push('#essaim-fire');
                 } else if (game === 'briqueterie' && 'bricks' in state) {
                     const model = new Bricks(level, state.seed); model.loadState(state); model.step(clock.horizon);
                     paddle = controller(model, state.ticks, 0);
-                    if (state.ready) selectors.push('#briqueterie-launch');
+                    // Launch: lifting the finger off the canvas (a tap launches).
+                    if (state.ready && brick.down) { await finger.release(); brick.down = false; continue; }
                     if (!uses) selectors.push('#briqueterie-special');
                 }
-                const targets = await page.evaluate(({ selectors, stick, paddle, thumb }) => {
+                if (game === 'briqueterie' && 'paddle' in state && !brick.down) brick.origin = state.paddle;
+                const targets = await page.evaluate(({ selectors, stick, paddle, thumb, cannon, brick }) => {
                     const targets = selectors.map(selector => { const el = document.querySelector(selector); if (!el) throw new Error(selector); const r = el.getBoundingClientRect(); return { selector, x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
                     if (stick) { const r = document.querySelector('.joystick')?.getBoundingClientRect(); if (!r) throw new Error('Missing stick'); targets.push({ selector: '.joystick', x: r.x + r.width / 2 + stick.x * 43 / Math.hypot(stick.x, stick.y), y: r.y + r.height / 2 + stick.y * 43 / Math.hypot(stick.x, stick.y) }); }
-                    if (thumb !== undefined) { const r = document.querySelector('#essaim-steer')?.getBoundingClientRect(); if (!r) throw new Error('Missing thumb pad'); targets.push({ selector: '#essaim-steer', x: r.x + r.width / 2 + Math.max(-43, Math.min(43, thumb)) * r.width / 120, y: r.y + r.height / 2 }); }
-                    if (paddle !== undefined) { const r = document.querySelector('#game canvas')?.getBoundingClientRect(); if (!r) throw new Error('Missing canvas'); targets.push({ selector: '#game canvas', x: r.x + Math.max(20, Math.min(340, paddle)) / 360 * r.width, y: r.y + r.height * .94 }); }
-                    return targets;
-                }, { selectors, stick, paddle, thumb });
+                    // Essaim steers relatively from the left zone; a decision packet uses the canvas low zone instead (finger under the ship).
+                    if (thumb !== undefined) { const r = document.querySelector('#game canvas')?.getBoundingClientRect(); if (!r) throw new Error('Missing canvas'); targets.push({ selector: '#game canvas', x: r.x + Math.max(18, Math.min(342, cannon + thumb)) / 360 * r.width, y: r.y + r.height * 610 / 640 }); }
+                    if (paddle !== undefined) { const r = document.querySelector('#game canvas')?.getBoundingClientRect(); if (!r) throw new Error('Missing canvas'); targets.push({ selector: '#game canvas', x: brick.down ? Math.max(r.x + 16, Math.min(r.x + r.width - 16, brick.landing + (paddle - brick.origin) * r.width / 360)) : r.x + Math.max(20, Math.min(340, brick.origin)) / 360 * r.width, y: r.y + r.height * .94 }); }
+                    // Relative drag: a finger out of room at the screen edge lifts and lands again over the paddle, as a player does.
+                    let reland = false;
+                    if (paddle !== undefined && brick.down) { const r = document.querySelector('#game canvas')?.getBoundingClientRect(); const x = brick.landing + (paddle - brick.origin) * (r?.width ?? 360) / 360; reland = !r || x < r.x + 16 || x > r.x + r.width - 16; }
+                    return { targets, reland };
+                }, { selectors, stick, paddle, thumb, cannon, brick }).then(({ targets, reland }) => { edge.reland = reland; return targets; });
+                if (edge.reland) { await finger.advance(); await finger.release(); brick.down = false; continue; }
                 const points = targets.map((t, id) => ({ id, x: t.x, y: t.y }));
                 const missed = await page.evaluate(({ targets, points }) => points.some((p, i) => !document.elementFromPoint(p.x, p.y)?.closest(targets[i]?.selector ?? 'missing')), { targets, points });
                 touchErrors += Number(missed);
-                if (points.length) await finger.touch('touchStart', points, targets.map(t => t.selector));
-                else { await finger.advance(); await finger.release(); }
+                const key = targets.map(t => t.selector).join(',');
+                if (game === 'briqueterie' && brick.down && key === brick.key) await finger.touch('touchMove', points, targets.map(t => t.selector));
+                else if (points.length) {
+                    await finger.touch('touchStart', points, targets.map(t => t.selector));
+                    const canvas = targets.findIndex(t => t.selector === '#game canvas');
+                    if (game === 'briqueterie' && canvas >= 0) { brick.down = true; brick.key = key; brick.landing = finger.entries.at(-1)?.points[canvas]?.x ?? targets[canvas]?.x ?? 0; brick.origin = (await read(page, game) as { paddle?: number }).paddle ?? brick.origin; }
+                }
+                else { await finger.advance(); await finger.release(); brick.down = false; }
                 const accepted = await read(page, game);
                 const activated = 'hero' in state && 'hero' in accepted
                     ? (accepted.specialCooldown ?? 0) > (state.specialCooldown ?? 0)

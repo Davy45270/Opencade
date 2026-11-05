@@ -13,9 +13,8 @@ async function open(page: Page): Promise<void> {
     await expect.poll(() => page.evaluate(() => Boolean(window.__ARCADE_TEST__?.games.empilo))).toBe(true);
 }
 async function layout(page: Page): Promise<void> {
-    // Pass 82: the inverse rotation stays on the keyboard; below 380 px, soft drop moves to the menu (swipe down still drops).
-    const narrow = (page.viewportSize()?.width ?? 390) < 380;
-    const { canvas, controls, scroll, height } = await measureLayout(page, ['#pause', '#empilo-left', '#empilo-right', '#empilo-clockwise', ...(narrow ? [] : ['#empilo-soft']), '#empilo-drop', '#empilo-special']);
+    // Gestures play the piece; the bar keeps the slow descent only.
+    const { canvas, controls, scroll, height } = await measureLayout(page, ['#pause', '#empilo-soft']);
     const pause = controls[0]; if (!pause) throw new Error('Pause absente');
     expect(pause.width).toBeGreaterThanOrEqual(44); expect(pause.height).toBeGreaterThanOrEqual(44);
     expect(pause.x < canvas.x + canvas.width && pause.x + pause.width > canvas.x && pause.y < canvas.y + canvas.height && pause.y + pause.height > canvas.y).toBe(false);
@@ -43,7 +42,7 @@ test('E08 victoire par chute réelle, progression et reprise', async ({ page }, 
     await expect(page.locator('#pause-title')).toHaveText('Prêt ?');
     const ready = await read(page); await page.waitForTimeout(200); expect(await read(page)).toEqual(ready);
     await page.evaluate(() => { window.__EMPILO_TEST__?.scenario('finish'); });
-    if (mobile) await tap(page, '#empilo-drop', true); else await page.keyboard.press('Space');
+    if (mobile) { await tap(page, '#resume', true); await swipe(page, 0, 80); } else await page.keyboard.press('Space');
     await page.evaluate(() => { window.__EMPILO_TEST__?.advance(10000); });
     await expect.poll(async () => (await read(page))?.status).toBe('won');
     await expect(page.locator('#result-title')).toContainText('réussi');
@@ -62,7 +61,7 @@ test('E08 victoire par chute réelle, progression et reprise', async ({ page }, 
 test('E07 apparition bloquée après entrée, défaite et rejouer', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium'; await open(page);
     await page.evaluate(() => { window.__EMPILO_TEST__?.scenario('blocked'); });
-    if (mobile) await tap(page, '#empilo-drop', true); else await page.keyboard.press('Space');
+    if (mobile) { await tap(page, '#resume', true); await swipe(page, 0, 80); } else await page.keyboard.press('Space');
     await page.evaluate(() => { window.__EMPILO_TEST__?.advance(10000); });
     await expect.poll(async () => (await read(page))?.status).toBe('lost');
     await expect(page.locator('#result-title')).toContainText('Défaite');
@@ -82,9 +81,10 @@ test('E01 E02 E05 contrôles, gestes au doigt, pause et isolation du crochet', a
     else { const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent'); await page.mouse.click(box.x + 10, box.y + 10); }
     expect((await read(page))?.active.cells).not.toEqual(cells);
     // Inverse rotation: keyboard Z, or three direct rotations by finger (four in all bring the piece back).
-    if (mobile) { for (let i = 0; i < 3; i++) await tap(page, '#empilo-clockwise', true); } else await page.keyboard.press('KeyZ');
+    if (mobile) { const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent'); for (let i = 0; i < 3; i++) await page.touchscreen.tap(box.x + 10, box.y + 10); } else await page.keyboard.press('KeyZ');
     expect((await read(page))?.active.cells).toEqual(cells);
-    await tap(page, '#empilo-right', mobile); await tap(page, '#empilo-soft', mobile); expect((await read(page))?.score).toBeGreaterThanOrEqual(1);
+    if (mobile) await swipe(page, 31, 0); else await page.keyboard.press('ArrowRight');
+    await tap(page, '#empilo-soft', mobile); expect((await read(page))?.score).toBeGreaterThanOrEqual(1);
     const before = (await read(page))?.board;
     if (mobile) await swipe(page, 0, 80); else await page.keyboard.press('Space');
     expect((await read(page))?.board).not.toEqual(before);
@@ -127,4 +127,18 @@ test('E13 E16 souffle de la bombe prévisualisé et jauge de marée qui décompt
     const blast = (await page.evaluate(() => window.__EMPILO_TEST__?.marks()))?.blast;
     expect(blast?.width).toBe(84); expect(blast?.x).toBe(18 + ((state?.active.x ?? 0) - 1) * 28);
     await page.screenshot({ path: `test-results/screenshots/empilo-bombe-${info.project.name}.png` });
+});
+test('E20 réserve en tuile en haut à toucher, au plus deux commandes', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'Commandes tactiles');
+    await open(page); await tap(page, '#resume', true);
+    await page.evaluate(() => { window.__EMPILO_TEST__?.loadLevel(0, 456); window.__EMPILO_TEST__?.advance(0); });
+    const visible = await page.evaluate(() => [...document.querySelectorAll('#touch-controls button')].filter(b => b.getBoundingClientRect().width > 0).map(b => b.id));
+    expect(visible.length).toBeLessThanOrEqual(2); expect(visible).toEqual(['empilo-soft']);
+    for (const name of ['left', 'right', 'clockwise', 'drop', 'special']) await expect(page.locator(`#empilo-${name}`)).toHaveCount(0);
+    const before = await read(page); expect(before?.reserve).toBeNull();
+    // The reserve tile sits right of the well, under the next pieces (world 278..354 x 148..228).
+    const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent');
+    await page.touchscreen.tap(box.x + box.width * 316 / 360, box.y + box.height * 188 / 640);
+    const after = await read(page);
+    expect(after?.reserve).not.toBeNull(); expect(after?.specialUses).toBe((before?.specialUses ?? 1) - 1);
 });

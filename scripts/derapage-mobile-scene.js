@@ -21,15 +21,16 @@ registerHooks({
 const { PlaySession, setupPause } = await import('../src/shell/pause.ts');
 const { Inputs } = await import('../src/shell/input.ts');
 const { bindSessionUpdate } = await import('../src/shell/scene-update.ts');
+const { clearHud } = await import('../src/shell/hud.ts');
 const { selectCharacter } = await import('../src/characters/selection.ts');
 const { renderCharacter } = await import('../src/characters/phaser.ts');
 const { drawList } = await import('../src/characters/model.ts');
 class Element extends EventTarget {
-    dataset = {}; style = {}; classList = { add() {}, remove() {}, toggle() {}, contains() { return false; } }; textWrites = 0; _text = ''; children = [];
+    dataset = {}; attrs = {}; style = { setProperty(k, v) { this[k] = v; }, removeProperty(k) { Reflect.deleteProperty(this, k); } }; classList = { add() {}, remove() {}, toggle() {}, contains() { return false; } }; textWrites = 0; _text = ''; children = [];
     get textContent() { return this._text; }
     set textContent(value) { this.textWrites++; this._text = value; }
     getContext() { return null; }
-    setAttribute() {} setPointerCapture() {} remove() {} closest() { return null; }
+    setAttribute(k, v) { this.attrs[k] = String(v); } getAttribute(k) { return this.attrs[k] ?? null; } removeAttribute(k) { Reflect.deleteProperty(this.attrs, k); } setPointerCapture() {} remove() {} closest() { return null; }
     getBoundingClientRect() {
         const font=Number.parseFloat(this.style.fontSize);
         return { x:0,y:0,left:0,top:0,width:font ? this.textContent.length*font*.55 : 360,height:font ? font*1.1 : 640 };
@@ -94,12 +95,12 @@ export async function mount(game, id, verifyActors=true) {
         };
         return sprite;
     };
-    scene.add = { graphics: newGraphics, image, text: () => ({ text: '', setText(text) { this.text = text; }, setY() {}, setDepth() { return this; } }) };
+    scene.add = { graphics: newGraphics, image, text: () => ({ text: '', visible: true, setText(text) { this.text = text; return this; }, setY() { return this; }, setDepth() { return this; }, setOrigin() { return this; }, setPosition() { return this; }, setVisible(v) { this.visible = v; return this; } }) };
     scene.events = { once() {} }; scene.scale = { refresh() {} }; scene.game = { canvas: new Element() };
     scene.input = { handlers: new Map(), on(name, callback) { this.handlers.set(name, callback); } }; scene.create(); inputs.dispose();
     mainScript.runInNewContext({
         document: doc, window: globalThis.window, location: { search: '?test=1', hash: '#/' + game },
-        URLSearchParams, matchMedia: globalThis.matchMedia, Inputs, PlaySession, setupPause, bindSessionUpdate,
+        URLSearchParams, matchMedia: globalThis.matchMedia, Inputs, PlaySession, setupPause, bindSessionUpdate, clearHud, installAdaptiveLayout() {},
         setupSound() {}, setupGameMenu() {}, setupCharacters() {}, startThumbnail() {}, browserThumbnailPorts() {},
         browserStorage: () => undefined, readSave() {}, sound: {}, device: { setFinished() {}, setVisible() {}, setPlaying() {} },
         games: [{ id: game, name: game, realtime: game !== 'bubble', createScene(value) { scene.session = value; return scene; } }],
@@ -345,11 +346,12 @@ async function renderingChecks() {
         const area=elements.get('#game'),canvas=scene.game.canvas;
         emit(area,'pointerdown',{target:canvas,pointerId:9,pointerType:'touch',clientX:180,clientY:480});
         emit(area,'pointermove',{target:canvas,pointerId:9,pointerType:'touch',clientX:180,clientY:440});h.frame();
-        assert.match(elements.get('#derapage-steering').textContent,/Direction ✓ 100 %/);
+        // The written steering indicator was removed with the DOM HUD: the thumb ring and dot are the feedback.
+        assert.equal(elements.get('#derapage-steering'),undefined,'no written steering indicator under the thumbs');
         assert(h.calls.some(c=>c[0]==='strokeCircle' && c[3]===40),'visible thumb ring');
         assert(h.calls.some((c,i)=>c[0]==='fillCircle' && c[1]===180 && c[2]===440 && c[3]===7 && h.calls[i-1]?.[1]===0x80efac && h.calls[i-1]?.[2]>0),'visible moving thumb dot at actual displacement');
         emit(area,'pointerup',{pointerId:9,pointerType:'touch'});h.frame();
-        assert.match(elements.get('#derapage-steering').textContent,/Posez le pouce/);
+        assert(!h.calls.some(c=>c[0]==='strokeCircle' && c[3]===40),'thumb ring gone once the thumb is lifted');
         // Real finish crossings drive engine timing, scene flash and HUD together.
         const finish=engine.track.points[0],before=engine.track.points[95],after=engine.track.points[1];
         const angle=Math.atan2(after.y-before.y,after.x-before.x);

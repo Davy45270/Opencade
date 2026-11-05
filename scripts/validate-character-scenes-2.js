@@ -20,15 +20,16 @@ registerHooks({
 const { PlaySession, setupPause } = await import('../src/shell/pause.ts');
 const { Inputs } = await import('../src/shell/input.ts');
 const { bindSessionUpdate } = await import('../src/shell/scene-update.ts');
+const { clearHud } = await import('../src/shell/hud.ts');
 const { selectCharacter } = await import('../src/characters/selection.ts');
 const { renderCharacter } = await import('../src/characters/phaser.ts');
 const { drawList } = await import('../src/characters/model.ts');
 const { ids } = await import('../src/characters/model.ts');
 const timings = [];
 class Element extends EventTarget {
-    dataset = {}; style = {}; classList = { add() {}, remove() {}, toggle() {}, contains() { return false; } }; textContent = ''; children = [];
+    dataset = {}; attrs = {}; style = { setProperty(k, v) { this[k] = v; }, removeProperty(k) { Reflect.deleteProperty(this, k); } }; classList = { add() {}, remove() {}, toggle() {}, contains() { return false; } }; textContent = ''; children = [];
     getContext() { return null; }
-    setAttribute() {} setPointerCapture() {} remove() {} closest() { return null; }
+    setAttribute(k, v) { this.attrs[k] = String(v); } getAttribute(k) { return this.attrs[k] ?? null; } removeAttribute(k) { Reflect.deleteProperty(this.attrs, k); } setPointerCapture() {} remove() {} closest() { return null; }
     getBoundingClientRect() { return { x: 0, y: 0, left: 0, top: 0, width: 360, height: 640 }; }
     append(child) { this.children.push(child); if (child.id) elements.set('#' + child.id, child); }
     replaceChildren() { this.children = []; }
@@ -67,12 +68,12 @@ async function mount(game, id) {
         };
         return sprite;
     };
-    scene.add = { graphics: () => g, image, text: () => ({ text: '', setText(text) { this.text = text; }, setY() {}, setDepth() { return this; } }) };
+    scene.add = { graphics: () => g, image, text: () => ({ text: '', visible: true, setText(text) { this.text = text; return this; }, setY() { return this; }, setDepth() { return this; }, setOrigin() { return this; }, setPosition() { return this; }, setVisible(v) { this.visible = v; return this; } }) };
     scene.events = { once() {} }; scene.scale = { refresh() {} }; scene.game = { canvas: new Element() }; scene.time = { now: 0 };
     scene.input = { handlers: new Map(), on(name, callback) { this.handlers.set(name, callback); } }; scene.create(); inputs.dispose();
     runInNewContext(mainSource, {
         document: doc, window: globalThis.window, location: { search: '?test=1', hash: '#/' + game },
-        URLSearchParams, matchMedia: globalThis.matchMedia, Inputs, PlaySession, setupPause, bindSessionUpdate,
+        URLSearchParams, matchMedia: globalThis.matchMedia, Inputs, PlaySession, setupPause, bindSessionUpdate, clearHud, installAdaptiveLayout() {},
         setupSound() {}, setupGameMenu() {}, setupCharacters() {}, startThumbnail() {}, browserThumbnailPorts() {},
         browserStorage: () => undefined, readSave() {}, sound: {}, device: { setFinished() {}, setVisible() {}, setPlaying() {} },
         games: [{ id: game, name: game, realtime: game !== 'bubble', createScene(value) { scene.session = value; return scene; } }],

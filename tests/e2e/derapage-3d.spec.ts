@@ -1,4 +1,4 @@
-import { test, expect } from './fixture';
+import { test, expect, mobilePlay } from './fixture';
 import type { Page } from '@playwright/test';
 import type {} from '../../src/games/derapage/scene';
 test.setTimeout(90_000);
@@ -8,8 +8,8 @@ async function open(page: Page): Promise<void> {
     await page.locator('#resume').click();
 }
 async function toggle(page: Page): Promise<void> {
-    const menu=page.locator('#game-menu-toggle');
-    const mobile=await menu.isVisible();
+    const menu=page.locator('#pause');
+    const mobile=await mobilePlay(page);
     if(mobile) await menu.click();
     const button=page.locator('#derapage-view');
     const box=await button.boundingBox(); expect(box).not.toBeNull();

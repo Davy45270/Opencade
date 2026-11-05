@@ -35,7 +35,7 @@ test('Petits Pompiers : accueil, cinq mascottes distinctes et sélection du mode
     expect(prints.size).toBe(ids.length);
     await page.goto('/?test=1#/petits-pompiers');
     if (await page.locator('#level-select').isHidden()) {
-        if (mobile) { await page.locator('#game-menu-toggle').tap(); await page.locator('#levels').tap(); }
+        if (mobile) { await page.locator('#pause').tap(); await page.locator('#levels').tap(); }
         else await page.locator('#levels').click();
     }
     const gallery = page.locator('#pompiers-mascots'); await expect(gallery).toBeVisible();
@@ -63,7 +63,7 @@ test('Petits Pompiers : niveau 1 gagné par les commandes, pause, défi et déte
     await page.screenshot({ path: info.outputPath(`petits-pompiers-${platform}-niveau1.png`) });
     // Opening and closing the chooser must preserve the live simulation.
     const ongoing = await read(page);
-    if (mobile) await page.locator('#game-menu-toggle').tap();
+    if (mobile) await page.locator('#pause').tap();
     if (mobile) await page.locator('#levels').tap(); else await page.locator('#levels').click();
     await expect(page.locator('#level-select')).toBeVisible();
     if (mobile) await page.locator('#close-levels').tap(); else await page.locator('#close-levels').click();

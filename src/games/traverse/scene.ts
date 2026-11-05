@@ -15,11 +15,8 @@ import { sound } from '../../shell/services';
 import { car, hudVeil, log, turtle, worldOf, SceneryLayer, BlockPool, baked } from '../universal/art';
 import { CAR_PAINTS, crossingScenery, hut, laneRuns } from './art';
 export const traverseButtons: readonly TouchButton[] = [
+    // Tap the road to step forward, swipe for the sides (or back); Bond stays a button.
     { id: 'traverse-special', label: 'Bond', ariaLabel: 'Bond', size: 56, placement: 'right', mode: 'tap' },
-    { id: 'traverse-left', label: '←', ariaLabel: 'Aller à gauche', size: 56, placement: 'left', mode: 'tap' },
-    { id: 'traverse-up', label: '↑', ariaLabel: 'Monter', size: 56, placement: 'center', mode: 'tap' },
-    { id: 'traverse-down', label: '↓', ariaLabel: 'Descendre', size: 56, placement: 'center', mode: 'tap' },
-    { id: 'traverse-right', label: '→', ariaLabel: 'Aller à droite', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface TraverseHook {
     performance(): { frames: number; gameMs: number };
@@ -28,7 +25,7 @@ export interface TraverseHook {
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; down: boolean; acted: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger'): void;
     /** What the last frame drew for the crossing's rules (pass 404). */
@@ -51,6 +48,7 @@ export class TraverseScene extends Phaser.Scene {
     private under?: Phaser.GameObjects.Graphics;
     private paintedRocks = 0;
     private hud?: Phaser.GameObjects.Text;
+    private gesture: { x: number; y: number; id: number; acted: boolean } | null = null;
     private heroBounds = { x: 0, y: 0, width: 24, height: 24 };
     private drawn = { red: 0, green: 0, rocks: 0, castaway: false, closedShelters: 0 };
     
@@ -79,20 +77,26 @@ export class TraverseScene extends Phaser.Scene {
         renderTouchControls(this.inputs, traverseButtons, (id, held) => { if (held) direction(id.replace('traverse-', '') as Direction | 'special'); });
         const area = document.querySelector<HTMLElement>('#game');
         if (area) {
-            let origin: { x: number; y: number; id: number } | null = null;
             this.inputs.on(area, 'pointerdown', event => {
                 const e = event as PointerEvent;
-                if (origin || this.session.paused || this.selecting) return;
+                if (this.gesture || this.session.paused || this.selecting) return;
                 e.preventDefault(); area.setPointerCapture(e.pointerId);
-                origin = { x: e.clientX, y: e.clientY, id: e.pointerId };
+                this.gesture = { x: e.clientX, y: e.clientY, id: e.pointerId, acted: false };
+            });
+            // A swipe acts as soon as it is long enough; a tap steps forward on release.
+            this.inputs.on(area, 'pointermove', event => {
+                const e = event as PointerEvent, g = this.gesture;
+                if (!g || e.pointerId !== g.id || g.acted) return;
+                const d = swipeDirection(e.clientX - g.x, e.clientY - g.y, 20);
+                if (d) { g.acted = true; direction(d); }
             });
             this.inputs.on(area, 'pointerup', event => {
-                const e = event as PointerEvent;
-                if (!origin || e.pointerId !== origin.id) return;
-                const d = swipeDirection(e.clientX - origin.x, e.clientY - origin.y, 20);
-                origin = null; direction(d ?? 'up');
+                const e = event as PointerEvent, g = this.gesture;
+                if (!g || e.pointerId !== g.id) return;
+                this.gesture = null;
+                if (!g.acted) direction(swipeDirection(e.clientX - g.x, e.clientY - g.y, 20) ?? 'up');
             });
-            for (const type of ['pointercancel', 'lostpointercapture']) this.inputs.on(area, type, () => { origin = null; });
+            for (const type of ['pointercancel', 'lostpointercapture']) this.inputs.on(area, type, () => { this.gesture = null; });
         }
         const keys: Record<string, Direction> = { ArrowUp: 'up', KeyW: 'up', KeyZ: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', KeyQ: 'left', ArrowRight: 'right', KeyD: 'right' };
         this.inputs.on(document, 'keydown', event => {
@@ -117,7 +121,7 @@ export class TraverseScene extends Phaser.Scene {
             usefulArea: () => ({ x: 9, y: 64, width: 342, height: 570 }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: (this.engine.state.phase * (30 - Math.floor(17 * this.engine.level / 29)) + this.engine.snapshot().frames) * 1000 / 60 }),
             fingerReceipts: receipts,
-            read: () => ({ fingerInput: { paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            read: () => ({ fingerInput: { paused: this.session.paused, down: this.gesture !== null, acted: this.gesture?.acted ?? false }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             marks: () => ({ ...this.drawn }),
             scenario: name => {

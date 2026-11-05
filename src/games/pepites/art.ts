@@ -1,7 +1,8 @@
 import type Phaser from 'phaser';
 type G = Phaser.GameObjects.Graphics;
 /** Drawing shared by the scene and the catalogue thumbnail (one source, no drift). */
-export const CELL = 30, TOP = 40, MINE_GROUND = 0x15110d;
+// The mine starts at the very top: the ⏸ and the counters sit in the HUD row above the canvas.
+export const CELL = 30, TOP = 0, MINE_GROUND = 0x15110d;
 /** One mine tile `t` whose top left is (px, py): earth, rock, brick, boulder, diamond, exit,
  * sorter, nugget, dynamite, water or moss. `turns` animates the exit glint and the water. */
 export function mineTile(g: G, t: string, px: number, py: number, open: boolean, turns: number, sorting: boolean): void {

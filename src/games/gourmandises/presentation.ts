@@ -370,9 +370,9 @@ export function drawWorldRibbon(c: CanvasRenderingContext2D, world: number): voi
     c.restore();
 }
 
-export function drawScoreGauge(c: CanvasRenderingContext2D, stars: number): void {
+export function drawScoreGauge(c: CanvasRenderingContext2D, stars: number, left = 88): void {
     for (let i = 0; i < 3; i++) {
-        drawPiece(c, 88 + i * 38, 140, SCORE_STAR_RADIUS, 1, i < stars ? undefined : 'empty');
+        drawPiece(c, left + i * 38, 140, SCORE_STAR_RADIUS, 1, i < stars ? undefined : 'empty');
     }
 }
 

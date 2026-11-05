@@ -1,4 +1,4 @@
-import { test, expect, ready, read, load } from './fixture';
+import { test, expect, ready, read, load, clickSound } from './fixture';
 import type { Page } from '@playwright/test';
 
 async function pop(page: Page): Promise<void> {
@@ -10,7 +10,9 @@ async function pop(page: Page): Promise<void> {
     expect((await read(page)).score).toBe(30);
 }
 
-test('S06 son clic clavier persistance et éclatements actifs puis coupés', async ({ page }) => {
+test('S06 son clic clavier persistance et éclatements actifs puis coupés', async ({ page }, info) => {
+    // On touch screens the sound button lives in the pause page (pause-page.spec.ts).
+    test.skip(info.project.name === 'mobile-chromium');
     await ready(page);
     const button = page.locator('#sound');
     await expect(button).toHaveAttribute('aria-pressed', 'true');
@@ -37,6 +39,6 @@ test('S07 WebAudio absent jeu jouable et éclatement sans erreur', async ({ page
         Object.defineProperty(window, 'webkitAudioContext', { value: undefined });
     });
     await ready(page); await pop(page);
-    await page.locator('#sound').click();
+    await clickSound(page);
     await expect(page.locator('#sound')).toHaveAttribute('aria-pressed', 'false');
 });

@@ -10,13 +10,14 @@ import { Engine, greedyMove, type Mode, type Tool, type State, type Piece } from
 import { GAME_NAME, LEVELS } from '../../engines/gourmandises/levels';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
+import { reserveHudRow } from '../../shell/hud';
 import { Progression } from '../../shell/progression';
 import { browserStorage, readSave, writeSave, readValue, writeValue } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { drawPiece } from './thumbnail';
-import { drawChocolate, drawHedge, drawBelt, drawDrop, drawIce, boardLayout, presentation, drawScenery, drawTool, card, drawObjective, drawWorldRibbon, drawScoreGauge } from './presentation';
+import { drawChocolate, drawHedge, drawBelt, drawDrop, drawIce, boardLayout, presentation, drawScenery, drawTool, card, drawObjective, drawWorldRibbon, drawScoreGauge, WORLD_RIBBON } from './presentation';
 export const gourmandisesButtons: readonly TouchButton[] = [
     { id: 'gourmandises-hammer', label: '', ariaLabel: 'Marteau : une case', size: 56, placement: 'center', mode: 'tap' },
     { id: 'gourmandises-rocket', label: '', ariaLabel: 'Fusée : une ligne', size: 56, placement: 'center', mode: 'tap' },
@@ -318,6 +319,8 @@ export class GourmandisesScene extends Phaser.Scene {
         // The shell menu may use a different host; keep the preference with status actions.
         if (!this.modeButton.isConnected) document.querySelector('#help')?.append(this.modeButton);
         this.inputs.on(this.modeButton, 'click', () => { this.setMode(this.engine.state.mode === 'discovery' ? 'arcade' : 'discovery'); });
+        // The ⏸ gets its own row: the canvas draws the Coups tile in the top-right corner.
+        reserveHudRow();
         renderTouchControls(this.inputs, gourmandisesButtons, (id, held) => {
             if (!held || this.ready || this.session.paused || this.selecting) return;
             const tool = id.replace('gourmandises-', '') as Tool;
@@ -502,14 +505,9 @@ export class GourmandisesScene extends Phaser.Scene {
             const x = 82 + 194 * (i + .5) / s.objectives.length;
             drawObjective(c, o.icon, x, 51);
         });
+        // One tile: world name on top, stars and score below (no separate speech bubble).
+        card(c, WORLD_RIBBON.x, WORLD_RIBBON.y, WORLD_RIBBON.width, 64, WORLD_RIBBON.background);
         drawWorldRibbon(c, view.world);
-        card(c, 16, 165, 222, 25);
-        c.fillStyle = '#fff5df';
-        c.beginPath();
-        c.moveTo(235, 171);
-        c.lineTo(255, 162);
-        c.lineTo(235, 184);
-        c.fill();
         c.restore();
     }
     private drawHud(c: CanvasRenderingContext2D): void {
@@ -530,13 +528,12 @@ export class GourmandisesScene extends Phaser.Scene {
             const done = this.engine.progress(o);
             c.fillText(`${String(done)}/${String(o.target)}${done >= o.target ? ' ✓' : ''}`, x, 81);
         });
-        drawScoreGauge(c, view.stars);
-        c.fillStyle = '#64472c';
-        c.font = 'bold 11px system-ui';
-        c.fillText(`Score ${String(s.score)}`, 120, 160);
-        c.fillStyle = '#654329';
-        c.font = `bold ${String(this.combo > 1 ? Math.min(24, 14 + this.combo * 2) + this.animation / 140 : 12)}px system-ui`;
-        c.fillText(this.combo > 1 ? `Cascade ×${String(this.combo)} !` : s.status === 'won' ? 'Bravo !' : s.status === 'lost' ? 'On essaie encore ?' : 'À toi de jouer !', 127, 182);
+        drawScoreGauge(c, view.stars, 40);
+        // The score shares the tile; a cascade or the end of the level briefly takes its place.
+        const cheer = this.combo > 1 ? `Cascade ×${String(this.combo)} !` : s.status === 'won' ? 'Bravo !' : s.status === 'lost' ? 'Encore ?' : '';
+        c.fillStyle = cheer ? '#654329' : '#64472c';
+        c.font = `bold ${String(cheer && this.combo > 1 ? Math.min(18, 12 + this.combo) : 14)}px system-ui`;
+        c.fillText(cheer || `Score ${String(s.score)}`, 185, 146);
         c.textAlign = 'left';
     }
     private drawHero(c: CanvasRenderingContext2D): void {

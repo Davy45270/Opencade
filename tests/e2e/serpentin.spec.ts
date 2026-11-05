@@ -9,6 +9,16 @@ async function tap(page: Page, selector: string, mobile: boolean): Promise<void>
         await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
     } else await page.locator(selector).click();
 }
+/** Touch steering is a swipe on the field (the cross is an option). */
+async function swipe(page: Page, dx: number, dy: number, before?: () => Promise<void>): Promise<void> {
+    const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent');
+    const x = box.x + box.width / 2, y = box.y + box.height / 2, client = await page.context().newCDPSession(page);
+    // Real-time game: the situation is set right before the gesture, after the CDP session is open.
+    if (before) await before();
+    await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    await client.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + dx, y: y + dy }] });
+    await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await client.detach();
+}
 async function expectPauseOutsideCanvas(page: Page): Promise<void> {
     const pause = await page.locator('#pause').boundingBox();
     const canvas = await page.locator('#game canvas').boundingBox();
@@ -27,7 +37,10 @@ test('N03 N09 parcours victoire tactile ou clavier et sauvegarde', async ({ page
     const initial = await read(page);
     await page.waitForTimeout(250); expect(await read(page)).toEqual(initial);
     await page.evaluate(() => { window.__SERPENTIN_TEST__?.scenario('finish'); });
-    if (mobile) await tap(page, '#serpentin-up', true); else await page.keyboard.press('ArrowUp');
+    if (mobile) {
+        await tap(page, '#resume', true);
+        await swipe(page, 0, -40, () => page.evaluate(() => { window.__SERPENTIN_TEST__?.scenario('finish'); }));
+    } else await page.keyboard.press('ArrowUp');
     await page.evaluate(() => { window.__SERPENTIN_TEST__?.advance(10000); });
     await expect.poll(async () => (await read(page))?.status).toBe('won');
     await expect(page.locator('#result-title')).toContainText('réussi');
@@ -87,12 +100,8 @@ test('N09 niveau 30 et mise en page', async ({ page }, info) => {
         expect(canvas?.y).toBeGreaterThanOrEqual(56);
         expect(canvas?.x).toBeGreaterThanOrEqual(0);
         expect((canvas?.x ?? 0) + (canvas?.width ?? 0)).toBeLessThanOrEqual(390);
-        for (const id of ['up', 'down', 'left', 'right']) {
-            const box = await page.locator(`#serpentin-${id}`).boundingBox();
-            expect(box?.y).toBeGreaterThanOrEqual((canvas?.y ?? 0) + (canvas?.height ?? 0));
-            expect(box?.width).toBeGreaterThanOrEqual(56); expect(box?.height).toBeGreaterThanOrEqual(56);
-            expect((box?.y ?? 0) + (box?.height ?? 0)).toBeLessThanOrEqual(844);
-        }
+        // Swipes steer by default (proved above); the arrows only appear with the cross option (N20).
+        for (const id of ['up', 'down', 'left', 'right']) await expect(page.locator(`#serpentin-${id}`)).toBeHidden();
     }
 });
 
@@ -104,7 +113,9 @@ test('N10 salles d\'introduction : mécanisme visible et annoncé', async ({ pag
     for (const [level, tip] of [[3, /Portails/], [4, /chrono/], [7, /Écluses/], [11, /Luciole/], [15, /Flèches/], [20, /Ciseaux/], [25, /Sentinelles/]] as const) {
         await page.evaluate(index => { window.__SERPENTIN_TEST__?.loadLevel(index, 454); window.__SERPENTIN_TEST__?.advance(50); }, level);
         const hud = await page.evaluate(() => window.__SERPENTIN_TEST__?.hudText() ?? '');
-        expect(hud).toContain(`NIVEAU ${String(level + 1)}`); expect(hud).toMatch(tip);
+        // On touch screens the rule moved from the HUD to the pause page brief (still announced, one ⏸ away).
+        const announced = mobile ? await page.evaluate(() => document.querySelector('#level-brief')?.textContent ?? '') : hud;
+        expect(hud).toContain(`NIVEAU ${String(level + 1)}`); expect(announced).toMatch(tip);
         if (level === 4) expect(hud).toMatch(/⏱ 35 s/);
         await page.screenshot({ path: `test-results/screenshots/serpentin-intro-${String(level + 1)}-${info.project.name}.png` });
     }
@@ -121,4 +132,20 @@ test('N14 écluses : ouverte, clignotante la dernière demi-seconde, puis fermé
     expect(await at(1000 / 60)).toEqual({ open: 2, closing: 1, closed: 0 });
     expect(await at(30 * 1000 / 60)).toEqual({ open: 2, closing: 0, closed: 1 });
     await page.screenshot({ path: `test-results/screenshots/serpentin-ecluses-${info.project.name}.png` });
+});
+test('N20 tactile : une icône (Esquive), pas de croix éclatée, terrain dégagé, croix regroupée en option', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'Commandes tactiles');
+    await page.goto('/?test=1#/serpentin');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__ARCADE_TEST__?.games.serpentin))).toBe(true);
+    await tap(page, '#resume', true);
+    const visible = () => page.evaluate(() => [...document.querySelectorAll('#touch-controls button')].filter(b => b.getBoundingClientRect().width > 0).map(b => b.id));
+    expect(await visible()).toEqual(['serpentin-special']);
+    // The tip moved to the pause page: the field's panel only carries the counters.
+    expect(await page.evaluate(() => window.__SERPENTIN_TEST__?.hudText() ?? '')).not.toMatch(/mortels|rejoignent/);
+    await swipe(page, 0, 40); await expect.poll(async () => { const s = await read(page); return s?.direction === 'down' || JSON.stringify(s?.queue ?? []).includes('down'); }).toBe(true);
+    await tap(page, '#pause', true); await expect(page.locator('#level-brief')).toContainText(/mortels|rejoignent/);
+    await tap(page, '#serpentin-cross', true); await tap(page, '#resume', true);
+    await expect.poll(async () => (await visible()).length).toBe(5);
+    const centres = await page.evaluate(() => ['left', 'up', 'down', 'right'].map(name => { const r = document.querySelector(`#serpentin-${name}`)?.getBoundingClientRect(); return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : { x: 0, y: 0 }; }));
+    for (const a of centres) for (const b of centres) expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeLessThan(140);
 });

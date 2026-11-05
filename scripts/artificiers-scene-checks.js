@@ -12,9 +12,10 @@ import { fingerProof } from '../src/games/artificiers/finger.ts';
 import { AimDriver } from '../src/games/artificiers/driver.ts';
 import { countedGraphics, drawDynamic, drawScenery, paintTerrain, themes, WORLD_SCALE, screenY, drawHero, HERO_SIZE, HERO_X, HERO_Y } from '../src/games/artificiers/art.ts';
 import { Progression } from '../src/shell/progression.ts';
+import { MOBILE_PLAY } from '../src/shell/pause.ts';
 export function sceneChecks(source = readFileSync(new URL('../src/games/artificiers/scene.ts', import.meta.url), 'utf8')) {
     const code = transpile(source).replace(/^import .*;\s*$/gm, '').replace(/\bexport (class|const) /g, '$1 ');
-    const listeners = new Map(), dom = new Map(), once = new Map(), clears = [], effects = [];
+    const listeners = new Map(), dom = new Map(), once = new Map(), clears = [], effects = [], briefs = [];
     let action, disposed = 0, refreshed = 0, generated = 0;
     const images = [];
     const graphics = new Proxy({}, { get: (_, method) => () => { if (method === 'generateTexture') generated++; return graphics; } });
@@ -29,7 +30,7 @@ export function sceneChecks(source = readFileSync(new URL('../src/games/artifici
             setTexture(key) { this.key = key; return this; }, setFlipX() { return this; } };
         images.push(sprite); return sprite;
     };
-    const text = () => ({ text: '', setText(value) { this.text = value; return this; } });
+    const text = () => ({ text: '', visible: true, style: { fontSize: '' }, setText(value) { this.text = value; return this; }, setOrigin() { return this; }, setDepth() { return this; }, setPosition() { return this; }, setFontSize(v) { this.style.fontSize = typeof v === 'number' ? `${v}px` : v; return this; }, setVisible(v) { this.visible = v; return this; } });
     const context = { clearRect: (...args) => clears.push(args), fillRect() {} };
     const texture = { context, refresh() { refreshed++; }, destroy() {} };
     class BaseScene {
@@ -46,7 +47,7 @@ export function sceneChecks(source = readFileSync(new URL('../src/games/artifici
     class PlaySession { paused = false; }
     class Element { id = ''; }
     const elements = new Map();
-    const document = { body: { classList: { add() {}, remove() {} } }, querySelector(id) { if (!elements.has(id)) elements.set(id, { id }); return elements.get(id); } };
+    const document = { body: { classList: { add() {}, remove() {} } }, querySelector(id) { if (!elements.has(id)) elements.set(id, { id, attrs: {}, dataset: {}, style: {}, hidden: false, textContent: '', classList: { add() {}, remove() {}, toggle() {}, contains() { return false; } }, setAttribute(k, v) { this.attrs[k] = String(v); }, getAttribute(k) { return this.attrs[k] ?? null; }, removeAttribute(k) { Reflect.deleteProperty(this.attrs, k); } }); return elements.get(id); } };
     const window = {}, session = new PlaySession();
     const bindings = { fingerProof, Phaser: { Scene: BaseScene }, Engine, chooseShot, WEAPONS, LEVELS, GAME_NAME, CELL, COLS,
         ids, drawList, renderCharacter, WORLD_SCALE, screenY, drawHero, HERO_SIZE, HERO_X, HERO_Y, selectedCharacter: () => 'pandaroux', characters, Inputs, PlaySession, Progression,
@@ -60,6 +61,7 @@ export function sceneChecks(source = readFileSync(new URL('../src/games/artifici
         },
         sound: { playEffect: name => effects.push(name), stop() {} }, AimDriver, countedGraphics, drawDynamic, drawScenery, paintTerrain, themes,
         renderTouchControls: (_inputs, buttons, callback) => { action = callback; assert.equal(buttons.length, 6); assert.ok(buttons.every(b => b.size >= 48)); },
+        MOBILE_PLAY, setBrief: text => { briefs.push(text); },
         matchMedia: () => ({ matches: false }), document, window, location: { search: '?test=1' }, URLSearchParams: globalThis.URLSearchParams, HTMLElement: Element,
     };
     const Scene = new Function(...Object.keys(bindings), `${code}\nreturn ArtificiersScene;`)(...Object.values(bindings));

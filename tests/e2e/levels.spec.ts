@@ -68,7 +68,8 @@ test('L13 dernier niveau affiche la fin et accès localStorage absent', async ({
     await expect(page.locator('#result-title')).toHaveText('Tous les niveaux réussis !');
     expect((await read(page)).progression).toBe('complete');
     await expect(page.locator('#next-level')).toBeHidden();
-    await openGameMenu(page, '#levels'); await page.getByRole('button', { name: 'Niveaux', exact: true }).click();
+    // End screen: its own Niveaux icon opens the list.
+    await page.locator('#result-levels').click();
     await expect(page.locator('#level-list button').nth(29)).toBeEnabled();
 });
 

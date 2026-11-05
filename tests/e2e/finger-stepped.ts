@@ -97,9 +97,11 @@ export class Finger {
         this.entries.push({ type: 'touchEnd', selectors: [], intended: [], noise: [], points: [], timeMs: this.elapsed, missed: !accepted });
         if (!accepted) throw new Error(`toucher perdu : ${this.game} touchEnd`);
     }
-    async touch(type: 'touchStart' | 'touchMove', intended: Touch[], selectors = intended.map(() => '#game canvas')): Promise<void> {
+    /** `delayMs`: the time before this event. A new decision costs a reaction (150 ms); the move that
+     *  continues the same swipe is finger travel, not a new decision (about 60 ms for 60 px). */
+    async touch(type: 'touchStart' | 'touchMove', intended: Touch[], selectors = intended.map(() => '#game canvas'), delayMs = 150): Promise<void> {
         if (!intended.length) throw new Error('Toucher vide');
-        await this.advance(); // The observation used by the caller is now 150 game ms old.
+        await this.advance(delayMs); // The observation used by the caller is now delayMs game ms old.
         if (type === 'touchStart') await this.endTouch(false); // Already waited for this replacement decision.
         const before = await this.read();
         const priorReceipt = await this.receipts();
@@ -122,13 +124,19 @@ export class Finger {
         this.activePoints = points;
         await this.page.clock.runFor(17);
         const after = await this.read();
-        const accepted = receivedEvents(priorReceipt, await this.receipts(), type === 'touchStart' ? 'pointerdown' : 'pointermove', points) && targets.every(t => t.hit) && await this.page.evaluate(({ id, selectors, before, after, targets }) => {
+        const received = receivedEvents(priorReceipt, await this.receipts(), type === 'touchStart' ? 'pointerdown' : 'pointermove', points);
+        const proved = await this.page.evaluate(({ id, selectors, before, after, targets }) => {
             const hook = window.__ARCADE_TEST__?.games[id] as Hook | undefined;
             if (!hook) throw new Error('Crochet absent');
-            return selectors.every((selector, i) => hook.fingerReceived?.(selector, before, after, targets[i]) ?? true);
+            return selectors.map((selector, i) => hook.fingerReceived?.(selector, before, after, targets[i]) ?? true);
         }, { id: this.game, selectors, before, after, targets });
+        const accepted = received && targets.every(t => t.hit) && proved.every(Boolean);
         this.entries.push({ type, selectors, points, intended, noise, timeMs: this.elapsed, missed: !accepted });
-        if (!accepted) throw new Error(`toucher perdu : ${this.game} ${selectors.join(', ')}`);
+        // The diagnosis says which proof failed: browser receipt, hit test (and what was hit) or the game's own proof.
+        if (!accepted) {
+            const hits = await this.page.evaluate(points => points.map(p => { const e = document.elementFromPoint(p.x, p.y); return e ? `${(e.tagName || "el").toLowerCase()}${e.id ? `#${e.id}` : ''}${typeof e.className === 'string' && e.className ? `.${e.className.split(' ').join('.')}` : ''}` : 'hors écran'; }), points);
+            throw new Error(`toucher perdu : ${this.game} ${selectors.join(', ')} — reçu ${String(received)} · touché ${targets.map(t => String(t.hit)).join('/')} (${hits.join(' / ')}) · preuve ${proved.map(String).join('/')}`);
+        }
     }
     async steer(selectors: string[]): Promise<void> {
         if (!selectors.length) { await this.advance(); await this.endTouch(false); return; }

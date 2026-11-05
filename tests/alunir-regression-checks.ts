@@ -30,12 +30,13 @@ export function migrationChecks(old: Historic, Model = Engine): void {
 export function hudChecks(source: string): void {
     const declaration = required(source.match(/const l = e\.plan\(\), intro = [^;]+;/)?.[0]);
     const expression = required(source.match(/this.hud\?\.setText\((`[^;]+`)\);/)?.[1]);
+    // The touch HUD row carries the gauges: the expression reads `touch` and `degrees` from the scene's draw().
     // eslint-disable-next-line @typescript-eslint/no-implied-eval -- Run the actual scene expression so removing its idea is observable under Node.
-    const render = new Function('e', 's', 'LEVELS', 'required', `${declaration} return ${expression};`) as (e: Engine, s: Engine['state'], levels: typeof LEVELS, need: typeof required) => string;
-    for (let level = 0; level < 30; level++) {
+    const render = new Function('e', 's', 'LEVELS', 'required', 'touch', `const degrees = s.angle * 180 / Math.PI; ${declaration} return ${expression};`) as (e: Engine, s: Engine['state'], levels: typeof LEVELS, need: typeof required, touch: boolean) => string;
+    for (let level = 0; level < 30; level++) for (const touch of [false, true]) {
         const e = new Engine(); e.loadLevel(level); const l = required(LEVELS[level]);
         for (const ticks of [0, 1, 119, 120, 121]) {
-            e.state.ticks = ticks; const text = render.call({ engine: e }, e, e.state, LEVELS, required);
+            e.state.ticks = ticks; const text = render.call({ engine: e }, e, e.state, LEVELS, required, touch);
             assert.equal(text.includes(l.name), ticks < 120, `HUD name ${String(level)}/${String(ticks)}`);
             assert.equal(text.includes(l.idea), ticks < 120, `HUD idea ${String(level)}/${String(ticks)}`);
         }

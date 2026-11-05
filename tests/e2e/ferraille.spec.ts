@@ -1,4 +1,4 @@
-import { openGameMenu, test, expect, measureLayout } from './fixture';
+import { openGameMenu, test, expect, measureLayout, goHome, mobilePlay } from './fixture';
 import type { Page } from '@playwright/test';
 import type {} from '../../src/games/ferraille/scene';
 async function read(page: Page) { return page.evaluate(() => window.__FERRAILLE_TEST__?.read()); }
@@ -21,8 +21,9 @@ async function layout(page: Page): Promise<void> {
     expect(canvas.x).toBeGreaterThanOrEqual(0); expect(canvas.x + canvas.width).toBeLessThanOrEqual(width);
     for (const c of controls) {
         const overlap = c.x < canvas.x + canvas.width && c.x + c.width > canvas.x && c.y < canvas.y + canvas.height && c.y + c.height > canvas.y;
-        expect(overlap, c.selector).toBe(false);
-        const min = c.selector === '.joystick' ? 120 : c.selector.startsWith('#ferraille-') ? 64 : 44;
+        // The touch ⏸ is fixed in the HUD corner, over the play area by design.
+        if (c.selector !== '#pause' || !await mobilePlay(page)) expect(overlap, c.selector).toBe(false);
+        const min = c.selector === '.joystick' ? 120 : c.selector === '#ferraille-jump' ? 72 : c.selector.startsWith('#ferraille-') ? 56 : 44;
         expect(c.width).toBeGreaterThanOrEqual(min); expect(c.height).toBeGreaterThanOrEqual(min);
         expect(c.y + c.height).toBeLessThanOrEqual(height); expect(c.x).toBeGreaterThanOrEqual(0); expect(c.x + c.width).toBeLessThanOrEqual(width);
     }
@@ -92,7 +93,7 @@ test('F01 F03 F11 F14 niveau 30, saut et tir maintenus, pause et nettoyage', asy
     if (client) {
         await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await client.detach();
     } else { await page.keyboard.up('Space'); await page.keyboard.up('KeyX'); await page.keyboard.press('KeyP'); await expect(page.locator('#pause-title')).toHaveText('En pause'); }
-    await tap(page, '#topbar [data-home]', mobile); await expect(page.locator('#game canvas')).toHaveCount(0); expect(await page.evaluate(() => window.__FERRAILLE_TEST__)).toBeUndefined();
+    await goHome(page); await expect(page.locator('#game canvas')).toHaveCount(0); expect(await page.evaluate(() => window.__FERRAILLE_TEST__)).toBeUndefined();
     await page.goto('/#/ferraille'); await expect(page.locator('#game canvas')).toBeVisible(); expect(await page.evaluate(() => window.__FERRAILLE_TEST__)).toBeUndefined();
 });
 
@@ -192,4 +193,38 @@ test('F-SCENE-03 les six descriptions de rendu sont distinctes deux à deux', as
         const h = window.__FERRAILLE_TEST__; h?.loadLevel(index, 460); h?.advance(0); return h?.rendering().boss;
     }));
     for (const key of ['name', 'shape', 'colors', 'parts'] as const) expect(new Set(descriptions.map(d => JSON.stringify(d?.[key]))).size).toBe(6);
+});
+test('F20 tactile : Saut plus gros que Tir et Super, joystick en bande gauche à 405×480, héros jamais sous une commande', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'Commandes tactiles');
+    const exposed = async () => page.evaluate(() => {
+        const canvas = document.querySelector('#game canvas')?.getBoundingClientRect(), hero = window.__FERRAILLE_TEST__?.layout().hero;
+        if (!canvas || !hero) throw new Error('Géométrie absente');
+        const k = canvas.width / 360, box = { x: canvas.x + hero.x * k, y: canvas.y + hero.y * k, width: hero.width * k, height: hero.height * k };
+        const controls = [...document.querySelectorAll<HTMLElement>('#touch-controls button, #touch-controls .joystick, #pause')].map(e => ({ id: e.id || e.className, r: e.getBoundingClientRect() })).filter(c => c.r.width > 0);
+        const size = (id: string) => document.querySelector(`#${id}`)?.getBoundingClientRect().width ?? 0;
+        const joystick = document.querySelector('#touch-controls .joystick')?.getBoundingClientRect();
+        return {
+            under: controls.filter(c => c.r.x < box.x + box.width && c.r.x + c.r.width > box.x && c.r.y < box.y + box.height && c.r.y + c.r.height > box.y).map(c => c.id),
+            jump: size('ferraille-jump'), fire: size('ferraille-fire'), special: size('ferraille-special'),
+            joystickRight: joystick ? joystick.x + joystick.width : 1e4, canvasLeft: canvas.x, side: document.body.classList.contains('side-controls'),
+        };
+    });
+    for (const [width, height] of [[405, 480], [360, 640], [780, 412]] as const) {
+        await page.setViewportSize({ width, height });
+        await page.goto('/?test=1#/ferraille');
+        await expect.poll(() => page.evaluate(() => Boolean(window.__FERRAILLE_TEST__))).toBe(true);
+        await tap(page, '#resume', true);
+        await page.evaluate(() => { window.__FERRAILLE_TEST__?.advance(0); });
+        const start = await exposed();
+        expect(start.jump).toBeGreaterThan(start.fire); expect(start.jump).toBeGreaterThan(start.special);
+        if (width === 405) { expect(start.side).toBe(true); expect(start.joystickRight).toBeLessThanOrEqual(start.canvasLeft); }
+        expect(start.under, `${String(width)}×${String(height)} départ`).toEqual([]);
+        // Walk, jump, and look again at each step.
+        await walk(page, true, async () => {
+            for (let i = 0; i < 6; i++) {
+                await page.evaluate(() => { window.__FERRAILLE_TEST__?.advance(250); });
+                expect((await exposed()).under, `${String(width)}×${String(height)} pas ${String(i)}`).toEqual([]);
+            }
+        });
+    }
 });

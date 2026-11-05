@@ -43,7 +43,12 @@ test('B-CAT-06 doigt bruité : P01, P02 et P03 gagnés', async ({ page }, info) 
             const touchAt = (angle: number, radius: number) => ({ id: 5, x: box.x + (ORIGIN.x + Math.sin(angle) * radius) * box.width / 360 + noise(), y: box.y + (ORIGIN.y - Math.cos(angle) * radius) * box.height / 640 + noise() });
             const start = Date.now(); let corrections = 0;
             for (const shot of solutions[index] ?? []) {
-                if (shot.swap) { await finger.press(['#touch-swap']); model.swap(); }
+                if (shot.swap) {
+                    // Swap by touching the next bubble (world 300, 585).
+                    await page.waitForTimeout(150); await finger.touch('touchStart', [{ id: 6, x: box.x + 300 * box.width / 360, y: box.y + 585 * box.height / 640 }]); await finger.release();
+                    model.swap();
+                    await expect.poll(() => page.evaluate(() => window.__BUBBLE_TEST__?.read().next)).toBe(model.next);
+                }
                 const intended = model.trace(shot.angle), outcome = bubbleOutcome(model, shot.angle);
                 const radius = Math.min(500, 145 / Math.max(0.01, Math.abs(Math.sin(shot.angle))));
                 let commanded = shot.angle, actual = shot.angle, found = false;

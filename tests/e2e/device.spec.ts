@@ -1,4 +1,4 @@
-import { test, expect, point, openGameMenu } from './fixture';
+import { test, expect, point, openGameMenu, goHome, clickSound } from './fixture';
 import type { Page } from '@playwright/test';
 import type {} from '../../src/games/briqueterie/scene';
 declare global { interface Window { deviceCalls: { wake: number; release: number; fullscreen: number; vibrations: (number | number[])[] } } }
@@ -30,7 +30,7 @@ async function open(page: Page): Promise<void> {
 }
 async function win(page: Page): Promise<void> {
     await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.scenario('finish'); });
-    await page.locator('#briqueterie-launch').click();
+    await page.keyboard.press('Space');
     await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(10000); });
     await expect(page.locator('#result')).toBeVisible();
     expect(await page.evaluate(() => window.__BRIQUETERIE_TEST__?.read().status)).toBe('won');
@@ -46,21 +46,26 @@ test('T01 Wake Lock au démarrage, pause, reprise, fin et sortie', async ({ page
     await expect.poll(() => page.evaluate(() => window.deviceCalls.release)).toBe(2);
     await page.locator('#replay-level').click();
     await expect.poll(() => page.evaluate(() => window.deviceCalls.wake)).toBe(3);
-    await page.locator('#topbar [data-home]').click();
+    await goHome(page);
     await expect.poll(() => page.evaluate(() => window.deviceCalls.release)).toBe(3);
 });
 test('T02 vibrations de perte de vie et victoire suivent le son global', async ({ page }) => {
     await stub(page); await open(page); await page.locator('#resume').click();
     await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.scenario('fall'); });
-    await page.locator('#briqueterie-launch').click();
-    // Move the paddle away from the falling ball without waiting for rendering.
-    const target = await point(page, 300, 620); await page.touchscreen.tap(target.x, target.y);
+    await page.keyboard.press('Space');
+    // Move the paddle away from the falling ball without waiting for rendering: a relative finger drag
+    // in the lower third (the touch rule since the ← → buttons went), 120 world px to the right.
+    const from = await point(page, 180, 600), to = await point(page, 300, 600), cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: from.x, y: from.y, id: 1 }] });
+    for (let i = 1; i <= 6; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: from.x + (to.x - from.x) * i / 6, y: from.y, id: 1 }] });
+    expect(await page.evaluate(() => window.__BRIQUETERIE_TEST__?.read().paddle), 'paddle moved by the finger travel').toBeGreaterThan(260);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(10000); });
     expect(await page.evaluate(() => window.__BRIQUETERIE_TEST__?.read().status)).toBe('lost');
     expect(await page.evaluate(() => window.deviceCalls.vibrations)).toContain(30);
     await win(page);
     expect(await page.evaluate(() => window.deviceCalls.vibrations)).toContainEqual([30, 40, 60]);
-    await page.locator('#sound').click();
+    await clickSound(page);
     const before = await page.evaluate(() => window.deviceCalls.vibrations);
     await win(page);
     expect(await page.evaluate(() => window.deviceCalls.vibrations)).toEqual(before);
@@ -81,14 +86,15 @@ test('T04 gestes parasites bloqués sur aire et contrôles', async ({ page }) =>
         await expect(page.locator(selector)).toHaveCSS('user-select', 'none');
     }
 });
-test('T05 toucher hors Jouer démarre sans lancer ni déplacer', async ({ page }) => {
+test('T05 toucher hors Jouer démarre et le geste atteint le jeu', async ({ page }) => {
     await open(page);
     const before = await page.evaluate(() => window.__BRIQUETERIE_TEST__?.read());
     const target = await point(page, 50, 100); await page.touchscreen.tap(target.x, target.y);
     await expect(page.locator('#pause-panel')).toBeHidden();
     await page.evaluate(() => { window.__BRIQUETERIE_TEST__?.advance(100); });
     const after = await page.evaluate(() => window.__BRIQUETERIE_TEST__?.read());
-    expect(after?.ready).toBe(true); expect(after?.paddle).toBe(before?.paddle); expect(after?.balls).toEqual(before?.balls);
+    // First gesture transmitted: the same tap starts play and launches the ball.
+    expect(before?.ready).toBe(true); expect(after?.ready).toBe(false);
     await win(page);
 });
 for (const mode of ['absent', 'refused'] as const) test(`T07 API ${mode} : jeu jouable sans erreur ni avertissement`, async ({ page }) => {
@@ -98,6 +104,6 @@ for (const mode of ['absent', 'refused'] as const) test(`T07 API ${mode} : jeu j
     await openGameMenu(page, '#levels');
     if (mode === 'absent') await expect(page.locator('#fullscreen')).toBeHidden();
     else await page.locator('#fullscreen').click();
-    await page.locator('#game-menu-toggle').click();
+    await page.locator('#pause').click();
     await win(page); expect(messages).toEqual([]);
 });

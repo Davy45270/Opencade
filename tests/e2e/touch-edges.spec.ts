@@ -10,6 +10,14 @@ const ids = [...registry.slice(registry.indexOf('export const games:')).matchAll
 });
 if (!ids.length) throw new Error('Registre vide');
 const edges = ['left', 'right', 'top', 'bottom'] as const;
+// A game may declare no touch control at all (Collier: aim anywhere, touch the shooter to swap).
+const noControls = (id: string): boolean => {
+    const entry = registry.split('\n').find(line => line.includes(`id: '${id}'`)) ?? '';
+    const name = /touchControls: (\w+)/.exec(entry)?.[1];
+    if (!name) return false;
+    const scene = readFileSync(new URL(`../../src/games/${id}/scene.ts`, import.meta.url), 'utf8');
+    return new RegExp(`export const ${name}: readonly TouchButton\\[\\] = \\[\\];`).test(scene);
+};
 const selector = '#touch-controls button, #touch-controls [role="button"]';
 
 for (const id of ids) test(`bord tactile ${id} : quatre bords de chaque commande`, async ({ page, browserName }, info) => {
@@ -28,6 +36,7 @@ for (const id of ids) test(`bord tactile ${id} : quatre bords de chaque commande
     try {
         await Finger.create(page, cdp); // advance(0), then freeze browser timers too.
         const count = await page.locator(selector).count();
+        if (noControls(id)) { expect(count, 'Aucune commande déclarée, aucune affichée').toBe(0); return; }
         expect(count, 'Commandes présentes').toBeGreaterThan(0);
         // One optional resume and one edge touch per sample; no level search/retry.
         budget = 2 * edges.length * count;

@@ -1,6 +1,8 @@
 /* global console, performance, window */
 import assert from 'node:assert/strict';
-import { mount, tap, key } from './validate-character-scenes.js';
+import { mount, tap, key, swipe } from './validate-character-scenes.js';
+// Empilo is played by gestures on the board: tap the reserve tile (top right), drag one column, quick swipe down.
+const empilo = { reserve: () => swipe(0, 0, 316, 188), left: () => swipe(-45, 0), drop: () => swipe(0, 80) };
 import { mutationModule } from './mutation-module.js';
 const { ids, drawList } = await import('../src/characters/model.ts');
 const { renderCharacter } = await import('../src/characters/phaser.ts');
@@ -11,7 +13,8 @@ function placement(game, engine, draws) {
     const expected = game === 'dedale'
         ? [5.2 + (engine.state.hero.x + .5) * 18.4 - 14, 64 + (engine.state.hero.y + .5) * 18.4 - 14, 28]
         : game === 'orbite' ? [engine.state.cannon - 14, 588 - 44, 28]
-            : [270 + 4, 230, 84];
+            // Empilo: the character sits lower in the side column since the next pieces and reserve moved to the top.
+            : [270 + 4, 330, 84];
     assert(draws.length, 'actor actually drawn');
     assert.deepEqual(draws[0].slice(0, 3), expected, `${game}: layout position`);
     if (game === 'empilo') {
@@ -42,11 +45,12 @@ function reserve(h) {
     const { engine, frame, images } = h;
     for (const id of [0, 1]) {
         engine.loadState({ ...engine.state, reserve: null, active: { ...engine.state.active, id } });
-        tap('empilo-special'); frame(60); assert.equal(engine.reserve, id);
+        empilo.reserve(); frame(60); assert.equal(engine.reserve, id);
         const cells = id === 0 ? [[0, 0], [1, 0], [2, 0]] : [[0, 0], [0, 1], [1, 1]];
         // The reserve is shown as pooled 12 px gem images: one visible image per cell, at its cell.
-        const actual = images.filter(i => i.visible && /^gem-[0-9a-f]+-12$/.test(i.key) && i.y >= 370 && i.y < 410 && i.x >= 282).map(i => [i.x, i.y]);
-        assert.deepEqual(actual, cells.map(([x, y]) => [282 + x * 13, 370 + y * 13]), 'reserved piece really painted');
+        // Since the reserve moved to its tile under the next pieces (top right), its cells start at (292, 178).
+        const actual = images.filter(i => i.visible && /^gem-[0-9a-f]+-12$/.test(i.key) && i.y >= 178 && i.y < 218 && i.x >= 292).map(i => [i.x, i.y]);
+        assert.deepEqual(actual, cells.map(([x, y]) => [292 + x * 13, 178 + y * 13]), 'reserved piece really painted');
     }
 }
 function events(game, h) {
@@ -76,14 +80,14 @@ function events(game, h) {
         // Clear a line without finishing, then finish with the same real input route.
         for (const lines of [0, 4]) {
             window.__EMPILO_TEST__.scenario('finish'); engine.state.lines = lines;
-            tap('empilo-drop'); frame(16);
+            empilo.drop(); frame(16);
             assert.equal(engine.state.lines, lines + 1); assert.equal(hero.animation, 'celebration');
             if (!lines) assert.equal(engine.status, 'playing');
         }
     }
     assert.equal(engine.status, 'won'); assert.equal(hero.expression, 'joie'); assert.equal(hero.animation, 'celebration');
     if (game === 'empilo') {
-        window.__EMPILO_TEST__.scenario('blocked'); tap('empilo-drop'); frame(16);
+        window.__EMPILO_TEST__.scenario('blocked'); empilo.drop(); frame(16);
         assert.equal(engine.status, 'lost'); assert.equal(hero.expression, 'surprise'); frame(600); assert.equal(hero.expression, 'triste');
         // Gravity path also celebrates a line, independently from the input callback.
         window.__EMPILO_TEST__.loadLevel(0, 28);
@@ -103,7 +107,8 @@ async function check(game, id, SceneOverride) {
             engine.loadState({ ...engine.state, seeds: seeds.slice(1) }); scene.draw();
             assert.equal(scene.sceneryPaints, paints, 'a seed eaten does not repaint the scenery');
         }
-        tap(`${game}-special`); frame(); assert.equal(engine.specialUses, 0); assert.equal(hero.animation, 'special');
+        if (game === 'empilo') empilo.reserve(); else tap(`${game}-special`);
+        frame(); assert.equal(engine.specialUses, 0); assert.equal(hero.animation, 'special');
         assert.match(scene.hud.text, game === 'dedale' ? /LUEUR 0\/1/ : game === 'orbite' ? /RAFALE 0\/1/ : /RÉSERVE 0\/1/);
         const before = engine.snapshot(), time = hero.time;
         h.session.send('toggle'); assert.equal(hero.expression, 'dodo', 'pause is synchronous'); const sleeping = hero.snapshot(); frame(1000); assert.deepEqual(hero.snapshot(), sleeping); h.session.send('start'); frame();
@@ -111,7 +116,7 @@ async function check(game, id, SceneOverride) {
         h.session.menuOpen = false; frame(100); assert.notEqual(hero.expression, 'dodo');
         if (game === 'dedale') { engine.loadState({ ...engine.state, journey: undefined, maze: Array(437).fill(true), wisps: [], hero: { x: 9, y: 17, direction: 'up' }, requested: 'up' }); key('ArrowLeft'); frame(200); assert.equal(hero.pose, 'profil'); particles(h); }
         if (game === 'orbite') { key('ArrowRight'); frame(200); assert.equal(hero.pose, 'profil'); assert(!hero.flip); }
-        if (game === 'empilo') { tap('empilo-left'); frame(); assert.equal(hero.pose, 'profil'); assert(hero.flip); reserve(h); }
+        if (game === 'empilo') { empilo.left(); frame(); assert.equal(hero.pose, 'profil'); assert(hero.flip); reserve(h); }
         placement(game, engine, draws); events(game, h);
     } finally { h.cleanup(); }
 }
@@ -122,7 +127,7 @@ for (const game of ['dedale', 'orbite', 'empilo']) for (const id of ids) {
 for (const [game, before, after] of [
     ['dedale', 'this.hero.draw(g, x - 14, y - 14, 28);', 'this.hero.draw(g, 0, 0, 28);'],
     ['orbite', 'this.hero.draw(g, s.cannon - 14, CANNON_Y - 44, 28);', 'this.hero.draw(g, 0, 0, 28);'],
-    ['empilo', 'this.hero.draw(g, 274, 230, 84);', 'this.hero.draw(g, 100, 230, 84);'],
+    ['empilo', 'this.hero.draw(g, 274, 330, 84);', 'this.hero.draw(g, 100, 330, 84);'],
     ...['dedale', 'orbite'].map(game => [game, "if (event === 'life') this.hero.impact = 500;", "if (event === 'life') this.hero.impact = 0;"]),
     ['dedale', 'g.strokeCircle(px, py, 4); this.hero.drawEffect(g, px - 10, py - 10, 20);', 'g.strokeCircle(px, py, 4);'],
     ['empilo', 'if (this.engine.reserve !== null) for (const c of SHAPES[this.engine.reserve] ?? [])', 'if (this.engine.reserve !== null) for (const c of (SHAPES[this.engine.reserve] ?? []).slice(0, 0))'],

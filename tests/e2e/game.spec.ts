@@ -73,7 +73,8 @@ test('B-HEX-15 chute animée et bonus', async ({ page }, info) => {
 test('T14 build statique et crochet inerte sans test=1', async ({ page }) => {
     await page.goto('/#/bubble');
     await expect(page.locator('#game canvas')).toBeVisible();
-    await expect(page.getByRole('heading')).toHaveText('Bubble Lab');
+    // The title is hidden during touch play, but stays the document heading.
+    await expect(page.locator('#topbar h1')).toHaveText('Bubble Lab');
     expect(await page.evaluate(() => window.__BUBBLE_TEST__)).toBeUndefined();
     await expect(page.locator('script[type="module"]')).toHaveAttribute('src', /^\.\/assets\//);
 });

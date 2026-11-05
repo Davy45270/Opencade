@@ -148,10 +148,11 @@ export function sceneListeners(module) {
         return target[key] ?? ((...args) => commands.push([key, ...args]));
     } });
     class Element extends EventTarget {
-        style = {};
+        style = { setProperty(k, v) { this[k] = v; }, removeProperty(k) { Reflect.deleteProperty(this, k); } };
         children = [];
         attributes = {};
-        classList = { add() {}, remove() {}, contains() { return false; } };
+        dataset = {};
+        classList = { add() {}, remove() {}, contains() { return false; }, toggle() {} };
         isConnected = true;
         setAttribute(name, value) { this.attributes[name] = value; }
         getAttribute(name) { return this.attributes[name]; }

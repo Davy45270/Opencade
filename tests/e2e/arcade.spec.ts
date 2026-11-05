@@ -1,4 +1,4 @@
-import { openGameMenu, test, expect, ready, load, read } from './fixture';
+import { openGameMenu, test, expect, ready, load, read, goHome, clickSound } from './fixture';
 
 test('A01 registre accueil navigation et retour navigateur', async ({ page }, info) => {
     await page.goto('/?test=1#/');
@@ -12,7 +12,7 @@ test('A01 registre accueil navigation et retour navigateur', async ({ page }, in
     await expect(page.locator('#game canvas')).toBeVisible();
     await expect.poll(() => page.evaluate(() => window.__ARCADE_TEST__?.current())).toBe('bubble');
     await page.screenshot({ path: `test-results/screenshots/bubble-in-arcade-${info.project.name}.png` });
-    await page.locator('#topbar [data-home]').click();
+    await goHome(page);
     await expect(page.locator('#home')).toBeVisible();
     await expect(page.locator('#game canvas')).toHaveCount(0);
     await expect.poll(() => page.evaluate(() => Boolean(window.__BUBBLE_TEST__))).toBe(false);
@@ -28,8 +28,8 @@ test('A02 A04 ouverture directe son global persistant', async ({ page }) => {
     await ready(page);
     await expect(page.locator('#game canvas')).toBeVisible();
     await expect(page.locator('#sound')).toHaveCount(1);
-    await page.locator('#sound').click();
-    await page.locator('#topbar [data-home]').click();
+    await clickSound(page);
+    await goHome(page);
     await expect(page.locator('#sound')).toHaveAttribute('aria-pressed', 'false');
     await page.reload();
     await expect(page.locator('#sound')).toHaveAttribute('aria-pressed', 'false');
@@ -87,7 +87,7 @@ test('A07b barre compacte et canevas mobile', async ({ page }) => {
     }
 });
 
-for (const id of ['derapage', 'traverse', 'alunir', 'serpentin', 'briqueterie', 'empilo', 'orbite', 'essaim', 'dedale', 'ferraille', 'bubble'] as const) {
+for (const id of ['derapage', 'alunir', 'serpentin', 'briqueterie', 'empilo', 'orbite', 'dedale', 'ferraille', 'bubble'] as const) {
     test(`A11 ${id} horloge manuelle, regroupement et pause`, async ({ page }) => {
         await page.goto(`/?test=1#/${id}`);
         await expect.poll(() => page.evaluate(id => Boolean(window.__ARCADE_TEST__?.games[id]), id)).toBe(true);

@@ -6,7 +6,8 @@ import { GameCharacter } from '../../characters/game';
 import { drawList } from '../../characters/model';
 import { ArcadePaint } from '../../characters/arcade-phaser';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
-import { PlaySession } from '../../shell/pause';
+import { MOBILE_PLAY, PlaySession } from '../../shell/pause';
+import { setBrief, setHud } from '../../shell/hud';
 import { Progression } from '../../shell/progression';
 import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
@@ -23,7 +24,7 @@ export const marmailleButtons: readonly TouchButton[] = [
     { id: 'marmaille-r0', label: '·', ariaLabel: 'Rôle 1', size: 56, placement: 'left', mode: 'tap' },
     { id: 'marmaille-r1', label: '·', ariaLabel: 'Rôle 2', size: 56, placement: 'center', mode: 'tap' },
     { id: 'marmaille-r2', label: '·', ariaLabel: 'Rôle 3', size: 56, placement: 'center', mode: 'tap' },
-    { id: 'marmaille-fast', label: '»', ariaLabel: 'Accélérer le temps', size: 56, placement: 'right', mode: 'tap' },
+    { id: 'marmaille-fast', label: '⏩', ariaLabel: 'Accélérer le temps', size: 44, placement: 'right', mode: 'tap', corner: true },
 ];
 /** Roles offered by a level, in the fixed role order: slot i is the i-th of them. */
 export function levelRoles(level: number): Role[] { return ROLES.filter(r => (LEVELS[level]?.roles[r] ?? 0) > 0); }
@@ -41,6 +42,8 @@ export interface MarmailleHook {
     fingerReceipts: ReturnType<typeof fingerReceipts>;
     read(): ReturnType<Engine['snapshot']> & { selected: Role | null; fast: boolean; character: ReturnType<GameCharacter['snapshot']>; progression: string };
     hudText(): string;
+    /** Whether the canvas text panel (lower third) is drawn. */
+    textPanel(): boolean;
     usefulArea(): { x: number; y: number; width: number; height: number };
     loadLevel(index: number, seed?: number): void;
     advance(ms: number): void;
@@ -54,6 +57,7 @@ export class MarmailleScene extends Phaser.Scene {
     private progress = new Progression(readSave(browserStorage(), 'marmaille', LEVELS.length), LEVELS.length);
     private inputs = new Inputs();
     private selecting = false;
+    private brief = '';
     private manual = false;
     private fast = false;
     private selected: Role | null = null;
@@ -134,6 +138,7 @@ export class MarmailleScene extends Phaser.Scene {
             window.__MARMAILLE_TEST__ = {
                 fingerReceipts: receipts,
                 read: () => ({ ...this.engine.snapshot(), selected: this.selected, fast: this.fast, character: this.hero.snapshot(), progression: this.progress.state }),
+                textPanel: () => Boolean(this.hud?.visible || this.title?.visible),
                 hudText: () => `${this.title?.text ?? ''}\n${this.hud?.text ?? ''}`,
                 usefulArea: () => ({ x: 0, y: FIELD_Y, width: COLS * CELL, height: ROWS * CELL }),
                 // Test clock: a loaded board stays frozen until advance() drives it (recorded ticks stay exact).
@@ -219,6 +224,16 @@ export class MarmailleScene extends Phaser.Scene {
         }
         const roles = levelRoles(e.level).map(r => `${ROLE_SYMBOL[r]} ${ROLE_NAME[r]} ${String(e.roles[r])}`).join('   ');
         this.title?.setText(`${GAME_NAME} ${String(e.level + 1)} · ${def.name}`);
+        // Touch screens: no text panel in the lower third; the counters go to the HUD row, the lesson to the pause page.
+        const touch = matchMedia(MOBILE_PLAY).matches;
+        this.title?.setVisible(!touch); this.hud?.setVisible(!touch);
+        if (touch) {
+            setHud('left', [{ icon: '🏠', value: `${String(e.saved)}/${String(def.needed)}`, label: 'Sauvés' }, { icon: '🚪', value: `${String(e.spawned)}/${String(def.count)}`, label: 'Sortis' }]);
+            setHud('center', [{ icon: '⏱', value: String(Math.ceil(e.timeLeftMs / 1000)), label: 'Secondes' }]);
+            setHud('right', [{ icon: '★', value: String(e.score), label: 'Score' }]);
+            const brief = `${GAME_NAME} ${String(e.level + 1)} · ${def.name}. ${def.lesson}`;
+            if (brief !== this.brief) { this.brief = brief; setBrief(brief); }
+        }
         this.hud?.setText(`${WORLD_NAME[world]}\nSAUVÉS ${String(e.saved)}/${String(def.needed)} · SORTIS ${String(e.spawned)}/${String(def.count)} · ${String(Math.ceil(e.timeLeftMs / 1000))} s · SCORE ${String(e.score)}\n${roles || 'Aucun rôle : regarder la marmaille'}${this.fast ? ' · ×2' : ''}\n${def.lesson}`);
     }
 }

@@ -63,7 +63,7 @@ export class ArenaLayer {
     }
 }
 
-/** Static arena (gradient, floor, walls, torches' sconces, HUD card, bubble): baked once per board.
+/** Static arena (gradient, floor, walls, torches' sconces, HUD card): baked once per board.
  * Shared by the scene and the catalogue thumbnail. */
 export function arenaBase(g: Phaser.GameObjects.Graphics, e: Engine): void {
     const level = LEVELS[e.level]; if (!level) return;
@@ -84,12 +84,15 @@ export function arenaBase(g: Phaser.GameObjects.Graphics, e: Engine): void {
         g.fillStyle(0x251a20); g.fillRoundedRect(x - 4, y - 2, 8, 14, 2);
         g.fillStyle(0xb58244); g.fillRect(x - 6, y - 3, 12, 4);
     }
-    // Static card and speech bubble belong to the baked layer too.
+    // The static card belongs to the baked layer too; the help bubble is drawn by the scene, briefly.
     g.fillStyle(0x071727, .93); g.fillRoundedRect(12, 12, 336, 113, 14);
     g.lineStyle(1, palette[2], .7); g.strokeRoundedRect(12, 12, 336, 113, 14);
     g.lineStyle(2, 0xffdf9c); g.strokeCircle(308, 77, 9);
     g.lineBetween(308, 77, 308, 71); g.lineBetween(308, 77, 313, 80);
     g.fillStyle(0x33475d); g.fillRoundedRect(24, 115, 312, 3, 1);
+}
+/** The help bubble under the arena (shown for a few seconds at the start of a level). */
+export function helpBubble(g: Phaser.GameObjects.Graphics): void {
     g.fillStyle(0xfff3d9); g.fillRoundedRect(15, 550, 330, 70, 12);
     g.fillTriangle(35, 550, 48, 550, 35, 540);
 }

@@ -2,7 +2,9 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+    <!-- Opt out of Chrome's automatic dark theme, which darkened the cyan buttons. -->
+    <meta name="color-scheme" content="only light">
     <meta name="theme-color" content="#101827">
     <link rel="apple-touch-icon" href="./icons/opencade-192.png">
     <title>Opencade</title>
@@ -15,13 +17,13 @@
       <section id="play" hidden>
       <div id="play-area">
         <div id="game"></div>
+        <div id="hud" aria-hidden="true" hidden><div class="hud-slot left"></div><div class="hud-slot center"></div><div class="hud-slot right"></div></div>
         <section id="pause-panel" class="panel" aria-labelledby="pause-title" hidden><h2 id="pause-title">Prêt ?</h2><button id="resume">Jouer</button></section>
         <section id="result" class="panel" aria-labelledby="result-title" hidden>
           <h2 id="result-title"></h2><p id="result-scores"></p>
-          <button id="next-level">Niveau suivant</button>
-          <button id="replay-level">Rejouer ce niveau</button>
-          <button id="retry-level">Rejouer le niveau</button>
-          <button id="result-levels">Niveaux</button><button data-home>Accueil</button>
+          <button id="next-level" class="primary">Niveau suivant</button>
+          <button id="retry-level" class="primary">Rejouer le niveau</button>
+          <div class="result-secondary"><button id="replay-level" class="icon" aria-label="Rejouer ce niveau" title="Rejouer ce niveau">↻</button><button id="result-levels" class="icon" aria-label="Niveaux" title="Niveaux">▦</button><button data-home class="icon" aria-label="Accueil" title="Accueil">⌂</button></div>
         </section>
         <section id="level-select" class="panel" aria-label="Choix des niveaux" hidden>
           <h2>Niveaux</h2><p id="best-score"></p><div id="level-list"></div>
@@ -31,7 +33,7 @@
       <div id="touch-controls"></div>
       <div id="game-menu">
       <small data-build></small><button data-force-update hidden>Forcer la mise à jour</button>
-      <p id="status" aria-live="polite">Prêt</p>
+      <p id="status" aria-live="polite">Prêt</p><p id="level-brief" hidden></p>
       <button id="levels">Niveaux</button>
       <button id="fullscreen" hidden>Plein écran</button>
       <button id="restart">Recommencer</button>

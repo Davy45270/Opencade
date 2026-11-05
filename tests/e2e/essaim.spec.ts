@@ -1,4 +1,4 @@
-import { openGameMenu, test, expect, point, measureLayout } from './fixture';
+import { openGameMenu, test, expect, point, measureLayout, goHome, mobilePlay } from './fixture';
 import type { Page } from '@playwright/test';
 async function read(page: Page) { return page.evaluate(() => window.__ESSAIM_TEST__?.read()); }
 async function open(page: Page): Promise<void> {
@@ -7,13 +7,13 @@ async function open(page: Page): Promise<void> {
 }
 async function tap(page: Page, selector: string, mobile: boolean): Promise<void> {
     let optionMenu = false;
-    if (selector === '.essaim-options' && await page.locator('#game-menu-toggle').isVisible() && !await page.locator(selector).isVisible()) { await page.locator('#game-menu-toggle').tap(); optionMenu = true; }
+    if (selector === '.essaim-options' && await mobilePlay(page) && !await page.locator(selector).isVisible()) { await page.locator('#pause').tap(); optionMenu = true; }
     await openGameMenu(page, selector);
     if (mobile) {
         const box = await page.locator(selector).evaluate(element => { const r = element.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; }); if (!box.width || !box.height) throw new Error(`Contrôle absent : ${selector}`);
         await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
     } else await page.locator(selector).click();
-    if (optionMenu) await page.locator('#game-menu-toggle').tap();
+    if (optionMenu) await page.locator('#pause').tap();
 }
 async function drag(page: Page, from: number, to: number, y = 618): Promise<void> {
     const a = await point(page, from, y), b = await point(page, to, y);
@@ -25,7 +25,7 @@ async function drag(page: Page, from: number, to: number, y = 618): Promise<void
 }
 async function layout(page: Page): Promise<void> {
     const { canvas, controls, scroll, height } = await measureLayout(page,
-        ['#pause', '#sound', '#essaim-fire', '#essaim-left', '#essaim-right', '#levels', '#restart']);
+        ['#pause', '#sound', '#essaim-fire', '#essaim-special', '#essaim-steer', '#levels', '#restart']);
     const viewport = page.viewportSize(); if (!viewport) throw new Error('Viewport absent');
     expect(canvas.x).toBeGreaterThanOrEqual(0); expect(canvas.y).toBeGreaterThanOrEqual(0);
     expect(canvas.x + canvas.width).toBeLessThanOrEqual(viewport.width); expect(canvas.y + canvas.height).toBeLessThanOrEqual(viewport.height);
@@ -157,9 +157,9 @@ test('G01 G03 G12 guidage clavier souris doigt, tir auto sauvé et pause', async
     const autoShot = await read(page);
     expect(autoShot?.beam || autoShot?.shots.some(s => s.owner === 'player')).toBe(true); await layout(page);
 });
-test('G12 crochet inerte sans test et nettoyage à la sortie', async ({ page }, info) => {
-    const mobile = info.project.name === 'mobile-chromium'; await open(page);
-    await tap(page, '#topbar [data-home]', mobile); await expect(page.locator('#game canvas')).toHaveCount(0);
+test('G12 crochet inerte sans test et nettoyage à la sortie', async ({ page }) => {
+    await open(page);
+    await goHome(page); await expect(page.locator('#game canvas')).toHaveCount(0);
     expect(await page.evaluate(() => window.__ESSAIM_TEST__)).toBeUndefined(); await expect(page.locator('#essaim-auto')).toHaveCount(0);
     await page.goto('/#/essaim'); await expect(page.locator('#game canvas')).toBeVisible();
     expect(await page.evaluate(() => [window.__ARCADE_TEST__, window.__ESSAIM_TEST__])).toEqual([undefined, undefined]);
@@ -228,7 +228,7 @@ test('E-ART mouvement réduit, effets bornés et textures réutilisées', async 
         window.__ESSAIM_TEST__?.loadLevel(26, 458);
     });
     expect((await page.evaluate(() => window.__ESSAIM_TEST__?.art()))?.textureGenerations).toBe(2);
-    await tap(page, '#topbar [data-home]', mobile);
+    await goHome(page);
     await page.goto('/?test=1#/essaim');
     await expect.poll(() => page.evaluate(() => Boolean(window.__ESSAIM_TEST__))).toBe(true);
     await expect.poll(async () => (await page.evaluate(() => window.__ESSAIM_TEST__?.art()))?.textureGenerations).toBe(2); // New game, new texture manager.

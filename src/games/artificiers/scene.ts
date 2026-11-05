@@ -6,7 +6,8 @@ import { LEVELS, GAME_NAME } from '../../engines/artificiers/levels';
 import { selectedCharacter } from '../../characters/selection';
 import { characters, ids } from '../../characters/model';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
-import { PlaySession } from '../../shell/pause';
+import { MOBILE_PLAY, PlaySession } from '../../shell/pause';
+import { setBrief } from '../../shell/hud';
 import { Progression } from '../../shell/progression';
 import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
@@ -20,7 +21,8 @@ export const artificiersButtons: readonly TouchButton[] = [
     { id: 'artificiers-jump', label: 'Saut', ariaLabel: 'Sauter ou lâcher la corde', size: 56, placement: 'right', mode: 'tap' },
     { id: 'artificiers-weapon', label: 'Arme', ariaLabel: 'Changer d’arme', size: 56, placement: 'center', mode: 'tap' },
     { id: 'artificiers-rope', label: 'Corde', ariaLabel: 'Lancer ou lâcher le grappin', size: 56, placement: 'right', mode: 'tap' },
-    { compactMenu: true, id: 'artificiers-mode', label: '1 / 2', ariaLabel: 'Changer entre solo et deux joueurs', size: 56, placement: 'center', mode: 'tap' },
+    // Chosen before the game: on touch screens it lives in the pause page, never among the play controls.
+    { setting: true, id: 'artificiers-mode', label: '2 joueurs', ariaLabel: 'Deux joueurs', size: 56, placement: 'center', mode: 'tap' },
 ];
 export interface ArtificiersHook {
     fingerReceipts: ReturnType<typeof fingerReceipts>;
@@ -33,11 +35,14 @@ export interface ArtificiersHook {
     advance(ms: number): void;
     suggestion(): ReturnType<typeof chooseShot>;
     renderBudget(): { calls: number; limit: number; terrainPixels: number };
+    /** Rendered font size (CSS px) of the wind and power readouts. */
+    readoutPx(): { wind: number; power: number };
 }
 declare global { interface Window { __ARTIFICIERS_TEST__?: ArtificiersHook } }
 export class ArtificiersScene extends Phaser.Scene {
     private aiming: { id: number; x: number; y: number } | null = null;
     private frames = 0;
+    private readouts: Phaser.GameObjects.Text[] = [];
     private engine = new Engine(0, 220, 'solo', selectedCharacter());
     private progress = new Progression(readSave(browserStorage(), 'artificiers', 30), 30);
     private inputs = new Inputs();
@@ -92,13 +97,27 @@ export class ArtificiersScene extends Phaser.Scene {
         this.heroes = Array.from({ length: 6 }, () => this.add.image(0, 0, 'artificiers-panda-repos').setOrigin(0).setScale(1, WORLD_SCALE));
         this.graphics = countedGraphics(this.add.graphics(), this.budget);
         this.hud = this.add.text(20, 14, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#fff8df', stroke: '#213445', strokeThickness: 4, lineSpacing: 4 });
-        this.add.text(20, 536, 'Glisser depuis le héros, relâcher pour tirer', { fontFamily: 'system-ui', fontSize: '12px', color: '#e2f4ed' });
-        const weapon = this.add.text(20, 558, '', { fontFamily: 'system-ui', fontSize: '15px', color: '#fff3bd' });
-        const power = this.add.text(238, 592, '', { fontFamily: 'system-ui', fontSize: '13px', color: '#fff3bd' });
-        this.events.on('postupdate', () => { weapon.setText(`${WEAPONS[this.engine.weapon].name} ×${String(this.engine.actor.ammo[this.engine.weapon] ?? 0)}`); power.setText(`${String(Math.round((this.engine.power - 65) / 1.8))} %`); });
+        // The aiming tip goes to the pause page on touch screens; it stays on the canvas elsewhere.
+        const TIP = 'Glisser depuis le héros, relâcher pour tirer', touch = matchMedia(MOBILE_PLAY).matches;
+        if (touch) setBrief(TIP); else this.add.text(20, 536, TIP, { fontFamily: 'system-ui', fontSize: '12px', color: '#e2f4ed' });
+        const weapon = this.add.text(20, 552, '', { fontFamily: 'system-ui', fontSize: '15px', color: '#fff3bd' });
+        // Wind and power: at least 18 rendered px, whatever the canvas scale (capped at 32 world px).
+        const readout = { fontFamily: 'system-ui', fontStyle: 'bold', fontSize: '18px', color: '#fff3bd', stroke: '#213445', strokeThickness: 4 };
+        const wind = this.add.text(20, 578, '', readout), power = this.add.text(340, 578, '', readout).setOrigin(1, 0);
+        this.readouts = [wind, power];
+        this.events.on('postupdate', () => {
+            const shown = this.game.canvas.getBoundingClientRect().width / 360, size = `${String(Math.min(32, Math.max(18, Math.ceil(18 / (shown || 1)))))}px`;
+            for (const text of this.readouts) if (text.style.fontSize !== size) text.setFontSize(size);
+            weapon.setText(`${WEAPONS[this.engine.weapon].name} ×${String(this.engine.actor.ammo[this.engine.weapon] ?? 0)}`);
+            wind.setText(`Vent ${this.engine.wind < 0 ? '←' : '→'} ${String(Math.abs(this.engine.wind))}`);
+            power.setText(`${String(Math.round((this.engine.power - 65) / 1.8))} %`);
+        });
         renderTouchControls(this.inputs, artificiersButtons, (id, held) => {
-            if (id === 'artificiers-mode' && held && this.active()) {
-                this.engine.mode = this.engine.mode === 'solo' ? 'duo' : 'solo'; this.start(this.engine.level); return;
+            if (id === 'artificiers-mode') {
+                // A setting: switching restarts the level, so it is offered outside play (pause page) too.
+                if (held && !this.selecting) { this.engine.mode = this.engine.mode === 'solo' ? 'duo' : 'solo'; this.start(this.engine.level); }
+                document.querySelector('#artificiers-mode')?.setAttribute('aria-pressed', String(this.engine.mode === 'duo'));
+                return;
             }
             if (!this.canControl()) return;
             if (held) this.held.add(id); else this.held.delete(id);
@@ -109,6 +128,7 @@ export class ArtificiersScene extends Phaser.Scene {
             if (id.endsWith('left')) this.engine.move(-1);
             if (id.endsWith('right')) this.engine.move(1);
         });
+        document.querySelector('#artificiers-mode')?.setAttribute('aria-pressed', String(this.engine.mode === 'duo'));
         const choose = (): void => {
             this.selecting = !this.selecting; this.cancelAim();
             renderLevels(LEVELS, this.progress.save, i => { this.start(i); }); this.panels();
@@ -167,6 +187,10 @@ export class ArtificiersScene extends Phaser.Scene {
             },
             suggestion: () => chooseShot(this.engine),
             renderBudget: () => ({ ...this.budget, terrainPixels: this.terrainPixels }),
+            readoutPx: () => {
+                const shown = this.game.canvas.getBoundingClientRect().width / 360, px = (t: Phaser.GameObjects.Text | undefined) => parseFloat(String(t?.style.fontSize ?? 0)) * shown;
+                return { wind: px(this.readouts[0]), power: px(this.readouts[1]) };
+            },
         };
         const rendered = (): void => { this.frames++; };
         this.game.events.on('postrender', rendered);
@@ -221,6 +245,6 @@ export class ArtificiersScene extends Phaser.Scene {
             sprite.setTexture(`artificiers-${u.hero}-${pose}`).setPosition(u.x - HERO_X, screenY(u.y - HERO_Y)).setFlipX(u.team === 1);
         });
         const a = e.actor, mission = e.config.mission === 'survive' ? `Tenir ${String(e.config.goal)} manches` : e.config.mission === 'structure' ? 'Détruire la tour en bois' : e.config.mission === 'target' ? 'Toucher la cible' : 'Dernière équipe debout';
-        this.hud?.setText(`N${String(e.level + 1)} · ${e.config.name} · ${String(e.score)} pts\n${mission}\n${e.mode === 'duo' ? '2 joueurs · ' : ''}Équipe ${String(a.team + 1)} · ${characters[a.hero].fr} · ${String(Math.ceil(e.timer / 1000))} s\nVent ${e.wind < 0 ? '←' : '→'} ${String(Math.abs(e.wind))} · Tour ${String(e.turn + 1)}${e.turn >= e.config.sudden ? ' · Eau montante !' : ''}`);
+        this.hud?.setText(`N${String(e.level + 1)} · ${e.config.name} · ${String(e.score)} pts\n${mission}\n${e.mode === 'duo' ? '2 joueurs · ' : ''}Équipe ${String(a.team + 1)} · ${characters[a.hero].fr} · ${String(Math.ceil(e.timer / 1000))} s\nTour ${String(e.turn + 1)}${e.turn >= e.config.sudden ? ' · Eau montante !' : ''}`);
     }
 }

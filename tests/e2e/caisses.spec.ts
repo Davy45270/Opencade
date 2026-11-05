@@ -1,5 +1,7 @@
 import { test, expect } from './fixture';
 import type { Page } from '@playwright/test';
+import { Engine as Crates, LEVELS } from '../../src/engines/caisses/engine';
+import { directions, pull } from '../../src/engines/caisses/rules';
 const read = (page: Page) => page.evaluate(() => window.__CAISSES_TEST__?.read());
 const gameState = (state: Awaited<ReturnType<typeof read>>) => {
     if (!state) throw new Error('État Caisses absent');
@@ -11,16 +13,26 @@ const freeze = (page: Page) => page.evaluate(() => { window.__CAISSES_TEST__?.ad
 async function activate(page: Page, selector: string, mobile: boolean) {
     if (mobile) await page.locator(selector).tap(); else await page.locator(selector).click();
 }
-async function direction(page: Page, name: 'left' | 'right', mobile: boolean) {
-    if (mobile) await page.locator(`#caisses-${name}`).tap();
-    else await page.keyboard.press(name === 'left' ? 'ArrowLeft' : 'ArrowRight');
+const keys = { left: 'ArrowLeft', right: 'ArrowRight', up: 'ArrowUp', down: 'ArrowDown' } as const;
+/** Touch moves are swipes on the board: there is no arrow cross. */
+async function swipe(page: Page, name: keyof typeof keys) {
+    const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent');
+    const [dx, dy] = ({ left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] } as const)[name];
+    const x = box.x + box.width / 2, y = box.y + box.height / 2, cdp = await page.context().newCDPSession(page);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + dx * 40, y: y + dy * 40 }] });
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await cdp.detach();
+}
+async function direction(page: Page, name: keyof typeof keys, mobile: boolean) {
+    if (mobile) await swipe(page, name); else await page.keyboard.press(keys[name]);
 }
 test('C01 C04 C05 C06 C11 victoire, reprise, impasse sans défaite', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium';
     await page.goto('/?test=1#/caisses');
     await expect.poll(() => page.evaluate(() => Boolean(window.__ARCADE_TEST__?.games.caisses))).toBe(true);
     await freeze(page);
-    await expect(page.locator('#pause')).toBeHidden();
+    // Turn-based: no pause on desktop; on touch screens the ⏸ opens the pause page.
+    if (mobile) await expect(page.locator('#pause')).toBeVisible(); else await expect(page.locator('#pause')).toBeHidden();
     await page.screenshot({ path: `test-results/screenshots/caisses-play-${info.project.name}.png` });
     // Complete the entire first level with real inputs; no scenario required.
     await direction(page,'right',mobile); await direction(page,'right',mobile);
@@ -31,7 +43,7 @@ test('C01 C04 C05 C06 C11 victoire, reprise, impasse sans défaite', async ({ pa
     await page.reload();
     await expect.poll(() => page.evaluate(() => Boolean(window.__CAISSES_TEST__))).toBe(true);
     await freeze(page);
-    if (mobile) await activate(page,'#game-menu-toggle',true);
+    if (mobile) await activate(page,'#pause',true);
     await activate(page,'#levels',mobile); await expect(page.locator('#level-list button').nth(1)).toBeEnabled();
     await activate(page,'#close-levels',mobile);
     await page.evaluate(() => { window.__CAISSES_TEST__?.scenario('corner'); });
@@ -45,7 +57,7 @@ test('C01 C04 C05 C06 C11 victoire, reprise, impasse sans défaite', async ({ pa
     expect(after.game).toEqual(gameState(before).game);
     expect(after.character.id).toBe(gameState(before).character.id);
     expect(after.character.pose).toBe('profil');
-    if (mobile) await activate(page,'#game-menu-toggle',true);
+    if (mobile) await activate(page,'#pause',true);
     await activate(page,'#restart',mobile); expect((await read(page))?.moves).toBe(0);
     await page.evaluate(() => { window.__CAISSES_TEST__?.loadLevel(29,28); });
     expect((await read(page))?.level).toBe(29);
@@ -63,8 +75,29 @@ test('C01 C05 glisser tactile et menu bloquant les entrées', async ({ page }, i
     await cdp.send('Input.dispatchTouchEvent',{type:'touchMove',touchPoints:[{x:x+40,y}]});
     await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}); await cdp.detach();
     expect((await read(page))?.moves).toBe(1);
-    await activate(page,'#game-menu-toggle',true); const before=await read(page);
-    await page.locator('#caisses-right').tap({ force: true }); expect(await read(page)).toEqual(before);
+    await activate(page,'#pause',true); const before=await read(page);
+    // The pause page covers the controls (Reprendre sits at the bottom): a direct activation stays blocked.
+    await page.locator('#caisses-undo').dispatchEvent('click', { detail: 0 }); expect(await read(page)).toEqual(before);
+});
+test('C20 commandes tactiles : Annuler permanent, Tirer seulement contre une caisse, aucune croix', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'Commandes tactiles');
+    await page.goto('/?test=1#/caisses');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__CAISSES_TEST__))).toBe(true);
+    await freeze(page);
+    for (const name of ['left', 'up', 'down', 'right']) await expect(page.locator(`#caisses-${name}`)).toHaveCount(0);
+    await expect(page.locator('#caisses-undo')).toBeVisible();
+    // A level whose start has no crate in reach (the model decides, not the page).
+    const quiet = LEVELS.findIndex((_, i) => { const m = new Crates(); m.loadLevel(i, 28); const s = m.state; return !directions.some(d => pull(m.board, { player: s.player, boxes: s.boxes, colors: s.colors, filled: s.filled }, d)); });
+    expect(quiet).toBeGreaterThanOrEqual(0);
+    await page.evaluate(index => { window.__CAISSES_TEST__?.loadLevel(index, 28); }, quiet);
+    await expect(page.locator('#caisses-special')).toBeHidden(); await expect(page.locator('#caisses-undo')).toBeVisible();
+    // Against a crate (box on the left, floor behind): Tirer shows and pulls it at once.
+    await page.evaluate(() => { window.__CAISSES_TEST__?.scenario('corner'); });
+    await expect(page.locator('#caisses-special')).toBeVisible();
+    const before = await read(page); await page.locator('#caisses-special').tap();
+    const after = await read(page);
+    expect(after?.specialUses).toBe(0); expect(after?.player).toBe((before?.player ?? 0) + 1); expect(after?.boxes).toEqual([before?.player]);
+    await expect(page.locator('#caisses-special')).toBeHidden(); await expect(page.locator('#caisses-undo')).toBeVisible();
 });
 
 test('C12 crochet absent sans paramètre test', async ({ page }) => {
@@ -87,8 +120,7 @@ test('C10 C19 ateliers d\'introduction annoncés, défi perdu au budget puis rep
     await page.evaluate(() => { window.__CAISSES_TEST__?.loadLevel(4, 28); });
     expect(await page.evaluate(() => window.__CAISSES_TEST__?.hudText() ?? '')).toMatch(/reste 13/);
     for (let i = 0; i < 13; i++) {
-        if (mobile) await page.locator(i % 2 ? '#caisses-down' : '#caisses-up').tap();
-        else await page.keyboard.press(i % 2 ? 'ArrowDown' : 'ArrowUp');
+        await direction(page, i % 2 ? 'down' : 'up', mobile);
     }
     expect((await read(page))?.status).toBe('lost'); await expect(page.locator('#retry-level')).toBeVisible();
     await page.screenshot({ path: `test-results/screenshots/caisses-budget-${info.project.name}.png` });

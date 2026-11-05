@@ -4,21 +4,25 @@ import { GameCharacter } from '../../characters/game';
 import Phaser from 'phaser';
 import { Engine, LEVELS, difficulty, layout, gateOpen, type Direction } from '../../engines/serpentin/engine';
 import { levelTip } from '../../engines/serpentin/tips';
-import { Inputs, renderTouchControls, directionalSwipe, type TouchButton } from '../../shell/input';
-import { PlaySession } from '../../shell/pause';
+import { Inputs, applyGroupedCross, renderTouchControls, directionalSwipe, type TouchButton } from '../../shell/input';
+import { MOBILE_PLAY, PlaySession } from '../../shell/pause';
+import { setBrief } from '../../shell/hud';
 import { Progression } from '../../shell/progression';
-import { browserStorage, readSave, writeSave } from '../../shell/storage';
+import { browserStorage, readSave, readValue, writeSave, writeValue } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { coin, hudVeil, stoneBlock, worldOf, SceneryLayer } from '../universal/art';
 import { crystalMark, meadowScenery, segment } from './art';
+const CROSS_KEY = 'arcade-lab:serpentin:cross:v1';
 export const serpentinButtons: readonly TouchButton[] = [
+    // Swipes steer; the grouped cross is an option (pause page), hidden by default.
     { id: 'serpentin-special', label: 'Esquive', ariaLabel: 'Esquive : traverser son corps une fois', size: 56, placement: 'right', mode: 'tap' },
     { id: 'serpentin-left', label: '←', ariaLabel: 'Aller à gauche', size: 56, placement: 'left', mode: 'tap' },
-    { id: 'serpentin-up', label: '↑', ariaLabel: 'Monter', size: 56, placement: 'center', mode: 'tap' },
-    { id: 'serpentin-down', label: '↓', ariaLabel: 'Descendre', size: 56, placement: 'center', mode: 'tap' },
-    { id: 'serpentin-right', label: '→', ariaLabel: 'Aller à droite', size: 56, placement: 'right', mode: 'tap' },
+    { id: 'serpentin-up', label: '↑', ariaLabel: 'Monter', size: 56, placement: 'left', mode: 'tap' },
+    { id: 'serpentin-down', label: '↓', ariaLabel: 'Descendre', size: 56, placement: 'left', mode: 'tap' },
+    { id: 'serpentin-right', label: '→', ariaLabel: 'Aller à droite', size: 56, placement: 'left', mode: 'tap' },
+    { id: 'serpentin-cross', label: 'Croix', ariaLabel: 'Croix de direction', size: 56, placement: 'right', mode: 'tap', setting: true },
 ];
 export interface SerpentinHook {
     performance(): { frames: number; gameMs: number };
@@ -47,6 +51,8 @@ export class SerpentinScene extends Phaser.Scene {
     /** Static scenery layer, repainted only when its key changes (level, board): software rendering stays fast. */
     private scenery?: SceneryLayer;
     private hud?: Phaser.GameObjects.Text;
+    private brief = '';
+    private cross = readValue(browserStorage(), CROSS_KEY) === 'on';
     private glow = 0;
     private drawn = { open: 0, closing: 0, closed: 0 };
     constructor(private session = new PlaySession(true)) { super('serpentin'); }
@@ -57,7 +63,7 @@ export class SerpentinScene extends Phaser.Scene {
     create(): void {
         const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('serpentin');
-        const cleanup = (): void => { this.inputs.dispose(); document.body.classList.remove('serpentin'); delete window.__SERPENTIN_TEST__; sound.stop(); };
+        const cleanup = (): void => { this.inputs.dispose(); applyGroupedCross('serpentin', false, 'serpentin-cross'); document.body.classList.remove('serpentin'); delete window.__SERPENTIN_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         this.scenery = new SceneryLayer(this, 'serpentin');
@@ -71,7 +77,12 @@ export class SerpentinScene extends Phaser.Scene {
             this.engine.input(value);
             if (this.engine.snapshot().queue.length > before) sound.playEffect('turn');
         };
-        renderTouchControls(this.inputs, serpentinButtons, (id, held) => { if (held) direction(id.replace('serpentin-', '') as Direction | 'special'); });
+        renderTouchControls(this.inputs, serpentinButtons, (id, held) => {
+            if (!held) return;
+            if (id === 'serpentin-cross') { this.cross = !this.cross; writeValue(browserStorage(), CROSS_KEY, this.cross ? 'on' : 'off'); applyGroupedCross('serpentin', this.cross, 'serpentin-cross'); return; }
+            direction(id.replace('serpentin-', '') as Direction | 'special');
+        });
+        applyGroupedCross('serpentin', this.cross, 'serpentin-cross');
         const area = document.querySelector<HTMLElement>('#game');
         if (area) directionalSwipe(this.inputs, area, direction, 20, true);
         const keys: Record<string, Direction> = { ArrowUp: 'up', KeyW: 'up', KeyZ: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', KeyQ: 'left', ArrowRight: 'right', KeyD: 'right' };
@@ -214,7 +225,10 @@ export class SerpentinScene extends Phaser.Scene {
         });
         const timer = l.timeMs ? ` · ⏱ ${String(Math.ceil((this.engine.state.timeLeft ?? 0) / 1000))} s` : '';
         const ending = this.engine.status === 'lost' ? ({ wall: 'Mur !', obstacle: 'Rocher !', body: 'Corps !', gate: 'Écluse fermée !', patrol: 'Sentinelle !', time: 'Temps écoulé !', full: 'Plus de place !' })[this.engine.reason ?? 'wall'] : '';
-        this.hud?.setText(`NIVEAU ${String(this.engine.level + 1)} · ${l.name.toUpperCase()} · ${d.walls ? 'MURS' : 'TORE'}\nÉTINCELLES ${String(this.engine.state.eaten)}/${String(d.goal)}    SCORE ${String(this.engine.state.score)}${timer}\nESQUIVE ${String(this.engine.specialUses)}/1${this.engine.specialArmed ? ' · prête' : ''} · ${ending || (crystal ? 'CRISTAL !' : levelTip(this.engine.level))}`);
+        const tip = levelTip(this.engine.level), touch = matchMedia(MOBILE_PLAY).matches;
+        this.hud?.setText(`NIVEAU ${String(this.engine.level + 1)} · ${l.name.toUpperCase()} · ${d.walls ? 'MURS' : 'TORE'}\nÉTINCELLES ${String(this.engine.state.eaten)}/${String(d.goal)}    SCORE ${String(this.engine.state.score)}${timer}\nESQUIVE ${String(this.engine.specialUses)}/1${this.engine.specialArmed ? ' · prête' : ''}${ending || crystal ? ` · ${ending || 'CRISTAL !'}` : touch ? '' : ` · ${tip}`}`);
+        // On touch screens the level tip lives in the pause page, not over the field's panel.
+        if (touch && tip !== this.brief) { this.brief = tip; setBrief(tip); }
         const status = document.querySelector('#status');
         if (status) status.textContent = `Score : ${String(this.engine.state.score)} · ${this.engine.status === 'playing' ? 'En jeu' : this.engine.status === 'won' ? 'Victoire' : 'Défaite'}`;
     }

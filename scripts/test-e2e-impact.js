@@ -6,7 +6,7 @@ import { readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { fileURLToPath, URL } from 'node:url';
-import { CROSS_SPECS, GAME_SPECS, LIGHT_SPECS, SMOKE_TESTS, SPEC_SECONDS, SPLIT_SPECS, changedFiles, classify, manual, registryIds, select, testLine } from './e2e-impact.js';
+import { CROSS_SPECS, GAME_SPECS, HELD_BACK, LIGHT_SPECS, SMOKE_TESTS, SPEC_SECONDS, SPLIT_SPECS, changedFiles, classify, manual, registryIds, select, testLine } from './e2e-impact.js';
 
 const root = fileURLToPath(new URL('../', import.meta.url));
 const allSpecs = readdirSync(join(root, 'tests/e2e')).filter(f => f.endsWith('.spec.ts')).map(f => f.slice(0, -8));
@@ -29,13 +29,14 @@ const DOC = ['CHANGELOG.md'];
 const RELEASE = ['CHANGELOG.md', 'package-lock.json', 'package.json'];
 
 test('every spec file belongs to exactly one game or cross-game group', () => {
-    const owned = [...Object.values(GAME_SPECS).flat(), ...Object.values(CROSS_SPECS).flat()];
+    const owned = [...Object.values(GAME_SPECS).flat(), ...Object.values(HELD_BACK).flat(), ...Object.values(CROSS_SPECS).flat()];
     assert.deepEqual([...owned].sort(), [...allSpecs].sort());
     assert.equal(new Set(owned).size, owned.length);
     for (const s of allSpecs) assert.ok(SPEC_SECONDS[s] > 0, `durée de ${s}`);
 });
 test('the game table matches src/games/registry.ts and every game has a short test', () => {
     assert.deepEqual(registryIds(root).sort(), Object.keys(GAME_SPECS).sort());
+    for (const id of Object.keys(HELD_BACK)) assert.ok(!registryIds(root).includes(id) && !GAME_SPECS[id], `${id} retenu mais au registre`);
     for (const [id, [spec, title]] of Object.entries(SMOKE_TESTS)) {
         assert.ok(GAME_SPECS[id].includes(spec), `${id} : ${spec}`);
         assert.ok(testLine(root, spec, title) > 0);

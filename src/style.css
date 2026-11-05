@@ -62,6 +62,8 @@ body.fill-screen #game { max-width: 480px; }
 }
 body.touch #touch-controls { display: flex; }
 body.touch #game { height: min(640px, calc(100svh - 315px)); }
+/* A game with no touch control at all (Collier) gives the bar's row back to the canvas. */
+#touch-controls:not(:has(button, .joystick, label, output)) { display: none !important; }
 .game-card {
   display: flex;
   flex-direction: column;
@@ -116,7 +118,6 @@ body.touch #touch-help { display: inline; }
 
 body.serpentin #touch-controls { justify-content: center; gap: 4px; }
 body.serpentin .touch-slot { flex: 0; }
-body.serpentin .touch-slot.center { flex-direction: column; }
 body.serpentin #touch-controls button { width: 56px; height: 56px; padding: 0; font-size: 24px; }
 @media (pointer: coarse) {
     body.serpentin #game { height: min(640px, calc(100svh - 290px)); }
@@ -131,8 +132,6 @@ body.empilo #game { height: min(640px, calc(100svh - 230px)); }
 body.orbite #touch-controls { display: flex; align-items: center; }
 body.orbite #touch-controls button { padding: 0; font-size: 22px; }
 body.orbite #game { height: min(640px, calc(100svh - 240px)); }
-body.orbite .orbite-options { display: flex; align-items: center; justify-content: center; gap: 4px; min-width: 44px; min-height: 44px; font-size: 13px; cursor: pointer; touch-action: none; }
-body.orbite .orbite-options input { width: 22px; height: 22px; accent-color: #78ead5; }
 
 body.essaim #touch-controls { display: flex; align-items: center; }
 body.essaim #touch-controls button { padding: 0; font-size: 22px; }
@@ -141,7 +140,13 @@ body.essaim .essaim-options { display: flex; align-items: center; justify-conten
 body.essaim .essaim-options input { width: 22px; height: 22px; accent-color: #78ead5; }
 body.dedale #touch-controls { display: flex; justify-content: center; gap: 4px; }
 body.dedale .touch-slot { flex: 0; }
-body.dedale .touch-slot.center { flex-direction: column; }
+/* Optional grouped cross (pause page setting, Dédale and Serpentin): left, up over down, right;
+   centres within 112 px. Side layout included (layout.ts counts the group's width). */
+body.grouped-cross #touch-controls .touch-slot.touch-slot.left { display: grid; grid-template-columns: repeat(3, 56px); grid-template-rows: repeat(2, 56px); gap: 0; align-items: center; justify-items: center; }
+body.grouped-cross #touch-controls .touch-slot.left > [id$="-left"] { grid-column: 1; grid-row: 1 / 3; }
+body.grouped-cross #touch-controls .touch-slot.left > [id$="-up"] { grid-column: 2; grid-row: 1; }
+body.grouped-cross #touch-controls .touch-slot.left > [id$="-down"] { grid-column: 2; grid-row: 2; }
+body.grouped-cross #touch-controls .touch-slot.left > [id$="-right"] { grid-column: 3; grid-row: 1 / 3; }
 body.dedale #touch-controls button { width: 56px; height: 56px; padding: 0; font-size: 24px; }
 body.dedale #game { height: min(640px, calc(100svh - 290px)); }
 
@@ -183,7 +188,6 @@ body { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16
   body.playing #orbite-fire, body.playing #essaim-fire { width: 64px !important; height: 64px !important; }
 }
 @media (width < 380px) {
-  body.playing.empilo #empilo-counterclockwise { display: none; }
 }
 
 .mobile-pause { display: none; }
@@ -219,10 +223,8 @@ body { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16
 body.alunir #touch-controls .touch-slot.left { gap: 4px; }
 body.alunir #touch-controls #alunir-thrust { width: 76px !important; height: 64px !important; min-width: 64px !important; min-height: 64px !important; padding: 0; font-size: 16px; }
 
-body.caisses #touch-controls { gap: 4px; justify-content: center; }
-body.caisses #touch-controls .touch-slot { flex: 0; gap: 4px; }
 body.caisses #touch-controls button { width: 56px; height: 56px; padding: 0; }
-body.caisses #touch-controls .touch-slot:empty { display: none; }
+body.caisses #caisses-special { width: auto; min-width: 72px; padding: 0 12px; }
 body.caisses #restart, body.caisses #replay-level { min-height: 56px; min-width: 56px; }
 
 body.traverse #touch-controls { gap: 4px; justify-content: center; }
@@ -233,11 +235,8 @@ body.derapage #touch-controls { gap: 4px; justify-content: center; }
 body.derapage #touch-controls .touch-slot { flex: 0; gap: 4px; flex-direction: row; }
 body.playing.derapage #touch-controls button { width: 64px; height: 64px; min-width: 64px !important; min-height: 64px !important; padding: 0; font-size: 16px; }
 
-body.playing.derapage #touch-controls { height: 152px; min-height: 152px; flex-basis: 152px; justify-content: space-between; }
 body.derapage #touch-controls .touch-slot.right { flex-direction: column-reverse; align-items: flex-end; }
-body.playing.derapage #touch-controls #derapage-drift { width: 88px; height: 88px; min-width: 88px !important; min-height: 88px !important; }
 body.playing.derapage #touch-controls #derapage-bonus { width: 56px; height: 56px; min-width: 56px !important; min-height: 56px !important; }
-#derapage-steering { display: block; width: 160px; font-size: 14px; min-height: 48px; color: #c9f8ed; }
 
 /* Original cast, home selection and opt-in review sheets. */
 #character-toggle { display: inline-flex; align-items: center; gap: 4px; min-height: 48px; font-size: .85rem; }
@@ -281,12 +280,11 @@ body.playing.menu-open #game-menu > [data-build] { display: block; }
 /* Six Bubble controls fit the 358 px mobile content width with 56 px targets. */
 body.playing.bubble #touch-controls, body.playing.bubble #touch-controls .touch-slot { gap: 2px; }
 /* M02b: common 16 px font; tighter tracking keeps the seven-letter labels inside 56 px. */
-body.serpentin #touch-controls #serpentin-special, body.empilo #touch-controls #empilo-special { font-size: 16px; letter-spacing: -0.06em; }
+body.serpentin #touch-controls #serpentin-special { font-size: 16px; letter-spacing: -0.06em; }
 
 #game-menu .compact-menu-control { min-width: 56px; min-height: 56px; font-size: 16px; }
 
 /* Pass 82: six primary Empilo controls fit one row at 390 px. */
-body.empilo #empilo-counterclockwise { display: none; }
 body.dedale #touch-controls #dedale-special, body.orbite #touch-controls #orbite-special { font-size: 16px; letter-spacing: -0.06em; }
 
 /* Pass 84: one thumb row; reserve the whole field above it. */
@@ -311,7 +309,7 @@ body.essaim .touch-slot { flex-direction: row; flex-wrap: nowrap; }
 /* Keep card artwork aligned when a title wraps onto its second line. */
 .card-content strong { min-height: 2.4em; max-height: 2.4em; overflow: hidden; }
 /* Pépites: two thumbs, directions on both sides, Étai in the middle. */
-body.pepites #touch-controls { justify-content: space-between; gap: 4px; }
+body.pepites #touch-controls { justify-content: flex-end; gap: 4px; }
 body.pepites #touch-controls button { width: 56px; height: 56px; padding: 0; font-size: 16px; }
 
 /* The author's other games, inside the ☰ home menu: plain same-tab links with local icons. */
@@ -332,3 +330,143 @@ body.pepites #touch-controls button { width: 56px; height: 56px; padding: 0; fon
 #feedback-entry { margin: 12px auto 0; font-size: inherit; }
 #give-feedback { display: inline-flex; align-items: center; min-height: 44px; padding: 10px 24px; background: #64e4cc; color: #102532; border-radius: 12px; font-weight: bold; text-decoration: none; }
 #give-feedback:focus-visible { outline: 3px solid #fff; outline-offset: 3px; }
+
+/* Adaptive side layout (src/shell/layout.ts): on short and wide screens the controls move to the
+   empty side bands and the canvas takes the full play height. Tall phones keep the bottom row. */
+@media (pointer: coarse), (width < 600px) {
+  body.playing.side-controls #play { position: relative; }
+  body.playing.side-controls #touch-controls {
+    position: absolute; inset: 0; z-index: 1; height: auto; min-height: 0; flex: none; margin: 0;
+    padding: 8px 0 max(8px, env(safe-area-inset-bottom));
+    display: grid; grid-template-columns: var(--side-band) minmax(0, 1fr) var(--side-band);
+    grid-template-rows: minmax(0, 1fr) auto auto; row-gap: 6px; column-gap: 0;
+    align-items: end; justify-items: center; pointer-events: none;
+  }
+  body.playing.side-controls #touch-controls .touch-slot.touch-slot {
+    pointer-events: auto; display: flex; flex-direction: column; flex: none;
+    align-items: center; justify-content: flex-end; gap: 6px; min-width: 0;
+  }
+  body.playing.side-controls #touch-controls .touch-slot.touch-slot:empty { display: none; }
+  body.playing.side-controls #touch-controls .touch-slot.touch-slot.left { grid-column: 1; grid-row: 2 / 4; }
+  body.playing.side-controls #touch-controls .touch-slot.touch-slot.right { grid-column: 3; grid-row: 2; }
+  body.playing.side-controls #touch-controls .touch-slot.touch-slot.center { grid-column: 3; grid-row: 3; }
+  body.playing.side-controls.side-center-left #touch-controls .touch-slot.touch-slot.left { grid-row: 2; }
+  body.playing.side-controls.side-center-left #touch-controls .touch-slot.touch-slot.center { grid-column: 1; grid-row: 3; }
+  body.playing.side-controls.side-center-left #touch-controls .touch-slot.touch-slot.right { grid-row: 2 / 4; }
+  /* The side layout supersedes Essaim's older landscape bands (margins and absolute slots). */
+  body.playing.side-controls #play-area { margin: 0; }
+  body.playing.side-controls #touch-controls .touch-slot.touch-slot { position: static; width: auto; }
+  body.playing.side-controls #game, body.playing.side-controls.touch #game { left: var(--side-band); right: var(--side-band); width: auto; }
+  body.playing.side-controls #touch-controls .joystick { width: var(--side-joystick) !important; height: var(--side-joystick) !important; }
+  /* Side columns: every control at most 64 px wide (at least 56), long labels wrap. */
+  body.playing.side-controls #play #touch-controls button { max-width: 64px !important; min-width: 56px !important; font-size: 13px; line-height: 1.1; overflow-wrap: anywhere; padding: 0 2px; }
+  /* Free rows under the canvas (layout.ts freeBottom): the joystick sits at the bottom left and
+     the main action (first of the right column, 72 px) at the bottom right, overhanging them. */
+  body.playing.side-controls.side-overhang #touch-controls .touch-slot.touch-slot.left { justify-self: start; }
+  body.playing.side-controls.side-overhang #touch-controls .touch-slot.touch-slot.right { justify-self: end; flex-direction: column-reverse; justify-content: flex-start; }
+  body.playing.side-controls.side-overhang #play #touch-controls .touch-slot.right > button:first-child { width: 72px !important; height: 72px !important; max-width: 72px !important; }
+  body.playing.side-controls #play #touch-controls .orbite-options, body.playing.side-controls #play #touch-controls .essaim-options { max-width: 64px; flex-wrap: wrap; text-align: center; font-size: 11px; }
+}
+
+/* ---- Shared play shell on touch screens (solution retenue, section 6) ---- */
+/* Common pressed state: brief, disabled for reduced motion. */
+button, .joystick { transition: transform 120ms ease-out; }
+button:active:not(:disabled), .joystick:active { transform: scale(.94); }
+@media (prefers-reduced-motion: reduce) { button, .joystick { transition: none; } button:active:not(:disabled), .joystick:active { transform: none; } }
+/* End screen: one primary action (Suivant or Réessayer), the others as icons. */
+#result .primary { display: block; width: min(240px, 100%); min-height: 56px; margin: 8px auto; font-size: 18px; }
+#result .primary[hidden] { display: none; }
+#result .result-secondary { display: flex; justify-content: center; gap: 12px; margin-top: 4px; }
+#result .result-secondary .icon { width: 56px; height: 56px; padding: 0; font-size: 24px; background: #26405a; color: #e5f3ff; }
+/* DOM HUD and level brief (pause page): touch play only (desktop keeps the canvas text). */
+#hud, #level-brief { display: none; }
+/* Counter badge of a power (Joker…), from data-count; inside the button (no overflow, no scroll). */
+#touch-controls button[data-count] { position: relative; }
+#touch-controls button[data-count]::after {
+  content: attr(data-count); position: absolute; top: 2px; right: 2px; min-width: 22px; height: 22px; padding: 0 4px; box-sizing: border-box;
+  border-radius: 11px; background: #ffd166; color: #10202f; font: 700 14px/22px system-ui, sans-serif; text-align: center;
+}
+#touch-controls button[data-count="0"] { opacity: .55; }
+#touch-controls button[aria-pressed="true"] { box-shadow: 0 0 0 3px #ffd166; }
+/* Gauge ring of a power (shield, charge), from --ring in 0..1, drawn on the button's edge. */
+#touch-controls button[data-ring] { position: relative; }
+#touch-controls button[data-ring]::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none;
+  background: conic-gradient(#ffd166 calc(var(--ring, 0) * 360deg), #ffffff2e 0);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0); padding: 4px; box-sizing: border-box;
+}
+/* Essaim: the left slot is the relative drag zone itself; an invisible sizer keeps its area. */
+#essaim-steer .steer-zone { display: block; width: 120px; height: 56px; pointer-events: none; }
+body.playing.side-controls #essaim-steer .steer-zone { width: 64px; height: 160px; }
+@media (pointer: coarse), (width < 600px) {
+  body.playing.menu-open #game-menu #level-brief:not([hidden]) { display: block; grid-column: 1 / -1; margin: 0 4px; font-size: 15px; line-height: 1.3; }
+  /* Edge to edge in play: only the safe areas count. */
+  body.playing { padding-left: 0; padding-right: 0; }
+  body.playing #touch-controls { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+  body.playing.side-controls #touch-controls { padding-left: max(16px, env(safe-area-inset-left)); padding-right: max(16px, env(safe-area-inset-right)); }
+  body.playing.side-controls #touch-controls { grid-template-columns: var(--side-band) minmax(0, 1fr) var(--side-band); }
+  /* No bar in play: the ⏸ alone, fixed at the top right of the HUD row. */
+  body.playing main { position: relative; }
+  body.playing #topbar {
+    position: fixed; z-index: 6; top: calc(env(safe-area-inset-top) + 4px); right: max(8px, env(safe-area-inset-right));
+    display: block; width: auto; height: 44px; flex: none; gap: 0;
+  }
+  body.playing #topbar > :not(#pause, .corner-control) { display: none !important; }
+  /* A play-speed toggle (Marmaille ⏩) beside the ⏸; the HUD row leaves room for both. */
+  body.playing #topbar .corner-control { width: 44px; height: 44px; min-width: 44px !important; min-height: 44px !important; padding: 0; margin-right: 8px; font-size: 20px; vertical-align: top; }
+  body.playing.has-corner-control #hud { right: 112px; }
+  body.playing #topbar #pause { width: 44px; height: 44px; padding: 0; font-size: 20px; }
+  body.playing #topbar #pause[hidden] { display: none; }
+  /* Full-screen games: the ⏸ container keeps the shell's 8 px offset, not the bar gutter used on wide screens. */
+  body.playing.fill-screen #topbar { padding-left: 0; padding-right: 0; }
+  body.playing.hud-row #game { top: 52px; height: auto; bottom: 0; }
+  /* HUD row: DOM, fixed size whatever the canvas scale. */
+  body.playing #hud {
+    position: absolute; z-index: 2; top: 0; left: 0; right: 60px; height: 52px; padding: 4px 8px;
+    display: grid; grid-template-columns: 1fr auto 1fr; align-items: center; pointer-events: none;
+    color: #f4fbff; text-shadow: 0 1px 2px #000a; font-variant-numeric: tabular-nums;
+  }
+  body.playing #hud[hidden] { display: none; }
+  body.playing #hud .hud-slot { display: flex; gap: 10px; align-items: center; min-width: 0; }
+  body.playing #hud .hud-slot.center { justify-content: center; }
+  body.playing #hud .hud-slot.right { justify-content: flex-end; }
+  body.playing #hud .hud-item { display: inline-flex; align-items: baseline; gap: 3px; white-space: nowrap; }
+  body.playing #hud .hud-icon { font-size: 13px; }
+  body.playing #hud .hud-value { font-size: 20px; font-weight: 700; }
+  /* Gauge items (Alunir): a bar under the value, green within the limit, red past it. */
+  body.playing #hud .hud-gauge { position: relative; padding-bottom: 6px; color: #9ff0c9; }
+  body.playing #hud .hud-gauge::after { content: ""; position: absolute; left: 0; bottom: 0; height: 4px; border-radius: 2px; width: calc(var(--gauge, 0) * 100%); background: currentColor; }
+  body.playing #hud .hud-gauge.over { color: #ff8a7a; }
+  /* Ready: a discreet banner, the first gesture anywhere starts and reaches the game. */
+  body.playing.play-ready #pause-panel { top: auto; bottom: 16px; transform: translateX(-50%); width: min(300px, 86%); padding: 8px; pointer-events: none; background: #172d44d9; }
+  body.playing.play-ready #pause-panel h2 { margin: 2px; font-size: 16px; }
+  body.playing.play-ready #pause-panel #resume { pointer-events: auto; }
+  /* The single pause page: a dark veil over the whole screen, Reprendre at the bottom. */
+  body.playing.menu-open #pause-panel {
+    position: fixed; inset: 0; transform: none; width: auto; max-height: none; border: 0; border-radius: 0; z-index: 4;
+    display: flex; flex-direction: column; justify-content: flex-end; align-items: center;
+    padding: 16px 16px max(32px, calc(env(safe-area-inset-bottom) + 24px)); background: #0a1220e6;
+  }
+  body.playing.menu-open #pause-panel h2 { position: absolute; top: calc(env(safe-area-inset-top) + 16px); left: 0; right: 0; margin: 0; font-size: 24px; }
+  body.playing.menu-open #pause-panel #resume { width: min(280px, 100%); min-height: 64px; font-size: 20px; }
+  body.playing.menu-open #game-menu {
+    position: fixed; z-index: 5; left: max(16px, env(safe-area-inset-left)); right: max(16px, env(safe-area-inset-right));
+    top: calc(env(safe-area-inset-top) + 64px); bottom: auto; max-width: 420px; margin: 0 auto; max-height: calc(100dvh - 200px); overflow: auto;
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 8px; background: transparent; border: 0;
+  }
+  body.playing.menu-open #game-menu button { height: 56px; }
+  body.playing.menu-open #game-menu .pause-entry { font-size: 22px; }
+  body.playing.menu-open #game-menu #status, body.playing.menu-open #game-menu #game-help { grid-column: 1 / -1; }
+}
+@media (pointer: coarse), (width < 600px) {
+  /* Side bands start after the 16 px control gutter (layout.ts counts it). */
+  body.playing.side-controls #game, body.playing.side-controls.touch #game { left: calc(var(--side-band) + 16px); right: calc(var(--side-band) + 16px); }
+}
+/* Ferraille: Saut is the main action (72 px), Tir and Super are secondary (56 px), in every layout. */
+body.ferraille #play #touch-controls #ferraille-jump { width: 72px !important; height: 72px !important; min-width: 72px !important; min-height: 72px !important; max-width: 72px !important; }
+body.ferraille #play #touch-controls #ferraille-fire, body.ferraille #play #touch-controls #ferraille-special { width: 56px !important; height: 56px !important; min-width: 56px !important; min-height: 56px !important; max-width: 56px !important; }
+/* The optional grouped cross is two rows of 56 px: the bottom bar grows to hold it, never past the screen. */
+@media (pointer: coarse), (width < 600px) {
+  body.playing.grouped-cross:not(.side-controls) #touch-controls { height: 124px; min-height: 124px; flex: 0 0 124px; }
+}

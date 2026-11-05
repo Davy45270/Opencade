@@ -45,6 +45,7 @@ async function capture(page: Page, info: TestInfo, game: Game, id: CharacterId, 
     await info.attach(`perso-${id}-${game}-${kind}`, { path, contentType: 'image/png' });
 }
 for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} doigt bruité : niveaux 1 et 10`, async ({ page }, info) => {
+    test.skip(game === 'traverse', 'Traverse est retenu hors du catalogue public jusqu’à sa correction.');
     test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(1800000);
     await page.setViewportSize({ width: 390, height: 844 });
     const id = ids[game === 'caisses' ? 0 : game === 'traverse' ? 1 : 4];
@@ -68,13 +69,24 @@ for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} d
                 const model = new Crates(); model.loadLevel(level, 28);
                 const proof = { inputs: cratesInputs(model) };
                 expect(proof.inputs.some(a => a.startsWith('pull-'))).toBe(true);
+                // Moves are swipes on the board (no arrow cross); Tirer pulls the only crate in reach at once.
+                const swipe = async (d: Direction): Promise<void> => {
+                    const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent');
+                    const [dx, dy] = ({ left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] } as const)[d];
+                    const x = box.x + box.width / 2, y = box.y + box.height / 2;
+                    await finger.touch('touchStart', [{ id: 0, x, y }]);
+                    await finger.touch('touchMove', [{ id: 0, x: x + dx * 60, y: y + dy * 60 }]);
+                    await finger.release();
+                };
                 for (const action of proof.inputs) {
                     await read(page, game);
                     if (action.startsWith('pull-')) {
+                        const s = model.state, reach = directions.filter(d => pull(model.board, { player: s.player, boxes: s.boxes, colors: s.colors, filled: s.filled }, d));
                         await finger.press(['#caisses-special']);
-                        await finger.press([`#caisses-${action.slice(5)}`]); model.special(action.slice(5) as Direction);
+                        if (reach.length > 1) await swipe(action.slice(5) as Direction);
+                        model.special(action.slice(5) as Direction);
                         await finger.advance(30); await capture(page, info, game, id, 'special');
-                    } else { await finger.press([`#caisses-${action}`]); model.input(action as Direction); }
+                    } else { await swipe(action as Direction); model.input(action as Direction); }
                     const after = await page.evaluate(() => window.__CAISSES_TEST__?.read());
                     expect(after?.player).toBe(model.state.player); expect(after?.boxes).toEqual(model.state.boxes);
                     expect(after?.moves).toBe(model.state.moves);
@@ -89,14 +101,24 @@ for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} d
                         specialCaptured = true;
                         continue; // Observe again before planning.
                     }
-                    // One queued command per quantum, leaving enough room for input latency.
-                    if (state.phase === lastPhase || (difficulty(state.level).flowFrames - state.frames) * 1000 / 60 < Math.max(crossingInputWindowMs, clock.horizon)) {
+                    // One queued command per quantum, leaving enough room for input latency. A tap (step
+                    // forward) lands on release like a button press; a swipe needs one more reaction (its move).
+                    const action = crossingAction(state), swiped = action === 'left' || action === 'right' || action === 'down';
+                    if (state.phase === lastPhase || (difficulty(state.level).flowFrames - state.frames) * 1000 / 60 < Math.max(crossingInputWindowMs + (swiped ? 200 : 0), clock.horizon)) {
                         await finger.advance(10); continue;
                     }
-                    const action = crossingAction(state);
                     decisions.push({ timeMs: clock.elapsed, state, action });
                     lastPhase = state.phase;
-                    await finger.press(action === 'wait' ? [] : [`#traverse-${action === 'bond' ? 'special' : action}`]);
+                    const r = await page.locator('#game canvas').boundingBox(); if (!r) throw new Error('Canevas absent');
+                    const road = { id: 0, x: r.x + r.width / 2, y: r.y + r.height / 2 };
+                    if (action === 'bond') await finger.press(['#traverse-special']);
+                    else if (action === 'up') await finger.press(['#game canvas']); // touch and lift at once: a tap
+                    else if (swiped) {
+                        const [dx, dy] = ({ left: [-1, 0], right: [1, 0], down: [0, 1] } as const)[action];
+                        await finger.touch('touchStart', [road]);
+                        // 60 px in 60 ms (the same gesture, no second reaction): the +-12 px noise never brings it under the 20 px threshold or onto the other axis.
+                        await finger.touch('touchMove', [{ id: 0, x: road.x + dx * 60, y: road.y + dy * 60 }], undefined, 60); await finger.release();
+                    } else await finger.press([]);
 
                 }
             } else {

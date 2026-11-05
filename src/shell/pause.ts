@@ -16,22 +16,28 @@ export class PlaySession {
     get paused(): boolean { return this.menuOpen || (this.realtime && this.state !== 'playing'); }
     send(event: PlayEvent): void { if (this.realtime) { this.state = transition(this.state, event); this.onChange?.(); } }
 }
+/** Touch screens: no bar in play, a fixed ⏸ opens the single pause page (see menu.ts). */
+export const MOBILE_PLAY = '(pointer: coarse), (width < 600px)';
 export function setupPause(inputs: Inputs, session: PlaySession): void {
+    const mobile = matchMedia(MOBILE_PLAY);
     const panel = document.querySelector<HTMLElement>('#pause-panel');
     const title = document.querySelector('#pause-title');
     const button = document.querySelector<HTMLButtonElement>('#pause');
     const sync = (): void => {
         session.device?.setPlaying(!session.paused);
-        if (button) { button.hidden = !session.realtime; button.setAttribute('aria-pressed', String(session.state === 'paused')); }
-        if (panel) panel.hidden = session.menuOpen || !session.paused;
-        if (title) title.textContent = session.state === 'ready' ? 'Prêt ?' : 'En pause';
+        if (button) { button.hidden = !session.realtime && !mobile.matches; button.setAttribute('aria-pressed', String(session.state === 'paused' || session.menuOpen)); }
+        // Mobile: the panel is the pause page, shown with the menu; desktop keeps panel and menu apart.
+        if (panel) panel.hidden = mobile.matches ? !session.paused : session.menuOpen || !session.paused;
+        document.body.classList.toggle('play-ready', session.realtime && session.state === 'ready' && !session.menuOpen);
+        if (title) title.textContent = session.state === 'ready' && !session.menuOpen ? 'Prêt ?' : 'En pause';
         const resume = document.querySelector('#resume');
         if (resume) resume.textContent = session.state === 'ready' ? 'Jouer' : 'Reprendre';
     };
     session.onChange = sync;
     inputs.cleanup(() => { session.onChange = undefined; if (button) button.hidden = true; });
     const send = (event: PlayEvent): void => { session.send(event); sync(); };
-    inputs.on(button, 'click', () => { send('toggle'); });
+    inputs.on(button, 'click', () => { if (!mobile.matches) send('toggle'); });
+    inputs.on(mobile, 'change', sync);
     inputs.on(document.querySelector('#resume'), 'click', () => { send('start'); });
     inputs.on(document, 'keydown', event => {
         const e = event as KeyboardEvent;
@@ -42,17 +48,11 @@ export function setupPause(inputs: Inputs, session: PlaySession): void {
     inputs.on(document, 'visibilitychange', () => { session.device?.setVisible(!document.hidden); if (document.hidden) send('hide'); });
     session.device?.setVisible(!document.hidden);
     inputs.cleanup(() => { session.device?.setPlaying(false); });
-    let starting: number | null = null;
+    // The first touch starts play and still reaches the game: it is the first move or shot.
     const area = document.querySelector('#play-area');
-    for (const type of ['pointerdown', 'pointermove', 'pointerup', 'pointercancel', 'click']) inputs.on(area, type, event => {
+    inputs.on(area, 'pointerdown', event => {
         const e = event as PointerEvent;
-        if (type === 'pointerdown') starting = null;
-        if (type === 'pointerdown' && e.pointerType === 'touch' && session.state === 'ready' && !session.menuOpen) starting = e.pointerId;
-        if (starting === null) return;
-        if (type !== 'click' && e.pointerId !== starting) return;
-        event.preventDefault(); event.stopImmediatePropagation();
-        if (type === 'pointerup') send('start');
-        if (type === 'pointercancel' || type === 'click') starting = null;
+        if (e.pointerType === 'touch' && session.state === 'ready' && !session.menuOpen) send('start');
     }, { capture: true });
     sync();
 }

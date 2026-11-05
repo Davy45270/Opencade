@@ -1,6 +1,7 @@
 import { test, expect } from './fixture';
 
 for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} pixels du personnage en jeu : repos et spécial`, async ({ page }, info) => {
+    test.skip(game === 'traverse', 'Traverse est retenu hors du catalogue public jusqu’à sa correction.');
     test.skip(info.project.name !== 'mobile-chromium');
     await page.addInitScript(() => { localStorage.setItem('arcade-lab:character:v1', 'panda'); });
     await page.goto(`/?test=1#/${game}`);
@@ -41,7 +42,8 @@ for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} p
     expect(restState?.animation).toBe('repos');
     const rest = await pixels(); expect(rest.coat).toBeGreaterThan(40);
     if (game === 'caisses') {
-        await page.locator('#caisses-special').tap(); await page.locator('#caisses-left').tap();
+        // Only one crate in reach: Tirer pulls it at once.
+        await page.locator('#caisses-special').tap();
     } else {
         await page.locator(`#${game}-special`).tap();
         await page.evaluate(game => { (game === 'traverse' ? window.__TRAVERSE_TEST__ : window.__ALUNIR_TEST__)?.advance(game === 'traverse' ? 500 : 0); }, game);

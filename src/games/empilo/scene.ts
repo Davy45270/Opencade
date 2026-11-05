@@ -12,16 +12,10 @@ import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { worldOf, SceneryLayer, BlockPool } from '../universal/art';
-import { PIECE_COLORS, settledColor, wellScenery } from './art';
+import { PIECE_COLORS, RESERVE_TILE, settledColor, wellScenery } from './art';
 export const empiloButtons: readonly TouchButton[] = [
-    { id: 'empilo-special', label: 'Réserve', ariaLabel: 'Mise de côté', size: 56, placement: 'right', mode: 'tap' },
-    { id: 'empilo-left', label: '←', ariaLabel: 'Déplacer à gauche', size: 56, placement: 'left', mode: 'hold', repeatMs: 90 },
-    { id: 'empilo-right', label: '→', ariaLabel: 'Déplacer à droite', size: 56, placement: 'left', mode: 'hold', repeatMs: 90 },
-    { id: 'empilo-clockwise', label: '↻', ariaLabel: 'Tourner à droite', size: 56, placement: 'center', mode: 'tap' },
-    { id: 'empilo-counterclockwise', label: '↺', ariaLabel: 'Tourner à gauche', size: 56, placement: 'center', mode: 'tap' },
-    // Below 380 px the six primary buttons do not fit 56 px each: soft drop goes to the menu (swipe down still drops).
-    { compactMenu: true, id: 'empilo-soft', label: '↓', ariaLabel: 'Descente douce', size: 56, placement: 'right', mode: 'hold', repeatMs: 55 },
-    { id: 'empilo-drop', label: '⤓', ariaLabel: 'Chute instantanée', size: 56, placement: 'right', mode: 'tap' },
+    // Drag to move, tap to turn, swipe down to drop, tap the reserve tile (top right) to set aside.
+    { id: 'empilo-soft', label: '↓', ariaLabel: 'Descente lente', size: 56, placement: 'right', mode: 'hold', repeatMs: 55 },
 ];
 export interface EmpiloHook {
     performance(): { frames: number; gameMs: number };
@@ -29,7 +23,7 @@ export interface EmpiloHook {
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; down: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']>; specialUses: number; specialTicks: number };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'blocked' | 'reserve'): void;
     /** What the last frame drew for the stratum rules (pass 402). */
@@ -51,6 +45,8 @@ export class EmpiloScene extends Phaser.Scene {
     private blocks?: BlockPool;
     private hud?: Phaser.GameObjects.Text;
     private flash = 0;
+    private down = false;
+    private labels: Phaser.GameObjects.Text[] = [];
     private lastPiece = '';
     private drawn: ReturnType<EmpiloHook['marks']> = { previews: 0, riseLeft: null, blast: null, belts: 0 };
     constructor(private session = new PlaySession(true)) { super('empilo'); }
@@ -66,6 +62,7 @@ export class EmpiloScene extends Phaser.Scene {
         this.scenery = new SceneryLayer(this, 'empilo');
         this.graphics = this.add.graphics().setDepth(1);
         this.blocks = new BlockPool(this, 0);
+        for (const [x, y, text] of [[316, 28, 'SUIVANT'], [316, RESERVE_TILE.y + 4, 'RÉSERVE']] as const) this.labels.push(this.add.text(x, y, text, { fontFamily: 'system-ui', fontSize: '11px', fontStyle: 'bold', color: '#e5f3ff' }).setOrigin(.5, 0).setDepth(2));
         this.hud = this.add.text(18, 568, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff', lineSpacing: 4 }).setDepth(2);
         const act = (action: Action): void => {
             if (this.session.state === 'ready') this.session.send('start');
@@ -90,7 +87,7 @@ export class EmpiloScene extends Phaser.Scene {
         let gesture: { id: number; x: number; y: number; time: number; moved: boolean; dropped: boolean } | null = null;
         this.inputs.on(area, 'pointerdown', event => {
             const e = event as PointerEvent; if (gesture) return;
-            e.preventDefault(); area?.setPointerCapture(e.pointerId);
+            e.preventDefault(); area?.setPointerCapture(e.pointerId); this.down = true;
             gesture = { id: e.pointerId, x: e.clientX, y: e.clientY, time: performance.now(), moved: false, dropped: false };
         });
         this.inputs.on(area, 'pointermove', event => {
@@ -101,8 +98,13 @@ export class EmpiloScene extends Phaser.Scene {
             for (let i = 0; i < steps; i++) act(dx > 0 ? 'right' : 'left');
             if (steps) { gesture.x += Math.sign(dx) * steps * 30; gesture.moved = true; }
         });
-        this.inputs.on(area, 'pointerup', event => { if (gesture?.id === (event as PointerEvent).pointerId) { if (!gesture.moved) act('clockwise'); gesture = null; } });
-        for (const type of ['pointercancel', 'lostpointercapture']) this.inputs.on(area, type, () => { gesture = null; });
+        this.inputs.on(area, 'pointerup', event => {
+            const e = event as PointerEvent;
+            if (gesture?.id !== e.pointerId) return;
+            if (!gesture.moved) act(this.onReserve(e.clientX, e.clientY) ? 'special' : 'clockwise');
+            gesture = null; this.down = false;
+        });
+        for (const type of ['pointercancel', 'lostpointercapture']) this.inputs.on(area, type, () => { gesture = null; this.down = false; });
         const choose = (): void => {
             this.selecting = !this.selecting;
             renderLevels(LEVELS, this.progress.save, index => { this.start(index, undefined, true); }); this.panels();
@@ -119,7 +121,7 @@ export class EmpiloScene extends Phaser.Scene {
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.hero.time }),
             fingerReceipts: receipts,
-            read: () => ({ fingerInput: { paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state }),
+            read: () => ({ fingerInput: { paused: this.session.paused, down: this.down }, ...this.engine.snapshot(), character: this.hero.snapshot(), specialUses: this.engine.specialUses, specialTicks: this.engine.specialTicks, cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             marks: () => structuredClone(this.drawn),
             scenario: name => {
@@ -189,6 +191,11 @@ export class EmpiloScene extends Phaser.Scene {
         this.blocks?.block(x - 13, y - 13, 26, color, alpha);
         if (sealed) { g.lineStyle(3, 0xffffff); g.strokeCircle(x, y, 5); }
     }
+    /** A screen point on the reserve tile. */
+    private onReserve(clientX: number, clientY: number): boolean {
+        const r = this.game.canvas.getBoundingClientRect(), x = (clientX - r.left) * 360 / r.width, y = (clientY - r.top) * 640 / r.height, t = RESERVE_TILE;
+        return x >= t.x && x <= t.x + t.width && y >= t.y && y <= t.y + t.height;
+    }
     private draw(): void {
         const g = this.graphics; if (!g) return;
         const colors = PIECE_COLORS;
@@ -230,16 +237,18 @@ export class EmpiloScene extends Phaser.Scene {
                 g.fillStyle(0x2b2b33); g.fillCircle(32 + active.x * 28, 48 + active.y * 28, 11); g.fillStyle(0xff8a5c); g.fillCircle(38 + active.x * 28, 40 + active.y * 28, 3);
             } else for (const c of active.cells) this.crystal({ x: c.x + active.x, y: c.y + active.y }, colors[active.id] ?? 0xffffff);
         }
+        // Next pieces at the top right, against the well.
         this.engine.state.next.slice(0, l.preview).forEach((id, i) => {
             this.drawn.previews++;
-            for (const c of SHAPES[id] ?? []) {
-                g.fillStyle(colors[id] ?? 0xffffff); const x = 22 + i * 108 + c.x * 16, y = 530 + c.y * 16;
-                this.blocks?.block(x - 7, y - 7, 14, colors[id] ?? 0xffffff);
-            }
+            for (const c of SHAPES[id] ?? []) this.blocks?.block(292 + c.x * 13, 46 + i * 30 + c.y * 13, 12, colors[id] ?? 0xffffff);
         });
+        // The reserve tile: touched to set the falling piece aside (once per piece).
+        const tile = RESERVE_TILE, ready = this.engine.specialUses > 0 && this.engine.status === 'playing';
+        g.fillStyle(0x10202f, .82); g.fillRoundedRect(tile.x, tile.y, tile.width, tile.height, 10);
+        g.lineStyle(2, ready ? 0x80e9dc : 0x526174); g.strokeRoundedRect(tile.x, tile.y, tile.width, tile.height, 10);
         if (this.flash) { g.fillStyle(0xdefcff, this.flash * 0.16); g.fillRect(18, 34, 252, 448); }
-        this.hero.draw(g, 274, 230, 84);
-        if (this.engine.reserve !== null) for (const c of SHAPES[this.engine.reserve] ?? []) this.blocks?.block(282 + c.x * 13, 370 + c.y * 13, 12, colors[this.engine.reserve] ?? 0xffffff);
+        this.hero.draw(g, 274, 330, 84);
+        if (this.engine.reserve !== null) for (const c of SHAPES[this.engine.reserve] ?? []) this.blocks?.block(292 + c.x * 13, tile.y + 30 + c.y * 13, 12, colors[this.engine.reserve] ?? 0xffffff);
         const s = this.engine.state, goal = l.objective === 'gems' ? `GEMMES ${String(s.gems ?? 0)}/${String(l.goal)}` : `LIGNES ${String(s.lines)}/${String(l.goal)}`;
         const timer = l.timeMs ? ` · ⏱ ${String(Math.ceil((s.timeLeft ?? 0) / 1000))} s` : '';
         const ending = this.engine.status === 'lost' ? ({ top: 'Le puits déborde !', time: 'Temps écoulé !', rise: 'La marée déborde !' })[this.engine.reason ?? 'top'] + ' On réessaie ?' : this.engine.status === 'won' ? 'Bravo, strate terminée !' : s.resets >= 15 ? 'Ancrage imminent' : strataTip(this.engine.level);

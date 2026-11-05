@@ -1,4 +1,4 @@
-import { openGameMenu, test, expect, measureLayout } from './fixture';
+import { openGameMenu, test, expect, measureLayout, goHome } from './fixture';
 import type { Page } from '@playwright/test';
 async function read(page: Page) { return page.evaluate(() => window.__DEDALE_TEST__?.read()); }
 async function tap(page: Page, selector: string, mobile: boolean): Promise<void> {
@@ -9,8 +9,16 @@ async function tap(page: Page, selector: string, mobile: boolean): Promise<void>
         await page.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
     } else await page.locator(selector).click();
 }
+/** Touch steering is a swipe on the maze (the cross is an option). */
+async function swipe(page: Page, dx: number, dy: number): Promise<void> {
+    const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent');
+    const x = box.x + box.width / 2, y = box.y + box.height / 2, client = await page.context().newCDPSession(page);
+    await client.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    await client.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + dx, y: y + dy }] });
+    await client.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await client.detach();
+}
 async function geometry(page: Page) {
-    return measureLayout(page, ['#pause', '#dedale-up', '#dedale-down', '#dedale-left', '#dedale-right', '#levels', '#restart']);
+    return measureLayout(page, ['#pause', '#dedale-special', '#levels', '#restart']);
 }
 async function expectControlsOutsideCanvas(page: Page): Promise<void> {
     const { canvas, controls } = await geometry(page);
@@ -29,7 +37,7 @@ test('D04 D10 victoire tactile ou clavier, niveau suivant et reprise de sauvegar
     const initial = await read(page);
     await page.waitForTimeout(250); expect(await read(page)).toEqual(initial);
     await page.evaluate(() => { window.__DEDALE_TEST__?.scenario('finish'); });
-    if (mobile) await tap(page, '#dedale-up', true); else await page.keyboard.press('ArrowUp');
+    if (mobile) { await tap(page, '#resume', true); await swipe(page, 0, -40); } else await page.keyboard.press('ArrowUp');
     await page.evaluate(() => { window.__DEDALE_TEST__?.advance(10000); });
     await expect.poll(async () => (await read(page))?.status).toBe('won');
     await expect(page.locator('#result-title')).toContainText('réussi');
@@ -113,12 +121,12 @@ test('D12 crochet inerte et nettoyage lors du retour à l’accueil', async ({ p
     await expect.poll(() => page.evaluate(() => Boolean(window.__ARCADE_TEST__?.games.dedale))).toBe(true);
     await tap(page, '#resume', mobile);
     if (!mobile) {
-        await page.locator('#dedale-right').click();
+        await page.keyboard.press('ArrowRight');
         expect((await read(page))?.requested).toBe('right');
         await page.keyboard.press('Escape'); await expect(page.locator('#pause-title')).toHaveText('En pause');
         const before = await read(page); await page.waitForTimeout(200); expect(await read(page)).toEqual(before);
     }
-    await tap(page, '#topbar [data-home]', mobile);
+    await goHome(page);
     await expect(page.locator('#game canvas')).toHaveCount(0);
     expect(await page.evaluate(() => window.__DEDALE_TEST__)).toBeUndefined();
 });
@@ -137,4 +145,25 @@ for (const level of [4, 12, 20, 30]) test(`D-MEC capture dedale-level${String(le
     await page.evaluate(() => { window.__DEDALE_TEST__?.advance(0); });
     await expect(page.locator('#pause-panel')).toBeHidden();
     await page.screenshot({ path: `test-results/screenshots/dedale-level${String(level).padStart(2, '0')}-${info.project.name}.png` });
+});
+test('D20 tactile : balayage par défaut, une icône, aucune aide clavier, croix regroupée en option', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'Commandes tactiles');
+    await page.goto('/?test=1#/dedale');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__ARCADE_TEST__?.games.dedale))).toBe(true);
+    await tap(page, '#resume', true);
+    const visible = () => page.evaluate(() => [...document.querySelectorAll('#touch-controls button')].filter(b => b.getBoundingClientRect().width > 0).map(b => b.id));
+    expect(await visible()).toEqual(['dedale-special']);
+    await expect(page.locator('#dedale-special')).toHaveAttribute('data-ring', '1.00');
+    expect(await page.evaluate(() => window.__DEDALE_TEST__?.hudText() ?? '')).not.toMatch(/ZQSD|Flèches \//);
+    await swipe(page, 40, 0); expect((await read(page))?.requested).toBe('right');
+    // Option: the grouped cross, chosen in the pause page.
+    await tap(page, '#pause', true); await tap(page, '#dedale-cross', true);
+    await expect(page.locator('#dedale-cross')).toHaveAttribute('aria-pressed', 'true'); await tap(page, '#resume', true);
+    await expect.poll(async () => (await visible()).length).toBe(5);
+    const centres = await page.evaluate(() => ['left', 'up', 'down', 'right'].map(name => { const r = document.querySelector(`#dedale-${name}`)?.getBoundingClientRect(); return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2, w: r.width } : { x: 0, y: 0, w: 0 }; }));
+    for (const a of centres) for (const b of centres) expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeLessThan(140);
+    for (const c of centres) expect(c.w).toBeGreaterThanOrEqual(56);
+    await tap(page, '#dedale-up', true); expect((await read(page))?.requested).toBe('up');
+    await page.reload(); await expect.poll(() => page.evaluate(() => Boolean(window.__DEDALE_TEST__))).toBe(true);
+    await expect(page.locator('#dedale-up')).toBeVisible();
 });

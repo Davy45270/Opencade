@@ -4,7 +4,7 @@ import Phaser from 'phaser';
 import { pullRecords } from '../../engines/caisses/records';
 import { GameCharacter } from '../../characters/game';
 import { Engine, LEVELS, type Direction } from '../../engines/caisses/engine';
-import { doorOpen } from '../../engines/caisses/rules';
+import { doorOpen, pull, directions, type Position } from '../../engines/caisses/rules';
 import { workshopTip } from '../../engines/caisses/tips';
 import { Inputs, renderTouchControls, directionalSwipe, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
@@ -16,19 +16,16 @@ import { sound } from '../../shell/services';
 import { crate, hudVeil, worldOf, SceneryLayer } from '../universal/art';
 import { boxPaint, cellMarks, workshopLayout, workshopScenery } from './art';
 export const caissesButtons: readonly TouchButton[] = [
+    // Moves are swipes on the board; Annuler always shows, Tirer only next to a pullable crate.
+    { id: 'caisses-undo', label: '↶', ariaLabel: 'Annuler', size: 56, placement: 'left', mode: 'tap' },
     { id: 'caisses-special', label: 'Tirer', ariaLabel: 'Tirer une caisse', size: 56, placement: 'right', mode: 'tap' },
-    { id: 'caisses-left', label: '←', ariaLabel: 'Aller à gauche', size: 56, placement: 'left', mode: 'tap' },
-    { id: 'caisses-up', label: '↑', ariaLabel: 'Monter', size: 56, placement: 'left', mode: 'tap' },
-    { id: 'caisses-down', label: '↓', ariaLabel: 'Descendre', size: 56, placement: 'left', mode: 'tap' },
-    { id: 'caisses-right', label: '→', ariaLabel: 'Aller à droite', size: 56, placement: 'left', mode: 'tap' },
-    { compactMenu: true, id: 'caisses-undo', label: '↶', ariaLabel: 'Annuler', size: 56, placement: 'right', mode: 'tap' },
 ];
 export interface CaissesHook {
     performance(): { frames: number; gameMs: number };
     advance(ms: number): void;
     bounds(): { hero: { x: number; y: number; width: number; height: number } };
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; pulling: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; pulling: boolean; down: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
@@ -43,6 +40,7 @@ export class CaissesScene extends Phaser.Scene {
     private selecting = false;
     private testManual = false;
     private pulling = false;
+    private down = false;
     private heroBounds = { x: 0, y: 0, width: 0, height: 0 };
     private graphics?: Phaser.GameObjects.Graphics;
     /** Static scenery layer, repainted only when its key changes (level, board): software rendering stays fast. */
@@ -63,22 +61,30 @@ export class CaissesScene extends Phaser.Scene {
         this.hud = this.add.text(12, 20, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 6 });
         const action = (d: Direction | 'undo' | 'special'): void => {
             if (this.session.paused || this.selecting) return;
-            if (d === 'special') { this.pulling = this.engine.specialUses > 0 && !this.pulling; } else if (d === 'undo') {
+            if (d === 'special') {
+                // One crate within reach: pull it at once. Several: the next swipe picks one.
+                const reach = this.pullable();
+                if (reach.length === 1 && reach[0]) { this.pulling = false; this.step(reach[0], true); }
+                else this.pulling = reach.length > 0 && !this.pulling;
+            } else if (d === 'undo') {
                 if (this.engine.status !== 'playing') this.progress.retry();
                 this.engine.undo(); sound.playEffect('undo');
             } else {
-                const before = this.engine.state.pushes, position = this.engine.state.player;
-                if (this.pulling) { this.engine.special(d); this.pulling = false; } else this.engine.input(d);
-                if (position !== this.engine.state.player) this.hero.move(this.engine.state.player % this.engine.board.width - position % this.engine.board.width);
-                else this.hero.impact = 350;
-                sound.playEffect(this.engine.state.pushes > before ? 'push' : 'move');
-                for (const event of this.engine.events) sound.playEffect(event);
+                // While pulling, a swipe toward the crate or away from it both mean that crate.
+                const reverse = ({ up: 'down', down: 'up', left: 'right', right: 'left' } as const)[d];
+                const pulled = this.pulling ? this.pullable().find(p => p === d || p === reverse) : undefined;
+                this.step(pulled ?? d, pulled !== undefined); this.pulling = false;
             }
             this.sync();
         };
         renderTouchControls(this.inputs, caissesButtons, (id, held) => { if (held) action(id.replace('caisses-', '') as Direction | 'undo' | 'special'); });
         const area = document.querySelector<HTMLElement>('#game');
-        if (area) directionalSwipe(this.inputs, area, action, 20, false);
+        if (area) {
+            directionalSwipe(this.inputs, area, action, 20, false);
+            // A finger on the board (the swipe origin), for the touch proof.
+            this.inputs.on(area, 'pointerdown', () => { this.down = true; });
+            for (const type of ['pointerup', 'pointercancel']) this.inputs.on(area, type, () => { this.down = false; });
+        }
         const keys: Record<string, Direction> = { ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyQ: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right' };
         const retry = (): void => { this.pulling = false; this.progress.retry(); this.engine.loadLevel(this.engine.level, this.engine.seed); this.sync(); };
         this.inputs.on(document, 'keydown', event => {
@@ -105,7 +111,7 @@ export class CaissesScene extends Phaser.Scene {
             bounds: () => ({ hero: { ...this.heroBounds } }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.hero.time }),
             fingerReceipts: receipts,
-            read: () => ({ fingerInput: { paused: this.session.paused, pulling: this.pulling }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            read: () => ({ fingerInput: { paused: this.session.paused, pulling: this.pulling, down: this.down }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             hudText: () => this.hud?.text ?? '', usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             scenario: name => {
@@ -116,6 +122,19 @@ export class CaissesScene extends Phaser.Scene {
             },
         };
         this.sync();
+    }
+    private pullable(): Direction[] {
+        const s = this.engine.state, pos: Position = { player: s.player, boxes: s.boxes, colors: s.colors, filled: s.filled };
+        if (this.engine.status !== 'playing' || this.engine.specialUses === 0) return [];
+        return directions.filter(d => pull(this.engine.board, pos, d));
+    }
+    private step(d: Direction, pulling: boolean): void {
+        const before = this.engine.state.pushes, position = this.engine.state.player;
+        if (pulling) this.engine.special(d); else this.engine.input(d);
+        if (position !== this.engine.state.player) this.hero.move(this.engine.state.player % this.engine.board.width - position % this.engine.board.width);
+        else this.hero.impact = 350;
+        sound.playEffect(this.engine.state.pushes > before ? 'push' : 'move');
+        for (const event of this.engine.events) sound.playEffect(event);
     }
     updatePaused(): void { this.draw(); }
     update(_time: number, delta: number): void {
@@ -131,6 +150,8 @@ export class CaissesScene extends Phaser.Scene {
         if (this.engine.status !== 'playing' && this.progress.state === 'playing') {
             this.progress.finish(this.engine.status, this.engine.state.score); writeSave(browserStorage(), this.progress.save, 'caisses'); sound.playEffect(this.engine.status);
         }
+        const special = document.querySelector<HTMLButtonElement>('#caisses-special');
+        if (special) { const reach = this.pullable().length > 0; special.hidden = !reach; special.setAttribute('aria-pressed', String(reach && this.pulling)); if (!reach) this.pulling = false; }
         this.panels(); this.draw();
     }
     private draw(): void {

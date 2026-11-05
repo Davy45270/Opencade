@@ -13,6 +13,17 @@ for (const level of [0, 2])
         await page.goto('/?test=1#/pepites');
         await expect.poll(() => page.evaluate(() => Boolean(window.__PEPITES_TEST__))).toBe(true);
         const cdp = await page.context().newCDPSession(page), finger = new Finger(page, cdp), started = Date.now(), decisions: unknown[] = [];
+        // No arrows: one step is a short drag on the mine (150 ms decision latency, +-12 px on each point).
+        let seed = 91; const jitter = () => { seed = (seed * 16807) % 2147483647; return seed % 25 - 12; };
+        const swipe = async (d: 'left' | 'right' | 'up' | 'down') => {
+            const r = await page.locator('#game canvas').boundingBox(); if (!r) throw new Error('Canevas absent');
+            const [dx, dy] = ({ left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] } as const)[d];
+            const x = r.x + r.width / 2 + jitter(), y = r.y + r.height * .4 + jitter();
+            await page.waitForTimeout(150);
+            await finger.touch('touchStart', [{ id: 0, x, y }]);
+            await finger.touch('touchMove', [{ id: 0, x: x + dx * 40 + jitter(), y: y + dy * 40 + jitter() }]);
+            await finger.release();
+        };
         try {
             await finger.press(['#resume']);
             await page.evaluate(i => { window.__PEPITES_TEST__?.loadLevel(i, 484); }, level);
@@ -27,7 +38,7 @@ for (const level of [0, 2])
                 const horizon = clock.observe({ gameTimeMs: (MINES[level]?.seconds ?? 150) * 1000 - s.timeLeft });
                 const d = pepitesStep(level, s, Math.ceil(horizon / turnMs));
                 decisions.push({ timeMs: Date.now() - started, player: s.player, nuggets: s.nuggets, d });
-                if (d) await finger.press([`#pepites-${d}`]); else await page.waitForTimeout(150);
+                if (d) await swipe(d); else await page.waitForTimeout(150);
             }
             const final = await page.evaluate(() => window.__PEPITES_TEST__?.read());
             await page.screenshot({ path: `test-results/screenshots/pepites-finger-${String(level + 1)}.png` });

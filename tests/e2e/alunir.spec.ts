@@ -43,7 +43,7 @@ test('U06 U07 U09 victoire, défaite et progression par entrées réelles', asyn
     await page.screenshot({ path: `test-results/screenshots/alunir-play-${info.project.name}.png` });
     await page.reload(); await expect(page.locator('#resume')).toBeVisible();
     await activate(page, '#resume', mobile);
-    if (mobile) await activate(page, '#game-menu-toggle', true);
+    if (mobile) await activate(page, '#pause', true);
     await activate(page, '#levels', mobile);
     await expect(page.locator('#level-list button').nth(1)).toBeEnabled();
     await activate(page, '#close-levels', mobile);
@@ -58,4 +58,27 @@ test('U06 U07 U09 victoire, défaite et progression par entrées réelles', asyn
     await page.screenshot({ path: `test-results/screenshots/alunir-level30-${info.project.name}.png` });
     await activate(page, '#pause', mobile); const paused = await read(page);
     await page.evaluate(() => { window.__ALUNIR_TEST__?.advance(10000); }); expect(await read(page)).toEqual(paused);
+});
+test('U20 tactile 405×480 : jauges VX VY ∠ lisibles, rouges au-delà du seuil, ↺ ↻ sous un seul pouce', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'Commandes tactiles');
+    await page.setViewportSize({ width: 405, height: 480 });
+    await page.goto('/?test=1#/alunir');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__ARCADE_TEST__?.games.alunir))).toBe(true);
+    await activate(page, '#resume', true);
+    await page.evaluate(() => { window.__ALUNIR_TEST__?.advance(0); });
+    const gauges = () => page.evaluate(() => [...document.querySelectorAll<HTMLElement>('#hud .hud-gauge')].map(g => {
+        const r = g.getBoundingClientRect(), value = g.querySelector('.hud-value');
+        return { label: g.textContent, over: g.classList.contains('over'), height: r.height, font: value ? parseFloat(getComputedStyle(value).fontSize) : 0, visible: r.width > 0 };
+    }));
+    const calm = await gauges();
+    expect(calm).toHaveLength(3);
+    for (const g of calm) { expect(g.visible).toBe(true); expect(g.height).toBeGreaterThanOrEqual(12); expect(g.font).toBeGreaterThanOrEqual(12); expect(g.over).toBe(false); }
+    await page.evaluate(() => { window.__ALUNIR_TEST__?.scenario('danger'); window.__ALUNIR_TEST__?.advance(0); });
+    expect((await gauges()).filter(g => g.over)).toHaveLength(1);
+    await expect(page.locator('#alunir-special')).toHaveText('⚖');
+    const centres = await page.evaluate(() => ['left', 'right'].map(n => { const r = document.querySelector(`#alunir-${n}`)?.getBoundingClientRect(); return r ? { x: r.x + r.width / 2, y: r.y + r.height / 2 } : { x: 1e4, y: 1e4 }; }));
+    const [a, b] = centres as [{ x: number; y: number }, { x: number; y: number }];
+    expect(Math.hypot(a.x - b.x, a.y - b.y)).toBeLessThan(140);
+    const rotations = await page.evaluate(() => ['left', 'right'].map(n => document.querySelector(`#alunir-${n}`)?.closest('[class*="slot"],[id*="slot"]')?.id ?? document.querySelector(`#alunir-${n}`)?.parentElement?.className ?? ''));
+    expect(rotations[0]).toBe(rotations[1]);
 });
