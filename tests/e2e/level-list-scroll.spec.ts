@@ -2,7 +2,7 @@ import type { CDPSession, Page } from '@playwright/test';
 import { test, expect } from './fixture';
 
 // The level list is a panel inside the play area: a finger swipe scrolls it, while a swipe on
-// the canvas stays a play gesture that never scrolls the page.
+// the canvas stays a play gesture that never scrolls the page. Bubble's tiered list: bubble-levels BL01.
 async function swipe(cdp: CDPSession, x: number, y: number, dy: number): Promise<void> {
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
     for (let i = 1; i <= 12; i++) await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y + i * dy / 12 }] });
@@ -25,7 +25,7 @@ async function openLevels(page: Page, id: string): Promise<void> {
     await expect(page.locator('#level-select')).toBeVisible();
 }
 
-for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }]) for (const id of ['bubble', 'collier', 'caisses']) test(`LS01 ${id} liste des niveaux défilée au doigt ${String(viewport.width)}x${String(viewport.height)}`, async ({ page }, info) => {
+for (const viewport of [{ width: 390, height: 844 }, { width: 844, height: 390 }]) for (const id of ['collier', 'caisses', 'serpentin']) test(`LS01 ${id} liste des niveaux défilée au doigt ${String(viewport.width)}x${String(viewport.height)}`, async ({ page }, info) => {
     test.skip(info.project.name !== 'mobile-chromium');
     await page.setViewportSize(viewport);
     await openLevels(page, id);

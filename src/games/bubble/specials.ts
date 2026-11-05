@@ -69,6 +69,8 @@ export const SPECIALS: readonly Special[] = [
         glyph: [{ t: 'rect', x: -5, y: -18, w: 10, h: 36, r: 4, fill: 0xffb867, stroke: INK, lw: 2 },
             ...[-10, -2, 6].map((y): Prim => ({ t: 'line', a: [-4, y + 4], b: [4, y - 2], stroke: INK, lw: 2 }))] },
 ];
+/** On David's rainbow marble the prism keeps its colour-free trait: the dark sparkle, ringed in white. */
+export const PRISM_MARK: readonly Prim[] = [{ t: 'circle', x: 0, y: 0, r: 9.5, fill: WHITE, fillAlpha: 0.9, stroke: INK, lw: 1.5 }, { t: 'poly', pts: star(8, 2.5, 4), fill: INK }];
 export const SPECIAL = Object.fromEntries(SPECIALS.map(s => [s.id, s])) as Readonly<Record<SpecialId, Special>>;
 /** Which special a board cell shows (P02 ice is a lock; ice counts its layers). */
 export function cellSpecial(cell: { kind?: string; ice?: number }, catalogue?: string): SpecialId | null {

@@ -18,7 +18,7 @@ import { Engine, center, key, ORIGIN, ROW_STEP, LOSS_LINE, type Cell, type Color
 import { LEVELS } from '../../engines/bubble/levels';
 import { Progression } from '../../shell/progression';
 import { readSave, writeSave, type StoragePort } from '../../shell/storage';
-import { SPECIAL, SPECIALS, SpecialTips, canvasGraphics, cellSpecial, drawGlyph, type SpecialId } from './specials';
+import { PRISM_MARK, SPECIAL, SPECIALS, SpecialTips, canvasGraphics, cellSpecial, drawGlyph, type SpecialId } from './specials';
 const HINTS: Record<string, string> = {
     stone: 'Pierre : couper ses attaches', bomb: 'Bombe : éclate ses six voisins',
     rainbow: 'Anneau blanc : couleur touchée', ice: 'Glace : deux éclatements voisins',
@@ -32,6 +32,15 @@ const CATALOGUE_HINTS: Record<string, string> = {
     P03: 'Cristal fixe · Prisme : toutes les couleurs',
 };
 /** What the last frame actually drew, for the E2E: guide segments, ghost opacities, attached bubble position. */
+/** David's marbles: one per engine colour, then the wild prism. The disc fills the texture edge to edge. */
+const COLOR_MARBLES = ['c0', 'c1', 'c2', 'c3', 'c4', 'c5'] as const;
+const MARBLE_KEYS = [...COLOR_MARBLES, 'prism'] as const;
+const MARBLE_SIZE = 38;
+/** Legend: the glyphs that ride on a colour are shown on the plain blue marble. */
+const LEGEND_BASE = 'c5';
+const marbleKey = (name: string): string => `bubble-marble-${name}`;
+/** Level list tiers of ten, named after their scenery. */
+const TIER_NAMES = ['Atelier', 'Lucioles', 'Dégel', 'Jungle', 'Automne', 'Volcan', 'Cirque', 'Ciel', 'Jungle de nuit', 'Automne tardif', 'Mont de feu', 'Cirque de nuit', 'Ciel profond'] as const;
 export interface Drawn { guide: number; ghost: { alpha: number; ring: number } | null; attached: Point | null; decor: string[]; icons: Record<'crystal' | 'prism' | 'leaf' | 'lock', number>; prismArcAlpha: number; specials: Partial<Record<SpecialId, number>> }
 const onScreen = (p: Point): boolean => p.x >= 0 && p.x <= 360 && p.y >= 0 && p.y <= 640;
 const GHOST_ALPHA = 0.35, GHOST_RING_ALPHA = 0.85;
@@ -44,6 +53,8 @@ interface Effect {
 export interface TestHook {
     performance(): { frames: number; gameMs: number };
     art(): string[];
+    /** True once David's drawn marbles are loaded (the code drawings stand in until then). */
+    marbles(): boolean;
     load: (grid: Cell[], next?: Color, seed?: number) => void;
     setNext: (color: Color) => void;
     setSeed: (seed: number) => void;
@@ -95,6 +106,12 @@ export class LabScene extends Phaser.Scene {
     private obstacles?: Phaser.GameObjects.Graphics;
     private paint?: ArcadePaint;
     private bubbleTextures: string[] = [];
+    /** David's marbles: colour textures, the wild prism, and their decoded images for the legend. */
+    private marbleTextures: string[] = [];
+    private prismTexture = '';
+    private marbleImages: Partial<Record<'base' | 'prism', HTMLImageElement>> = {};
+    private legend?: HTMLElement;
+    private alive = true;
     private launcherTextures = new Map<string, string>();
     private specialTexture = '';
     private barrelTexture = '';
@@ -112,11 +129,13 @@ export class LabScene extends Phaser.Scene {
         document.body.classList.add('bubble');
         try { this.storage = window.localStorage; } catch { /* Unavailable storage. */ }
         this.tips = new SpecialTips(() => this.storage);
-        const legend = this.mountSpecials();
+        const legend = this.mountSpecials(); this.legend = legend;
         const cleanup = (): void => {
+            this.alive = false;
             this.paint?.destroy();
             this.inputs.dispose(); document.body.classList.remove('bubble');
             legend?.remove(); this.tipElement?.remove(); this.tipElement = undefined;
+            document.querySelector('#level-tiers')?.remove(); document.querySelector('#level-list')?.classList.remove('grouped');
             sound.stop();
             delete window.__BUBBLE_TEST__;
         };
@@ -137,7 +156,9 @@ export class LabScene extends Phaser.Scene {
         this.progress = new Progression(readSave(this.storage, 'bubble', LEVELS.length), LEVELS.length);
         const showLevels = (): void => {
             this.selecting = !this.selecting;
-            renderLevels(LEVELS, this.progress.save, index => { this.startLevel(index, undefined, true); });
+            // 130 levels: tabs of ten, opened on the tier of the next level to play.
+            renderLevels(LEVELS, this.progress.save, index => { this.startLevel(index, undefined, true); },
+                { size: 10, names: TIER_NAMES, current: Math.min(LEVELS.length - 1, this.progress.save.unlocked - 1) });
             this.syncPanels();
         };
         this.inputs.on(document.querySelector('#levels'), 'click', showLevels);
@@ -159,6 +180,7 @@ export class LabScene extends Phaser.Scene {
         for (const view of launcherViews) for (const expression of expressions) this.launcherTextures.set(`${view}-${expression}`, this.paint.texture(`launcher-${this.hero.id}-${view}-${expression}`, launcherDrawing(this.hero.id, view, expression), 192));
         const special = { panda: 'bao', pandaroux: 'feuille', dragon: 'feu', singe: 'banane', licorne: 'arc-en-ciel' } as const;
         this.specialTexture = this.paint.texture(`special-${this.hero.id}`, emblems[special[this.hero.id]]);
+        this.loadMarbles();
         this.barrelTexture = this.paint.texture(`barrel-${this.hero.id}`, aimBarrelDrawing(this.hero.id));
         this.obstacles = this.add.graphics().setDepth(3);
         this.hud = this.add.text(18, 482, '', { fontFamily: 'system-ui', fontSize: '12px', color: '#e5f3ff' });
@@ -217,6 +239,7 @@ export class LabScene extends Phaser.Scene {
             ...fingerProof,
                 // Draws the current state first: a board loaded by the hook is reported even before the next animation frame.
                 art: () => { this.tick(0); return this.paint?.keys() ?? []; },
+                marbles: () => this.marbleTextures.length === COLOR_MARBLES.length && Boolean(this.prismTexture),
                 advance: ms => { this.advanceTest(ms); },
                 loadLevel: (index, seed) => { this.startLevel(index, seed, true); },
                 load: (grid, next = 0, seed = this.engine.seed) => {
@@ -282,7 +305,8 @@ export class LabScene extends Phaser.Scene {
         const g = this.obstacles; if (!g) return;
         if (onScreen(p)) this.frame.icons.prism++;
         this.frame.prismArcAlpha = 1;
-        drawGlyph(g, SPECIAL.prism.glyph, p.x, p.y);
+        if (this.prismTexture) { this.paint?.draw(this.prismTexture, p.x, p.y, MARBLE_SIZE, 0, 1, 2); drawGlyph(g, PRISM_MARK, p.x, p.y); }
+        else drawGlyph(g, SPECIAL.prism.glyph, p.x, p.y);
     }
     /** Leaf bubble: an outlined leaf with arrows to both sides (it sweeps its row). */
     private drawLeaf(p: Point): void {
@@ -344,12 +368,39 @@ export class LabScene extends Phaser.Scene {
         if (tip.getAttribute('data-special') === (id ?? '')) return;
         tip.setAttribute('data-special', id ?? '');
         tip.replaceChildren();
-        if (id) { tip.append(specialIcon(id, 28)); const span = document.createElement('span'); span.textContent = text; tip.append(span); }
+        if (id) { tip.append(specialIcon(id, 28, this.marbleImages)); const span = document.createElement('span'); span.textContent = text; tip.append(span); }
         tip.hidden = !id;
     }
     private bubble(x: number, y: number, color: Color, alpha = 1, scale = 1): void {
-        const key = this.bubbleTextures[color];
-        if (key) this.paint?.draw(key, x, y, 40 * scale, 0, alpha, 2);
+        const marble = this.marbleTextures[color], key = marble ?? this.bubbleTextures[color];
+        if (key) this.paint?.draw(key, x, y, (marble ? MARBLE_SIZE : 40) * scale, 0, alpha, 2);
+    }
+    /** David's marbles arrive in their own chunk; the code drawings stand in until they are loaded. */
+    private loadMarbles(): void {
+        const ready = (): void => {
+            if (!MARBLE_KEYS.every(name => this.textures.exists(marbleKey(name)))) return;
+            this.marbleTextures = COLOR_MARBLES.map(marbleKey); this.prismTexture = marbleKey('prism');
+            const image = (name: string): HTMLImageElement | undefined => {
+                const source = this.textures.get(marbleKey(name)).getSourceImage();
+                return source instanceof HTMLImageElement ? source : undefined;
+            };
+            this.marbleImages = { base: image(LEGEND_BASE), prism: image('prism') };
+            this.refreshLegend();
+        };
+        if (MARBLE_KEYS.every(name => this.textures.exists(marbleKey(name)))) { ready(); return; }
+        // Decoded outside the scene loader: the scene waits paused on its start banner, and the loader only runs in update.
+        void import('./marbles').then(({ marbles }) => Promise.all(MARBLE_KEYS.map(async name => {
+            const url = marbles[name]; if (!url) return;
+            const image = new Image(); image.src = url; await image.decode();
+            if (!this.textures.exists(marbleKey(name))) this.textures.addImage(marbleKey(name), image);
+        }))).then(() => { if (this.alive) ready(); }).catch(() => undefined);
+    }
+    /** Legend icons drawn again on David's marbles once they are loaded. */
+    private refreshLegend(): void {
+        for (const row of this.legend?.querySelectorAll<HTMLElement>('[data-special]') ?? []) {
+            const id = row.getAttribute('data-special') as SpecialId | null;
+            if (id && id in SPECIAL) row.querySelector('img')?.replaceWith(specialIcon(id, 30, this.marbleImages));
+        }
     }
     private advanceTest(ms: number): void {
         if (!Number.isFinite(ms) || ms < 0) throw new RangeError('Temps invalide');
@@ -513,14 +564,16 @@ export class LabScene extends Phaser.Scene {
  * A legend icon: the glyph drawn on a detached 2D canvas (a neutral bubble under the glyphs that ride
  * on a colour), shown as an image so the play canvas stays the only canvas of the page.
  */
-function specialIcon(id: SpecialId, size: number): HTMLElement {
+function specialIcon(id: SpecialId, size: number, marbles: Partial<Record<'base' | 'prism', HTMLImageElement>> = {}): HTMLElement {
     const canvas = document.createElement('canvas'), special = SPECIAL[id], ratio = 2;
     canvas.width = size * ratio; canvas.height = size * ratio;
     const c = canvas.getContext('2d');
     if (c) {
-        const g = canvasGraphics(c), scale = size * ratio / 56, mid = size * ratio / 2;
-        if (special.onBubble) { g.fillStyle(0x5f86b8); g.fillCircle(mid, mid, 20 * scale); g.lineStyle(1.5 * scale, 0xffffff, 0.8); g.strokeCircle(mid, mid, 20 * scale); }
-        drawGlyph(g, special.glyph, mid, mid, 0, scale);
+        const g = canvasGraphics(c), scale = size * ratio / 56, mid = size * ratio / 2, marble = id === 'prism' ? marbles.prism : special.onBubble ? marbles.base : undefined;
+        const side = MARBLE_SIZE * scale;
+        if (marble) c.drawImage(marble, mid - side / 2, mid - side / 2, side, side);
+        else if (special.onBubble) { g.fillStyle(0x5f86b8); g.fillCircle(mid, mid, 20 * scale); g.lineStyle(1.5 * scale, 0xffffff, 0.8); g.strokeCircle(mid, mid, 20 * scale); }
+        drawGlyph(g, id === 'prism' && marble ? PRISM_MARK : special.glyph, mid, mid, 0, scale);
     }
     const image = document.createElement('img');
     image.src = canvas.toDataURL('image/png'); image.alt = ''; image.width = size; image.height = size;

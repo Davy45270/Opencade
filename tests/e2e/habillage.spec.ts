@@ -31,9 +31,11 @@ for (const [index, id] of ids.entries()) {
             hook.load(Array.from({ length: 24 }, (_, i) => ({ row: Math.floor(i / 8), col: i % 8, color: (i % 6) as 0 | 1 | 2 | 3 | 4 | 5 })), 0, 28);
         }, index);
         expect(await page.evaluate(() => window.__BUBBLE_TEST__?.read().character.id)).toBe(id);
+        // The colour bubbles are David's drawn marbles, the same for every character; the launcher stays themed.
+        await expect.poll(() => page.evaluate(() => window.__BUBBLE_TEST__?.marbles())).toBe(true);
         const art = await page.evaluate(() => window.__BUBBLE_TEST__?.art());
         expect(art).toContain(`arcade-vector-75-launcher-${id}-face-concentre`);
-        for (let color = 0; color < 6; color++) expect(art).toContain(`arcade-vector-75-bubble-${id}-${String(color)}`);
+        for (let color = 0; color < 6; color++) expect(art).toContain(`bubble-marble-c${String(color)}`);
         await page.locator('#game canvas').screenshot({ path: info.outputPath(`habillage-bubble-${id}.png`) });
     });
 }

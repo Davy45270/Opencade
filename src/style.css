@@ -49,6 +49,15 @@ body.fill-screen #game { max-width: 480px; }
 #level-list { display: grid; grid-template-columns: 1fr 1fr; }
 #level-list button { font-size: 12px; }
 #level-select { width: 84%; max-height: 90%; }
+/* Grouped list (Bubble): tier tabs, then the selected tier's levels; 44 px targets. Other games keep the flat list. */
+#level-tiers { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 6px; margin: 0 0 8px; }
+#level-tiers button { margin: 0; padding: 4px 2px; min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; font-size: 13px; line-height: 1.1; }
+#level-tiers button small { font-size: 11px; font-weight: 600; }
+#level-tiers button[aria-selected="true"] { background: #ffd23f; box-shadow: inset 0 0 0 3px #102532; }
+#level-list.grouped { display: block; }
+#level-list.grouped .level-tier { display: grid; grid-template-columns: 1fr 1fr; }
+#level-list.grouped .level-tier[hidden] { display: none; }
+#level-list.grouped button { min-height: 48px; }
 #touch-controls {
   display: none;
   gap: 8px;

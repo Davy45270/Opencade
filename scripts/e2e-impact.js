@@ -37,7 +37,7 @@ export const GAME_SPECS = {
     'artificiers': ['artificiers', 'artificiers-finger'],
     'bombercade': ['bombercade', 'bombercade-finger', 'bombercade-touch'],
     'briqueterie': ['briqueterie'],
-    'bubble': ['bubble-catalogue', 'bubble-snap-finger', 'bubble-touch'],
+    'bubble': ['bubble-catalogue', 'bubble-levels', 'bubble-snap-finger', 'bubble-touch'],
     'caisses': ['caisses'],
     'collier': ['collier', 'collier-finger'],
     'dedale': ['dedale'],
@@ -105,7 +105,7 @@ export const SPEC_SECONDS = {
     'serpentin': 73, 'site-pompiers': 30, 'sound': 9, 'thumbnails': 44, 'touch-edges': 27, 'traverse': 21,
     // Touch-shell specs: provisional estimates until a measured run replaces them.
     'bombercade-touch': 15, 'bubble-touch': 15, 'derapage-touch': 15, 'essaim-touch': 15, 'gourmandises-touch': 15, 'pause-page': 30,
-    'level-list-scroll': 40,
+    'level-list-scroll': 40, 'bubble-levels': 40,
 };
 /**
  * Specs split across CI parts by game id: their per-id tests are titled `... <id> <width>x<height>`. Weights are the
