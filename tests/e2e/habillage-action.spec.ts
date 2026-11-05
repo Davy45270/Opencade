@@ -7,7 +7,6 @@ import type {} from '../../src/games/essaim/scene';
 
 for (const [index, id] of ids.entries()) {
     for (const game of ['ferraille', 'briqueterie', 'essaim'] as const) test(`habillage-${game}-${id}`, async ({ page }, info) => {
-        test.skip(game === 'essaim', 'Essaim est retenu hors du catalogue public jusqu’à sa correction.');
         test.setTimeout(15_000);
         await page.emulateMedia({ reducedMotion: 'reduce' });
         await page.addInitScript(id => {
@@ -46,7 +45,6 @@ for (const [index, id] of ids.entries()) {
 
 // Only the three action games are driven here; other catalogue games (Kart, ...) have their own specs.
 for (const entry of levelCatalogue.filter(e => e.game === 'ferraille' || e.game === 'briqueterie' || e.game === 'essaim')) test(`level-catalogue-${entry.code}`, async ({ page }, info) => {
-    test.skip(entry.game === 'essaim', 'Essaim est retenu hors du catalogue public jusqu’à sa correction.');
     // The first visit of a theme bakes its scenery textures once (software rendering on the test host).
     test.setTimeout(30_000);
     await page.emulateMedia({ reducedMotion: 'reduce' });

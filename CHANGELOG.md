@@ -7,7 +7,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 - Jeu au doigt sur téléphone : plus de barre de commandes. Le ⏸ reste fixé en haut à droite ; une seule page de pause regroupe les réglages et les aides. Sur un écran court et large (paysage), les commandes passent dans les bandes latérales.
 - Commandes tactiles allégées jeu par jeu : gestes plutôt que flèches (Caisses, Empilo, Serpentin, Dédale, Pépites, Briqueterie), une seule icône en jeu (Bubble, Orbite, Briqueterie, Serpentin), Collier sans commande (on touche le tireur pour échanger), compteurs dans la rangée du haut (Alunir, Marmaille, Gourmandises, Pépites, Bubble), saut de Ferraille à 72 px sous le pouce, Bombercade et Artificiers réorganisés, Petits Pompiers en plein écran au-dessus de sa barre.
-- Traverse et Essaim sont retirés du catalogue le temps d’adapter leurs commandes au doigt ; ils reviendront dans une prochaine mise à jour.
+- Traverse est retiré du catalogue le temps d’adapter son pas au doigt ; il reviendra dans une prochaine mise à jour.
 - Bubble : le niveau 10 « Prisme » redevient gagnable (motif apparié) ; un test vérifie désormais que chaque niveau est gagnable.
 - Menu ☰ de l’accueil : nouvelle entrée « Donner mon avis ». Un simple lien ouvre, dans un nouvel onglet (`rel="noopener"`), les formulaires publics du dépôt. Le jeu n’envoie rien et n’embarque aucun traceur.
 - Deux formulaires courts en français (« Quelque chose ne marche pas », « J'ai une idée ») remplacent les anciens, plus techniques ; le ticket vierge est désactivé. `CONTRIBUTING.md` explique comment signaler.

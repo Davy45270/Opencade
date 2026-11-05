@@ -2,7 +2,6 @@ import { test, expect, goHome, clickSound } from './fixture';
 
 // Touch play shell: no bar, a fixed ⏸, one pause page with Reprendre at the bottom.
 for (const viewport of [{ width: 412, height: 780 }, { width: 405, height: 480 }]) test(`PP01 coquille de jeu ${String(viewport.width)}x${String(viewport.height)}`, async ({ page }, info) => {
-    test.skip(true, 'PP01 joue sur Essaim, retenu hors du catalogue public jusqu’à sa correction.');
     test.skip(info.project.name !== 'mobile-chromium');
     await page.setViewportSize(viewport);
     await page.goto('/?test=1#/essaim');

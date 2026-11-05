@@ -35,8 +35,25 @@ async function layout(page: Page) {
     }
     return boxes;
 }
+// The shell lays the controls out on an animation frame and the canvas follows the resize on later frames: with the
+// clock frozen, present frames until the controls stop moving and each one receives a touch at its own centre.
+async function settle(page: Page, selectors: string[]): Promise<void> {
+    // Rendering and ResizeObserver run in real time while animation frames follow the frozen clock: each frame
+    // also leaves 50 ms of real time, and the layout counts as settled after three identical frames.
+    let last = '', same = 0;
+    for (let frame = 0; frame < 60; frame++) {
+        await page.clock.runFor(17); await page.waitForTimeout(50);
+        const now = await page.evaluate(selectors => selectors.map(selector => {
+            const element = document.querySelector(selector); if (!element) return 'absent';
+            const r = element.getBoundingClientRect(), hit = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2);
+            return `${String(Math.round(r.x))},${String(Math.round(r.y))},${String(Math.round(r.width))},${String(Math.round(r.height))},${String(Boolean(hit && element.contains(hit)))}`;
+        }).join('|'), selectors);
+        same = now === last ? same + 1 : 0; last = now;
+        if (same >= 2 && !now.includes('false') && !now.includes('absent')) return;
+    }
+    throw new Error(`Mise en page instable : ${last}`);
+}
 for (const game of ['ferraille', 'briqueterie', 'essaim'] as const) test(`P-${game} doigt bruité / deux pouces, niveaux 1 et 10`, async ({ page }, info) => {
-    test.skip(game === 'essaim', 'Essaim est retenu hors du catalogue public jusqu’à sa correction.');
     test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(1800000);
     await page.setViewportSize({ width: 390, height: 844 });
     await page.addInitScript(() => { localStorage.setItem('arcade-lab:character:v1', 'dragon'); });
@@ -59,7 +76,7 @@ for (const game of ['ferraille', 'briqueterie', 'essaim'] as const) test(`P-${ga
                 await layout(page); await capture(page, info, 'essaim-controles-portrait');
                 // Level 10 exercises the same two thumbs in landscape; the browser presents one frame (frozen clock)
                 // so the side layout, applied on the next animation frame, is in place before it is measured.
-                if (level === 9) { await page.setViewportSize({ width: 844, height: 390 }); await page.clock.runFor(17); await layout(page); await capture(page, info, 'essaim-controles-paysage'); }
+                if (level === 9) { await page.setViewportSize({ width: 844, height: 390 }); await settle(page, ['#essaim-special', '#essaim-fire']); await layout(page); await capture(page, info, 'essaim-controles-paysage'); }
             }
             await capture(page, info, `perso-${game}-jeu`);
             while (clock.elapsed < 150000) {
@@ -92,7 +109,8 @@ for (const game of ['ferraille', 'briqueterie', 'essaim'] as const) test(`P-${ga
                     const targets = selectors.map(selector => { const el = document.querySelector(selector); if (!el) throw new Error(selector); const r = el.getBoundingClientRect(); return { selector, x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
                     if (stick) { const r = document.querySelector('.joystick')?.getBoundingClientRect(); if (!r) throw new Error('Missing stick'); targets.push({ selector: '.joystick', x: r.x + r.width / 2 + stick.x * 43 / Math.hypot(stick.x, stick.y), y: r.y + r.height / 2 + stick.y * 43 / Math.hypot(stick.x, stick.y) }); }
                     // Essaim steers relatively from the left zone; a decision packet uses the canvas low zone instead (finger under the ship).
-                    if (thumb !== undefined) { const r = document.querySelector('#game canvas')?.getBoundingClientRect(); if (!r) throw new Error('Missing canvas'); targets.push({ selector: '#game canvas', x: r.x + Math.max(18, Math.min(342, cannon + thumb)) / 360 * r.width, y: r.y + r.height * 610 / 640 }); }
+                    // The finger stays 13 px inside the canvas (noise ±12 px): in landscape the field is about 190 px wide, so 18 world units are only 9.5 px.
+                    if (thumb !== undefined) { const r = document.querySelector('#game canvas')?.getBoundingClientRect(); if (!r) throw new Error('Missing canvas'); targets.push({ selector: '#game canvas', x: r.x + Math.max(13, Math.min(r.width - 13, Math.max(18, Math.min(342, cannon + thumb)) / 360 * r.width)), y: r.y + r.height * 610 / 640 }); }
                     if (paddle !== undefined) { const r = document.querySelector('#game canvas')?.getBoundingClientRect(); if (!r) throw new Error('Missing canvas'); targets.push({ selector: '#game canvas', x: brick.down ? Math.max(r.x + 16, Math.min(r.x + r.width - 16, brick.landing + (paddle - brick.origin) * r.width / 360)) : r.x + Math.max(20, Math.min(340, brick.origin)) / 360 * r.width, y: r.y + r.height * .94 }); }
                     // Relative drag: a finger out of room at the screen edge lifts and lands again over the paddle, as a player does.
                     let reland = false;
@@ -138,7 +156,6 @@ for (const game of ['ferraille', 'briqueterie', 'essaim'] as const) test(`P-${ga
     }
 });
 test('P-essaim le bouclier change la défaite en victoire en temps piloté', async ({ page }, info) => {
-    test.skip(true, 'Essaim est retenu hors du catalogue public jusqu’à sa correction.');
     test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(1800000);
     await Finger.prepare(page);
     await page.goto('/?test=1#/essaim'); await expect.poll(() => page.evaluate(() => !!window.__ESSAIM_TEST__), { timeout: 30000 }).toBe(true);

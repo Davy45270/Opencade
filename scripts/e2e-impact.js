@@ -43,6 +43,7 @@ export const GAME_SPECS = {
     'dedale': ['dedale'],
     'derapage': ['derapage', 'derapage-3d', 'derapage-catalogue', 'derapage-touch'],
     'empilo': ['empilo'],
+    'essaim': ['essaim', 'essaim-signature', 'essaim-touch'],
     'ferraille': ['ferraille', 'ferraille-levels'],
     'gourmandises': ['gourmandises', 'gourmandises-finger', 'gourmandises-touch'],
     'marmaille': ['marmaille'],
@@ -54,7 +55,6 @@ export const GAME_SPECS = {
 /** Games held out of the public catalogue (absent from the registry) until they return; their specs stay owned here. */
 export const HELD_BACK = {
     'traverse': ['traverse'],
-    'essaim': ['essaim', 'essaim-signature', 'essaim-touch'],
 };
 /** Cross-game specs, grouped by what they exercise. None is tied to a single game. */
 export const CROSS_SPECS = {
@@ -84,6 +84,7 @@ export const SMOKE_TESTS = {
     'dedale': ['dedale', 'D12 crochet inerte et nettoyage lors du retour à l’accueil', 5.0],
     'derapage': ['derapage', 'Z30 Z34 porte et saut en vue de jeu', 2.9],
     'empilo': ['empilo', 'E11 E08 niveau 30 et mise en page', 5.6],
+    'essaim': ['essaim', 'G12 crochet inerte sans test et nettoyage à la sortie', 7.3],
     'ferraille': ['ferraille', 'F-SCENE-03 les six descriptions de rendu sont distinctes deux à deux', 3.0],
     'gourmandises': ['gourmandises', 'canyon des flèches, boucle et permutation réelle sur le tapis', 6.5],
     'marmaille': ['marmaille', 'MA-E2 sans rôle, la falaise est perdue', 2.3],
@@ -112,7 +113,7 @@ export const SPEC_SECONDS = {
  */
 export const SPLIT_SPECS = {
     'mobile-layout': {
-        'ferraille': 38.0, 'alunir': 33.9, 'briqueterie': 33.9, 'petits-pompiers': 24.7, 'pepites': 24.5, 'collier': 22.5,
+        'ferraille': 38.0, 'alunir': 33.9, 'briqueterie': 33.9, 'petits-pompiers': 24.7, 'pepites': 24.5, 'essaim': 22.8, 'collier': 22.5,
         'derapage': 18.1, 'bombercade': 17.6, 'gourmandises': 16.7, 'orbite': 16.4, 'marmaille': 15.0, 'dedale': 14.2, 'serpentin': 13.8,
         'bubble': 13.3, 'caisses': 12.7, 'empilo': 11.7, '': 5.1,
     },

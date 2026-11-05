@@ -2,7 +2,7 @@ import { test, expect } from './fixture';
 import process from 'node:process';
 import { performanceMetrics } from './finger-stepped';
 
-const games = ['caisses', 'alunir', 'bubble', 'serpentin', 'dedale', 'orbite', 'empilo', 'ferraille', 'briqueterie', 'derapage'] as const;
+const games = ['caisses', 'alunir', 'bubble', 'serpentin', 'dedale', 'orbite', 'empilo', 'ferraille', 'essaim', 'briqueterie', 'derapage'] as const;
 for (const game of games) test(`performance ${game} : 5 s réelles`, async ({ page }, info) => {
     test.setTimeout(120000);
     await page.goto(`/?test=1#/${game}`);

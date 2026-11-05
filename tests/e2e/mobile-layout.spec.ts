@@ -1,6 +1,6 @@
 import { test, expect, goHome } from './fixture';
 
-const ids = ['petits-pompiers', 'bombercade', 'marmaille', 'gourmandises', 'pepites', 'collier', 'derapage', 'caisses', 'alunir', 'ferraille', 'dedale', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin'];
+const ids = ['petits-pompiers', 'bombercade', 'marmaille', 'gourmandises', 'pepites', 'collier', 'derapage', 'caisses', 'alunir', 'ferraille', 'dedale', 'essaim', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin'];
 const windows = [{ width: 390, height: 844 }, { width: 360, height: 640 }, { width: 390, height: 600 }];
 for (const viewport of windows) for (const id of ids) {
     test(`M01 M02 M02b M03 ${id} ${String(viewport.width)}x${String(viewport.height)}`, async ({ page }, testInfo) => {
