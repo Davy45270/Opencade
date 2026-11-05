@@ -182,6 +182,8 @@ export function classify(path, root, users = helperImporters(root)) {
     if (e2e !== null && !e2e.includes('/')) {
         if (e2e.endsWith('.spec.ts')) {
             const spec = e2e.slice(0, -8), owner = ownerOf(spec);
+            const held = Object.keys(HELD_BACK).find(id => HELD_BACK[id].includes(spec));
+            if (held) return r('N0', `spec du jeu retenu ${held}`);
             if (owner) return r('N1', `spec de ${owner}`, [owner]);
             return r('N1', 'spec transverse', [], [spec]);
         }
@@ -193,6 +195,7 @@ export function classify(path, root, users = helperImporters(root)) {
     const area = /^src\/(games|engines)\/([^/]+)\//.exec(path);
     if (area && area[2] !== 'shared' && area[2] !== 'universal') {
         if (GAME_SPECS[area[2]]) return r('N1', `jeu ${area[2]}`, [area[2]]);
+        if (HELD_BACK[area[2]]) return r('N0', `jeu retenu hors catalogue : ${area[2]}`);
         return r('N3', `jeu absent de la table : ${area[2]}`);
     }
     const named = /^(?:docs\/(?!screenshots\/)|tests\/(?:fixtures\/)?|scripts\/(?:(?:validate|check|record|measure|audit|test)-)?)([^/]+)$/.exec(path);

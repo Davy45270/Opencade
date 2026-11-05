@@ -36,6 +36,9 @@ test('every spec file belongs to exactly one game or cross-game group', () => {
 });
 test('the game table matches src/games/registry.ts and every game has a short test', () => {
     assert.deepEqual(registryIds(root).sort(), Object.keys(GAME_SPECS).sort());
+    for (const [id, specs] of Object.entries(HELD_BACK)) {
+        assert.equal(select([`src/games/${id}/scene.ts`, ...specs.map(s => `tests/e2e/${s}.spec.ts`)], root).level, 'N0', `${id} retenu : aucune E2E`);
+    }
     for (const id of Object.keys(HELD_BACK)) assert.ok(!registryIds(root).includes(id) && !GAME_SPECS[id], `${id} retenu mais au registre`);
     for (const [id, [spec, title]] of Object.entries(SMOKE_TESTS)) {
         assert.ok(GAME_SPECS[id].includes(spec), `${id} : ${spec}`);
