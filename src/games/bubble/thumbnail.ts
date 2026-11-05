@@ -9,6 +9,8 @@ export { createDemo };
  * launcher and its aiming barrel. The card shows the ceiling band and the launcher band. */
 const K = 160 / 360, RES = K * 2;
 const BANDS: readonly (readonly [number, number, number])[] = [[0, 170, 0], [520, 620, 170]];
+/** World rows between the two bands, not shown on the card. */
+const HIDDEN_TOP = 170, HIDDEN_BOTTOM = 520;
 export function createThumbnail(seed = 28): Thumbnail {
     const demo = createDemo(seed), hero = thumbnailHero(), bubbles = arcadeArt[hero].bubbles;
     const bubble = (c: CanvasRenderingContext2D, x: number, y: number, color: Color, size = 40): void => {
@@ -27,7 +29,10 @@ export function createThumbnail(seed = 28): Thumbnail {
             sprite(c, `barrel-${hero}`, () => aimBarrelDrawing(hero), -53, -53, 106, RES);
             c.restore();
             if (!e.flight) bubble(c, ORIGIN.x, ORIGIN.y, e.next);
-            const p = e.projectile(); if (p && e.flight) bubble(c, p.x, p.y, e.flight.color);
+            // The card hides the middle of the board: a bubble flying there is shown as a trace rising along the
+            // bottom edge of the ceiling band, so a shot never leaves the card still.
+            const p = e.projectile();
+            if (p && e.flight) bubble(c, p.x, p.y > HIDDEN_TOP && p.y < HIDDEN_BOTTOM ? HIDDEN_TOP - 5 - (HIDDEN_BOTTOM - p.y) / (HIDDEN_BOTTOM - HIDDEN_TOP) * 15 : p.y, e.flight.color);
             bubble(c, 300, 585, e.queued, 32);
             c.restore();
         }
