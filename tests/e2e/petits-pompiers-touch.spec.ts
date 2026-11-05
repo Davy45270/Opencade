@@ -15,6 +15,8 @@ test('PT01 Petits Pompiers plein écran : 0 px de bande, monde + barre = 100 % d
         const size = `${String(width)}×${String(height)}`;
         await page.setViewportSize({ width, height });
         await page.goto('/?test=1#/petits-pompiers');
+        // Same URL with a hash on every size: goto alone is a same-document navigation and leaves the game on screen.
+        await page.reload();
         await expect.poll(() => page.evaluate(() => Boolean(window.__PETITS_POMPIERS_TEST__))).toBe(true);
         await page.locator('#level-list button').first().tap(); await page.locator('#pompiers-detente').tap();
         await page.locator('#resume').tap();
