@@ -1,6 +1,6 @@
 import { expect, test } from 'vitest';
 import { Engine, neighbors, key, center } from '../src/engines/bubble/engine';
-import { LEVELS } from '../src/engines/bubble/levels';
+import { LEVELS, EXTENSION_START } from '../src/engines/bubble/levels';
 // A plain human-like player: each shot (with or without swap) is judged one move ahead on the real engine,
 // preferring fewer bubbles, same-colour pairs and a high front. Every level must be won with its real deal.
 function settle(e: Engine): void { e.shoot(); for (let i = 0; i < 2000 && e.flight; i++) e.step(50); }
@@ -27,7 +27,8 @@ function play(index: number): { status: string; shots: number } {
     }
     return { status: 'stuck', shots: 120 };
 }
-test('B-WIN-01 chaque niveau se gagne avec sa donne réelle par un joueur simple', () => {
-    const lost = LEVELS.map((l, i) => ({ id: l.id, ...play(i) })).filter(r => r.status !== 'won');
+// Levels 31-130 carry recorded proofs instead (B-EXT-02 in test:node): this live search stays on the first thirty.
+test('B-WIN-01 chaque niveau 1-30 se gagne avec sa donne réelle par un joueur simple', () => {
+    const lost = LEVELS.slice(0, EXTENSION_START).map((l, i) => ({ id: l.id, ...play(i) })).filter(r => r.status !== 'won');
     expect(lost).toEqual([]);
 }, 600000);

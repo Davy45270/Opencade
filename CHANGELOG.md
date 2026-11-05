@@ -5,6 +5,9 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Bubble : 100 niveaux de plus (31 à 130), en dix paliers de dix. Chaque palier s’ouvre sur un niveau plus facile pour souffler, a son décor (jungle, automne, volcan, cirque, ciel) et ajoute une mécanique déjà connue. Un solveur gagne chaque niveau avec sa vraie donne, et le regagne quand le plafond descend 20 % plus souvent ; ces parties sont rejouées par les tests.
+- Bubble : le niveau 9 « Cristal » devient plus abordable. Son plafond descend tous les 8 tirs au lieu de 7, et son dessin ne change pas.
+- Bubble : les billes spéciales se reconnaissent au premier coup d’œil, même sans distinguer les couleurs. Chacune a son symbole cerné, et la bombe comme le tir arc-en-ciel sont animés. Une bulle d’une ligne présente chaque effet la première fois qu’il apparaît, et la pause en donne la légende.
 - Jeu au doigt sur téléphone : plus de barre de commandes. Le ⏸ reste fixé en haut à droite ; une seule page de pause regroupe les réglages et les aides. Sur un écran court et large (paysage), les commandes passent dans les bandes latérales.
 - Commandes tactiles allégées jeu par jeu : gestes plutôt que flèches (Caisses, Empilo, Serpentin, Dédale, Pépites, Briqueterie), une seule icône en jeu (Bubble, Orbite, Briqueterie, Serpentin), Collier sans commande (on touche le tireur pour échanger), compteurs dans la rangée du haut (Alunir, Marmaille, Gourmandises, Pépites, Bubble), saut de Ferraille à 72 px sous le pouce, Bombercade et Artificiers réorganisés, Petits Pompiers en plein écran au-dessus de sa barre.
 - Traverse est retiré du catalogue le temps d’adapter son pas au doigt ; il reviendra dans une prochaine mise à jour.

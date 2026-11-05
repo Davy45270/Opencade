@@ -91,7 +91,8 @@ export function wallBounces(EngineClass = Engine): void {
 }
 function anchoredKeys(grid: Cell[]): Set<string> {
     const cells = new Map(grid.map(c => [key(c), c])), seen = new Set<string>();
-    const queue = grid.filter(c => c.row === 0);
+    // Row 0 and fixed crystals anchor, as in the engine (levels 31+ may hang a lone crystal low).
+    const queue = grid.filter(c => c.row === 0 || c.kind === 'crystal');
     while (queue.length) {
         const cell = queue.pop();
         if (!cell || seen.has(key(cell))) continue;

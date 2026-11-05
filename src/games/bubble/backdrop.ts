@@ -1,7 +1,11 @@
 import type Phaser from 'phaser';
 import { LEVELS } from '../../engines/bubble/levels';
 export const bubbleWorlds = ['jungle', 'automne', 'volcan', 'cirque', 'ciel'] as const;
-export function bubbleWorld(level: number): typeof bubbleWorlds[number] { return bubbleWorlds[Math.min(4, Math.floor(Math.max(0, level) / 6))] ?? 'ciel'; }
+/** Levels 1-30: six per world. Levels 31-130: one world per tier of ten, the five worlds twice over. */
+export function bubbleWorld(level: number): typeof bubbleWorlds[number] {
+    if (level >= 30) return bubbleWorlds[Math.floor((level - 30) / 10) % bubbleWorlds.length] ?? 'ciel';
+    return bubbleWorlds[Math.min(4, Math.floor(Math.max(0, level) / 6))] ?? 'ciel';
+}
 const palettes = {
     jungle: [0x2f7a5a, 0x4f9a5e, 0xb6ec6a], automne: [0x8a4a3a, 0xb8683a, 0xffc07a],
     volcan: [0x4a2a3a, 0x8a4a44, 0xff9a4a], cirque: [0x6a3a8a, 0x9a5aa8, 0xffb0e0], ciel: [0x4a7ac0, 0x7aa8e0, 0xe0f0ff],

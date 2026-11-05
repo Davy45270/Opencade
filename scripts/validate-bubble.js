@@ -1,5 +1,6 @@
 /* global console, URL, process, performance */
 import './bubble-input-check.js';
+import './validate-bubble-extension.js';
 import './ts-loader.js';
 import { setTimeout as pause } from 'node:timers/promises';
 import assert from 'node:assert/strict';

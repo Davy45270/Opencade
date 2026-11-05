@@ -2,9 +2,10 @@ import assert from './bubble-assert';
 import { HISTORICAL_ROWS } from './bubble-history';
 import { Engine, type Cell, type Color } from '../src/engines/bubble/engine';
 import { readSave, writeSave } from '../src/shell/storage';
-import { LEVELS, generateLevel } from '../src/engines/bubble/levels';
+import { LEVELS, generateLevel, EXTENSION_START } from '../src/engines/bubble/levels';
 export function historicalLevels(generate = generateLevel): void {
-    assert.equal(LEVELS.length, 30);
+    assert.equal(EXTENSION_START, 30);
+    assert.equal(LEVELS.length, 130);
     const values = new Map([['bubble-lab:v1', '{"unlocked":10,"best":123}']]);
     const storage = { getItem: (key: string) => values.get(key) ?? null,
         setItem: (key: string, value: string) => { values.set(key, value); } };
@@ -14,7 +15,7 @@ export function historicalLevels(generate = generateLevel): void {
     assert.deepEqual(LEVELS.slice(0, 10).map(l => [l.id, l.colors, l.rows, l.interval, l.pattern, l.seed]), [
         ['L1',4,5,0,'rubans',452], ['L2',4,5,12,'losange',453], ['L3',4,6,12,'damier',454],
         ['L4',4,6,10,'pyramide',455], ['L5',5,6,10,'colonnes',456], ['L6',5,7,9,'vagues',457],
-        ['L7',5,7,8,'chevrons',458], ['L8',6,7,8,'spirale',459], ['L9',6,8,7,'cristal',460], ['L10',6,8,6,'prisme',461],
+        ['L7',5,7,8,'chevrons',458], ['L8',6,7,8,'spirale',459], ['L9',6,8,8,'cristal',460], ['L10',6,8,6,'prisme',461],
     ]);
     const expected = HISTORICAL_ROWS.map(rows=>rows.flatMap((line,row)=>Array.from(line).flatMap((token,col)=>
         token === '.' ? [] : [{row,col,color:Number(token) as Color}])));

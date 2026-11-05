@@ -18,6 +18,7 @@ import { Engine, center, key, ORIGIN, ROW_STEP, LOSS_LINE, type Cell, type Color
 import { LEVELS } from '../../engines/bubble/levels';
 import { Progression } from '../../shell/progression';
 import { readSave, writeSave, type StoragePort } from '../../shell/storage';
+import { SPECIAL, SPECIALS, SpecialTips, canvasGraphics, cellSpecial, drawGlyph, type SpecialId } from './specials';
 const HINTS: Record<string, string> = {
     stone: 'Pierre : couper ses attaches', bomb: 'Bombe : éclate ses six voisins',
     rainbow: 'Anneau blanc : couleur touchée', ice: 'Glace : deux éclatements voisins',
@@ -31,7 +32,7 @@ const CATALOGUE_HINTS: Record<string, string> = {
     P03: 'Cristal fixe · Prisme : toutes les couleurs',
 };
 /** What the last frame actually drew, for the E2E: guide segments, ghost opacities, attached bubble position. */
-export interface Drawn { guide: number; ghost: { alpha: number; ring: number } | null; attached: Point | null; decor: string[]; icons: Record<'crystal' | 'prism' | 'leaf' | 'lock', number>; prismArcAlpha: number }
+export interface Drawn { guide: number; ghost: { alpha: number; ring: number } | null; attached: Point | null; decor: string[]; icons: Record<'crystal' | 'prism' | 'leaf' | 'lock', number>; prismArcAlpha: number; specials: Partial<Record<SpecialId, number>> }
 const onScreen = (p: Point): boolean => p.x >= 0 && p.x <= 360 && p.y >= 0 && p.y <= 640;
 const GHOST_ALPHA = 0.35, GHOST_RING_ALPHA = 0.85;
 interface Effect {
@@ -49,6 +50,8 @@ export interface TestHook {
     loadLevel: (index: number, seed?: number) => void;
     advance(ms: number): void;
     hudText(): string;
+    /** First-time tip on screen (one line), or null. */
+    specialTip(): string | null;
     visuals(): { guide: ReturnType<Engine['trace']>['segments']; falling: number; ghost: Cell | null; settling: Point | null; drawn: Drawn };
     usefulArea(): { x: number; y: number; width: number; height: number };
     lastAttached(): Cell | null;
@@ -76,10 +79,12 @@ export class LabScene extends Phaser.Scene {
     private testManual = false;
     private testAdvancing = false;
     private inputs = new Inputs();
+    private tips = new SpecialTips(() => this.storage);
+    private tipElement?: HTMLElement;
     private startLevel(index: number, seed?: number, fresh = false): void {
         this.testManual = false; this.progress.start(index, fresh);
         this.engine.loadLevel(index, seed);
-        this.effects = []; this.settle.clear();
+        this.effects = []; this.settle.clear(); this.tips.clear();
         this.selecting = false;
         this.syncPanels();
     }
@@ -97,7 +102,7 @@ export class LabScene extends Phaser.Scene {
     private effects: Effect[] = [];
     /** Last attached bubble glides from its impact point to its socket (visual only). */
     private settle = new Settle();
-    private drawn: Drawn = { guide: 0, ghost: null, attached: null, decor: [], icons: { crystal: 0, prism: 0, leaf: 0, lock: 0 }, prismArcAlpha: 0 };
+    private drawn: Drawn = { guide: 0, ghost: null, attached: null, decor: [], icons: { crystal: 0, prism: 0, leaf: 0, lock: 0 }, prismArcAlpha: 0, specials: {} };
     private frame: Drawn = this.drawn;
     constructor(private session = new PlaySession(false)) {
         super('lab');
@@ -106,9 +111,12 @@ export class LabScene extends Phaser.Scene {
         const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('bubble');
         try { this.storage = window.localStorage; } catch { /* Unavailable storage. */ }
+        this.tips = new SpecialTips(() => this.storage);
+        const legend = this.mountSpecials();
         const cleanup = (): void => {
             this.paint?.destroy();
             this.inputs.dispose(); document.body.classList.remove('bubble');
+            legend?.remove(); this.tipElement?.remove(); this.tipElement = undefined;
             sound.stop();
             delete window.__BUBBLE_TEST__;
         };
@@ -226,6 +234,7 @@ export class LabScene extends Phaser.Scene {
                     this.effects = []; this.settle.clear();
                 },
                 hudText: () => this.hud?.text ?? '',
+                specialTip: () => this.tips.current ? SPECIAL[this.tips.current].line : null,
                 lastAttached: () => this.engine.last.attached ? { ...this.engine.last.attached } : null,
                 visuals: () => ({ guide: this.guide(), falling: this.effects.filter(e => e.fall).length, ghost: this.ghost(), settling: this.settling(), drawn: { ...this.drawn } }),
                 usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
@@ -262,37 +271,81 @@ export class LabScene extends Phaser.Scene {
         const attached = this.engine.last.attached;
         return attached ? this.settle.point(key(attached)) : null;
     }
-    /** Fixed crystal: a faceted ice-blue hexagon, never a colour bubble. */
+    /** Fixed crystal: a faceted hexagon, never a colour bubble. */
     private drawCrystal(p: Point): void {
         const g = this.obstacles; if (!g) return;
-        const pts = Array.from({ length: 6 }, (_, i) => ({ x: p.x + Math.cos(i * Math.PI / 3 + Math.PI / 6) * 19, y: p.y + Math.sin(i * Math.PI / 3 + Math.PI / 6) * 19 }));
-        g.fillStyle(0x9fe8ff, 0.95); g.fillPoints(pts, true); if (onScreen(p)) this.frame.icons.crystal++;
-        g.lineStyle(2, 0xffffff, 0.9); g.strokePoints(pts, true);
-        g.lineStyle(1.5, 0x4aa8d8, 0.9); g.lineBetween(p.x, p.y - 19, p.x, p.y + 19); g.lineBetween(p.x - 16, p.y - 9, p.x + 16, p.y + 9);
+        if (onScreen(p)) this.frame.icons.crystal++;
+        drawGlyph(g, SPECIAL.crystal.glyph, p.x, p.y);
     }
-    /** Wild prism: a pale bubble wrapped in six rainbow arcs. */
+    /** Wild prism: a pale bubble wrapped in six rainbow segments around a dark sparkle. */
     private drawPrism(p: Point): void {
         const g = this.obstacles; if (!g) return;
-        g.fillStyle(0xf4f7ff, 0.95); g.fillCircle(p.x, p.y, 18); if (onScreen(p)) this.frame.icons.prism++;
-        [0xff5a6e, 0xffa53d, 0xffe14d, 0x5fd86b, 0x4aa8ff, 0xa66bff].forEach((color, i) => {
-            const alpha = 1; this.frame.prismArcAlpha = alpha;
-            g.lineStyle(4, color, alpha); g.beginPath(); g.arc(p.x, p.y, 15, i * Math.PI / 3, (i + 1) * Math.PI / 3); g.strokePath();
-        });
+        if (onScreen(p)) this.frame.icons.prism++;
+        this.frame.prismArcAlpha = 1;
+        drawGlyph(g, SPECIAL.prism.glyph, p.x, p.y);
     }
-    /** Leaf bubble: an autumn leaf with its vein over the colour. */
+    /** Leaf bubble: an outlined leaf with arrows to both sides (it sweeps its row). */
     private drawLeaf(p: Point): void {
         const g = this.obstacles; if (!g) return;
         if (onScreen(p)) this.frame.icons.leaf++;
-        g.fillStyle(0xffb14a, 0.95); g.fillTriangle(p.x - 11, p.y + 9, p.x + 11, p.y - 9, p.x - 4, p.y - 6); g.fillTriangle(p.x - 11, p.y + 9, p.x + 11, p.y - 9, p.x + 5, p.y + 6);
-        g.lineStyle(2, 0x7a3b12, 0.95); g.lineBetween(p.x - 12, p.y + 10, p.x + 11, p.y - 9);
+        drawGlyph(g, SPECIAL.leaf.glyph, p.x, p.y);
     }
-    /** P02 locked bubble: a padlock over the colour (same rule as one-layer ice). */
+    /** P02 locked bubble: an outlined padlock over the colour (same rule as one-layer ice). */
     private drawLock(p: Point): void {
         const g = this.obstacles; if (!g) return;
         if (onScreen(p)) this.frame.icons.lock++;
-        g.lineStyle(3, 0xffe7a8, 1); g.beginPath(); g.arc(p.x, p.y - 4, 7, Math.PI, 0); g.strokePath();
-        g.fillStyle(0xd9a441, 1); g.fillRoundedRect(p.x - 10, p.y - 4, 20, 15, 3);
-        g.fillStyle(0x5a3a10, 1); g.fillCircle(p.x, p.y + 3, 2.5);
+        drawGlyph(g, SPECIAL.lock.glyph, p.x, p.y);
+    }
+    /** Pause legend (game menu, which is the pause page on touch screens) and the first-time tip bubble. */
+    private mountSpecials(): HTMLElement | undefined {
+        const area = document.querySelector('#play-area');
+        if (area) {
+            const tip = document.createElement('p');
+            tip.id = 'bubble-tip'; tip.setAttribute('role', 'status'); tip.hidden = true;
+            tip.style.cssText = 'position:absolute;z-index:3;top:58px;left:50%;transform:translateX(-50%);max-width:calc(100% - 32px);box-sizing:border-box;margin:0;padding:6px 12px;'
+                + 'display:flex;align-items:center;gap:8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;'
+                + 'background:#10161ff0;color:#fff;border:2px solid #ffd23f;border-radius:18px;font:600 14px/1.2 system-ui,sans-serif;box-shadow:0 2px 8px #0008';
+            area.append(tip); this.tipElement = tip;
+        }
+        const menu = document.querySelector('#game-menu');
+        if (!menu) return undefined;
+        const legend = document.createElement('section');
+        legend.id = 'bubble-legend'; legend.setAttribute('aria-label', 'Billes spéciales');
+        legend.style.cssText = 'grid-column:1/-1;order:1;margin:4px;padding:6px 8px;border:1px solid #64e4cc88;border-radius:10px;background:#0d1a29cc;color:#e5f3ff;font:14px/1.2 system-ui,sans-serif';
+        const title = document.createElement('h3');
+        title.textContent = 'Billes spéciales'; title.style.cssText = 'margin:0 0 4px;font-size:15px';
+        legend.append(title);
+        for (const special of SPECIALS) {
+            const row = document.createElement('p');
+            row.setAttribute('data-special', special.id);
+            row.style.cssText = 'display:flex;align-items:center;justify-content:flex-start;gap:8px;margin:2px 0;text-align:left';
+            row.append(specialIcon(special.id, 30));
+            const text = document.createElement('span'); text.textContent = special.line; text.style.cssText = 'flex:1;min-width:0';
+            row.append(text); legend.append(row);
+        }
+        menu.append(legend);
+        return legend;
+    }
+    /** Specials on screen now: board cells, the rainbow shot and the bumpers. */
+    private presentSpecials(): SpecialId[] {
+        const catalogue = LEVELS[this.engine.level]?.catalogue, found = new Set<SpecialId>();
+        for (const cell of this.engine.grid) { const id = cellSpecial(cell, catalogue); if (id) found.add(id); }
+        if (this.engine.rainbow) found.add('rainbow');
+        if (this.engine.bumpers.length) found.add('bumper');
+        return SPECIALS.map(s => s.id).filter(id => found.has(id));
+    }
+    private syncTip(delta: number): void {
+        // A tip never outlives play: it goes with the end screen, it waits during a pause.
+        if (this.engine.status !== 'playing' || this.selecting) this.tips.clear();
+        const playing = this.engine.status === 'playing' && !this.selecting && !this.session.paused;
+        const id = playing || this.tips.current ? this.tips.update(playing ? this.presentSpecials() : [], playing ? delta : 0) : null;
+        const tip = this.tipElement; if (!tip) return;
+        const text = id ? SPECIAL[id].line : '';
+        if (tip.getAttribute('data-special') === (id ?? '')) return;
+        tip.setAttribute('data-special', id ?? '');
+        tip.replaceChildren();
+        if (id) { tip.append(specialIcon(id, 28)); const span = document.createElement('span'); span.textContent = text; tip.append(span); }
+        tip.hidden = !id;
     }
     private bubble(x: number, y: number, color: Color, alpha = 1, scale = 1): void {
         const key = this.bubbleTextures[color];
@@ -342,13 +395,15 @@ export class LabScene extends Phaser.Scene {
         }
         this.hero.pose = Math.abs(this.engine.angle) > 0.2 ? 'profil' : 'face'; this.hero.flip = this.engine.angle < 0;
         this.hero.advance(delta, this.session.paused || this.selecting, this.engine.status, this.engine.specialArmed || this.engine.specialMs > 0);
+        this.syncTip(delta);
         if (this.testAdvancing) return;
+        const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
         const g = this.graphics;
         if (!g)
             return;
         g.clear();
         this.obstacles?.clear();
-        const drawn: Drawn = { guide: 0, ghost: null, attached: null, decor: [], icons: { crystal: 0, prism: 0, leaf: 0, lock: 0 }, prismArcAlpha: 0 };
+        const drawn: Drawn = { guide: 0, ghost: null, attached: null, decor: [], icons: { crystal: 0, prism: 0, leaf: 0, lock: 0 }, prismArcAlpha: 0, specials: {} };
         this.frame = drawn;
         const attachedKey = this.engine.last.attached ? key(this.engine.last.attached) : '';
         this.paint?.begin();
@@ -385,30 +440,24 @@ export class LabScene extends Phaser.Scene {
             g.lineStyle(2, 0xffffff, GHOST_RING_ALPHA).strokeCircle(p.x, p.y, 19);
             drawn.ghost = { alpha: GHOST_ALPHA, ring: GHOST_RING_ALPHA };
         }
-        g.lineStyle(8, 0xffb867);
-        for (const bumper of this.engine.bumpers) g.lineBetween(bumper.x, bumper.top, bumper.x, bumper.bottom);
+        // Bumpers: outlined striped bars, readable by their shape alone.
+        for (const bumper of this.engine.bumpers) {
+            g.fillStyle(0xffb867); g.fillRoundedRect(bumper.x - 5, bumper.top, 10, bumper.bottom - bumper.top, 4);
+            g.lineStyle(2, 0x10161f); g.strokeRoundedRect(bumper.x - 5, bumper.top, 10, bumper.bottom - bumper.top, 4);
+            for (let y = bumper.top + 10; y < bumper.bottom - 4; y += 12) g.lineBetween(bumper.x - 4, y + 4, bumper.x + 4, y - 2);
+            drawn.specials.bumper = (drawn.specials.bumper ?? 0) + 1;
+        }
         for (const cell of this.engine.grid) {
             const p = this.settle.point(key(cell)) ?? center(cell, this.engine.drops);
             if (key(cell) === attachedKey) drawn.attached = { ...p };
-            const catalogue = LEVELS[this.engine.level]?.catalogue;
+            const catalogue = LEVELS[this.engine.level]?.catalogue, id = cellSpecial(cell, catalogue);
+            if (id && onScreen(p)) drawn.specials[id] = (drawn.specials[id] ?? 0) + 1;
             if (cell.kind === 'crystal') this.drawCrystal(p);
             else if (cell.kind === 'prism') this.drawPrism(p);
             else this.bubble(p.x, p.y, cell.color);
             if (cell.kind === 'leaf') this.drawLeaf(p);
             else if (cell.kind === 'ice' && catalogue === 'P02') this.drawLock(p);
-            else if (cell.kind && cell.kind !== 'crystal' && cell.kind !== 'prism' && this.obstacles) {
-                const g = this.obstacles;
-                g.lineStyle(3, cell.kind === 'stone' ? 0x303b4c : 0xffffff);
-                if (cell.kind === 'stone') { g.fillStyle(0x667080); g.fillRoundedRect(p.x - 13, p.y - 13, 26, 26, 5); }
-                if (cell.kind === 'bomb') { g.fillStyle(0x263040); g.fillCircle(p.x, p.y, 10); g.lineBetween(p.x, p.y - 10, p.x + 8, p.y - 16); }
-                if (cell.kind === 'ice') { g.strokeRect(p.x - 14, p.y - 14, 28, 28); if (cell.ice === 1) g.lineBetween(p.x - 12, p.y - 12, p.x + 12, p.y + 12); }
-                if (cell.kind === 'star') {
-                    g.lineBetween(p.x - 12, p.y, p.x + 12, p.y);
-                    g.lineBetween(p.x, p.y - 12, p.x, p.y + 12);
-                    g.lineBetween(p.x - 8, p.y - 8, p.x + 8, p.y + 8);
-                    g.lineBetween(p.x + 8, p.y - 8, p.x - 8, p.y + 8);
-                }
-            }
+            else if (id && id !== 'crystal' && id !== 'prism' && this.obstacles) drawGlyph(this.obstacles, SPECIAL[id].glyph, p.x, p.y, still ? 0 : this.hero.time);
         }
         for (const effect of this.effects) {
             effect.age += delta;
@@ -428,10 +477,11 @@ export class LabScene extends Phaser.Scene {
         if (!this.engine.flight)
             this.bubble(ORIGIN.x, ORIGIN.y, this.engine.next);
         if (this.engine.rainbow && !this.engine.flight) {
-            this.obstacles?.lineStyle(3, 0xffffff).strokeCircle(ORIGIN.x, ORIGIN.y, 22);
+            if (this.obstacles) drawGlyph(this.obstacles, SPECIAL.rainbow.glyph, ORIGIN.x, ORIGIN.y, still ? 0 : this.hero.time);
+            drawn.specials.rainbow = 1;
         }
         if (this.engine.specialArmed || this.engine.specialMs > 0) {
-            const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+            const reduced = still;
             const moving = reduced ? 0 : this.hero.time / 650;
             const target = this.engine.flight?.trajectory.target;
             const impact = target ? center(target, this.engine.drops) : { x: 180, y: 552 };
@@ -458,4 +508,23 @@ export class LabScene extends Phaser.Scene {
         if (status && status.textContent !== text)
             status.textContent = text;
     }
+}
+/**
+ * A legend icon: the glyph drawn on a detached 2D canvas (a neutral bubble under the glyphs that ride
+ * on a colour), shown as an image so the play canvas stays the only canvas of the page.
+ */
+function specialIcon(id: SpecialId, size: number): HTMLElement {
+    const canvas = document.createElement('canvas'), special = SPECIAL[id], ratio = 2;
+    canvas.width = size * ratio; canvas.height = size * ratio;
+    const c = canvas.getContext('2d');
+    if (c) {
+        const g = canvasGraphics(c), scale = size * ratio / 56, mid = size * ratio / 2;
+        if (special.onBubble) { g.fillStyle(0x5f86b8); g.fillCircle(mid, mid, 20 * scale); g.lineStyle(1.5 * scale, 0xffffff, 0.8); g.strokeCircle(mid, mid, 20 * scale); }
+        drawGlyph(g, special.glyph, mid, mid, 0, scale);
+    }
+    const image = document.createElement('img');
+    image.src = canvas.toDataURL('image/png'); image.alt = ''; image.width = size; image.height = size;
+    image.style.cssText = `width:${String(size)}px;height:${String(size)}px;flex:none`;
+    image.setAttribute('aria-hidden', 'true');
+    return image;
 }

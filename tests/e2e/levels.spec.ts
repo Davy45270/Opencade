@@ -63,14 +63,14 @@ test('L13 dernier niveau affiche la fin et accès localStorage absent', async ({
         Object.defineProperty(window, 'localStorage', { get: () => { throw new Error('Unavailable'); } });
     });
     await ready(page);
-    await page.evaluate(() => { window.__BUBBLE_TEST__?.loadLevel(29, 452); });
+    await page.evaluate(() => { window.__BUBBLE_TEST__?.loadLevel(129, 452); });
     await win(page);
     await expect(page.locator('#result-title')).toHaveText('Tous les niveaux réussis !');
     expect((await read(page)).progression).toBe('complete');
     await expect(page.locator('#next-level')).toBeHidden();
     // End screen: its own Niveaux icon opens the list.
     await page.locator('#result-levels').click();
-    await expect(page.locator('#level-list button').nth(29)).toBeEnabled();
+    await expect(page.locator('#level-list button').nth(129)).toBeEnabled();
 });
 
 test('L14 défaite par descente après six tirs réels sans éclatement', async ({ page }, info) => {

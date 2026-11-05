@@ -65,7 +65,7 @@ import { impactCell, wallBounces, detachedGroupsFall } from './bubble-snap';
 import { settleGlide } from './bubble-settle';
 test('B-HEX-18 tir rasant : se range à côté, pas dessous', () => { grazingAttachment(); });
 test('B-HEX-19 après rebond : alvéole haute, symétrie, jamais perdu sur plateau libre', () => { bounceUpperSocket(); });
-test('B-SNAP-01 la cellule choisie contient le point d’impact (30 niveaux troués)', () => { expect(impactCell()).toBe(4200); });
+test('B-SNAP-01 la cellule choisie contient le point d’impact (130 niveaux troués)', () => { expect(impactCell()).toBe(18200); });
 test('B-SNAP-02 rebonds : nombre exact, miroir, plafond', () => { wallBounces(); });
 test('B-SNAP-03 groupes détachés : toujours tombés, rien ne flotte', () => { expect(detachedGroupsFall()).toBeGreaterThan(0); });
 test('B-SNAP-05 glissement de 90 ms, gelé en pause', () => { settleGlide(); });

@@ -1,8 +1,8 @@
 import assert from './bubble-assert';
-import { LEVELS, generateLevel } from '../src/engines/bubble/levels';
+import { LEVELS, generateLevel, EXTENSION_START } from '../src/engines/bubble/levels';
 import { Engine } from '../src/engines/bubble/engine';
 import { measureDiversity } from '../scripts/diversity-metrics.js';
-export function diversityRows(indices = LEVELS.map((_,i)=>i), generate = generateLevel) {
+export function diversityRows(indices = LEVELS.slice(0, EXTENSION_START).map((_,i)=>i), generate = generateLevel) {
     return indices.map((index, i) => {
         const l = LEVELS[index];
         assert.ok(l);
@@ -15,7 +15,7 @@ export function diversityRows(indices = LEVELS.map((_,i)=>i), generate = generat
             layout:grid.map(c=>`${String(c.row)},${String(c.col)}:${String(c.color)}:${c.kind ?? 'color'}`)};
     });
 }
-export function levelDiversity(indices = LEVELS.map((_,i)=>i), generate = generateLevel): void {
+export function levelDiversity(indices = LEVELS.slice(0, EXTENSION_START).map((_,i)=>i), generate = generateLevel): void {
     const levels = indices.map(i=>LEVELS[i]);
     const rows = diversityRows(indices,generate);
     const result = measureDiversity(rows);

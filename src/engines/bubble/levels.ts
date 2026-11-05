@@ -1,12 +1,14 @@
 import { Random } from '../shared/random';
 import type { Cell, Color } from './engine';
+import { EXTENSION, EXTENSION_START, TIER_SIZE, extensionMechanics, generateExtensionLevel } from './extension';
+export { EXTENSION_START } from './extension';
 export interface Level { id: string; name: string; colors: number; rows: number; interval: number; pattern: string; seed: number; mechanics?: readonly string[]; challenge?: boolean; catalogue?: 'P01' | 'P02' | 'P03' }
 const HISTORIC: readonly Level[] = [
     ['Atelier', 4, 5, 0, 'rubans'], ['Losange', 4, 5, 12, 'losange'],
     ['Damier', 4, 6, 12, 'damier'], ['Pyramide', 4, 6, 10, 'pyramide'],
     ['Colonnes', 5, 6, 10, 'colonnes'], ['Vagues', 5, 7, 9, 'vagues'],
     ['Chevrons', 5, 7, 8, 'chevrons'], ['Spirale', 6, 7, 8, 'spirale'],
-    ['Cristal', 6, 8, 7, 'cristal'], ['Prisme', 6, 8, 6, 'prisme'],
+    ['Cristal', 6, 8, 8, 'cristal'], ['Prisme', 6, 8, 6, 'prisme'],
 ].map((data, index) => ({ id: `L${String(index + 1)}`, name: String(data[0]), colors: Number(data[1]), rows: Number(data[2]), interval: Number(data[3]), pattern: String(data[4]), seed: 452 + index }));
 const additions = [
     'Silex suspendu', 'Jardin gourmand', 'Halte des lucioles',
@@ -36,7 +38,11 @@ export const LEVELS: readonly Level[] = [...HISTORIC, ...additions.map((name, i)
         challenge: [14, 19, 24, 29].includes(i + 10),
         ...(catalogue ? { catalogue: catalogue.code } : {}),
     };
-})];
+}), ...EXTENSION.map(([name, colors, rows, interval, shape, motif], i): Level => ({
+    // Levels 31-130: the last level of each tier of ten is its challenge.
+    id: `L${String(EXTENSION_START + i + 1)}`, name, colors, rows, interval, pattern: `palier-${String(shape)}-${String(motif)}`,
+    seed: 600 + i, mechanics: extensionMechanics(i), challenge: i % TIER_SIZE === TIER_SIZE - 1,
+}))];
 /** Literal catalogue placements (row, col), shared by the generator and its oracle. */
 export const CATALOGUE_CELLS = {
     P02: { locks: [[3, 1], [3, 6], [5, 2], [5, 5]], leaves: [[2, 4], [4, 1], [6, 6]] },
@@ -68,6 +74,7 @@ export function levelAt(index: number): Level {
 }
 export function generateLevel(index: number, seed: number): Cell[] {
     const level = levelAt(index), random = new Random(seed), grid: Cell[] = [];
+    if (index >= EXTENSION_START) return generateExtensionLevel(index - EXTENSION_START, level.colors, level.rows, seed);
     if (index >= 10) {
         // Shuffle the whole palette; nearby seeds also change the staggered seams.
         const palette = Array.from({ length: level.colors }, (_, c) => c as Color);
