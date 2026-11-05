@@ -40,8 +40,9 @@ class Element extends EventTarget {
     replaceChildren() { this.children = []; }
 }
 // Execute main's production route/update installation with platform ports supplied.
-const mainSource = transpile(readFileSync('src/main.ts', 'utf8'))
-    .replace(/^import .*;$/gm, '').replace(/export \{\};?/g, '');
+// The shell's startApp (src/shell/app.ts), called as src/main.ts calls it for the catalogue.
+const mainSource = `${transpile(readFileSync('src/shell/app.ts', 'utf8'))
+    .replace(/^import .*;$/gm, '').replace(/export \{\};?/g, '').replace(/^export /gm, '')}\nstartApp({ games });`;
 const mainScript = new Script(mainSource);
 let elements;
 let sceneModule;

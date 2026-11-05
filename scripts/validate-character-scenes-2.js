@@ -35,8 +35,9 @@ class Element extends EventTarget {
     replaceChildren() { this.children = []; }
 }
 // Execute main's production route/update installation with platform ports supplied.
-const mainSource = transpile(readFileSync('src/main.ts', 'utf8'))
-    .replace(/^import .*;$/gm, '').replace(/export \{\};?/g, '');
+// The shell's startApp (src/shell/app.ts), called as src/main.ts calls it for the catalogue.
+const mainSource = `${transpile(readFileSync('src/shell/app.ts', 'utf8'))
+    .replace(/^import .*;$/gm, '').replace(/export \{\};?/g, '').replace(/^export /gm, '')}\nstartApp({ games });`;
 let elements;
 function emit(target, type, fields = {}) { const e = new Event(type, { cancelable: true }); Object.assign(e, fields); target.dispatchEvent(e); }
 function tap(id) { const node = elements.get('#' + id); assert(node, id); emit(node, 'pointerdown', { pointerId: 1, pointerType: 'touch' }); emit(node, 'pointerup', { pointerId: 1 }); }

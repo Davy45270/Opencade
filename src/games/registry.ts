@@ -1,4 +1,3 @@
-import type { FingerProof } from './finger-receipts';
 import { PetitsPompiersScene, pompiersButtons } from './petits-pompiers/scene';
 import { pompiersEffects } from './petits-pompiers/sound';
 import { createThumbnail as pompiersThumbnail, createDemo as pompiersDemo } from './petits-pompiers/thumbnail';
@@ -32,7 +31,6 @@ import { createThumbnail as caissesThumbnail, createDemo as caissesDemo } from '
 import { createThumbnail as alunirThumbnail, createDemo as alunirDemo } from './alunir/thumbnail';
 import { AlunirScene, alunirButtons } from './alunir/scene';
 import { alunirEffects } from './alunir/sound';
-import type { ThumbnailFactory } from './thumbnail';
 import { createThumbnail as briqueterieThumbnail, createDemo as briqueterieDemo } from './briqueterie/thumbnail';
 import { createThumbnail as orbiteThumbnail, createDemo as orbiteDemo } from './orbite/thumbnail';
 import { createThumbnail as essaimThumbnail, createDemo as essaimDemo } from './essaim/thumbnail';
@@ -55,36 +53,12 @@ import { BriqueterieScene, briqueterieButtons } from './briqueterie/scene';
 import { briqueterieEffects } from './briqueterie/sound';
 import { SerpentinScene, serpentinButtons } from './serpentin/scene';
 import { serpentinEffects } from './serpentin/sound';
-import type Phaser from 'phaser';
-import type { PlaySession } from '../shell/pause';
 import type { TouchButton } from '../shell/input';
 import { LabScene } from './bubble/scene';
 import { LEVELS } from '../engines/bubble/levels';
-import type { SoundEffects } from '../shell/sound';
 import { bubbleEffects } from './bubble/sound';
-export interface GameTestHook extends FingerProof {
-    fingerReceipts(): { sequence: number; events: { sequence: number; type: string; x: number; y: number; target: string | null }[] };
-    read(): unknown;
-    hudText(): string;
-    usefulArea(): { x: number; y: number; width: number; height: number };
-    loadLevel(index: number, seed?: number): void;
-}
-export interface GameDefinition {
-    thumbnail: ThumbnailFactory;
-    demo: (seed?: number) => { engine: { status: string; snapshot(): unknown }; step(): void; readonly restarts: number };
-    id: string;
-    name: string;
-    levelCount: number;
-    keyboardHelp: string;
-    touchHelp: string;
-    realtime: boolean;
-    createScene: (session?: PlaySession) => Phaser.Scene;
-    effects: SoundEffects;
-    testHook?: () => GameTestHook | undefined;
-    touchControls?: readonly TouchButton[];
-    /** Full-screen shell: the canvas takes the whole play area (Phaser RESIZE) above a bottom control bar. */
-    fill?: boolean;
-}
+export type { GameDefinition, GameTestHook } from './definition';
+import type { GameDefinition } from './definition';
 export const bubbleButtons: readonly TouchButton[] = [
     // Aim and fire: drag then release on the canvas; swap: tap the next bubble.
     { id: 'bubble-special', label: 'Joker', ariaLabel: 'Joker : couleur du groupe visé', size: 56, placement: 'center', mode: 'tap' },
