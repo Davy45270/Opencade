@@ -13,10 +13,12 @@ import { sound } from '../../shell/services';
 import { fingerReceipts } from '../finger-receipts';
 import { fingerProof } from './finger';
 import { contextualAction, actionIcons, sectorDirection } from './controls';
-import { dynamicArt, firefighter, drop, flame, victim, toolArt, OX, OY, UNIT } from './art';
-import { ArenaLayer } from './arena';
+import { firefighter, drop, flame, victim, toolArt, UNIT } from './art';
+import { ArenaLayer, spriteKey } from './arena';
+import { ActorLayer } from './actors';
+import { BACKGROUND, STICK_ARROWS, worldOf } from './iso';
 import { mascotGallery } from './gallery';
-import { cameraView, edgeGuide, hudLayout, onScreen, tutorialAction, type Frame, type View } from './view';
+import { cameraView, edgeGuide, hudLayout, onScreen, playerPoint, tutorialAction, type Frame, type View } from './view';
 /** Rendered size of the HUD counters, in CSS px. */
 const COUNTER_PX = 18;
 export const pompiersButtons: readonly TouchButton[] = [
@@ -49,6 +51,8 @@ export class PetitsPompiersScene extends Phaser.Scene {
     private inputs = new Inputs();
     private progress = new Progression(readSave(browserStorage(), 'petits-pompiers', LEVELS.length), LEVELS.length);
     private arena?: ArenaLayer;
+    private actors?: ActorLayer;
+    private front?: Phaser.GameObjects.Graphics;
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: Phaser.GameObjects.Graphics;
     private hudLabels: Phaser.GameObjects.Text[] = [];
@@ -75,6 +79,7 @@ export class PetitsPompiersScene extends Phaser.Scene {
         this.engine.loadLevel(index, seed, mode); this.pilot = new TouchPilot(); this.contextTick = -1; this.view = undefined;
         if (this.gallery) document.querySelector('#level-select')?.prepend(this.gallery);
         this.selecting = false; this.modePanel?.remove(); this.modePanel = undefined;
+        this.cameras.main.setBackgroundColor(BACKGROUND[worldOf(this.engine)]);
         this.arena?.load(this.engine); this.sync();
     }
     private panels(): void { renderPanels(this.engine.status, this.progress.state, this.index, this.engine.stars * 100, this.progress.total, this.selecting); }
@@ -97,21 +102,34 @@ export class PetitsPompiersScene extends Phaser.Scene {
         this.safe.style.cssText = 'position:fixed;visibility:hidden;pointer-events:none;top:env(safe-area-inset-top);left:env(safe-area-inset-left);right:env(safe-area-inset-right);height:0';
         document.body.append(this.safe);
         const style = document.createElement('style');
-        style.textContent = 'body.petits-pompiers #touch-controls{height:120px;min-height:120px;flex-basis:120px;margin-bottom:max(12px,env(safe-area-inset-bottom));touch-action:none}body.petits-pompiers #touch-controls .left{flex:0 0 120px}body.petits-pompiers .joystick{position:relative;border:0;border-radius:0;background:none;touch-action:none}body.petits-pompiers .joystick::before{content:"";position:absolute;inset:0;border:3px solid #ffe095;border-radius:50%;background:radial-gradient(circle,#8bbcac 0 16%,#295e69 17% 61%,#7ab8b7 62%);pointer-events:none}body.petits-pompiers .joystick::after{content:"✥";position:absolute;inset:30px;text-align:center;color:#fff0ba;font-size:40px;pointer-events:none}body.petits-pompiers #touch-controls #pompiers-action{width:80px;height:80px;min-width:80px!important;min-height:80px!important;position:relative;border-radius:50%;font-size:16px;background:#f2bf63;color:#253d50;border:3px solid #fff0b7}body.petits-pompiers #pompiers-action[data-tutorial="true"]::after{content:"👇";position:absolute;left:20px;top:-42px;font-size:32px;pointer-events:none}body.petits-pompiers #touch-controls #pompiers-tool{border-radius:18px;background:#9fd3e0;border:3px solid #fff0b7;font-size:16px}#pompiers-mode{flex-wrap:wrap;align-content:center;padding:12px;box-sizing:border-box;position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;gap:16px;background:#183b4fed}#pompiers-mode button{min-width:130px;min-height:130px;font-size:24px;border-radius:26px;background:#ffdf91;color:#253d50;touch-action:none}';
+        style.textContent = 'body.petits-pompiers #touch-controls{height:120px;min-height:120px;flex-basis:120px;margin-bottom:max(12px,env(safe-area-inset-bottom));touch-action:none}body.petits-pompiers #touch-controls .left{flex:0 0 120px}body.petits-pompiers .joystick{position:relative;border:0;border-radius:0;background:none;touch-action:none}body.petits-pompiers .joystick::before{content:"";position:absolute;inset:0;border:3px solid #ffe095;border-radius:50%;background:radial-gradient(circle,#8bbcac 0 16%,#295e69 17% 61%,#7ab8b7 62%);pointer-events:none}body.petits-pompiers .joystick .pompiers-arrow{position:absolute;left:50%;top:50%;width:28px;height:28px;margin:-14px;line-height:28px;text-align:center;color:#fff0ba;font-size:22px;pointer-events:none}body.petits-pompiers #touch-controls #pompiers-action{width:80px;height:80px;min-width:80px!important;min-height:80px!important;position:relative;border-radius:50%;font-size:16px;background:#f2bf63;color:#253d50;border:3px solid #fff0b7}body.petits-pompiers #pompiers-action[data-tutorial="true"]::after{content:"👇";position:absolute;left:20px;top:-42px;font-size:32px;pointer-events:none}body.petits-pompiers #touch-controls #pompiers-tool{border-radius:18px;background:#9fd3e0;border:3px solid #fff0b7;font-size:16px}#pompiers-mode{flex-wrap:wrap;align-content:center;padding:12px;box-sizing:border-box;position:absolute;inset:0;z-index:30;display:flex;align-items:center;justify-content:center;gap:16px;background:#183b4fed}#pompiers-mode button{min-width:130px;min-height:130px;font-size:24px;border-radius:26px;background:#ffdf91;color:#253d50;touch-action:none}';
         document.head.append(style);
-        this.arena = new ArenaLayer(this); this.graphics = this.add.graphics().setDepth(3);
+        this.arena = new ArenaLayer(this); this.actors = new ActorLayer(this); this.graphics = this.add.graphics().setDepth(3); this.front = this.add.graphics().setDepth(800);
+        // Sprites arrive in their own chunk; the map is rebuilt once they are loaded.
+        if (!this.arena.ready()) void import('./atlas').then(({ sprites }) => {
+            if (!this.sys.isActive()) return;
+            for (const [key, url] of Object.entries(sprites)) if (!this.textures.exists(spriteKey(key))) this.load.image(spriteKey(key), url);
+            this.load.once('complete', () => { if (this.sys.isActive()) { this.arena?.load(this.engine); this.draw(); } });
+            this.load.start();
+        }).catch(() => undefined);
         this.hud = this.add.graphics();
         for (let i = 0; i < 7; i++) this.hudLabels.push(this.add.text(0, 0, '', { fontFamily: 'system-ui', fontSize: '18px', fontStyle: 'bold', color: '#263c51' }));
         // The HUD cells float over the map in the top-left corner, scaled to the screen, never under the ⏸.
-        this.hudLayer = this.add.container(0, 0, [this.hud, ...this.hudLabels]).setDepth(5);
-        this.overlay = this.add.graphics().setDepth(4);
+        this.hudLayer = this.add.container(0, 0, [this.hud, ...this.hudLabels]).setDepth(1000);
+        this.overlay = this.add.graphics().setDepth(950);
         this.cameras.main.setBackgroundColor('#eef4e9');
-        this.instruction = this.add.text(180, 455, '', { fontFamily: 'system-ui', fontSize: '30px', color: '#263c51' }).setOrigin(.5, 0).setDepth(5);
+        this.instruction = this.add.text(180, 455, '', { fontFamily: 'system-ui', fontSize: '30px', color: '#263c51' }).setOrigin(.5, 0).setDepth(1000);
         this.gallery = mascotGallery(); document.querySelector('#level-select')?.prepend(this.gallery);
         renderTouchControls(this.inputs, pompiersButtons, (id, held) => { if (this.session.paused || this.selecting) return; if (id === 'pompiers-action') this.held.action = held; else this.held.tool = held; });
         const toolButton = document.querySelector('#pompiers-tool'); if (toolButton) toolButton.innerHTML = '<span aria-hidden="true" style="font-size:26px;pointer-events:none">🧰</span>';
         const slot = document.querySelector<HTMLElement>('#touch-controls .left');
         if (slot) virtualJoystick(this.inputs, slot, sector => { const d = sectorDirection(sector); this.held.dx = d.dx; this.held.dy = d.dy; });
+        // The stick reads the grid axes: each arrow sits where the finger pushes and points along the iso axis it follows on screen.
+        const stick = slot ? Array.from(slot.children).find(child => child.classList.contains('joystick')) : undefined;
+        if (stick) for (const arrow of STICK_ARROWS) {
+            const span = document.createElement('span'); span.className = 'pompiers-arrow'; span.setAttribute('aria-hidden', 'true'); span.textContent = '➤';
+            span.dataset.axis = arrow.name; span.style.transform = `translate(${String(arrow.dx * 38)}px,${String(arrow.dy * 38)}px) rotate(${arrow.angle.toFixed(2)}deg)`; stick.append(span);
+        }
         const allowed = ['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', 'KeyZ', 'KeyW', 'KeyS', 'KeyD', 'KeyQ', 'KeyA', 'Space'];
         this.inputs.on(document, 'keydown', event => { const e = event as KeyboardEvent; if (allowed.includes(e.code) && !this.session.paused && !this.selecting) { e.preventDefault(); this.keys.add(e.code); } });
         this.inputs.on(document, 'keyup', event => { this.keys.delete((event as KeyboardEvent).code); });
@@ -147,10 +165,10 @@ export class PetitsPompiersScene extends Phaser.Scene {
                 if (name === 'timeout') this.engine.time = this.engine.level.seconds * 1000 - FIXED;
                 this.contextTick = -1; this.draw();
             },
-            renderStats: () => ({ backgroundBakes: this.arena?.bakes ?? 0, dynamicCommands: (this.graphics?.commandBuffer.length ?? 0) + (this.hud?.commandBuffer.length ?? 0) }),
-            playerArea: () => { const view = this.view ?? cameraView(this.engine), p = onScreen(view, { x: OX + this.engine.player.x / 32 * UNIT, y: OY + this.engine.player.y / 32 * UNIT }); return { x: Math.max(0, p.x - 26 * view.scale), y: Math.max(this.frame().top, p.y - 38 * view.scale), width: 52 * view.scale, height: 56 * view.scale }; },
+            renderStats: () => ({ backgroundBakes: this.arena?.bakes ?? 0, dynamicCommands: (this.graphics?.commandBuffer.length ?? 0) + (this.front?.commandBuffer.length ?? 0) + (this.hud?.commandBuffer.length ?? 0) }),
+            playerArea: () => { const view = this.view ?? cameraView(this.engine), p = onScreen(view, playerPoint(this.engine)); return { x: Math.max(0, p.x - 26 * view.scale), y: Math.max(this.frame().top, p.y - 38 * view.scale), width: 52 * view.scale, height: 56 * view.scale }; },
         };
-        const cleanup = (): void => { this.arena?.destroy(); this.inputs.dispose(); this.modePanel?.remove(); this.gallery?.remove(); style.remove(); this.safe?.remove(); document.body.classList.remove('petits-pompiers'); delete window.__PETITS_POMPIERS_TEST__; sound.stop(); };
+        const cleanup = (): void => { this.arena?.destroy(); this.actors?.destroy(); this.inputs.dispose(); this.modePanel?.remove(); this.gallery?.remove(); style.remove(); this.safe?.remove(); document.body.classList.remove('petits-pompiers'); delete window.__PETITS_POMPIERS_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.start(Math.max(0, this.progress.save.unlocked - 1));
         this.selecting = true; this.session.state = 'playing'; this.session.onChange?.(); renderLevels(LEVELS, this.progress.save, index => { this.chooseMode(index); }); this.panels();
@@ -198,8 +216,8 @@ export class PetitsPompiersScene extends Phaser.Scene {
         this.view = cameraView(e, this.view, reduced, frame);
         this.hudLayer?.setPosition(place.x, place.y).setScale(place.scale);
         const overlay = this.overlay; overlay?.clear();
-        this.arena?.sync(e); this.arena?.view(this.view);
-        g.clear(); dynamicArt(g, e, reduced); g.setPosition(this.view.x, this.view.y).setScale(this.view.scale);
+        this.arena?.sync(e); this.arena?.view(this.view, e);
+        if (this.front) this.actors?.draw(e, this.view, g, this.front, reduced);
         const hud = this.hud;
         if (hud) {
             hud.clear();

@@ -1,32 +1,54 @@
 import type Phaser from 'phaser';
-import type { Engine } from '../../engines/petits-pompiers/engine';
+import { TILE, type Engine } from '../../engines/petits-pompiers/engine';
 import type { View } from './view';
-import { arenaBase, obstacle, position } from './art';
-/** One background bake per load. Breakable objects are independent cached images. */
+import { groundPlan, objectPlan, project, type Placement } from './iso';
+import { SPRITES, TEXELS } from './sprites';
+/** Texture key of an iso sprite (loaded once by the scene). */
+export const spriteKey = (key: string): string => `pompiers-iso-${key}`;
+type Image = Phaser.GameObjects.Image;
+/** Static isometric map: ground diamonds and standing objects, one build per load. Breakable
+ *  obstacles are independent images, removed as soon as the engine clears their cell. */
 export class ArenaLayer {
-    private keys: string[] = [];
-    private background?: Phaser.GameObjects.Image;
-    private objects = new Map<number, Phaser.GameObjects.Image>();
-    private serial = 0;
+    private images: { image: Image; place: Placement }[] = [];
+    private objects = new Map<number, { image: Image; place: Placement }>();
+    private last = '';
     bakes = 0;
     constructor(private scene: Phaser.Scene) {}
+    /** False until the sprites are loaded: the scene loads again once they are. */
+    ready(): boolean { return this.scene.textures.exists(spriteKey('sol_herbe')); }
     load(e: Engine): void {
         this.reset();
-        const key = `pompiers-floor-${String(++this.serial)}`;
-        const g = this.scene.make.graphics({ x: 0, y: 0 });
-        arenaBase(g, e); g.generateTexture(key, 360, 640); g.destroy(); this.keys.push(key); this.bakes++;
-        this.background = this.scene.add.image(0, 0, key).setOrigin(0).setDepth(0);
-        for (const [at, tile] of e.tiles.entries()) if ('XbB#'.includes(tile)) {
-            const objectKey = `pompiers-object-${String(this.serial)}-${String(at)}`;
-            const art = this.scene.make.graphics({ x: 0, y: 0 }); obstacle(art, tile, 12, 12); art.generateTexture(objectKey, 24, 24); art.destroy(); this.keys.push(objectKey);
-            const p = position(at); this.objects.set(at, this.scene.add.image(p.x - 12, p.y - 12, objectKey).setOrigin(0).setDepth(1));
+        if (!this.ready()) return;
+        this.bakes++;
+        for (const place of [...groundPlan(e), ...objectPlan(e)]) {
+            const s = SPRITES[place.key];
+            const image = this.scene.add.image(0, 0, spriteKey(place.key)).setOrigin(s.ox, s.oy).setDepth(place.depth).setAlpha(place.alpha);
+            if (place.flip) image.setFlipX(true);
+            const entry = { image, place };
+            if (place.at >= 0 && place.depth > 0) this.objects.set(place.at, entry); else this.images.push(entry);
         }
     }
-    sync(e: Engine): void { for (const [at, image] of this.objects) if (!'XbB#'.includes(e.tiles[at] ?? '')) { image.destroy(); this.objects.delete(at); } }
-    view(view: View): void {
-        this.background?.setPosition(view.x, view.y).setScale(view.scale);
-        for (const [at, image] of this.objects) { const p = position(at); image.setPosition(view.x + (p.x - 12) * view.scale, view.y + (p.y - 12) * view.scale).setScale(view.scale); }
+    sync(e: Engine): void { for (const [at, { image }] of this.objects) if (!'XbB#'.includes(e.tiles[at] ?? '')) { image.destroy(); this.objects.delete(at); } }
+    /** `e` fades the objects standing just in front of the firefighter, so that he is never hidden. */
+    view(view: View, e?: Engine): void {
+        if (e) {
+            const gx = e.player.x / TILE, gy = e.player.y / TILE;
+            // Only what is taller than the firefighter's shoulders can hide him: hydrants, crates and the safe spot stay solid.
+            for (const { image, place } of [...this.images, ...this.objects.values()]) if (place.depth > 0 && SPRITES[place.key].h / TEXELS > 40) {
+                const ahead = place.gx + place.gy - gx - gy, side = Math.abs(place.gx - place.gy - gx + gy);
+                image.setAlpha(ahead > .2 && ahead < 3.2 && side < 1.6 ? Math.min(place.alpha, .45) : place.alpha);
+            }
+        }
+        const key = `${String(view.x)}|${String(view.y)}|${String(view.scale)}|${String(this.objects.size)}|${String(this.bakes)}`;
+        if (key === this.last) return; this.last = key;
+        // Ground diamonds overlap by a hair so that no seam shows between them.
+        const k = view.scale / TEXELS;
+        for (const { image, place } of [...this.images, ...this.objects.values()]) {
+            const p = project(place.gx, place.gy);
+            image.setPosition(view.x + p.x * view.scale, view.y + p.y * view.scale).setScale(place.depth === 0 ? k * 1.02 : k);
+        }
     }
-    reset(): void { this.background?.destroy(); this.background = undefined; for (const image of this.objects.values()) image.destroy(); this.objects.clear(); for (const key of this.keys) this.scene.textures.remove(key); this.keys = []; }
+    count(): number { return this.images.length + this.objects.size; }
+    reset(): void { for (const { image } of [...this.images, ...this.objects.values()]) image.destroy(); this.images = []; this.objects.clear(); this.last = ''; }
     destroy(): void { this.reset(); }
 }

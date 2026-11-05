@@ -6,7 +6,8 @@ import { ids } from '../src/characters/model.ts';
 import { ArenaLayer } from '../src/games/petits-pompiers/arena.ts';
 import { dynamicArt, firefighter } from '../src/games/petits-pompiers/art.ts';
 import { contextualAction, stickDirection, sectorDirection, forkEngine } from '../src/games/petits-pompiers/controls.ts';
-import { cameraView, edgeGuide, hudLayout, onScreen, tutorialAction, waterEnd, worldBox, FIXED_FRAME } from '../src/games/petits-pompiers/view.ts';
+import { cameraView, edgeGuide, hudLayout, onScreen, playerPoint, tutorialAction, waterEnd, worldBox, FIXED_FRAME } from '../src/games/petits-pompiers/view.ts';
+import { WORLD, point } from '../src/games/petits-pompiers/iso.ts';
 import { fingerProof } from '../src/games/petits-pompiers/finger.ts';
 import { TouchPilot } from '../src/games/petits-pompiers/driver.ts';
 import { mutationModule } from './mutation-module.js';
@@ -26,7 +27,8 @@ function graphics() {
 }
 // Chainable GPU stand-ins: exercise real baking and real draw functions.
 function chainGraphics() { const g = graphics(); const p = new Proxy(g, { get(t, k) { const v = t[k]; return typeof v === 'function' ? (...a) => { v(...a); return p; } : v; } }); return p; }
-const platform = { make: { graphics: chainGraphics }, textures: { remove: key => { assert(textures.delete(key)); } }, add: { image() { const image = { setOrigin: () => image, setDepth: () => image, setPosition: () => image, setScale: () => image, destroy() {} }; return image; } } };
+// Sprites: every setter chains; the iso layers only position, scale, sort and fade them.
+const platform = { make: { graphics: chainGraphics }, textures: { remove: key => { assert(textures.delete(key)); }, exists: () => true }, add: { image() { const image = new Proxy({}, { get: (_, key) => key === 'destroy' ? () => undefined : () => image }); return image; } } };
 const arena = new ArenaLayer(platform), e = new Engine(), g = chainGraphics();
 const oldMedia = globalThis.matchMedia, oldDocument = globalThis.document;
 globalThis.matchMedia = () => ({ matches: false }); globalThis.document = { querySelector: () => null };
@@ -44,9 +46,10 @@ try {
         assert.equal(cells.some(c => c.id === 'time'), mode === 'defi');
         assert.equal(cells.some(c => c.id === 'heal'), Boolean(e.level.objectives.heal));
         const view = cameraView(e); assert(view.scale * 24 * (358 / 360) >= 36); assert(view.scale * 48 * (358 / 360) >= 64);
-        assert(view.x <= -12 * view.scale); assert(view.x + 348 * view.scale >= 360);
+        // The decorated iso world always covers the fixed frame.
+        assert(view.x <= 0 && view.x + WORLD.width * view.scale >= 360); assert(view.y <= 0 && view.y + WORLD.height * view.scale >= 640);
         const guide = edgeGuide(e, view); assert(guide.x >= 22 && guide.x <= 338 && guide.y >= 138 && guide.y <= 614);
-        const p = onScreen(view, { x: 12 + e.player.x / 32 * 24, y: 190 + e.player.y / 32 * 24 }); assert(p.x >= 0 && p.x <= 360 && p.y >= worldBox.y && p.y <= 640);
+        const p = onScreen(view, playerPoint(e)); assert(p.x >= 0 && p.x <= 360 && p.y >= worldBox.y && p.y <= 640);
     }
     // Sweep the map edges and convergence: the cached map always covers the camera.
     e.loadLevel(0);
@@ -55,7 +58,7 @@ try {
         const target = cameraView(e, undefined, true), previous = cameraView(e, { x: target.x + 30, y: target.y, scale: 2.2 });
         assert(previous.x > target.x && previous.x < target.x + 30);
         assert.deepEqual(cameraView(e, previous, true), target);
-        const p = onScreen(target, { x: 12 + x / 32 * 24, y: 190 + y / 32 * 24 });
+        const p = onScreen(target, point(x, y));
         assert(p.y - 48 * .77 * target.scale >= 112, 'helmet clears HUD');
         assert(p.y + 48 * .23 * target.scale <= 640, 'feet clear controls');
     }
