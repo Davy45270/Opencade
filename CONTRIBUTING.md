@@ -45,8 +45,13 @@ npm run typecheck
 npm test
 npm run test:node
 npm run build
-npm run test:e2e
+node scripts/e2e-impact.js --base origin/main --run
 ```
+
+The full E2E suite is never run: `scripts/e2e-impact.js` lists the specs a change needs
+(N0 documentation: none; N1 one game: its specs and the light cross-game specs; N2 shared shell:
+the named games and the light cross-game specs; N3 tooling or unknown files: home, thumbnails and
+one short test per game). CI runs the same selection.
 
 Use [Conventional Commits](https://www.conventionalcommits.org/en/)
 (`feat:`, `fix:`, `docs:`, `test:`, `chore:`, etc.). Document user-visible changes

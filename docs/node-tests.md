@@ -55,6 +55,8 @@ Catégories : **V** validateur rapide (objectif < 30 s par entrée), **G** campa
 | `test-dedale.js` | V | Appelé par test:node. |
 | `test-node.js` | M | Exécuteur adapté aux CPU disponibles (trois processus maximum), chronométrage et budgets ; commande test:node. |
 | `test-pwa.js` | V | Appelé par test:node. |
+| `e2e-impact.js` | M | Sélection des specs Playwright d’un changement (niveaux N0 à N3, jamais la suite complète) ; utilisé par la CI et en local. |
+| `test-e2e-impact.js` | V | Appelé par test:node : cas tirés de vrais commits pour `e2e-impact.js`. |
 | `transpile.js` | M | Transpilation des sources et mutations, cache temporaire partagé et repli TypeScript paresseux. |
 | `orbite-verified-replay.js` | M | Mutualise uniquement les rejeux identiques déjà vérifiés ; moteurs mutés toujours rejoués. |
 | `ts-loader.js` | M | Module auxiliaire importé par les validateurs (chargeur, adaptateur, métriques ou harnais) ; aucune vérification autonome au lancement. |

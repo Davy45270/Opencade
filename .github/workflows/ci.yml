@@ -5,6 +5,11 @@ on:
     branches: [main]
   pull_request:
   workflow_dispatch:
+    inputs:
+      specs:
+        description: "Specs Playwright (tests/e2e/x.spec.ts[:ligne], séparées par des espaces). Vide : smoke N3. Jamais la suite complète."
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -34,43 +39,108 @@ jobs:
       - run: npm run test:pwa
       - run: npm run build
 
-  e2e:
-    name: E2E Playwright (Chromium bureau et mobile, part ${{ matrix.shard }}/4)
+  select:
+    name: Sélection E2E ciblée
     runs-on: ubuntu-24.04
-    timeout-minutes: 45
-    # The full suite no longer fits one 45-minute job on a 2-core runner: four shards run side by side.
-    strategy:
-      fail-fast: false
-      matrix:
-        shard: [1, 2, 3, 4]
+    timeout-minutes: 5
+    outputs:
+      level: ${{ steps.sel.outputs.level }}
+      specs: ${{ steps.sel.outputs.specs }}
+      count: ${{ steps.sel.outputs.count }}
+      total: ${{ steps.sel.outputs.total }}
+      shards: ${{ steps.sel.outputs.shards }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Commits and trees only: enough for git diff --name-only against the base.
+          fetch-depth: 0
+          filter: blob:none
       - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .nvmrc
+      # Push: the previous head (github.event.before). Pull request: the base branch head.
+      # No base (new branch, all-zero, unknown commit, manual run): N3 smoke, never the whole suite.
+      - name: Calculer la sélection (niveau et specs)
+        id: sel
+        env:
+          EVENT: ${{ github.event_name }}
+          BEFORE: ${{ github.event.before }}
+          PR_BASE: ${{ github.event.pull_request.base.sha }}
+          SPECS_INPUT: ${{ inputs.specs }}
+        run: |
+          case "$EVENT" in
+            push) BASE="$BEFORE" ;;
+            pull_request) BASE="$PR_BASE" ;;
+            *) BASE="" ;;
+          esac
+          echo "évènement $EVENT, base '${BASE:-aucune}', tête $(git rev-parse --short HEAD)"
+          node scripts/e2e-impact.js --base "$BASE" --head HEAD --specs "${SPECS_INPUT:-}" --github
+
+  e2e:
+    name: E2E ciblé ${{ needs.select.outputs.level }} (part ${{ matrix.shard }}/${{ needs.select.outputs.total }})
+    needs: select
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: ${{ fromJSON(needs.select.outputs.shards) }}
+    env:
+      RUN_E2E: ${{ needs.select.outputs.count != '0' }}
+    steps:
+      - name: Sélection vide
+        if: env.RUN_E2E != 'true'
+        env:
+          LEVEL: ${{ needs.select.outputs.level }}
+        run: |
+          echo "Niveau $LEVEL : aucun E2E à lancer, pas de navigateur."
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        if: env.RUN_E2E == 'true'
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        if: env.RUN_E2E == 'true'
+        with:
+          node-version-file: .nvmrc
           cache: npm
-      - run: npm ci
+      - if: env.RUN_E2E == 'true'
+        run: npm ci
       - name: Version de Playwright
+        if: env.RUN_E2E == 'true'
         id: pw
         run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
       - name: Cache des navigateurs Playwright
+        if: env.RUN_E2E == 'true'
         id: pw-cache
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
         with:
           path: ~/.cache/ms-playwright
           key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
       - name: Installer Chromium
-        if: steps.pw-cache.outputs.cache-hit != 'true'
+        if: env.RUN_E2E == 'true' && steps.pw-cache.outputs.cache-hit != 'true'
         run: npx playwright install --with-deps chromium
       - name: Installer les dépendances système de Chromium
-        if: steps.pw-cache.outputs.cache-hit == 'true'
+        if: env.RUN_E2E == 'true' && steps.pw-cache.outputs.cache-hit == 'true'
         run: npx playwright install-deps chromium
-      - run: npm run build
-      - run: npm run test:e2e -- --shard=${{ matrix.shard }}/4
+      - if: env.RUN_E2E == 'true'
+        run: npm run build
+      - name: Playwright sur la sélection
+        if: env.RUN_E2E == 'true'
+        env:
+          LEVEL: ${{ needs.select.outputs.level }}
+          SPECS: ${{ needs.select.outputs.specs }}
+          SHARD: ${{ matrix.shard }}
+          TOTAL: ${{ needs.select.outputs.total }}
+        run: |
+          echo "Niveau $LEVEL, part $SHARD/$TOTAL, specs :"
+          printf '  %s\n' $SPECS
+          [ -n "$SPECS" ] || { echo "sélection vide inattendue : refus de lancer la suite complète"; exit 1; }
+          if [ "$TOTAL" -gt 1 ]; then SHARD_ARG="--shard=$SHARD/$TOTAL"; else SHARD_ARG=""; fi
+          # shellcheck disable=SC2086 # one argument per spec
+          npm run test:e2e -- $SPECS $SHARD_ARG
       - name: Rapport Playwright
-        if: failure()
+        if: failure() && env.RUN_E2E == 'true'
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: playwright-report-${{ matrix.shard }}
