@@ -1,4 +1,5 @@
 import type Phaser from 'phaser';
+import type { CharacterId } from '../../characters/model';
 import { WIDTH, type Engine } from '../../engines/petits-pompiers/engine';
 import { drop, firefighter, ink, toolArt, victim } from './art';
 import { spriteKey } from './arena';
@@ -12,6 +13,17 @@ const SPECIES: Record<string, SpriteKey> = { person: 'enfant', cat: 'chat', dog:
 const TOOL: Partial<Record<string, SpriteKey>> = { hose: 'outil_lance', foam: 'outil_lance', kit: 'outil_trousse' };
 /** Upper windows hold their victim this high above the ground (iso units). */
 export const UPPER = 30;
+/** Screen directions of the drawn mascots, clockwise from east (screen y points down). */
+const POSES = ['E', 'SE', 'S', 'SW', 'W', 'NW', 'N', 'NE'] as const;
+/** Mascots drawn in uniform on the multi-view sheet. Tutu keeps the vector art: the sheet has no tutu. */
+const DRAWN: Partial<Record<CharacterId, true>> = { panda: true, pandaroux: true, dragon: true, licorne: true };
+/** Sprite of a mascot heading along the grid step (dx, dy), or undefined when it has no drawn views.
+ *  The west view is the east profile mirrored: a profile shows the same face from either side. */
+export function mascotPose(id: CharacterId, dx: number, dy: number): { key: SpriteKey; flip: boolean; pose: typeof POSES[number] } | undefined {
+    if (!DRAWN[id]) return undefined;
+    const d = direction(dx, dy), pose = POSES[((Math.round(Math.atan2(d.y, d.x) / (Math.PI / 4)) % 8) + 8) % 8] ?? 'S';
+    return { key: `pompier_${id}_${pose === 'W' ? 'E' : pose}` as SpriteKey, flip: pose === 'W', pose };
+}
 /** Grid coordinates (continuous) of an iso world point, for depth. */
 const depthAt = (p: { x: number; y: number }, bias = 0): number => { const g = unproject(p.x, p.y); return depthOf(g.x, g.y, bias); };
 /** Moving and changing things: fires, smoke, victims and tool pickups as depth-sorted sprites; the
@@ -69,8 +81,16 @@ export class ActorLayer {
         if (p.immune > 0) { player.fillStyle(0xffdf93, reduced ? .18 : .15 + Math.sin(time / 180) * .06); player.fillEllipse(x, y - 9, 48, 45); }
         if (e.character === 'licorne') { player.lineStyle(2, 0xffd654, .6); player.strokeEllipse(x, y + 2, 42, 16); }
         // The pose follows the motion on screen: up the screen shows the back, sideways the profile.
-        const sx = Math.sign(p.dx - p.dy), sy = Math.sign(p.dx + p.dy);
-        firefighter(player, e.character, x, y, 48, time, sx, sy, Boolean(e.intent.dx || e.intent.dy) && !e.job, false, p.immune > 0);
+        const moving = Boolean(e.intent.dx || e.intent.dy) && !e.job;
+        const pose = mascotPose(e.character, moving ? e.intent.dx : p.dx, moving ? e.intent.dy : p.dy);
+        if (pose && this.scene.textures.exists(spriteKey(pose.key))) {
+            // A drawn mascot: one sprite per screen direction, a small hop while walking.
+            const hop = moving && !reduced ? Math.abs(Math.sin(time / 95)) * 2 : 0;
+            this.sprite(pose.key, view, { x, y: y - hop }, depthAt(at, 1.25), 1, 1, pose.flip);
+        } else {
+            const sx = Math.sign(p.dx - p.dy), sy = Math.sign(p.dx + p.dy);
+            firefighter(player, e.character, x, y, 48, time, sx, sy, moving, false, p.immune > 0);
+        }
         if (p.carried >= 0) { const v = e.victims[p.carried]; if (v) { if (this.scene.textures.exists(spriteKey(SPECIES[v.species] ?? 'enfant'))) this.sprite(SPECIES[v.species] ?? 'enfant', view, { x: x + 15, y: y - 20 }, depthAt(at, 1.3), .8); else victim(player, x + 16, y - 25, v.species, 21); } }
         if (e.job?.kind === 'spray' || e.job?.kind === 'foam') {
             const end = waterEnd(e), d = direction(p.dx, p.dy), start = { x: x + d.x * 12, y: y - 8 + d.y * 12 };

@@ -50,3 +50,28 @@ test('PP-ISO-03 every level: one ground diamond per cell, a sprite for every sol
         for (const a of objects) for (const b of objects) if (a.gx + a.gy + .5 < b.gx + b.gy && a.key === b.key) expect(a.depth).toBeLessThan(b.depth);
     }
 });
+
+test('PP-ISO-04 the drawn mascots face each of the 8 screen directions; Tutu keeps the vector art', async () => {
+    const { mascotPose } = await import('../src/games/petits-pompiers/actors');
+    const { existsSync } = await import('node:fs');
+    // Grid step → screen direction: +x goes down-right, +y down-left (2:1 iso).
+    const steps: [number, number, string][] = [[1, -1, 'E'], [1, 0, 'SE'], [1, 1, 'S'], [0, 1, 'SW'], [-1, 1, 'W'], [-1, 0, 'NW'], [-1, -1, 'N'], [0, -1, 'NE']];
+    for (const id of ['panda', 'pandaroux', 'dragon', 'licorne'] as const) {
+        for (const [dx, dy, pose] of steps) {
+            const p = mascotPose(id, dx, dy);
+            expect(p?.pose).toBe(pose);
+            // West is the east profile mirrored; every other direction has its own view.
+            expect(p?.key).toBe(`pompier_${id}_${pose === 'W' ? 'E' : pose}`);
+            expect(p?.flip).toBe(pose === 'W');
+            const s = p ? SPRITES[p.key] : undefined;
+            expect(s).toBeDefined();
+            expect(existsSync(`src/games/petits-pompiers/iso/${String(p?.key)}.webp`)).toBe(true);
+            // Anchor at the feet: bottom of the texture, horizontally inside it; one common scale (≈ 36 world units).
+            expect(s?.oy).toBeGreaterThan(.95); expect(s?.ox).toBeGreaterThan(.2); expect(s?.ox).toBeLessThan(.8);
+            expect((s?.h ?? 0) / 3).toBeGreaterThan(33); expect((s?.h ?? 0) / 3).toBeLessThan(44);
+        }
+        // A joystick reading (not unit) gives the nearest of the 8 views.
+        expect(mascotPose(id, .9, .2)?.pose).toBe('SE');
+    }
+    expect(mascotPose('singe', 1, 0)).toBeUndefined();
+});
