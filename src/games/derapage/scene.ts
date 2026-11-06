@@ -12,6 +12,7 @@ import { ids, expressions } from '../../characters/model';
 import { ArcadePaint } from '../../characters/arcade-phaser';
 import { renderCharacter } from '../../characters/canvas';
 import { bonusIcon, bonusTexture, pickupPanel, type BonusSpriteKey } from './bonus-sprites';
+import { TREE_SPRITES, drawnTrees, treeEssence, treePanel, treeTexture, treeTop, type TreeSpriteKey } from './tree-sprites';
 import { KART_SPRITES, chaseView, kartSprite, kartTexture, kartView, type KartSpriteKey, type KartView } from './kart-sprites';
 import { required } from '../../engines/derapage/access';
 import Phaser from 'phaser';
@@ -46,7 +47,7 @@ export interface DerapageHook {
     art(): string[];
     overview(enabled: boolean): void;
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; bonusViews: string[]; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: string[] };
+    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; bonusViews: string[]; treeViews: string[]; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: string[] };
     loadLevel(i: number, seed?: number): void;
     /** Places a kart (test only): position and heading, simulation frozen, one frame drawn. */
     pose(id: number, x: number, y: number, angle: number): void;
@@ -139,6 +140,20 @@ export class DerapageScene extends Phaser.Scene {
         this.paint.draw(bonusTexture(key), x, y, size, 0, 1, depth);
         this.bonusViews.push(key);
         return true;
+    }
+    /** Sprite keys of David's drawn trees in the last frame, for tests. */
+    private treeViews: string[] = [];
+    /** Their own image pool, so that a forest never takes the slots of the karts' emblems and bonuses. */
+    private treePaint?: ArcadePaint;
+    /** True once every tree texture of the chunk is loaded: from then on the road is baked without its vector trees. */
+    private get drawnTreesReady(): boolean {
+        return (Object.keys(TREE_SPRITES) as TreeSpriteKey[]).every(key => this.textures.exists(treeTexture(key)));
+    }
+    /** Draws one of David's trees, anchored at its foot (side view) or centred (top view). */
+    private drawnTree(key: TreeSpriteKey, x: number, y: number, height: number, rotation: number, depth: number, top: boolean): void {
+        const s = TREE_SPRITES[key];
+        this.treePaint?.draw(treeTexture(key), x, top ? y : y - height / 2, height * s.w / s.h, rotation, 1, depth, height);
+        this.treeViews.push(key);
     }
     private emblemTextures = new Map<Emblem, string>();
     private resultArt?: HTMLCanvasElement;
@@ -243,13 +258,14 @@ export class DerapageScene extends Phaser.Scene {
             });
             this.inputs.cleanup(() => { button.remove(); });
         }
-        const cleanup = (): void => { this.inputs.dispose(); this.road?.destroy(); this.paint?.destroy(); for (const image of this.kartImages) image.destroy(); this.kartImages = []; this.kartImageCount = 0; for (const prop of this.props3d) prop.destroy(); this.props3d = []; this.propCount = 0; this.hud3d?.destroy(); this.hud3d = undefined; this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
+        const cleanup = (): void => { this.inputs.dispose(); this.road?.destroy(); this.paint?.destroy(); this.treePaint?.destroy(); for (const image of this.kartImages) image.destroy(); this.kartImages = []; this.kartImageCount = 0; for (const prop of this.props3d) prop.destroy(); this.props3d = []; this.propCount = 0; this.hud3d?.destroy(); this.hud3d = undefined; this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         this.background = this.add.graphics().setDepth(-1);
         this.road = new RoadLayer(this);
         this.graphics = this.add.graphics().setDepth(1);
         this.paint = new ArcadePaint(this, 96);
+        this.treePaint = new ArcadePaint(this, 128);
         for (const id of ids) for (const expression of expressions) this.kartTextures.set(`${id}-${expression}`, this.paint.texture(`kart-${id}-${expression}`, vehicleDrawing(id, 'dessus', expression)));
         // The drawn karts arrive in their own chunk; until then the vector kart of each mascot is drawn.
         void import('./kart-atlas').then(({ sprites }) => {
@@ -262,6 +278,13 @@ export class DerapageScene extends Phaser.Scene {
         void import('./bonus-atlas').then(({ sprites }) => {
             if (!this.sys.isActive()) return;
             for (const [key, url] of Object.entries(sprites)) if (!this.textures.exists(bonusTexture(key))) this.load.image(bonusTexture(key), url);
+            this.load.once('complete', () => { if (this.sys.isActive()) this.draw(); });
+            this.load.start();
+        }).catch(() => undefined);
+        // David's trees, same pattern: the vector trees until their chunk arrives.
+        void import('./tree-atlas').then(({ sprites }) => {
+            if (!this.sys.isActive()) return;
+            for (const [key, url] of Object.entries(sprites)) if (!this.textures.exists(treeTexture(key))) this.load.image(treeTexture(key), url);
             this.load.once('complete', () => { if (this.sys.isActive()) this.draw(); });
             this.load.start();
         }).catch(() => undefined);
@@ -348,7 +371,7 @@ export class DerapageScene extends Phaser.Scene {
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
                 performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.time }),
                 fingerReceipts: receipts,
-                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], bonusViews: [...this.bonusViews], fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id)] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
+                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], bonusViews: [...this.bonusViews], treeViews: [...this.treeViews], fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id)] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
                 hudText: () => this.hud?.textContent ?? '', usefulArea: () => ({ x: 0, y: 96, width: 360, height: 544 }),
@@ -485,9 +508,10 @@ export class DerapageScene extends Phaser.Scene {
         g.clear();
         background.clear();
         this.road?.hide();
-        this.paint?.begin();
+        this.paint?.begin(); this.treePaint?.begin();
         for (let i = 0; i < this.kartImageCount; i++) this.kartImages[i]?.setVisible(false);
-        this.kartImageCount = 0; this.kartViews = []; this.bonusViews = [];
+        this.kartImageCount = 0; this.kartViews = []; this.bonusViews = []; this.treeViews = [];
+        const treesReady = this.drawnTreesReady;
         for (let i=0;i<this.propCount;i++) this.props3d[i]?.clear().setVisible(false);
         this.propCount = 0;
         this.hud3d?.clear();
@@ -511,7 +535,14 @@ export class DerapageScene extends Phaser.Scene {
                 const size=item.radius*2*a.scale;
                 const texture=this.sceneryTextures.get(item.kind);
                 if(texture) this.paint?.draw(texture,a.x,a.y-size/2,size,0,1,depth);
-            }, (kind,x,y,size,depth) => this.drawnBonus(pickupPanel(kind,size),x,y-size/2,size,depth));
+            }, (kind,x,y,size,depth) => this.drawnBonus(pickupPanel(kind,size),x,y-size/2,size,depth), (tree,kind,a,depth) => {
+                // David's side view, facing the camera, as tall as the vector tree it replaces.
+                const essence = treesReady ? treeEssence(t, tree, kind === 'fir' ? 'fir' : 'tree') : undefined;
+                if (!essence) return false;
+                const height = (kind === 'engine' ? 5 + tree.radius : tree.radius * 2) * a.scale;
+                this.drawnTree(treePanel(essence, height), a.x, a.y, height, 0, depth, false);
+                return true;
+            });
         } else {
         background.fillStyle(t.circuit.theme.ground);
         background.fillRect(0, 96, 360, 544);
@@ -543,7 +574,15 @@ export class DerapageScene extends Phaser.Scene {
         }
         const artTime = reduced ? 0 : this.sceneTime;
         kartLandscape(background,t,project,scale,artTime);
-        this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle);
+        this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady);
+        // David's trees seen from above, turning with the map; the road layer is then baked without its vector trees.
+        if (treesReady) for (const tree of drawnTrees(t)) {
+            const key = treeTop(tree.essence);
+            if (!key) continue;
+            const a = project(tree.x, tree.y), size = tree.radius * 2 * scale;
+            if (!inView([a], size)) continue;
+            this.drawnTree(key, a.x, a.y, size, this.overviewMode ? 0 : angle, 1, true);
+        }
         kartRoadArt(g,t,project,scale,artTime);
         for (const edge of t.bermEdges) line(project(edge.a.x,edge.a.y),project(edge.b.x,edge.b.y),2*scale,0xe4c99a);
         for (const [i, gate] of t.slalom.entries()) {

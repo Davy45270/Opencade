@@ -255,6 +255,50 @@ async function drawnBonuses() {
     for (const [item, kinds] of Object.entries(held)) assert.equal(kinds.size, 1, `one icon for ${item} whatever the mascot`);
     console.log('Drawn bonuses: common icons, capsule box, cloud puddle, both views');
 }
+// Z44: David's drawn trees. Once their chunk is loaded, the trees are his drawings, the essences follow the ambiance
+// of the circuit (palm on the coast, fir in the mountains...), top view from above and side view as a 3D panel,
+// and the vector tree is neither baked into the road nor drawn as a 3D panel.
+async function drawnTreesInScene() {
+    const { TREE_SPRITES, drawnTrees, ambiance } = await import('../src/games/derapage/tree-sprites.ts');
+    // Circuit index -> essences expected: meadows, Ardennes, coast, frozen mountains, Feuilles Folles, Bambou Express (3D).
+    const cases = [[5, ['feuillu', 'cerisier']], [16, ['sapin', 'feuillu']], [27, ['palmier']], [28, ['sapin']], [19, ['erable']], [17, ['bambou']]];
+    const shownTrees = h => h.images.filter(i => i.placements.setVisible?.at(-1) && i.texture.key.startsWith('derapage-tree-')).map(i => i.texture.key.slice(14));
+    const h = await mount('derapage', 'dragon', false); h.session.send('start');
+    try {
+        for (const key of Object.keys(TREE_SPRITES)) h.textures.add(`derapage-tree-${key}`);
+        for (const [level, expected] of cases) {
+            h.engine.loadLevel(level, 28);
+            const t = h.engine.track;
+            assert.deepEqual([...ambiance(t)].sort(), [...expected].sort(), `circuit ${level + 1}: essences of its ambiance`);
+            const trees = drawnTrees(t);
+            assert(trees.length > 0, `circuit ${level + 1} has trees`);
+            const tree = trees[Math.floor(trees.length / 2)];
+            for (const view3d of [false, true]) {
+                h.scene.view3d = view3d;
+                h.baked.length = 0;
+                // 14 units before the tree, facing it: in view from above and in front of the camera in 3D.
+                Object.assign(h.engine.karts[0], { x: tree.x - 14, y: tree.y, angle: 0, vx: 0, vy: 0 });
+                h.frame();
+                const keys = shownTrees(h), essences = new Set(keys.map(k => k.replace(/_(side|side_far|top)$/, '')));
+                const topless = expected.every(e => e === 'bambou');
+                if (!view3d && topless) { assert.equal(keys.length, 0, `circuit ${level + 1}: no top view drawn for bamboo, the vector bamboo stays`); continue; }
+                assert(keys.length > 0, `circuit ${level + 1}: the trees are David's drawings (${view3d ? '3D' : 'top'})`);
+                assert(keys.every(k => view3d ? /_side(_far)?$/.test(k) : k.endsWith('_top')), `circuit ${level + 1}: ${view3d ? 'side views in 3D' : 'top views from above'} (${keys})`);
+                assert([...essences].every(e => expected.includes(e)), `circuit ${level + 1}: only the essences of its ambiance (${[...essences]})`);
+                if (view3d) assert(!h.images.some(i => i.placements.setVisible?.at(-1) && /roadside-(tree|fir)$/.test(i.texture.key)), `circuit ${level + 1}: no vector tree panel in 3D`);
+            }
+            h.scene.view3d = false;
+        }
+        // Without the chunk, the vector trees stay: the road is baked with them and no drawn tree is shown.
+        h.baked.length = 0; h.engine.loadLevel(16, 28); h.frame();
+        const bakedDrawn = h.baked.length;
+        for (const key of Object.keys(TREE_SPRITES)) h.textures.delete(`derapage-tree-${key}`);
+        h.baked.length = 0; h.engine.loadLevel(16, 28); h.frame();
+        assert.equal(shownTrees(h).length, 0, 'vector fallback until the chunk arrives');
+        assert(h.baked.length > bakedDrawn, `the vector trees are baked only without the chunk (${h.baked.length} > ${bakedDrawn})`);
+    } finally { h.cleanup(); }
+    console.log('Drawn trees: essences by ambiance, top view from above, side panels in 3D, vector fallback');
+}
 await renderBudget();
 assert.equal(budgetChecks,384,'all real frame counts submitted');
 assert.throws(() => withinBudget(521, 591), { name: 'AssertionError' }, 'negative budget boundary');
@@ -262,11 +306,12 @@ await clockChecks();
 await allCircuitBudgets();
 await miniMapAndHeldBonus();
 await drawnBonuses();
+await drawnTreesInScene();
 if(process.argv.includes('--audit-mutations')) {
 const { mutationModule } = await import('./mutation-module.js');
 // Execute actual scene mutations: an inflated render and a return to smoothed time.
 for (const [name, before, after, check] of [
-    ['road redrawn each frame', 'this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle);', 'this.road?.destroy(); this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle);', renderBudget],
+    ['road redrawn each frame', 'this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady);', 'this.road?.destroy(); this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady);', renderBudget],
     ['smoothed simulation delta', 'this.tick(this.manual ? 0 : delta);', 'this.tick(this.manual ? 0 : Number(arguments[1]));', clockChecks],
     ['uncapped hidden interval', 'Math.min(250, elapsed)', 'elapsed', clockChecks],
 ]) {

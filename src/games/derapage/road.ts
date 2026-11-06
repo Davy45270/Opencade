@@ -1,4 +1,5 @@
 import { scenerySprites, drawScenery, groundTexture } from './scenery';
+import { treeEssence } from './tree-sprites';
 import { kartLandscape, kartRoadArt, kartTree } from './kart-art';
 import type Phaser from 'phaser';
 import { nearest } from '../../engines/derapage/track';
@@ -73,8 +74,9 @@ export function roadBounds(t: Track): { left: number; top: number; width: number
     return { left, top, width, height };
 }
 /** The static road layer at the top-view scale 5, world (left, top) at the origin: ground texture,
- * landscape, road, rails, road art, trees and roadside props. Shared by the scene and the thumbnail. */
-export function paintRoadLayer(g: Phaser.GameObjects.Graphics, t: Track, left: number, top: number): void {
+ * landscape, road, rails, road art, trees and roadside props. Shared by the scene and the thumbnail.
+ * `drawnTrees`: David's trees are drawn by the scene from above, so their vector trees are left out. */
+export function paintRoadLayer(g: Phaser.GameObjects.Graphics, t: Track, left: number, top: number, drawnTrees = false): void {
     const projectStatic = (x: number, y: number): Vec => ({ x: (x - left) * 5, y: (y - top) * 5 });
     groundTexture(g,t,projectStatic);
     kartLandscape(g,t,projectStatic,5,0,true);
@@ -82,27 +84,32 @@ export function paintRoadLayer(g: Phaser.GameObjects.Graphics, t: Track, left: n
     drawUrban(g, t, projectStatic, 5);
     kartRoadArt(g,t,projectStatic,5,0,true);
     const theme=t.circuit.theme.kart;
-    if (theme) for (const tree of t.trees)
+    if (theme && !(drawnTrees && theme === 'autumn')) for (const tree of t.trees)
         kartTree(g,theme,projectStatic(tree.x,tree.y),tree.radius,5,0,true);
-    for (const item of scenerySprites(t)) drawScenery(g,item,projectStatic(item.x,item.y),5);
+    for (const item of scenerySprites(t)) {
+        if (drawnTrees && (item.kind === 'tree' || item.kind === 'fir') && treeEssence(t, item, item.kind)) continue;
+        drawScenery(g,item,projectStatic(item.x,item.y),5);
+    }
 }
 
 /** Rasterize the exact joined road once, at the normal top-view resolution.
  * A single owned texture is replaced on track changes and released on shutdown. */
 export class RoadLayer {
     private track?: Track;
+    private drawnTrees = false;
     private image?: Phaser.GameObjects.Image;
     private left = 0;
     private top = 0;
     private readonly key = 'derapage-road';
     constructor(private readonly scene: Phaser.Scene) {}
-    draw(t: Track, project: (x: number, y: number) => Vec, scale: number, rotation: number): void {
-        if (this.track !== t) {
+    draw(t: Track, project: (x: number, y: number) => Vec, scale: number, rotation: number, drawnTrees = false): void {
+        if (this.track !== t || this.drawnTrees !== drawnTrees) {
             this.destroy();
+            this.drawnTrees = drawnTrees;
             const box = roadBounds(t);
             this.left = box.left; this.top = box.top;
             const g = this.scene.make.graphics({ x: 0, y: 0 });
-            paintRoadLayer(g, t, box.left, box.top);
+            paintRoadLayer(g, t, box.left, box.top, drawnTrees);
             const { width, height } = box;
             g.generateTexture(this.key, width, height);
             g.destroy();

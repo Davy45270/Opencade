@@ -19,7 +19,7 @@ export default defineConfig({
     projects: [
         {
             name: 'desktop-chromium',
-            testMatch: ['petits-pompiers.spec.ts', 'autres-jeux.spec.ts', 'artificiers.spec.ts', 'marmaille.spec.ts', 'derapage-3d.spec.ts', 'derapage-bonus.spec.ts', 'gourmandises.spec.ts', 'collier.spec.ts', 'characters.spec.ts', 'alunir.spec.ts', 'thumbnails.spec.ts', 'offline.spec.ts', 'pwa-update.spec.ts', 'game.spec.ts', 'levels.spec.ts', 'sound.spec.ts', 'arcade.spec.ts', 'serpentin.spec.ts', 'briqueterie.spec.ts', 'empilo.spec.ts', 'orbite.spec.ts', 'essaim.spec.ts', 'dedale.spec.ts', 'ferraille.spec.ts', 'bubble-catalogue.spec.ts'],
+            testMatch: ['petits-pompiers.spec.ts', 'autres-jeux.spec.ts', 'artificiers.spec.ts', 'marmaille.spec.ts', 'derapage-3d.spec.ts', 'derapage-bonus.spec.ts', 'derapage-trees.spec.ts', 'gourmandises.spec.ts', 'collier.spec.ts', 'characters.spec.ts', 'alunir.spec.ts', 'thumbnails.spec.ts', 'offline.spec.ts', 'pwa-update.spec.ts', 'game.spec.ts', 'levels.spec.ts', 'sound.spec.ts', 'arcade.spec.ts', 'serpentin.spec.ts', 'briqueterie.spec.ts', 'empilo.spec.ts', 'orbite.spec.ts', 'essaim.spec.ts', 'dedale.spec.ts', 'ferraille.spec.ts', 'bubble-catalogue.spec.ts'],
             use: {
                 viewport: {
                     width: 1280,

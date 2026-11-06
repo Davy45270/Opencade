@@ -49,7 +49,7 @@ export class Cadence {
 }
 export interface RenderCost { lines: number; samples: number; segmentChecks: number; boostChecks: number; sprites: number }
 /** Fixed grid: 107 lines × 30 samples. Each sample visits the 96 segments plus the initial hint. */
-export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engine['snapshot']>, kart: (id: number, x: number, y: number, size: number, rotation: number, depth: number) => void, layer?: (depth: number) => Phaser.GameObjects.Graphics, scenery?: (item: Scenery, screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => void, pickup?: (kind: 'crate' | 'puddle', x: number, y: number, size: number, depth: number) => boolean): RenderCost {
+export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engine['snapshot']>, kart: (id: number, x: number, y: number, size: number, rotation: number, depth: number) => void, layer?: (depth: number) => Phaser.GameObjects.Graphics, scenery?: (item: Scenery, screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => void, pickup?: (kind: 'crate' | 'puddle', x: number, y: number, size: number, depth: number) => boolean, tree?: (item: Vec & { radius: number }, kind: 'engine' | 'tree' | 'fir', screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => boolean): RenderCost {
     const g=graphics;
     const p=e.karts[0];
     const cost={lines:0,samples:0,segmentChecks:0,boostChecks:0,sprites:0};
@@ -124,6 +124,8 @@ export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engi
         const height=item.kind==='kart' ? Math.min(90,4*a.scale) : (item.kind==='tree' || item.kind==='scenery') ? (5+item.radius)*a.scale : item.kind==='crate' ? 3*a.scale : a.scale;
         if(a.x+half<0 || a.x-half>360 || a.y<96 || a.y-height>640) continue;
         cost.sprites++;
+        // David's drawn trees (side view, facing the camera) once their chunk is loaded; the vector trees stay the fallback.
+        if((item.kind==='tree' || (item.kind==='scenery' && (item.art==='tree' || item.art==='fir'))) && tree?.(item,item.kind==='tree' ? 'engine' : item.art==='fir' ? 'fir' : 'tree',a,FAR-a.depth+2)) continue;
         if(item.kind==='scenery') { scenery?.({...item,kind:item.art},a,FAR-a.depth+2); }
         else if(item.kind==='kart') { kart(item.id,a.x,a.y-(item.jumpHeight ?? 0)*a.scale,Math.min(90,4*a.scale),item.angle-p.angle,FAR-a.depth+2); }
         // Drawn panels (capsule, cloud) once their chunk is loaded; the vector box and puddle stay the fallback.

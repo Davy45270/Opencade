@@ -260,6 +260,24 @@ sombre d'un texel) remplace la grande, pour que le filtre ne réduise jamais plu
 Élan prend le signe de propulsion du personnage ; le saut, la propulsion et le bouclier
 gardent les emblèmes de la mascotte. Il n'y a plus de pilote neutre : cinq karts, un par mascotte.
 
+Les arbres du décor sont ceux dessinés par David (Z44) : vue de dessus en vue de dessus,
+vue de côté en 3D (panneau tourné vers la caméra, ancré au pied du dessin, de la hauteur
+de l'arbre vectoriel qu'il remplace). Les essences suivent l'ambiance de la coupe :
+prés de la coupe rapide = feuillu et cerisier ; coupe technique = érable et pommier ;
+ovales = cerisier et pommier ; forêt des Ardennes (nature) = sapin et feuillu, et les sapins
+du bord de route restent des sapins ; falaises = palmier (la côte) ; slalom et BMX = sapin
+(la montagne) ; Feuilles Folles = érable. Bambou Express montre le bambou de la planche de
+référence en 3D et garde son bambou vectoriel vu de dessus, faute de vue de dessus dessinée.
+Les circuits urbains n'ont pas d'arbre visible et les flèches de Volcan Turbo sont des roches :
+ils ne changent pas. L'essence d'un arbre ne dépend que de sa position, donc les deux vues
+et toutes les images concordent. Baobab, saule et glycine (planche de référence) ne sont pas
+utilisés : ils n'ont pas de vue de dessus. Ces dessins arrivent dans leur propre module
+(`tree-atlas`, 20 WebP, 53 Ko) chargé à l'ouverture du jeu et gardé hors ligne ; d'ici là,
+les arbres vectoriels restent affichés, et la couche de route n'est recuite sans eux qu'une
+fois toutes les textures arrivées. Vue de côté : 96 px de haut, réduction dédiée de 40 px
+sous 48 px à l'écran ; vue de dessus : 48 px. Les arbres dessinés ont leur propre réserve
+de 128 images, distincte de celle des emblèmes et des bonus.
+
 Dans Bubble Lab, les six teintes restent identiques pour tous les compagnons.
 Chaque bulle porte un emblème thématique et un motif géométrique stable par couleur :
 vert/losange feuillu, orange/soleil, rose/cœur, violet/spirale, jaune/étoile,
