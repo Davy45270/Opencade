@@ -49,13 +49,14 @@ export class Cadence {
 }
 export interface RenderCost { lines: number; samples: number; segmentChecks: number; boostChecks: number; sprites: number }
 /** Fixed grid: 107 lines × 30 samples. Each sample visits the 96 segments plus the initial hint. */
-export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engine['snapshot']>, kart: (id: number, x: number, y: number, size: number, rotation: number, depth: number) => void, layer?: (depth: number) => Phaser.GameObjects.Graphics, scenery?: (item: Scenery, screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => void, pickup?: (kind: 'crate' | 'puddle', x: number, y: number, size: number, depth: number) => boolean, tree?: (item: Vec & { radius: number }, kind: 'engine' | 'tree' | 'fir', screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => boolean): RenderCost {
+export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engine['snapshot']>, kart: (id: number, x: number, y: number, size: number, rotation: number, depth: number) => void, layer?: (depth: number) => Phaser.GameObjects.Graphics, scenery?: (item: Scenery, screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => void, pickup?: (kind: 'crate' | 'puddle', x: number, y: number, size: number, depth: number) => boolean, tree?: (item: Vec & { radius: number }, kind: 'engine' | 'tree' | 'fir', screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => boolean, skyDrawn = false): RenderCost {
     const g=graphics;
     const p=e.karts[0];
     const cost={lines:0,samples:0,segmentChecks:0,boostChecks:0,sprites:0};
     if (!p) return cost;
     const t=e.track, theme=t.circuit.theme, c=Math.cos(p.angle), s=Math.sin(p.angle);
-    g.fillStyle(0x8ac7dd); g.fillRect(0,96,360,HORIZON-96);
+    // The flat sky is the fallback until the horizon of the cup covers it.
+    if(!skyDrawn) { g.fillStyle(0x8ac7dd); g.fillRect(0,96,360,HORIZON-96); }
     g.fillStyle(theme.ground); g.fillRect(0,HORIZON,360,640-HORIZON);
     const rectangles: {x:number;y:number;width:number;height:number;color:number}[]=[];
     let previous=new Map<string,typeof rectangles[number]>();

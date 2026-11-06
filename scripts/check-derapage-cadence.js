@@ -299,6 +299,44 @@ async function drawnTreesInScene() {
     } finally { h.cleanup(); }
     console.log('Drawn trees: essences by ambiance, top view from above, side panels in 3D, vector fallback');
 }
+// Z45: David's horizons in the 3D sky. One per cup; once its chunk is loaded the flat blue sky is covered by two
+// abutting copies of the horizon, 116 px high, that scroll with the heading of the camera (two copies per turn).
+async function horizonSky() {
+    const cases = [[1, 'urbaine'], [5, 'rapide'], [8, 'technique'], [12, 'ovales'], [16, 'nature'], [20, 'quais'], [24, 'falaises'], [28, 'slalom'], [17, 'bambou'], [19, 'feuilles'], [26, 'volcan']];
+    const sky = h => h.images.filter(i => i.placements.setVisible?.at(-1) && i.texture.key.startsWith('derapage-horizon-'));
+    const left = h => Math.min(...sky(h).map(i => i.placements.setPosition[0]));
+    const h = await mount('derapage', 'dragon', false); h.session.send('start');
+    try {
+        for (const [, key] of cases) h.textures.add(`derapage-horizon-${key}`);
+        h.scene.view3d = true;
+        for (const [level, key] of cases) {
+            h.engine.loadLevel(level, 28); h.frame();
+            const s = sky(h);
+            assert.equal(s.length, 2, `circuit ${level + 1}: the 3D sky draws the horizon of its cup (${key}), two copies`);
+            assert(s.every(i => i.texture.key === `derapage-horizon-${key}`), `circuit ${level + 1}: horizon ${key} (${s.map(i => i.texture.key)})`);
+            const [w, height] = s[0].placements.setDisplaySize, xs = s.map(i => i.placements.setPosition[0]).sort((a, b) => a - b);
+            assert.equal(height, 116, 'the horizon fills the sky band, 116 px high');
+            assert(s.every(i => i.placements.setPosition[1] === 96 && i.placements.setOrigin?.[0] === 0 && i.placements.setOrigin?.[1] === 0), 'from the top of the sky band');
+            assert.equal(xs[1] - xs[0], w, 'the two copies abut: the join is seamless');
+            assert(xs[0] <= 0 && xs[0] + 2 * w >= 360, `the sky is covered from edge to edge (${xs}, ${w})`);
+            assert(!h.calls.some(c => c[0] === 'fillStyle' && c[1] === 0x8ac7dd), 'no flat sky drawn under the horizon');
+        }
+        // It scrolls with the heading: 0.1 rad to the right moves it left by 0.1 × turn / 2π; a full turn shows the same sky.
+        h.engine.loadLevel(5, 28);
+        const p = h.engine.karts[0], at = angle => { Object.assign(p, { angle, vx: 0, vy: 0 }); h.frame(); return left(h); };
+        const w = 928, a = at(.3), b = at(.4), shift = ((a - b) % w + w) % w;
+        assert(Math.abs(shift - .1 * 2 * w / (2 * Math.PI)) < 1e-6, `the sky scrolls with the heading (${shift} px for 0.1 rad)`);
+        assert(Math.abs(at(.3 + 2 * Math.PI) - a) < 1e-6, 'a full turn shows the same sky');
+        // Along a whole turn the join crosses the screen and the copies stay abutting.
+        for (let i = 0; i < 64; i++) { at(i * Math.PI / 32); const xs = sky(h).map(s => s.placements.setPosition[0]).sort((m, n) => m - n); assert(xs[0] <= 0 && xs[1] - xs[0] === w && xs[0] + 2 * w >= 360, `turn step ${i}`); }
+        // Top view: no sky image. Without the chunk: the flat sky stays.
+        h.scene.view3d = false; h.frame(); assert.equal(sky(h).length, 0, 'no horizon in the top view');
+        h.scene.view3d = true; for (const [, key] of cases) h.textures.delete(`derapage-horizon-${key}`); h.frame();
+        assert.equal(sky(h).length, 0, 'flat sky until the chunk arrives');
+        assert(h.calls.some(c => c[0] === 'fillStyle' && c[1] === 0x8ac7dd), 'the flat blue sky is the fallback');
+    } finally { h.cleanup(); }
+    console.log('Horizons: one per cup in the 3D sky, seamless, scrolling with the heading, flat sky fallback');
+}
 await renderBudget();
 assert.equal(budgetChecks,384,'all real frame counts submitted');
 assert.throws(() => withinBudget(521, 591), { name: 'AssertionError' }, 'negative budget boundary');
@@ -307,6 +345,7 @@ await allCircuitBudgets();
 await miniMapAndHeldBonus();
 await drawnBonuses();
 await drawnTreesInScene();
+await horizonSky();
 if(process.argv.includes('--audit-mutations')) {
 const { mutationModule } = await import('./mutation-module.js');
 // Execute actual scene mutations: an inflated render and a return to smoothed time.

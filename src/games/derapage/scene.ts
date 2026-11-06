@@ -12,6 +12,7 @@ import { ids, expressions } from '../../characters/model';
 import { ArcadePaint } from '../../characters/arcade-phaser';
 import { renderCharacter } from '../../characters/canvas';
 import { bonusIcon, bonusTexture, pickupPanel, type BonusSpriteKey } from './bonus-sprites';
+import { HORIZON_WIDTH, SKY, horizonLeft, horizonOf, horizonTexture, type Horizon } from './horizon-sprites';
 import { TREE_SPRITES, drawnTrees, treeEssence, treePanel, treeTexture, treeTop, type TreeSpriteKey } from './tree-sprites';
 import { KART_SPRITES, chaseView, kartSprite, kartTexture, kartView, type KartSpriteKey, type KartView } from './kart-sprites';
 import { required } from '../../engines/derapage/access';
@@ -47,7 +48,7 @@ export interface DerapageHook {
     art(): string[];
     overview(enabled: boolean): void;
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; bonusViews: string[]; treeViews: string[]; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: string[] };
+    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; bonusViews: string[]; treeViews: string[]; horizon: { key: string; x: number } | null; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: string[] };
     loadLevel(i: number, seed?: number): void;
     /** Places a kart (test only): position and heading, simulation frozen, one frame drawn. */
     pose(id: number, x: number, y: number, angle: number): void;
@@ -155,6 +156,36 @@ export class DerapageScene extends Phaser.Scene {
         this.treePaint?.draw(treeTexture(key), x, top ? y : y - height / 2, height * s.w / s.h, rotation, 1, depth, height);
         this.treeViews.push(key);
     }
+    /** David's horizon in the 3D sky (lazy chunk per cup): two abutting copies that scroll with the heading. */
+    // Optional: scene checks build the scene from its prototype, without field initialisers.
+    private skyImages?: Phaser.GameObjects.Image[];
+    private horizonLoads?: Set<Horizon>;
+    /** Horizon and screen x of its left copy in the last frame, null while the flat sky shows; for tests. */
+    private horizonView: { key: Horizon; x: number } | null = null;
+    private loadHorizon(key: Horizon): void {
+        const loads = this.horizonLoads ??= new Set();
+        if (loads.has(key)) return;
+        loads.add(key);
+        void import('./horizon-atlas').then(({ loaders }) => loaders[`./horizons/${key}.webp`]?.()).then(url => {
+            if (!url || !this.sys.isActive() || this.textures.exists(horizonTexture(key))) return;
+            this.load.image(horizonTexture(key), url);
+            this.load.once('complete', () => { if (this.sys.isActive()) this.draw(); });
+            this.load.start();
+        }).catch(() => undefined);
+    }
+    /** Covers the flat sky with the horizon of the cup once it is loaded; the flat sky stays the fallback. */
+    private drawSky(t: Engine['track'], angle: number): boolean {
+        const key = horizonOf(t), texture = horizonTexture(key);
+        if (!this.textures.exists(texture)) { this.loadHorizon(key); return false; }
+        const left = horizonLeft(angle), images = this.skyImages ??= [];
+        for (let i = 0; i < 2; i++) {
+            const image = images[i] ?? this.add.image(0, 0, texture);
+            images[i] = image;
+            image.setTexture(texture).setOrigin(0, 0).setPosition(left + i * HORIZON_WIDTH, SKY.top).setDisplaySize(HORIZON_WIDTH, SKY.height).setDepth(1.5).setVisible(true);
+        }
+        this.horizonView = { key, x: left };
+        return true;
+    }
     private emblemTextures = new Map<Emblem, string>();
     private resultArt?: HTMLCanvasElement;
     private hud?: HTMLElement;
@@ -258,7 +289,7 @@ export class DerapageScene extends Phaser.Scene {
             });
             this.inputs.cleanup(() => { button.remove(); });
         }
-        const cleanup = (): void => { this.inputs.dispose(); this.road?.destroy(); this.paint?.destroy(); this.treePaint?.destroy(); for (const image of this.kartImages) image.destroy(); this.kartImages = []; this.kartImageCount = 0; for (const prop of this.props3d) prop.destroy(); this.props3d = []; this.propCount = 0; this.hud3d?.destroy(); this.hud3d = undefined; this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
+        const cleanup = (): void => { this.inputs.dispose(); this.road?.destroy(); this.paint?.destroy(); this.treePaint?.destroy(); for (const image of this.kartImages) image.destroy(); this.kartImages = []; for (const image of this.skyImages ?? []) image.destroy(); this.skyImages = undefined; this.kartImageCount = 0; for (const prop of this.props3d) prop.destroy(); this.props3d = []; this.propCount = 0; this.hud3d?.destroy(); this.hud3d = undefined; this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         this.background = this.add.graphics().setDepth(-1);
@@ -371,7 +402,7 @@ export class DerapageScene extends Phaser.Scene {
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
                 performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.time }),
                 fingerReceipts: receipts,
-                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], bonusViews: [...this.bonusViews], treeViews: [...this.treeViews], fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id)] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
+                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], bonusViews: [...this.bonusViews], treeViews: [...this.treeViews], horizon: this.horizonView && { ...this.horizonView }, fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id)] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
                 hudText: () => this.hud?.textContent ?? '', usefulArea: () => ({ x: 0, y: 96, width: 360, height: 544 }),
@@ -511,6 +542,8 @@ export class DerapageScene extends Phaser.Scene {
         this.paint?.begin(); this.treePaint?.begin();
         for (let i = 0; i < this.kartImageCount; i++) this.kartImages[i]?.setVisible(false);
         this.kartImageCount = 0; this.kartViews = []; this.bonusViews = []; this.treeViews = [];
+        for (const image of this.skyImages ?? []) image.setVisible(false);
+        this.horizonView = null;
         const treesReady = this.drawnTreesReady;
         for (let i=0;i<this.propCount;i++) this.props3d[i]?.clear().setVisible(false);
         this.propCount = 0;
@@ -523,6 +556,7 @@ export class DerapageScene extends Phaser.Scene {
             return prop.setDepth(depth).setVisible(true);
         };
         if (this.active3d) {
+            const skyDrawn = this.drawSky(t, p.angle);
             this.renderCost = draw3d(g,e,(id,x,y,size,rotation,depth) => {
                 const driver = id === 0 ? this.hero : this.rivals[id-1];
                 // The view follows the kart's heading relative to the camera: back, ¾, profile or front. The camera follows
@@ -542,7 +576,7 @@ export class DerapageScene extends Phaser.Scene {
                 const height = (kind === 'engine' ? 5 + tree.radius : tree.radius * 2) * a.scale;
                 this.drawnTree(treePanel(essence, height), a.x, a.y, height, 0, depth, false);
                 return true;
-            });
+            }, skyDrawn);
         } else {
         background.fillStyle(t.circuit.theme.ground);
         background.fillRect(0, 96, 360, 544);

@@ -278,6 +278,21 @@ fois toutes les textures arrivées. Vue de côté : 96 px de haut, réduction d�
 sous 48 px à l'écran ; vue de dessus : 48 px. Les arbres dessinés ont leur propre réserve
 de 128 images, distincte de celle des emblèmes et des bonus.
 
+En vue 3D, le ciel est l'horizon dessiné par David pour la coupe (Z45) : urbaine = Paris,
+rapide = vallée printanière, technique = désert des dunes, ovales = galaxie étoilée,
+nature = forêt des Ardennes, quais = Évian, falaises = Bénodet-Loctudy, slalom et BMX =
+montagnes givrées, Bambou Express = jardin zen, Feuilles Folles = manoir hanté, Volcan Turbo =
+volcan ardent. Chaque horizon est une bande de 1024×128 (WebP opaque) raccordée gauche-droite :
+le cadre des bords (arbre et bannières) est coupé, et la jointure est cachée derrière un
+élément du thème posé au milieu (un arbre dessiné par David, ou un cristal, un panache de
+fumée découpés dans le même horizon ; en forêt, un sapin de David). Il remplit la bande
+de ciel, de y = 96 à la ligne d'horizon (116 px de haut, donc 928 px de large), en deux copies
+bout à bout qui défilent avec le cap de la caméra : un tour complet fait défiler deux copies
+(1856 px), si bien qu'un même cap montre toujours le même ciel, et tourner à droite fait
+glisser le ciel vers la gauche, comme le décor. Chaque horizon est son propre module, chargé
+quand on court dans sa coupe et gardé hors ligne ; d'ici là, l'aplat bleu reste affiché. La vue
+de dessus n'a pas de ciel.
+
 Dans Bubble Lab, les six teintes restent identiques pour tous les compagnons.
 Chaque bulle porte un emblème thématique et un motif géométrique stable par couleur :
 vert/losange feuillu, orange/soleil, rose/cœur, violet/spirale, jaune/étoile,
