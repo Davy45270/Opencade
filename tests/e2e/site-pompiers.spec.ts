@@ -1,4 +1,4 @@
-import { test, expect } from './fixture';
+import { test, expect, goHome, openGameMenu } from './fixture';
 import type { Page } from '@playwright/test';
 import type {} from '../../src/games/petits-pompiers/scene';
 
@@ -75,6 +75,10 @@ test('SP03 site Pompiers : installé seul à sa portée, jouable hors connexion 
         expect(after.status).toBe('playing');
         expect(after.ticks).toBeGreaterThan(before.ticks);
         await expect(page.locator('#game canvas')).toBeVisible();
+        // Home goes to the catalogue, but offline without the catalogue's worker it falls back to the levels, never an error page.
+        await goHome(page);
+        await expect(page).toHaveURL(/\/pompiers\/\?test=1&pwa=1$/);
+        await expect(page.locator('#level-select')).toBeVisible();
     } finally {
         await context.setOffline(false);
     }
@@ -90,4 +94,27 @@ test('SP04 site Pompiers : la progression sauvegardée au catalogue est lue à l
     await expect(page.locator('#level-list button:nth-child(3)')).toBeEnabled();
     await expect(page.locator('#level-list button:nth-child(4)')).toBeDisabled();
     await expect(page.locator('#best-score')).toContainText('120');
+});
+
+test('SP05 site Pompiers : Accueil ramène au catalogue Opencade, Niveaux à la liste des niveaux', async ({ page }, info) => {
+    const mobile = info.project.name === 'mobile-chromium';
+    await page.goto('/pompiers/?test=1');
+    await expect(page.locator('#level-select')).toBeVisible();
+    await activate(page, mobile, '#level-list button:first-child');
+    await activate(page, mobile, '#pompiers-detente');
+    await activate(page, mobile, '#resume');
+    await expect(page.locator('#level-select')).toBeHidden();
+    await openGameMenu(page, '#levels');
+    await activate(page, mobile, '#levels');
+    await expect(page.locator('#level-select')).toBeVisible();
+    await expect(page).toHaveURL(/\/pompiers\/\?test=1$/);
+    await expect(page).toHaveTitle('Petits Pompiers');
+    await activate(page, mobile, '#level-list button:first-child');
+    await activate(page, mobile, '#pompiers-detente');
+    await activate(page, mobile, '#resume');
+    await goHome(page);
+    await expect(page).toHaveURL(/127\.0\.0\.1:4173\/\?test=1$/);
+    await expect(page).toHaveTitle('Opencade');
+    await expect(page.locator('#home')).toBeVisible();
+    await expect(page.locator('.game-card').filter({ hasText: 'Petits Pompiers' })).toHaveCount(1);
 });

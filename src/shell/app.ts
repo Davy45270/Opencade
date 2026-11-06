@@ -118,14 +118,19 @@ export function startApp({ games, links = [], order = games.map(entry => entry.i
         }
     }
     window.addEventListener('hashchange', route);
+    // On a single-game site, home is the Opencade catalogue, one level up (test parameters kept). Offline, it is reached
+    // only through the catalogue's own service worker; without it, home falls back to the game's start screen (its levels).
+    const catalogue = async (): Promise<void> => {
+        const url = new URL(`../${location.search}`, location.href).href;
+        const cached = navigator.onLine || ('serviceWorker' in navigator && Boolean((await navigator.serviceWorker.getRegistration(url).catch(() => undefined))?.active));
+        if (cached) location.assign(url); else route();
+    };
     document.querySelectorAll('[data-home]').forEach(button => {
-        // On a single-game site, home is the game's own start screen.
-        button.addEventListener('click', () => { if (single && location.hash.replace(/^#\/?/, '') === '') route(); else location.hash = '/'; });
+        button.addEventListener('click', () => { if (single) void catalogue(); else location.hash = '/'; });
     });
-    // A single-game site links back to the catalogue, one level up.
     const allGames = document.querySelector<HTMLButtonElement>('#all-games');
     if (allGames) allGames.hidden = !single;
-    allGames?.addEventListener('click', () => { location.assign('../'); });
+    allGames?.addEventListener('click', () => { void catalogue(); });
     route();
     installAdaptiveLayout();
 }
