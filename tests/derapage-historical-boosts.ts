@@ -14,6 +14,8 @@ export function restoreHistoricalGeometry(e: Engine, circuit: Circuit): void {
 }
 /** Test-only circular pads for the frozen K01–K03 evidence. Never imported by production. */
 export class HistoricalBoostEngine extends Engine {
+    /** The frozen evidence was raced by six karts (before the sixth, mascot-less kart was removed). */
+    protected override get kartCount(): number { return 6; }
     override loadLevel(level: number, seed=28): void {
         super.loadLevel(level,seed);
         if([17,19].includes(level)) restoreHistoricalGeometry(this,{...this.track.circuit,controls:required(legacyCircuits[level]).controls});

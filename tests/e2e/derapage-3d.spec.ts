@@ -133,3 +133,31 @@ test('commandes 3D mobiles : pouce vers le haut conserve le cap',async({page},in
         }
     } finally { await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]}); await cdp.detach(); }
 });
+test('Z42 en poursuite 3D, le kart du joueur montre ses vues ¾ arrière en virage, du côté du virage',async({page},info)=>{
+    test.skip(info.project.name!=='desktop-chromium');
+    await open(page);
+    await page.evaluate(()=>window.__DERAPAGE_TEST__?.advance(0));
+    await toggle(page);
+    await page.waitForFunction(()=>window.__DERAPAGE_TEST__?.view().active==='3d');
+    // The drawn karts arrive in their own chunk: wait until the player's kart is a drawing.
+    await page.waitForFunction(()=>{ const s=window.__DERAPAGE_TEST__?.read(); return Boolean(s?.kartViews.some(key=>key.startsWith(`${String(s.drivers[0])}_`))); });
+    // Frames stepped one by one in the page; the player's drawn view is read after each one.
+    const drive=async(frames:number): Promise<string[]>=>page.evaluate(frames=>{
+        const h=window.__DERAPAGE_TEST__, views: string[]=[];
+        for(let frame=0;frame<frames;frame++) { h?.advance(1000/60); const s=h?.read(); views.push(s?.kartViews.find(key=>key.startsWith(`${String(s.drivers[0])}_`))?.split('_')[1] ?? '?'); }
+        return views;
+    },frames);
+    // Out of the starting pack, at racing speed: straight ahead for 2.5 s.
+    await page.keyboard.down('ArrowUp'); await drive(150); await page.keyboard.up('ArrowUp');
+    const seen: Record<string,string[]>={};
+    for(const [key,expected] of [['ArrowRight','backRight'],['ArrowUp','back'],['ArrowLeft','backLeft'],['ArrowUp','back']] as const) {
+        await page.keyboard.down(key);
+        const views=await drive(30);
+        await page.keyboard.up(key);
+        seen[`${String(Object.keys(seen).length)} ${key}:${expected}`]=views;
+        // Settled within a fifth of a second, then held without flicker for the rest of the turn.
+        expect(views.slice(12),`${key} : ${views.join(' ')}`).toEqual(Array(18).fill(expected));
+        if(expected!=='back') await page.screenshot({path:`test-results/screenshots/derapage-3d-virage-${expected}.png`});
+    }
+    await info.attach('vues-en-virage',{body:JSON.stringify(seen,null,1),contentType:'application/json'});
+});

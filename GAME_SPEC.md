@@ -250,8 +250,8 @@ Les bonus conservent intégralement leurs règles. `turbo` et Élan prennent le 
 de propulsion du personnage, `ressort` son emblème, `flaque` son piège (bombe bambou,
 feuille, feu, banane ou étoile), et `bulle` son bouclier, cœur ou arc-en-ciel.
 Le bonus tenu, le saut, la propulsion, le bouclier et les pièges déposés montrent
-ces signes ; un piège garde l'identité de son propriétaire. Le sixième pilote
-reste neutre. Les caisses de bonus gardent une silhouette commune contrastée.
+ces signes ; un piège garde l'identité de son propriétaire. Il n'y a plus de pilote
+neutre : cinq karts, un par mascotte. Les caisses de bonus gardent une silhouette commune contrastée.
 
 Dans Bubble Lab, les six teintes restent identiques pour tous les compagnons.
 Chaque bulle porte un emblème thématique et un motif géométrique stable par couleur :
@@ -3340,7 +3340,7 @@ mesurée (`scripts/traverse-diversity.js`) : 41,4 → **21,6**, 0 % de clones.
 
 ## Dérapage
 
-Passe 72 : les cinq compagnons pilotent les karts (joueur et quatre IA), avec un sixième pilote neutre ; Élan et ses preuves suivent le contrat Characters ci-dessus.
+Passe 72 : les cinq compagnons pilotent les karts (joueur et quatre IA) ; le sixième pilote neutre (kart gris) est retiré ; Élan et ses preuves suivent le contrat Characters ci-dessus.
 
 Douzième jeu, `derapage`, `realtime: true`. Course de karts originale,
 vue de dessus avec caméra suivant le joueur, fixe avec le nord en haut par défaut ; caméra tournante disponible dans ☰.
@@ -3351,7 +3351,7 @@ nouvelle dépendance ni fichier binaire ; seule la persistance partagée ajoute 
 
 ### Règles et commandes
 
-Six karts, trois tours. Accélération automatique 12 unités/s², frottement
+Cinq karts (un par mascotte), trois tours. Accélération automatique 12 unités/s², frottement
 longitudinal 0,12/s, vitesse normale plafonnée à 24. Braquage proportionnel
 2,4 rad/s, modulé par la vitesse jusqu’à 10 unités/s ; adhérence latérale
 exponentielle 10/s. Les cercles de rayon 1,2 se séparent et échangent une
@@ -3389,7 +3389,7 @@ Turbo `1+0,7p`, Ressort `1+0,2p`, Flaque `3−0,3p`, Bulle `2`.
 Turbo donne 1800 ms de boost ; Ressort ignore l’herbe pendant 1600 ms ;
 Flaque reste 6000 ms quatre unités derrière son propriétaire, fait glisser
 les autres pendant 1100 ms ; Bulle absorbe le prochain choc ou la flaque.
-Les cinq IA suivent une ligne de course précalculée (ligne centrale
+Les quatre IA suivent une ligne de course précalculée (ligne centrale
 contractée de 1 %), regardent devant elles, anticipent les courbures pour
 freiner, ajoutent un bruit à graine et utilisent leurs bonus.
 Le retard de freinage réduit la distance d’anticipation ; le bruit et ce
@@ -3599,7 +3599,7 @@ tolérance littérale 1e-6 ; décaler la porte d’un point est détecté.
 | Z08 | Classement, six scores littéraux, podium et gel terminal |
 | Z09 | Quatre courses, cumul, classement et rejeu sans double compte |
 | Z10 | Quatre effets, poids selon place, graine et retour à 5000 ms |
-| Z11 | Cinq rivaux, mesures d’écart et temps aux deux extrêmes |
+| Z11 | Quatre rivaux, mesures d’écart et temps aux deux extrêmes |
 | Z12 | Trente tracés × trois graines, largeur ≥12, fermeture et intersections |
 | Z13 | Trois tours sur chacun des trente tracés en moins de 90 s |
 | Z14 | Sens de chacun des sept paramètres et extrêmes stricts |
@@ -3656,7 +3656,7 @@ Le HUD réservé aux 96 premiers pixels affiche course, tour courant et meilleur
 au format `mm:ss.cc`. À chaque franchissement, l’écart au meilleur précédent
 est vert si strictement négatif, rouge sinon (premier passage : écart « — »).
 L’annonce persiste jusqu’au passage suivant. Le résultat affiche temps total,
-meilleur tour, record historique du circuit et classement des six karts.
+meilleur tour, record historique du circuit et classement des cinq karts.
 
 Le champ optionnel `circuitRecords` de la sauvegarde existante
 `arcade-lab:derapage:v1` associe le nom stable du circuit à son meilleur
@@ -3734,7 +3734,7 @@ Le Rocher reste en campagne au niveau 5. Les 28 autres positions restent identiq
 La campagne Node `scripts/derapage-human.js` vise le centre six échantillons
 devant la section courante, bruit uniforme ±0,35 rad (graine 67), observe toutes
 les neuf images (150 ms) et applique la visée de l’observation précédente.
-Les courses sont ordinaires, à six karts, graine de course 28, sans bonus
+Les courses sont ordinaires, à cinq karts, graine de course 28, sans bonus
 utilisé par le joueur. `--record` régénère les bandes d’entrées Z36 ; chaque
 rejeu vérifie trois tours, arrêt (<2 unités/s) strictement <0,5 s, hors piste
 strictement <15 %, puis position et cap finaux exacts. Z37 couvre la zone morte,
@@ -3751,7 +3751,7 @@ Les mutations rail collant, direction relative et records par index sont
 rejetées respectivement par Z38, Z37 et Z39 ; les emplacements courants sont
 imprimés par `scripts/check-derapage-joystick-mutations.js`.
 
-Résultats Z36 (aide activée, six karts) : niveaux 1, 3, 15 et Le Rocher :
+Résultats Z36 (aide activée, cinq karts) : niveaux 1, 3, 15 et Le Rocher :
 3 tours chacun, plus long arrêt 0,167 s (départ compris), 0 % hors piste.
 Le détail, l’ordre complet et les mutations sont dans
 `docs/derapage-joystick-validation.json` après validation Node.
@@ -3762,7 +3762,7 @@ Serpentin peint le corps de la queue vers la tête, puis le personnage. Le valid
 Node des scènes construit une vraie traversée du corps et verrouille l'ordre des
 appels de dessin. Il contrôle aussi les réactions issues d'une collision Dérapage,
 d'un tir Bubble attaché sans éclatement et d'une mort Serpentin, les compteurs du
-HUD avant/après usage, la géométrie de chaque rival et celle du pilote neutre.
+HUD avant/après usage, la géométrie de chaque rival, et l'absence de pilote neutre.
 Le Joker est testé contre une bombe d'une autre couleur, avec témoin sans Joker.
 Les E2E tactiques comparent les mêmes positions et entrées avec/sans spécial :
 un unique tir Joker vide un groupe qui reste intact sans lui ; l'Esquive absorbe
@@ -3776,7 +3776,8 @@ Même sans Élan du joueur, les IA accélérées modifient les contacts entre ka
 les positions/classements et ensuite les bonus : les anciennes entrées ne donnent
 plus nécessairement la même trajectoire. Sur les bandes originales de `038a0c1`,
 les arrivées L1/L3/L5 passent de 3623/4083/3431 à 3614/4080/3397 pas ; L15 reste
-identique (3451). Les cinq IA emploient l'Élan dans chacune de ces quatre bandes ;
+identique (3451). Depuis le retrait du sixième kart (pilote neutre), à cinq karts, elles
+finissent en 3617/4074/3404 pas, L15 toujours 3451. Les IA emploient l'Élan dans chacune de ces quatre bandes ;
 le pilote n'en emploie aucun. Les bandes réenregistrées de la passe 72 restent testées.
 
 L'ancien oracle est conservé séparément dans `tests/derapage-recordings-038a0c1.ts`
@@ -3786,7 +3787,7 @@ historique avec un moteur de test qui refuse tout Élan, IA comprises. Les empre
 SHA-256 de `tests/fixtures/derapage-038a0c1.json` proviennent du moteur ET de la
 physique de `038a0c1` (`node scripts/record-derapage-historical.js --record` ;
 la génération refuse des dépendances modifiées depuis cette référence). Elles
-couvrent la suite complète des états dynamiques à chaque pas : les six karts, contrôles, RNG, objets, chronos et coupe. Seul le nouveau
+couvrent la suite complète des états dynamiques à chaque pas : les six karts de l'époque (le moteur historique de test en garde six), contrôles, RNG, objets, chronos et coupe. Seul le nouveau
 champ inerte `specialMs: 0` est retiré ; toute activation est rejetée par assertion.
 Chaque rejeu est découpé en contrôles de 600 pas, chacun borné à 2 s réelles,
 avec empreinte historique intermédiaire et empreinte finale intégrale. Les résultats
@@ -4492,7 +4493,7 @@ traversée instantanée du trou. Le contournement est local à ce pont.
 
 `tests/level-catalogue-kart-checks.ts` vérifie les trois géométries, mesure les
 mécaniques dans la physique réelle et rejoue deux courses gagnantes par
-circuit, six karts, objets et collisions actifs. K01 compare le tour
+circuit, cinq karts, objets et collisions actifs. K01 compare le tour
 initial du rejeu au même pilote sur la voie normale et exige un temps plus
 court par le raccourci ; sa
 contre-épreuve refuse une porte omise et son contrôle positif franchit la

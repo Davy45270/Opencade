@@ -3,7 +3,7 @@ import { Random } from '../shared/random';
 import { at, createTrack, difficulty, nearest, type Track } from './track';
 import { physics, collide, resolveRail, type Input, type Kart } from './physics';
 import { aiInput, aiSpeed } from './ai';
-import { checkpoint, ranking, recover, Cup, POINTS } from './race';
+import { checkpoint, ranking, recover, Cup, KART_COUNT, POINTS } from './race';
 import { updateItems, useItem, type Crate, type Puddle } from './items';
 export { LEVELS, difficulty } from './track';
 export const FIXED_MS = 1000 / 60;
@@ -26,16 +26,18 @@ export class Engine {
     score = 0;
     /** Times the player was put back on the road this race. */
     recoveries = 0;
-    cup = new Cup();
+    cup = new Cup(this.kartCount);
     private random = new Random(28);
-    private cupBefore = { races: 0, scores: [0, 0, 0, 0, 0, 0] };
+    private cupBefore = { races: 0, scores: Array.from({ length: this.kartCount }, () => 0) };
     private controls: Input = { steer: 0, drift: false, bonus: false };
     constructor(level = 0, seed = 28) { this.loadLevel(level, seed); }
+    /** Karts on the grid: the five mascots. The six-kart historical oracles (tests) override it. */
+    protected get kartCount(): number { return KART_COUNT; }
     loadLevel(level: number, seed = 28): void {
         if (!Number.isInteger(level) || level < 0 || level > 29)
             throw new RangeError('Niveau invalide');
         if (Math.floor(level / 4) !== Math.floor(this.level / 4) || level % 4 === 0 || level >= 28)
-            this.cup = new Cup();
+            this.cup = new Cup(this.kartCount);
         else if (level === this.level) {
             this.cup.races = this.cupBefore.races;
             this.cup.scores = [...this.cupBefore.scores];
@@ -58,7 +60,7 @@ export class Engine {
         this.recoveries = 0;
         this.puddles = [];
         this.controls = { steer: 0, drift: false, bonus: false };
-        this.karts = Array.from({ length: 6 }, (_, id) => {
+        this.karts = Array.from({ length: this.kartCount }, (_, id) => {
             const p = at(this.track, -3 - Math.floor(id / 2) * 4), next = at(this.track, 1 - Math.floor(id / 2) * 4), angle = Math.atan2(next.y - p.y, next.x - p.x), offset = id % 2 === 0 ? -2 : 2;
             return { id, x: p.x - Math.sin(angle) * offset, y: p.y + Math.cos(angle) * offset, angle, vx: 0, vy: 0, lap: 0, gate: 1, passed: 0, driftMs: 0, boostMs: 0, jumpMs: 0, slipMs: 0, shield: false, item: null, finishMs: null, hits: 0, penaltyMs: 0, missedGates: 0, noticeMs: 0, jumpHeight: 0, slalomPassed: [] };
         });
@@ -98,8 +100,8 @@ export class Engine {
                 physics(k, input, this.track, FIXED_MS / 1000, difficulty(this.level).grassGrip, k.id === 0 ? 24 : aiSpeed(k, this.track, this.level, section), section);
             }
             this.controls.bonus = false;
-            for (let i = 0; i < 6; i++)
-                for (let j = i + 1; j < 6; j++)
+            for (let i = 0; i < this.karts.length; i++)
+                for (let j = i + 1; j < this.karts.length; j++)
                     collide(required(this.karts[i]), required(this.karts[j]));
             for (const k of this.karts) {
                 if (this.track.circuit.theme.urban) resolveRail(k, this.track);

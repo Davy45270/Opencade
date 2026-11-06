@@ -11,12 +11,13 @@ import { arcadeArt, bonusEmblem, emblems, liveries, vehicleDrawing, type Emblem 
 import { ids, expressions } from '../../characters/model';
 import { ArcadePaint } from '../../characters/arcade-phaser';
 import { renderCharacter } from '../../characters/canvas';
-import { KART_SPRITES, kartSprite, kartTexture, kartView, type KartSpriteKey } from './kart-sprites';
+import { KART_SPRITES, chaseView, kartSprite, kartTexture, kartView, type KartSpriteKey, type KartView } from './kart-sprites';
 import { required } from '../../engines/derapage/access';
 import Phaser from 'phaser';
 import { Engine, LEVELS } from '../../engines/derapage/engine';
 import { analogSteer } from '../../engines/derapage/physics';
 import { circuitKey } from '../../engines/derapage/circuits';
+import { KART_COUNT } from '../../engines/derapage/race';
 import { nearest, at, boostStrip } from '../../engines/derapage/track';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { MOBILE_PLAY, PlaySession } from '../../shell/pause';
@@ -44,7 +45,7 @@ export interface DerapageHook {
     art(): string[];
     overview(enabled: boolean): void;
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
+    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: string[] };
     loadLevel(i: number, seed?: number): void;
     /** Places a kart (test only): position and heading, simulation frozen, one frame drawn. */
     pose(id: number, x: number, y: number, angle: number): void;
@@ -119,6 +120,8 @@ export class DerapageScene extends Phaser.Scene {
     private kartImageCount = 0;
     /** Sprite keys of the drawn karts in the last frame, for tests. */
     private kartViews: string[] = [];
+    /** Last view of the player's kart in the 3D chase view (hysteresis). */
+    private playerView?: Exclude<KartView, 'top'>;
     private drawnKart(key: KartSpriteKey | undefined, x: number, y: number, height: number, rotation: number, depth: number): boolean {
         if (!key || !this.textures.exists(kartTexture(key))) return false;
         const s = KART_SPRITES[key], image = this.kartImages[this.kartImageCount] ?? this.add.image(0, 0, kartTexture(key));
@@ -180,6 +183,7 @@ export class DerapageScene extends Phaser.Scene {
     }
     private start(i: number, seed?: number, fresh = false): void {
         this.recordedLaps = 0;
+        this.playerView = undefined;
         this.lapCrossedAt = -Infinity;
         this.newRecord = false;
         this.manual = false;
@@ -237,7 +241,7 @@ export class DerapageScene extends Phaser.Scene {
         this.graphics = this.add.graphics().setDepth(1);
         this.paint = new ArcadePaint(this, 96);
         for (const id of ids) for (const expression of expressions) this.kartTextures.set(`${id}-${expression}`, this.paint.texture(`kart-${id}-${expression}`, vehicleDrawing(id, 'dessus', expression)));
-        // The drawn karts arrive in their own chunk; until then (or for a mascot without them) the vector kart is drawn.
+        // The drawn karts arrive in their own chunk; until then the vector kart of each mascot is drawn.
         void import('./kart-atlas').then(({ sprites }) => {
             if (!this.sys.isActive()) return;
             for (const [key, url] of Object.entries(sprites)) if (!this.textures.exists(kartTexture(key))) this.load.image(kartTexture(key), url);
@@ -327,7 +331,7 @@ export class DerapageScene extends Phaser.Scene {
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
                 performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.time }),
                 fingerReceipts: receipts,
-                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
+                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id)] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
                 hudText: () => this.hud?.textContent ?? '', usefulArea: () => ({ x: 0, y: 96, width: 360, height: 544 }),
@@ -480,17 +484,12 @@ export class DerapageScene extends Phaser.Scene {
         if (this.active3d) {
             this.renderCost = draw3d(g,e,(id,x,y,size,rotation,depth) => {
                 const driver = id === 0 ? this.hero : this.rivals[id-1];
-                // The view follows the kart's heading relative to the camera: back, ¾, profile or front.
-                if (this.drawnKart(kartSprite(driver?.id, kartView(rotation)), x, y, size * .92, 0, depth)) return;
+                // The view follows the kart's heading relative to the camera: back, ¾, profile or front. The camera follows
+                // the player's heading, so the player's view comes from its turn (steering, drift, slide), with hysteresis.
+                const k = e.karts[id], view = id === 0 && k ? (this.playerView = chaseView(k, e.controls, this.playerView)) : kartView(rotation);
+                if (this.drawnKart(kartSprite(driver?.id, view), x, y, size * .92, 0, depth)) return;
                 const art = driver && this.rearTextures.get(`${driver.id}-${driver.expression}`);
                 if (art) this.paint?.draw(art,x,y-size/2,size,rotation,1,depth);
-                else {
-                    const g=layer(depth);
-                    g.fillStyle(0x222937);
-                    for (const side of [-1,1]) for (const row of [.25,.75]) g.fillRect(x+side*size*.25-size*.06,y-size*row,size*.12,size*.18);
-                    g.fillStyle(0x89949c); g.fillRoundedRect(x-size*.23,y-size*.85,size*.46,size*.8,size*.08);
-                    g.fillStyle(0xf2eee1); g.fillCircle(x,y-size*.55,size*.13);
-                }
             }, layer, (item,a,depth) => {
                 const size=item.radius*2*a.scale;
                 const texture=this.sceneryTextures.get(item.kind);
@@ -675,10 +674,6 @@ export class DerapageScene extends Phaser.Scene {
                 const key = this.kartTextures.get(`${driver.id}-${driver.expression}`);
                 const rotation = k.angle + (this.overviewMode ? 0 : angle) + Math.PI / 2;
                 if (!this.drawnKart(kartSprite(driver.id, 'top'), a.x, a.y - height * scale, 42 * size * jumpScale, rotation, 1) && key) this.paint?.draw(key, a.x, a.y - height * scale, 46 * size * jumpScale, rotation);
-            } else {
-                g.fillStyle(0x89949c); g.fillRoundedRect(-13, -8, 26, 16, 4);
-                g.fillStyle(0x222937); for (const x of [-8, 8]) for (const y of [-9, 9]) g.fillCircle(x, y, 4);
-                g.fillStyle(0xf2eee1); g.fillCircle(0, 0, 5);
             }
             const emblemAt = (kind: Emblem, localX: number, localY: number, diameter: number): void => {
                 const key = this.emblemTextures.get(kind), r = k.angle + (this.overviewMode ? 0 : angle);
@@ -768,7 +763,7 @@ export class DerapageScene extends Phaser.Scene {
         const timing = s.timing;
         const delta = timing.lastLapDeltaMs;
         const crossing = timing.lapTimesMs.length === 0 || this.sceneTime-this.lapCrossedAt >= 2000 ? '' : `Écart ${delta === null ? '—' : `${delta < 0 ? '−' : '+'}${formatTime(Math.abs(delta))}`} ${this.newRecord ? 'Nouveau record !' : ''}`;
-        const text = `PISTOUILLE ${String(e.level + 1)}/30 · PLACE ${String(s.order.indexOf(0) + 1)}/6 · TOUR ${String(Math.min(3, p.lap + 1))}/3
+        const text = `PISTOUILLE ${String(e.level + 1)}/30 · PLACE ${String(s.order.indexOf(0) + 1)}/${String(KART_COUNT)} · TOUR ${String(Math.min(3, p.lap + 1))}/3
 SCORE ${String(s.score)} · COURSE ${formatTime(timing.raceMs)} · TOUR ${formatTime(timing.currentLapMs)}
 MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${(p.noticeMs ?? 0) > 0 ? 'Porte manquée +2,0 s' : p.item ?? '—'}${crossing ? ` · ${crossing}` : ''}
 ÉLAN ${p.specialLap === p.lap ? '0' : '1'}/1 · COUPE ${String(s.cup.races)}/4 · ${s.cup.order.map(id => `${String(id + 1)}:${String(s.cup.scores[id])}`).join(' ')}`;
@@ -832,7 +827,7 @@ MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${(p.noticeMs ?? 0) > 0 ? 'Por
     }
     /** Touch play: place, lap and race time in the DOM HUD; Élan stock and a held bonus on their icons. */
     private touchHud(place: number, lap: number, time: string, elan: number, bonus: boolean): void {
-        setHud('left', [{ icon: 'P', value: `${String(place)}/6`, label: 'Place' }]);
+        setHud('left', [{ icon: 'P', value: `${String(place)}/${String(KART_COUNT)}`, label: 'Place' }]);
         setHud('center', [{ value: time, label: 'Chrono' }]);
         setHud('right', [{ icon: 'T', value: `${String(lap)}/3`, label: 'Tour' }]);
         const special = document.querySelector('#derapage-special');

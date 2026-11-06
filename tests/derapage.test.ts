@@ -124,19 +124,20 @@ test('Z07 sauter une porte, demi-tour et couper dans herbe ne valide pas', () =>
     expect(k.gate).toBe(2);
     expect(k.passed).toBe(1);
 });
-test('Z08 ordre par progression puis distance, points 10/8/6/5/4/3 et podium', () => {
+test('Z08 ordre par progression puis distance, points 10/8/6/5/4 et podium, cinq karts', () => {
     const t = createTrack(0), a = kart(), b = { ...kart(), id: 1, passed: 1 };
     expect(ranking([a, b], t)).toEqual([1, 0]);
     b.passed = 0;
     Object.assign(b, t.points[8]);
     expect(ranking([a, b], t)).toEqual([1, 0]);
-    for (let place = 0; place < 6; place++) {
+    expect(new Engine().karts).toHaveLength(5);
+    for (let place = 0; place < 5; place++) {
         const e = new Engine();
         required(e.karts[0]).finishMs = 2000;
         for (let i = 1; i <= place; i++)
             required(e.karts[i]).finishMs = i * 100;
         e.step(1000 / 60);
-        expect(e.score).toBe([10, 8, 6, 5, 4, 3][place]);
+        expect(e.score).toBe([10, 8, 6, 5, 4][place]);
         expect(e.status).toBe(place < 3 ? 'won' : 'lost');
         const frozen = e.snapshot();
         e.step(1000);
@@ -146,10 +147,13 @@ test('Z08 ordre par progression puis distance, points 10/8/6/5/4/3 et podium', (
 test('Z09 coupe exactement quatre courses et cumul', () => {
     const c = new Cup();
     for (let i = 0; i < 4; i++)
-        c.record([2, 0, 1, 3, 4, 5]);
-    expect(c.scores).toEqual([32, 24, 40, 20, 16, 12]);
-    expect(c.standings()).toEqual([2, 0, 1, 3, 4, 5]);
-    expect(() => { c.record([0, 1, 2, 3, 4, 5]); }).toThrow();
+        c.record([2, 0, 1, 3, 4]);
+    expect(c.scores).toEqual([32, 24, 40, 20, 16]);
+    expect(c.standings()).toEqual([2, 0, 1, 3, 4]);
+    expect(() => { c.record([0, 1, 2, 3, 4]); }).toThrow();
+    // Five karts, one per mascot: an order of six (or with a sixth kart) is refused.
+    expect(() => { new Cup().record([0, 1, 2, 3, 4, 5]); }).toThrow();
+    expect(() => { new Cup().record([0, 1, 2, 3, 5]); }).toThrow();
 });
 test('Z10 effets originaux, tirage pondéré reproductible et retour des caisses à 5000 ms', () => {
     const k = kart(), puddles: Puddle[] = [];
@@ -195,8 +199,8 @@ function pilot(level: number, ai = false) {
     }
     return { grass: grass / frame, laps: k.lap, seconds: frame / 60, error: error / frame };
 }
-test('Z11 IA : erreurs et temps entre Le Rocher et le dernier niveau, cinq rivaux', () => {
-    expect(new Engine().karts.slice(1)).toHaveLength(5);
+test('Z11 IA : erreurs et temps entre Le Rocher et le dernier niveau, quatre rivaux', () => {
+    expect(new Engine().karts.slice(1)).toHaveLength(4);
     const easy = pilot(4, true), hard = pilot(29, true);
     expect(easy.laps).toBe(3);
     expect(hard.laps).toBe(3);
@@ -236,8 +240,9 @@ test('Z16 contrat monde sérialisable sans notion de vue', () => {
     const s = new Engine().snapshot();
     expect(Object.keys(s).sort()).toEqual(['controls', 'crates', 'cup', 'frames', 'karts', 'level', 'order', 'puddles', 'random', 'remainder', 'score', 'seed', 'status', 'time', 'timing', 'track']);
     expect(JSON.stringify(s)).not.toMatch(/camera|screen|viewport|pixel|canvas/i);
-    // advance is simulation time; special is the kart's per-lap Élan, both in world space.
-    expect(Object.getOwnPropertyNames(Engine.prototype).sort()).toEqual(['advance', 'constructor', 'input', 'loadLevel', 'snapshot', 'special', 'step']);
+    // advance is simulation time; special is the kart's per-lap Élan, both in world space; kartCount is the grid size
+    // (five, one per mascot), overridden only by the six-kart historical oracles.
+    expect(Object.getOwnPropertyNames(Engine.prototype).sort()).toEqual(['advance', 'constructor', 'input', 'kartCount', 'loadLevel', 'snapshot', 'special', 'step']);
 });
 
 test('Z09 rejouer une course ne double pas les points de coupe', () => {

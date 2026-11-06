@@ -16,7 +16,7 @@ for (const [code, level, from, to] of [['K01',17,67,73],['K02',19,19,21],['K03',
         await page.evaluate(level=>{const h=window.__DERAPAGE_TEST__;h?.loadLevel(level,28);h?.advance(0);},level);
         await page.waitForFunction(() => {
             const s=window.__DERAPAGE_TEST__?.read(),canvas=document.querySelector('#game canvas'),hud=document.querySelector<HTMLElement>('[data-derapage-hud]');
-            if(!canvas || !hud || s?.status!=='playing' || s.karts.length!==6) return false;
+            if(!canvas || !hud || s?.status!=='playing' || s.karts.length!==5) return false;
             const box=canvas.getBoundingClientRect(),bounds=hud.getBoundingClientRect(),scale=box.width/360;
             const timer=hud.firstElementChild;if(!timer) return false;
             return bounds.top>=box.top && bounds.bottom<=box.top+96*scale && bounds.right<=box.right && Number.parseFloat(getComputedStyle(timer).fontSize)>=22*scale;

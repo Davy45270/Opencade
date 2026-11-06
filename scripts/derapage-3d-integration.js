@@ -54,7 +54,7 @@ for(const view of [false,true]) {
         assert.equal(h.engine.status,'won');
         const state=h.engine.snapshot(),result={timing:state.timing,order:state.order,rows:h.scene.hud.children.map(row=>row.textContent)};
         assert(result.rows.some(row=>row.includes('COURSE')));
-        assert(result.rows.some(row=>row.includes('PLACE 1/6')));
+        assert(result.rows.some(row=>row.includes('PLACE 1/5')));
         if(displayed) assert.deepEqual(result,displayed,'Y07 identical displayed times and ranking');
         else displayed=result;
     } finally {h.cleanup();}

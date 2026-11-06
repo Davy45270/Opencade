@@ -13,6 +13,8 @@ const { replayHuman } = await import('../tests/derapage-joystick.ts');
 const reference = JSON.parse(readFileSync('tests/fixtures/derapage-038a0c1.json', 'utf8'));
 // Test-only campaign rule: rejects every activation, including all five AIs.
 class WithoutElan extends Engine {
+    // The 038a0c1 oracle was raced by six karts: the game now has five (one per mascot).
+    get kartCount() { return 6; }
     special() { return false; }
     loadLevel(level, seed = 28) {
         super.loadLevel(level, seed);
@@ -78,7 +80,8 @@ for (const tape of recordings) {
         e.input({ steer: 0, drift: false, bonus: false, mode: 'joystick', heading: tape.events[Math.floor(frame / 9)], assist: true });
         e.advance(1000 / 60);
     }
-    const expected = { 0: 3614, 2: 4080, 4: 3397, 14: 3451 };
+    // The current game races five karts (one per mascot), the oracle above six: these are five-kart frame counts.
+    const expected = { 0: 3617, 2: 4074, 4: 3404, 14: 3451 };
     assert.equal(e.frames, expected[tape.level]); assert.equal(e.karts[0].specialLap, undefined);
     const aiUsed = e.karts.slice(1).filter(k => k.specialLap !== undefined).map(k => k.id);
     if (tape.level !== 14) assert(aiUsed.length > 0, 'only AI impulse changes this replay');

@@ -111,11 +111,12 @@ for (const game of ['derapage', 'bubble', 'serpentin']) {
             if (game === 'derapage') {
                 assert.equal(scene.rivals.length, 4);
                 assert.deepEqual(scene.rivals.map(r => r.id), ids.filter(other => other !== id));
-                // Put all six karts inside the camera, then verify every submitted identity.
+                // Put all five karts inside the camera, then verify every submitted identity: one per mascot, no neutral kart.
+                assert.equal(engine.karts.length, 5);
                 for (const k of engine.karts) { k.x = engine.karts[0].x; k.y = engine.karts[0].y; }
                 frame();
                 assert.deepEqual(scene.paint.keys().filter(key => key.includes('-kart-')).map(key => key.split('-kart-')[1].split('-')[0]), [id, ...ids.filter(other => other !== id)]);
-                assert(h.calls.some(c => c[0] === 'fillCircle' && c[1] === 0 && c[2] === 0 && c[3] === 5), 'neutral driver geometry');
+                assert(!h.calls.some(c => c[0] === 'fillCircle' && c[1] === 0 && c[2] === 0 && c[3] === 5), 'no neutral (grey) driver drawn');
                 assert.match(scene.hud.children.map(n => n.textContent).join(''), /ÉLAN 1\/1/);
                 assert(scene.paint.keys().includes(`arcade-vector-75-kart-${id}-${hero.expression}`)); tap('derapage-special');
             } else if (game === 'bubble') {

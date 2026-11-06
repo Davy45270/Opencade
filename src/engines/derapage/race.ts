@@ -1,6 +1,9 @@
 import { required } from './access';
 import { distance, gateLine, nearest, onShortcut, type Track, type Vec } from './track';
 import type { Kart } from './physics';
+/** Five karts, one per mascot: the player and the four other mascots. */
+export const KART_COUNT = 5;
+/** Points by place; the sixth place only exists in the six-kart historical oracles (tests). */
 export const POINTS = [10, 8, 6, 5, 4, 3] as const;
 export function checkpoint(k: Kart, previous: Vec, t: Track, time: number): void {
     if (k.finishMs !== null)
@@ -31,15 +34,16 @@ export function ranking(karts: Kart[], t: Track): number[] {
     }).map(k => k.id);
 }
 export class Cup {
-    scores = [0, 0, 0, 0, 0, 0];
+    scores: number[];
     races = 0;
+    constructor(readonly count: number = KART_COUNT) { this.scores = Array.from({ length: count }, () => 0); }
     record(order: number[]): void {
-        if (this.races >= 4 || new Set(order).size !== 6 || order.some(id => !Number.isInteger(id) || id < 0 || id > 5))
+        if (this.races >= 4 || order.length !== this.count || new Set(order).size !== this.count || order.some(id => !Number.isInteger(id) || id < 0 || id >= this.count))
             throw new RangeError('Course invalide');
         order.forEach((id, place) => { this.scores[id] = required(this.scores[id]) + required(POINTS[place]); });
         this.races++;
     }
-    standings(): number[] { return [0, 1, 2, 3, 4, 5].sort((a, b) => required(this.scores[b]) - required(this.scores[a]) || a - b); }
+    standings(): number[] { return Array.from({ length: this.count }, (_, id) => id).sort((a, b) => required(this.scores[b]) - required(this.scores[a]) || a - b); }
 }
 /**
  * Beyond this distance from the road edge, a kart is lost rather than cutting a bend.

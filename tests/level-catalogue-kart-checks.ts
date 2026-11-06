@@ -45,7 +45,7 @@ export function kartMechanic(code: string, level: number, shortcutLap?: number):
         k.vx=Math.cos(k.angle)*24; k.vy=Math.sin(k.angle)*24;
         physics(k,neutral,t,1/60,.43); assert(Math.hypot(k.vx,k.vy)>23,'branch is road, not grass');
         // Compare the verified shortcut replay's opening lap with the same pilot
-        // driving the ordinary route in a fresh six-kart engine.
+        // driving the ordinary route in a fresh five-kart engine.
         const normal=new Engine(level);
         for (let frame=0;frame<3000 && required(normal.karts[0]).lap===0;frame++) {
             normal.input(kartPilot(normal,false)); normal.step(1000/60);

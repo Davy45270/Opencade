@@ -14,7 +14,7 @@ for (const viewport of [{ width: 405, height: 480 }, { width: 412, height: 780 }
         canvasLines: [...document.querySelectorAll('[data-derapage-hud] > *')].filter(e => getComputedStyle(e).display !== 'none').map(e => ({ text: e.textContent, size: parseFloat(getComputedStyle(e).fontSize) })),
         controls: [...document.querySelectorAll('#touch-controls button, #touch-controls output, #touch-controls label')].filter(e => e.getClientRects().length > 0).map(e => e.id).sort(),
     }));
-    expect(hud.values.map(v => v.text)).toEqual([expect.stringMatching(/^\d\/6$/), expect.stringMatching(/\d/), expect.stringMatching(/^\d\/3$/)]);
+    expect(hud.values.map(v => v.text)).toEqual([expect.stringMatching(/^\d\/5$/), expect.stringMatching(/\d/), expect.stringMatching(/^\d\/3$/)]);
     for (const value of hud.values) expect(value.size).toBeGreaterThanOrEqual(18);
     // Place, race time and lap count live in the DOM HUD only: the canvas shows the three lap chronos.
     expect(hud.canvasLines.map(l => l.text)).toEqual([expect.stringMatching(/^TOUR /), expect.stringMatching(/^MEILLEUR /), expect.any(String)]);

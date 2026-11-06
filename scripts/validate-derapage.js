@@ -125,7 +125,7 @@ for (const level of [28,29]) {
 }
 console.log('Z15 : snapshots slalom/BMX identiques à chaque pas.');
 
-// Z36: real six-kart campaign, seeded heading noise and a full 150 ms delay.
+// Z36: real five-kart campaign, seeded heading noise and a full 150 ms delay.
 const { humanRun, humanLevels } = await import('./derapage-human.js');
 const { recordings } = await import('../tests/derapage-recordings.ts');
 const { replayHuman, joystickCases } = await import('../tests/derapage-joystick.ts');
