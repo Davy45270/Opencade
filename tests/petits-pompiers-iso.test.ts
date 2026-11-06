@@ -166,3 +166,18 @@ test('PP-ISO-09 the exit is David\'s fire engine, seen three-quarter front left 
     // His long engine (ladder on the roof) is much wider than tall, and as wide as the old truck: about 58 world units.
     expect(s.w / s.h).toBeGreaterThan(1.5); expect(s.w / 3).toBeGreaterThan(50); expect(s.w / 3).toBeLessThan(64); expect(s.oy).toBeGreaterThan(.9);
 });
+
+test('PP-ISO-10 every sprite file has the size its table entry declares (the grounds drawn by David included)', async () => {
+    const { readFileSync, readdirSync } = await import('node:fs');
+    const dir = 'src/games/petits-pompiers/iso/';
+    // WebP canvas size: VP8X (24-bit width-1/height-1), VP8L (14-bit fields) or VP8 (16-bit fields).
+    const size = (b: Buffer): [number, number] => {
+        const chunk = b.toString('ascii', 12, 16);
+        if (chunk === 'VP8X') return [1 + b.readUIntLE(24, 3), 1 + b.readUIntLE(27, 3)];
+        if (chunk === 'VP8L') { const v = b.readUInt32LE(21); return [1 + (v & 0x3fff), 1 + ((v >> 14) & 0x3fff)]; }
+        return [b.readUInt16LE(26) & 0x3fff, b.readUInt16LE(28) & 0x3fff];
+    };
+    const files = readdirSync(dir).filter(f => f.endsWith('.webp')).map(f => f.slice(0, -5)).sort();
+    expect(files).toEqual(Object.keys(SPRITES).sort());
+    for (const key of files) expect([key, ...size(readFileSync(dir + key + '.webp'))]).toEqual([key, SPRITES[key as keyof typeof SPRITES].w, SPRITES[key as keyof typeof SPRITES].h]);
+});

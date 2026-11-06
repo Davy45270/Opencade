@@ -5,6 +5,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Petits Pompiers : les sols sont les tuiles de David, posées en losange : herbe, sable, asphalte de la route, pavés, béton des quais et planches de bois des intérieurs. La neige et l’eau gardent leurs tuiles, faute de dessin. Les six tuiles font 12 Ko en WebP ; les règles ne changent pas.
 - Petits Pompiers : le camion de la sortie est celui que David a dessiné, vu de ¾ avant gauche : long, rouge à bandes jaunes, gyrophares bleus et échelle sur le toit. Il garde la place et la largeur de l’ancien (10 Ko en WebP) ; les règles ne changent pas.
 - Caisses : les caisses à pousser sont celle que David a dessinée, vue de dessus. On les reconnaît comme avant : une caisse rouge est teintée de rouge (elle va sur une cible rouge), une caisse rangée sur sa cible devient verte. Les règles ne changent pas. Le dessin (WebP de 5 ko) arrive dans son propre morceau de code, mis en cache pour jouer hors ligne ; d’ici là, la caisse dessinée par le programme s’affiche. Le personnage reste dessiné par-dessus les caisses.
 - Petits Pompiers : les outils posés au sol sont ceux que David a dessinés : la hache, la trousse de secours, le mégaphone et l’extincteur à mousse (il remplaçait la lance). La borne où l’on remplit le réservoir est sa bouche d’incendie rouge. L’échelle garde son icône dessinée par le programme, faute de dessin. Les images (12 Ko en WebP) rejoignent le module des sprites ; les règles ne changent pas.
