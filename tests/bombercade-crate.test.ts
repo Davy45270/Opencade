@@ -42,3 +42,30 @@ test('B-CAISSE every block kind keeps its cue on David\'s crate (rules unchanged
     expect(strong).toContain('strokeStyle=#647080'); expect(strong).toContain('lineWidth=4');
     expect(cracked).toContain('lineWidth=2');
 });
+
+test('B-CAISSE-V the catalogue card shows David\'s crate once its image is there, the vector crate before', async () => {
+    const { createThumbnail, useThumbnailCrate } = await import('../src/games/bombercade/thumbnail');
+    const { useSurfaces } = await import('../src/games/thumbnail-art');
+    const { testSurfaces } = await import('./raster-context');
+    const baked = (): string[] => {
+        const keys: string[] = [];
+        const context = new Proxy({}, { get: (_t, name) => (...args: unknown[]) => {
+            const image = args[0] as { baked?: string } | undefined;
+            if (name === 'drawImage' && typeof image?.baked === 'string' && image.baked.startsWith('bombercade-crate')) keys.push(image.baked);
+            return name === 'createLinearGradient' || name === 'createRadialGradient' ? { addColorStop: () => undefined } : undefined;
+        }, set: () => true }) as unknown as CanvasRenderingContext2D;
+        const thumbnail = createThumbnail(28); thumbnail.step(); thumbnail.draw(context);
+        return keys;
+    };
+    useSurfaces(testSurfaces());
+    try {
+        useThumbnailCrate(null);
+        const vector = baked();
+        expect(vector.length).toBeGreaterThan(0);
+        expect(vector.some(k => k.includes('-drawn-'))).toBe(false);
+        useThumbnailCrate({} as CanvasImageSource);
+        const drawn = baked();
+        expect(drawn).toHaveLength(vector.length);
+        expect(drawn.every(k => k.startsWith('bombercade-crate-drawn-'))).toBe(true);
+    } finally { useThumbnailCrate(null); useSurfaces(null); }
+});

@@ -1,10 +1,25 @@
 import { createDemo } from '../../engines/bombercade/demo';
 import { WIDTH, LEVELS } from '../../engines/bombercade/engine';
-import { crate, drawBomb, fireCell, type Arena } from './art';
+import { crate, drawBomb, drawnCrate, fireCell, type Arena } from './art';
 import { arenaBackdrop, arenaBase, arenaOverlay } from './arena';
-import { bakeArt, canvasGraphics, castSprite } from '../thumbnail-art';
+import { bake, bakeArt, canvasGraphics, castSprite } from '../thumbnail-art';
 import type { Thumbnail } from '../thumbnail';
 export { createDemo };
+/** David's "?" crate for the catalogue card too (06/11): its own small chunk, asked for once in a browser, the
+ *  vector crate until the image is decoded. */
+let crateImage: CanvasImageSource | null = null, crateAsked = false;
+/** Installs the crate image (the loader below, or a test). */
+export function useThumbnailCrate(image: CanvasImageSource | null): void { crateImage = image; crateAsked = true; }
+function thumbnailCrate(): CanvasImageSource | null {
+    if (!crateAsked && typeof Image !== 'undefined') {
+        crateAsked = true;
+        void import('./crate-atlas').then(({ crate: url }) => {
+            if (!url) return;
+            const image = new Image(); image.onload = () => { crateImage = image; }; image.src = url;
+        }).catch(() => undefined);
+    }
+    return crateImage;
+}
 /** The game's arena (baked floor, walls, crates), its bombs, flames and cast, framed on the board. */
 const K = 120 / 400, X = 80 - 180 * K, Y = -136 * K, RES = K * 2;
 export function createThumbnail(seed = 28): Thumbnail {
@@ -19,7 +34,13 @@ export function createThumbnail(seed = 28): Thumbnail {
         c.translate(X, Y); c.scale(K, K);
         bakeArt(c, key, 0, 0, 360, 640, RES, g => { arenaBase(g, e); });
         bakeArt(c, `${key}-overlay`, 0, 0, 360, 640, RES, g => { arenaOverlay(g, e); });
-        for (const block of e.board.blocks) bakeArt(c, `bombercade-crate-${arena}-${block.kind}-${String(block.hp)}`, 15 + block.at % WIDTH * 30, 140 + Math.floor(block.at / WIDTH) * 30, 32, 34, RES, g => { crate(g, arena, block); });
+        const drawn = thumbnailCrate();
+        for (const block of e.board.blocks) {
+            const x = 15 + block.at % WIDTH * 30, y = 140 + Math.floor(block.at / WIDTH) * 30;
+            // The drawn crate composites on its own bitmap only; without one, the vector crate.
+            if (drawn) bake(c, `bombercade-crate-drawn-${block.kind}-${String(block.hp)}`, x, y, 32, 34, RES, k => { drawnCrate(k, drawn, block); }, k => { crate(canvasGraphics(k), arena, block); });
+            else bakeArt(c, `bombercade-crate-${arena}-${block.kind}-${String(block.hp)}`, x, y, 32, 34, RES, g => { crate(g, arena, block); });
+        }
         const g = canvasGraphics(c);
         const burning = new Set(e.fires.map(f => `${String(f.owner)}/${String(f.at)}`));
         for (const fire of e.fires) {
