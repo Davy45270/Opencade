@@ -1,5 +1,5 @@
 import { required } from './access';
-import { distance, gateLine, onShortcut, type Track, type Vec } from './track';
+import { distance, gateLine, nearest, onShortcut, type Track, type Vec } from './track';
 import type { Kart } from './physics';
 export const POINTS = [10, 8, 6, 5, 4, 3] as const;
 export function checkpoint(k: Kart, previous: Vec, t: Track, time: number): void {
@@ -40,4 +40,32 @@ export class Cup {
         this.races++;
     }
     standings(): number[] { return [0, 1, 2, 3, 4, 5].sort((a, b) => required(this.scores[b]) - required(this.scores[a]) || a - b); }
+}
+/**
+ * Beyond this distance from the road edge, a kart is lost rather than cutting a bend.
+ * Legitimate lines in the recorded and historical races reach 24.9 units at most.
+ */
+export const LOST_MARGIN = 30;
+/** Time a kart may stay lost before it is put back on the road. */
+export const LOST_MS = 1500;
+/**
+ * Puts a kart lost far off the road back on the centre line, stopped, facing the race direction.
+ * The point stays between the last gate passed and the next one, so a recovery never skips a gate;
+ * restarting from a standstill costs about two seconds, so getting lost is never a shortcut.
+ */
+export function recover(k: Kart, t: Track, ms: number): boolean {
+    if (k.finishMs !== null || k.jumpMs > 0 || k.bypassIndex !== undefined || onShortcut(t, k)) { delete k.lostMs; return false; }
+    const n = nearest(t, k), count = t.points.length;
+    if (n.distance - required(t.widths[n.index]) / 2 <= LOST_MARGIN) { delete k.lostMs; return false; }
+    k.lostMs = (k.lostMs ?? 0) + ms;
+    if (k.lostMs < LOST_MS) return false;
+    const gates = t.gates.length, from = required(t.gates[(k.gate + gates - 1) % gates]), to = required(t.gates[k.gate]);
+    const span = (to - from + count) % count || count;
+    let offset = (n.index - from + count) % count;
+    if (offset >= span) offset = offset < span + (count - span) / 2 ? span - 1 : 0;
+    const index = (from + offset) % count, p = required(t.points[index]), q = required(t.points[(index + 1) % count]);
+    k.x = p.x; k.y = p.y; k.angle = Math.atan2(q.y - p.y, q.x - p.x);
+    k.vx = 0; k.vy = 0; k.driftMs = 0; k.slipMs = 0; k.boostMs = 0;
+    delete k.lostMs;
+    return true;
 }

@@ -5,7 +5,7 @@ import { test, expect } from 'vitest';
 import { Engine } from '../src/engines/derapage/engine';
 import { analogSteer, physics, collide, type Kart } from '../src/engines/derapage/physics';
 import { createTrack, validateTrack, difficulty, at, nearest, distance, gateLine, shapeSignature, signatureDistance } from '../src/engines/derapage/track';
-import { checkpoint, ranking, Cup } from '../src/engines/derapage/race';
+import { checkpoint, ranking, Cup, LOST_MARGIN, LOST_MS } from '../src/engines/derapage/race';
 import { controller, aiInput, aiSpeed } from '../src/engines/derapage/ai';
 import { drawItem, useItem, updateItems, type Puddle } from '../src/engines/derapage/items';
 import { Random } from '../src/engines/shared/random';
@@ -447,3 +447,34 @@ for (const scenario of joystickCases.filter(c => !c.name.startsWith('Z36 rejeu :
 test('Z15 comparaison compacte : dérive dynamique et snapshots complets', () => {
     checkReplayComparison((ok, message) => { expect(ok, message).toBe(true); });
 }, 15000);
+test('Z37 hors piste : un kart perdu loin de la piste y revient, sans sauter de porte', () => {
+    // Témoin : 60 s sans braquer ; avant la récupération, le kart s'éloignait jusqu'à 466 u et ne revenait jamais.
+    for (const level of [0, 5, 14]) {
+        const e = new Engine(level, 28);
+        let longestFar = 0, far = 0, maxOff = 0;
+        for (let f = 0; f < 3600; f++) {
+            const k = required(e.karts[0]), gate = k.gate, passed = k.passed;
+            e.input(neutral); e.step(1000 / 60);
+            const n = nearest(e.track, k), off = n.distance - required(e.track.widths[n.index]) / 2;
+            maxOff = Math.max(maxOff, off);
+            far = off > LOST_MARGIN ? far + 1000 / 60 : 0;
+            longestFar = Math.max(longestFar, far);
+            expect(k.passed - passed, 'une récupération ne franchit aucune porte').toBeLessThanOrEqual(1);
+            if (k.passed === passed) expect(k.gate).toBe(gate);
+        }
+        expect(e.recoveries, `circuit ${String(level + 1)}`).toBeGreaterThan(0);
+        expect(longestFar).toBeLessThanOrEqual(LOST_MS + 1000 / 60);
+        expect(maxOff).toBeLessThan(LOST_MARGIN + 24 * LOST_MS / 1000);
+    }
+    // Remis au centre, arrêté, orienté dans le sens de la course, entre la dernière porte et la suivante.
+    const e = new Engine(0, 28), k = required(e.karts[0]), t = e.track;
+    const p = required(t.points[20]);
+    Object.assign(k, { x: p.x + 300, y: p.y, vx: 0, vy: 0, gate: 3, passed: 2 });
+    for (let i = 0; i < 95 && k.lostMs !== undefined || i === 0; i++) e.step(1000 / 60);
+    const n = nearest(t, k);
+    expect(n.distance).toBeLessThan(.5);
+    expect(n.index).toBeGreaterThanOrEqual(16); expect(n.index).toBeLessThan(24);
+    expect(Math.hypot(k.vx, k.vy)).toBeLessThan(1);
+    const q = required(t.points[(n.index + 1) % 96]);
+    expect(Math.cos(k.angle - Math.atan2(q.y - n.y, q.x - n.x))).toBeGreaterThan(.9);
+});

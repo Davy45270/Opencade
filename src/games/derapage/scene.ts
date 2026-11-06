@@ -43,7 +43,7 @@ export interface DerapageHook {
     art(): string[];
     overview(enabled: boolean): void;
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
+    read(): ReturnType<Engine['snapshot']> & { guide: number | null; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
     loadLevel(i: number, seed?: number): void;
     advance(ms: number): void;
     scenario(name: 'finish' | 'danger' | 'trees-boost' | 'lap' | 'slalom-gate' | 'bmx-jump'): void;
@@ -120,6 +120,8 @@ export class DerapageScene extends Phaser.Scene {
     private cameraFixed = true;
     private assistance = true;
     private heading: number | undefined;
+    /** Screen angle of the back-to-track arrow, null while on the road. */
+    private guide: number | null = null;
     private persistControls(): void {
         writeValue(browserStorage(), 'arcade-lab:derapage:controls:v1', JSON.stringify({ camera: this.cameraFixed ? 'fixed' : 'rotating', assist: this.assistance }));
     }
@@ -298,7 +300,7 @@ export class DerapageScene extends Phaser.Scene {
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
                 performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.time }),
                 fingerReceipts: receipts,
-                read: () => ({ fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); },
+                read: () => ({ guide: this.guide, fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
                 hudText: () => this.hud?.textContent ?? '', usefulArea: () => ({ x: 0, y: 96, width: 360, height: 544 }),
@@ -690,6 +692,21 @@ export class DerapageScene extends Phaser.Scene {
         const fa=mini(finishA.x,finishA.y), fb=mini(finishB.x,finishB.y);
         g.lineStyle(4,0x080b10); g.lineBetween(fa.x,fa.y,fb.x,fb.y);
         g.lineStyle(2,0xffffff); g.lineBetween(fa.x,fa.y,fb.x,fb.y);
+        }
+        // Off the road, an arrow points back to the track, a little ahead, in both views.
+        const lost = nearest(t, p), lostOff = lost.distance - required(t.widths[lost.index]) / 2;
+        this.guide = null;
+        if (!this.overviewMode && lostOff > 3 && p.finishMs === null && p.jumpMs <= 0) {
+            const g = this.active3d ? this.hud3d ??= this.add.graphics().setDepth(1000) : required(this.graphics);
+            const target = at(t, lost.along + 6), world = Math.atan2(target.y - p.y, target.x - p.x);
+            const a = this.active3d ? world - p.angle - Math.PI / 2 : world + angle, kartAt = project(p.x, p.y);
+            const c = this.active3d ? { x: 180, y: 396 } : { x: kartAt.x + Math.cos(a) * 34, y: kartAt.y + Math.sin(a) * 34 };
+            const point = (r: number, da: number) => ({ x: c.x + Math.cos(a + da) * r, y: c.y + Math.sin(a + da) * r });
+            const shape = [point(22, 0), point(16, 2.3), point(7, 2.6), point(7, -2.6), point(16, -2.3)];
+            g.fillStyle(0x101827, .85); g.fillCircle(c.x, c.y, 24);
+            g.fillStyle(0xffd166); g.fillPoints(shape, true);
+            g.lineStyle(2, 0x101827); g.strokePoints(shape, true);
+            this.guide = Math.atan2(Math.sin(a), Math.cos(a));
         }
         const s = e;
         const timing = s.timing;

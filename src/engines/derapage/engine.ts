@@ -3,7 +3,7 @@ import { Random } from '../shared/random';
 import { at, createTrack, difficulty, nearest, type Track } from './track';
 import { physics, collide, resolveRail, type Input, type Kart } from './physics';
 import { aiInput, aiSpeed } from './ai';
-import { checkpoint, ranking, Cup, POINTS } from './race';
+import { checkpoint, ranking, recover, Cup, POINTS } from './race';
 import { updateItems, useItem, type Crate, type Puddle } from './items';
 export { LEVELS, difficulty } from './track';
 export const FIXED_MS = 1000 / 60;
@@ -24,6 +24,8 @@ export class Engine {
     remainder = 0;
     status: 'playing' | 'won' | 'lost' = 'playing';
     score = 0;
+    /** Times the player was put back on the road this race. */
+    recoveries = 0;
     cup = new Cup();
     private random = new Random(28);
     private cupBefore = { races: 0, scores: [0, 0, 0, 0, 0, 0] };
@@ -53,6 +55,7 @@ export class Engine {
         this.remainder = 0;
         this.status = 'playing';
         this.score = 0;
+        this.recoveries = 0;
         this.puddles = [];
         this.controls = { steer: 0, drift: false, bonus: false };
         this.karts = Array.from({ length: 6 }, (_, id) => {
@@ -102,6 +105,8 @@ export class Engine {
                 if (this.track.circuit.theme.urban) resolveRail(k, this.track);
                 const lap = k.lap;
                 checkpoint(k, required(previous[k.id]), this.track, this.time);
+                // After lap counting: the next step starts from the recovered point, so no gate line is crossed by the move.
+                if (recover(k, this.track, FIXED_MS) && k.id === 0) this.recoveries++;
                 if (k.id === 0 && k.lap > lap) {
                     const elapsed = (this.frames - this.lapStartFrame) * FIXED_MS + (k.penaltyMs ?? 0) - this.lapPenaltyStartMs;
                     this.lapPenaltyStartMs = k.penaltyMs ?? 0;

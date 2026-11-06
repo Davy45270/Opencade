@@ -34,6 +34,8 @@ export interface Kart extends Vec {
     landingMs?: number;
     treeHits?: number;
     stripActive?: boolean;
+    /** Time spent far from the road; only present while lost. */
+    lostMs?: number;
 }
 /** Optional diagnostic counters stay outside replayable kart state. */
 export const collisionCounts = new WeakMap<Kart, { kart: number; rail: number }>();
