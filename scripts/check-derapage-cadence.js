@@ -188,11 +188,44 @@ async function clockChecks() {
         assert.equal(h.scene.cadence.elapsed,1000,'cadence is not capped with simulation');
     } finally { h.cleanup(); }
 }
+// Z38: on the mini-map the player is an arrow along its heading, larger than the rival dots,
+// and the bonus in hand is shown as its emblem, in both views.
+async function miniMapAndHeldBonus() {
+    const { bonusEmblem } = await import('../src/characters/arcade-art.ts');
+    const h = await mount('derapage', 'dragon', false); h.session.send('start');
+    try {
+        h.engine.loadLevel(0, 28);
+        for (const view3d of [false, true]) {
+            h.scene.view3d = view3d; const p = h.engine.karts[0];
+            for (const angle of [0, 1.2, -2.5]) {
+                p.angle = angle; p.item = null; h.frame();
+                const mark = h.scene.miniPlayer;
+                assert(mark && mark.size >= 7, 'player marker on the mini-map, larger than the rival dots (2.5 px)');
+                const tri = h.calls.filter(c => c[0] === 'fillTriangle').at(-1);
+                assert(tri, 'player marker is drawn as an arrow');
+                const heading = Math.atan2(tri[2] - mark.y, tri[1] - mark.x);
+                assert(Math.abs(Math.atan2(Math.sin(heading - angle), Math.cos(heading - angle))) < 1e-6, 'arrow points along the kart heading');
+                assert.equal(h.scene.heldBonus, null, 'no emblem without a bonus');
+            }
+            for (const item of ['turbo', 'ressort', 'flaque', 'bulle']) {
+                p.item = item; h.frame();
+                const kind = bonusEmblem(h.hero.id, item);
+                assert.equal(h.scene.heldBonus, kind, `bonus in hand shown (${item})`);
+                assert(h.images.some(i => i.placements.setVisible?.at(-1) && i.texture.key.includes(`emblem-${kind}`)), `emblem drawn for ${item}`);
+                const box = h.calls.filter(c => c[0] === 'fillRoundedRect' && c[3] === 44 && c[4] === 44).at(-1);
+                assert(box && box[2] >= 96 && box[1] + 44 <= 360, 'bonus frame inside the canvas, below the HUD band where the DOM chronos sit');
+            }
+            p.item = null; h.frame(); assert.equal(h.scene.heldBonus, null, 'emblem leaves with the bonus');
+        }
+    } finally { h.cleanup(); }
+    console.log('Mini-map arrow and bonus in hand: both views');
+}
 await renderBudget();
 assert.equal(budgetChecks,384,'all real frame counts submitted');
 assert.throws(() => withinBudget(521, 591), { name: 'AssertionError' }, 'negative budget boundary');
 await clockChecks();
 await allCircuitBudgets();
+await miniMapAndHeldBonus();
 if(process.argv.includes('--audit-mutations')) {
 const { mutationModule } = await import('./mutation-module.js');
 // Execute actual scene mutations: an inflated render and a return to smoothed time.

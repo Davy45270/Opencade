@@ -43,7 +43,7 @@ export interface DerapageHook {
     art(): string[];
     overview(enabled: boolean): void;
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { guide: number | null; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
+    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
     loadLevel(i: number, seed?: number): void;
     advance(ms: number): void;
     scenario(name: 'finish' | 'danger' | 'trees-boost' | 'lap' | 'slalom-gate' | 'bmx-jump'): void;
@@ -122,6 +122,9 @@ export class DerapageScene extends Phaser.Scene {
     private heading: number | undefined;
     /** Screen angle of the back-to-track arrow, null while on the road. */
     private guide: number | null = null;
+    /** Player marker on the mini-map (canvas pixels) and emblem of the bonus in hand, for tests. */
+    private miniPlayer: { x: number; y: number; size: number } | null = null;
+    private heldBonus: string | null = null;
     private persistControls(): void {
         writeValue(browserStorage(), 'arcade-lab:derapage:controls:v1', JSON.stringify({ camera: this.cameraFixed ? 'fixed' : 'rotating', assist: this.assistance }));
     }
@@ -300,7 +303,7 @@ export class DerapageScene extends Phaser.Scene {
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
                 performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.time }),
                 fingerReceipts: receipts,
-                read: () => ({ guide: this.guide, fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); },
+                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
                 hudText: () => this.hud?.textContent ?? '', usefulArea: () => ({ x: 0, y: 96, width: 360, height: 544 }),
@@ -685,13 +688,37 @@ export class DerapageScene extends Phaser.Scene {
             const a = required(t.points[i]), b = required(t.points[(i + 1) % 96]);
             const ma=mini(a.x,a.y), mb=mini(b.x,b.y); g.lineBetween(ma.x,ma.y,mb.x,mb.y);
         }
-        for (const k of e.karts) {
-            g.fillStyle(required(colors[k.id]));
-            const m=mini(k.x,k.y); g.fillCircle(m.x,m.y,2);
-        }
         const fa=mini(finishA.x,finishA.y), fb=mini(finishB.x,finishB.y);
         g.lineStyle(4,0x080b10); g.lineBetween(fa.x,fa.y,fb.x,fb.y);
         g.lineStyle(2,0xffffff); g.lineBetween(fa.x,fa.y,fb.x,fb.y);
+        // Race direction: a chevron just past the finish line, pointing along the track.
+        {
+            const a=mini(required(t.points[2]).x,required(t.points[2]).y), b=mini(required(t.points[4]).x,required(t.points[4]).y), d=Math.atan2(b.y-a.y,b.x-a.x);
+            for (const side of [-1,1]) g.lineBetween(b.x,b.y,b.x-Math.cos(d+side*.7)*5,b.y-Math.sin(d+side*.7)*5);
+        }
+        // Rivals are small dots; the player is a larger outlined arrow showing its heading, drawn on top.
+        // Same number of Graphics calls per rival as before: the per-circuit budgets stay untouched.
+        for (const k of e.karts.slice(1)) {
+            const m=mini(k.x,k.y);
+            g.fillStyle(required(colors[k.id])); g.fillCircle(m.x,m.y,2.5);
+        }
+        {
+            const m=mini(p.x,p.y), point=(r:number,da:number) => ({ x:m.x+Math.cos(p.angle+da)*r, y:m.y+Math.sin(p.angle+da)*r });
+            const tip=point(9,0), left=point(6,2.5), right=point(6,-2.5), a=point(7,0), b=point(4.5,2.5), c=point(4.5,-2.5);
+            g.fillStyle(0x080b10); g.fillTriangle(tip.x,tip.y,left.x,left.y,right.x,right.y);
+            g.fillStyle(required(colors[0])); g.fillTriangle(a.x,a.y,b.x,b.y,c.x,c.y);
+            this.miniPlayer = { x: m.x, y: m.y, size: 7 };
+        }
+        // The bonus in hand, as its emblem, just under the mini-map (both views). Kept below the HUD band:
+        // in landscape the DOM lap chronos keep their size on a canvas shrunk to half, and reach x = 245.
+        this.heldBonus = null;
+        if (p.item) {
+            const kind = bonusEmblem(this.hero.id, p.item), key = this.emblemTextures.get(kind);
+            g.fillStyle(0x24324a); g.fillRoundedRect(306,102,44,44,10);
+            g.lineStyle(2,0xffd166); g.strokeRoundedRect(306,102,44,44,10);
+            if (key) this.paint?.draw(key, 328, 124, 36, 0, 1, 1001);
+            this.heldBonus = kind;
+        }
         }
         // Off the road, an arrow points back to the track, a little ahead, in both views.
         const lost = nearest(t, p), lostOff = lost.distance - required(t.widths[lost.index]) / 2;
