@@ -42,7 +42,9 @@ export function dogPose(sx: number, sy: number): { key: SpriteKey; flip: boolean
 const STRIDE = 5;
 /** A child keeps walking this long (ms of game time) after its last move, so frames between engine steps do not flicker. */
 const WALK_HOLD = 160;
-const TOOL: Partial<Record<string, SpriteKey>> = { hose: 'outil_lance', foam: 'outil_lance', kit: 'outil_trousse' };
+/** Tools on the ground, drawn by David (axe, first-aid kit, megaphone, foam extinguisher). The ladder keeps its drawn-by-code icon. */
+const TOOL: Partial<Record<string, SpriteKey>> = { hose: 'outil_lance', foam: 'outil_extincteur', kit: 'outil_trousse', axe: 'outil_hache', megaphone: 'outil_megaphone' };
+export function toolSprite(tool: string): SpriteKey | undefined { return TOOL[tool]; }
 /** Upper windows hold their victim this high above the ground (iso units). */
 export const UPPER = 30;
 /** Screen directions of the drawn mascots, clockwise from east (screen y points down). */

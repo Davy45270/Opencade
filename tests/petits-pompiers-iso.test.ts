@@ -145,3 +145,16 @@ test('PP-ISO-07 the dog is David\'s puppy, standing in four directions: it looks
     }
     expect(existsSync('src/games/petits-pompiers/iso/chien.webp')).toBe(false);
 });
+
+test('PP-ISO-08 the tools on the ground and the hydrant are David\'s drawings; only the ladder keeps the drawn-by-code icon', async () => {
+    const { toolSprite } = await import('../src/games/petits-pompiers/actors');
+    const { PICKUPS } = await import('../src/engines/petits-pompiers/levels');
+    const { existsSync } = await import('node:fs');
+    expect(Object.fromEntries(Object.values(PICKUPS).map(tool => [tool, toolSprite(tool)]))).toEqual({ axe: 'outil_hache', ladder: undefined, kit: 'outil_trousse', megaphone: 'outil_megaphone', foam: 'outil_extincteur' });
+    for (const key of ['outil_hache', 'outil_trousse', 'outil_megaphone', 'outil_extincteur', 'borne'] as const) {
+        const s = SPRITES[key];
+        expect(existsSync(`src/games/petits-pompiers/iso/${key}.webp`)).toBe(true);
+        // A tool fits its cell (about 22 world units at most); the hydrant stands a little taller.
+        expect(Math.max(s.w, s.h) / 3).toBeLessThan(key === 'borne' ? 28 : 23); expect(s.oy).toBeGreaterThan(.9);
+    }
+});
