@@ -95,6 +95,10 @@ export const SPRITES = {
     chaton_soulage: { w: 62, h: 77, ox: 0.5188, oy: 1 },
     chaton_heureux: { w: 70, h: 77, ox: 0.4779, oy: 1 },
     // David's puppy, cut from his walk sheet: standing frame of the face, side and back views.
+    // David's grey rabbit, the standing frame of his face, side (mirrored east) and back views.
+    lapin_face: { w: 37, h: 90, ox: 0.5, oy: 1 },
+    lapin_profil: { w: 51, h: 79, ox: 0.5691, oy: 1 },
+    lapin_dos: { w: 38, h: 91, ox: 0.5707, oy: 1 },
     chien_face: { w: 54, h: 78, ox: 0.5331, oy: 1 },
     chien_profil: { w: 57, h: 65, ox: 0.5903, oy: 1 },
     chien_dos: { w: 51, h: 79, ox: 0.5236, oy: 1 },

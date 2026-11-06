@@ -196,3 +196,20 @@ test('PP-ISO-11 the buildings behind the map are David\'s, each ¾ view turned t
     expect(seen[3]).toEqual(expect.arrayContaining(['banc', 'poubelle', 'jardiniere']));
     for (const level of [6, 9, 12]) expect(seen[level]).not.toEqual(expect.arrayContaining(['banc']));
 });
+
+test('PP-ISO-12 one level in three shows David\'s grey rabbit in place of its animal, cat or dog; the rules do not see it', async () => {
+    const { dogPose, rabbitLevel, victimSprite } = await import('../src/games/petits-pompiers/actors');
+    const e = new Engine(), rabbits: [string, string][] = [];
+    for (const [i, level] of LEVELS.entries()) {
+        e.loadLevel(i);
+        const animal = e.victims.find(v => v.species !== 'person');
+        if (animal && rabbitLevel(level.id)) rabbits.push([level.id, animal.species]);
+        if (animal) expect([level.id, victimSprite(animal, -1, level.id, e.victims)]).toEqual([level.id, rabbitLevel(level.id) ? 'lapin_face' : animal.species === 'cat' ? 'chaton_appel' : 'chien_face']);
+    }
+    // Five rabbits, both species replaced (the cats live in levels 1-9, the dogs in 10-15).
+    expect(rabbits).toEqual([['secours-03', 'cat'], ['secours-06', 'cat'], ['secours-09', 'cat'], ['secours-12', 'dog'], ['secours-15', 'dog']]);
+    expect(dogPose(10, -3, 'lapin')).toEqual({ key: 'lapin_profil', flip: true });
+    expect(dogPose(0, -10, 'lapin')).toEqual({ key: 'lapin_dos', flip: false });
+    for (const key of ['lapin_face', 'lapin_profil', 'lapin_dos'] as const) { const s = SPRITES[key]; expect(s.h / 3).toBeGreaterThan(24); expect(s.h / 3).toBeLessThan(32); expect(s.oy).toBe(1); }
+});
+

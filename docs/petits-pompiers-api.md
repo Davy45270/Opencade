@@ -73,7 +73,9 @@ mouvement est lu par le rendu seul, d'une image à l'autre. Le compteur des pers
 niveau. Le chien (`O`) est le chiot de David, debout, en quatre directions tirées de
 sa planche de marche (face, profil, dos ; profil en miroir vers l'est) : en attendant, il
 regarde le pompier ; dans ses bras, il regarde où il va. Il figure sur le compteur des
-animaux quand le niveau n'a pas de chat. Les outils au sol (hache, trousse,
+animaux quand le niveau n'a pas de chat. Un niveau sur trois (`rabbitLevel` : 3, 6, 9, 12, 15),
+l'animal, chat ou chien, est dessiné en lapin gris de David, dans les mêmes quatre directions ; le
+moteur n'en sait rien (espèce, case et règles inchangées). Les outils au sol (hache, trousse,
 mégaphone, extincteur) la borne `R` (bouche d'incendie) et le camion de la sortie `E` sont dessinés par David ; l'échelle
 garde son icône vectorielle. Les sols herbe, sable, route,
 pavés, quai et plancher sont les tuiles carrées de David tournées en losange 2:1 ; neige et eau

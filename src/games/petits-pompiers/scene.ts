@@ -15,7 +15,7 @@ import { fingerProof } from './finger';
 import { contextualAction, actionIcons, sectorDirection } from './controls';
 import { firefighter, drop, flame, victim, toolArt, UNIT } from './art';
 import { ArenaLayer, spriteKey } from './arena';
-import { ActorLayer, victimSprite } from './actors';
+import { ActorLayer, rabbitLevel, victimSprite } from './actors';
 import { SPRITES } from './sprites';
 import { BACKGROUND, STICK_ARROWS, worldOf } from './iso';
 import { mascotGallery } from './gallery';
@@ -229,7 +229,7 @@ export class PetitsPompiersScene extends Phaser.Scene {
             hud.clear();
             const cells = hudLayout(e);
             // The animals counter shows the level's animal: the kitten, otherwise the puppy.
-            const animalKey = e.victims.some(v => v.species === 'cat') ? 'chaton_appel' : e.victims.some(v => v.species === 'dog') ? 'chien_face' : undefined;
+            const animalKey = rabbitLevel(e.level.id) && e.victims.some(v => v.species !== 'person') ? 'lapin_face' : e.victims.some(v => v.species === 'cat') ? 'chaton_appel' : e.victims.some(v => v.species === 'dog') ? 'chien_face' : undefined;
             const kitten = this.hudCat && animalKey && this.textures.exists(spriteKey(animalKey)) ? this.hudCat : undefined;
             this.hudCat?.setVisible(false); this.hudChild?.setVisible(false);
             // The people counter shows the level's first child, standing, as the kitten shows on the animals counter.

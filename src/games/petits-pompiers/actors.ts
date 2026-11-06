@@ -28,15 +28,19 @@ export function childPose(child: Child, step: number | null, east: boolean): { k
 /** Sprite of a victim. David's kitten changes with the rescue: it calls for help while it waits,
  *  is relieved in the firefighter's arms and happy once saved. The dog keeps one sprite; a person is a child, standing. */
 export function victimSprite(v: Pick<Victim, 'id' | 'species' | 'saved'>, carried: number, levelId = '', victims: readonly Pick<Victim, 'id' | 'species'>[] = [v]): SpriteKey {
+    if (v.species !== 'person' && rabbitLevel(levelId)) return 'lapin_face';
     if (v.species === 'cat') return v.saved ? 'chaton_heureux' : v.id === carried ? 'chaton_soulage' : 'chaton_appel';
     if (v.species === 'person') return childPose(childOf(levelId, victims, v.id), null, false).key;
     return 'chien_face';
 }
+/** One level in three (3, 6, 9, 12, 15) shows David's grey rabbit in place of its animal, cat or dog:
+ *  same cell, same rules (carried); only the drawing changes. */
+export function rabbitLevel(levelId: string): boolean { const n = Number(levelId.replace(/\D/g, '')) || 0; return n > 0 && n % 3 === 0; }
 /** David's puppy stands in four directions, toward the screen vector (sx, sy): facing us when it looks
  *  down the screen, its back when up, in profile sideways (drawn facing west, mirrored for east). */
-export function dogPose(sx: number, sy: number): { key: SpriteKey; flip: boolean } {
-    if (Math.abs(sx) > Math.abs(sy)) return { key: 'chien_profil', flip: sx > 0 };
-    return { key: sy < 0 ? 'chien_dos' : 'chien_face', flip: false };
+export function dogPose(sx: number, sy: number, animal: 'chien' | 'lapin' = 'chien'): { key: SpriteKey; flip: boolean } {
+    if (Math.abs(sx) > Math.abs(sy)) return { key: `${animal}_profil`, flip: sx > 0 };
+    return { key: sy < 0 ? `${animal}_dos` : `${animal}_face`, flip: false };
 }
 /** World units walked per frame of a child's walk cycle (eight frames make two strides). */
 const STRIDE = 5;
@@ -93,7 +97,8 @@ export class ActorLayer {
             const safe = e.tiles.indexOf('S'), p = v.saved && safe >= 0 ? { x: cell(safe).x - 4, y: cell(safe).y - 2 } : point(v.x, v.y);
             let key = victimSprite(v, e.player.carried, e.level.id, e.victims), flip = false;
             // The waiting puppy looks at the firefighter.
-            if (v.species === 'dog') { const me = point(e.player.x, e.player.y); ({ key, flip } = dogPose(me.x - p.x, me.y - p.y)); }
+            // The waiting rabbit too; once saved it sits on the cross facing us, like the kitten.
+            if (v.species === 'dog' || v.species === 'cat' && !v.saved && rabbitLevel(e.level.id)) { const me = point(e.player.x, e.player.y); ({ key, flip } = dogPose(me.x - p.x, me.y - p.y, rabbitLevel(e.level.id) ? 'lapin' : 'chien')); }
             if (v.species === 'person') {
                 // A following child walks: the frame comes from the distance it covered, the facing from its screen motion.
                 const t = this.trail.get(v.id) ?? { x: p.x, y: p.y, walked: 0, east: false, moved: -Infinity }, dx = p.x - t.x, d = Math.hypot(dx, p.y - t.y);
@@ -140,7 +145,7 @@ export class ActorLayer {
             const sx = Math.sign(p.dx - p.dy), sy = Math.sign(p.dx + p.dy);
             firefighter(player, e.character, x, y, 48, time, sx, sy, moving, false, p.immune > 0);
         }
-        if (p.carried >= 0) { const v = e.victims[p.carried], d = direction(p.dx, p.dy), pose = v?.species === 'dog' ? dogPose(d.x, d.y) : undefined, key = v && (pose?.key ?? victimSprite(v, p.carried, e.level.id, e.victims)); if (v && key) { if (this.scene.textures.exists(spriteKey(key))) this.sprite(key, view, { x: x + 15, y: y - 20 }, depthAt(at, 1.3), .8, 1, pose?.flip ?? false); else victim(player, x + 16, y - 25, v.species, 21); } }
+        if (p.carried >= 0) { const v = e.victims[p.carried], d = direction(p.dx, p.dy), pose = v && v.species !== 'person' && rabbitLevel(e.level.id) ? dogPose(d.x, d.y, 'lapin') : v?.species === 'dog' ? dogPose(d.x, d.y) : undefined, key = v && (pose?.key ?? victimSprite(v, p.carried, e.level.id, e.victims)); if (v && key) { if (this.scene.textures.exists(spriteKey(key))) this.sprite(key, view, { x: x + 15, y: y - 20 }, depthAt(at, 1.3), .8, 1, pose?.flip ?? false); else victim(player, x + 16, y - 25, v.species, 21); } }
         if (e.job?.kind === 'spray' || e.job?.kind === 'foam') {
             const end = waterEnd(e), d = direction(p.dx, p.dy), start = { x: x + d.x * 12, y: y - 8 + d.y * 12 };
             front.lineStyle(7, 0xe9543e); front.lineBetween(x, y - 10, start.x, start.y);
