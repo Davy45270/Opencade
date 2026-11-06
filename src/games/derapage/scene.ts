@@ -11,6 +11,7 @@ import { arcadeArt, bonusEmblem, emblems, liveries, vehicleDrawing, type Emblem 
 import { ids, expressions } from '../../characters/model';
 import { ArcadePaint } from '../../characters/arcade-phaser';
 import { renderCharacter } from '../../characters/canvas';
+import { KART_SPRITES, kartSprite, kartTexture, kartView, type KartSpriteKey } from './kart-sprites';
 import { required } from '../../engines/derapage/access';
 import Phaser from 'phaser';
 import { Engine, LEVELS } from '../../engines/derapage/engine';
@@ -43,8 +44,10 @@ export interface DerapageHook {
     art(): string[];
     overview(enabled: boolean): void;
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
+    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: (string | null)[] };
     loadLevel(i: number, seed?: number): void;
+    /** Places a kart (test only): position and heading, simulation frozen, one frame drawn. */
+    pose(id: number, x: number, y: number, angle: number): void;
     advance(ms: number): void;
     scenario(name: 'finish' | 'danger' | 'trees-boost' | 'lap' | 'slalom-gate' | 'bmx-jump'): void;
     hudText(): string;
@@ -111,6 +114,19 @@ export class DerapageScene extends Phaser.Scene {
     private rearTextures = new Map<string, string>();
     private sceneryTextures = new Map<SceneryKind, string>();
     private kartTextures = new Map<string, string>();
+    /** Drawn karts (lazy chunk); a pool reused every frame, the vector kart stays the fallback. */
+    private kartImages: Phaser.GameObjects.Image[] = [];
+    private kartImageCount = 0;
+    /** Sprite keys of the drawn karts in the last frame, for tests. */
+    private kartViews: string[] = [];
+    private drawnKart(key: KartSpriteKey | undefined, x: number, y: number, height: number, rotation: number, depth: number): boolean {
+        if (!key || !this.textures.exists(kartTexture(key))) return false;
+        const s = KART_SPRITES[key], image = this.kartImages[this.kartImageCount] ?? this.add.image(0, 0, kartTexture(key));
+        this.kartImages[this.kartImageCount++] = image;
+        image.setTexture(kartTexture(key)).setOrigin(s.ox, s.oy).setPosition(x, y).setDisplaySize(height * s.w / s.h, height).setRotation(rotation).setDepth(depth).setVisible(true);
+        this.kartViews.push(key);
+        return true;
+    }
     private emblemTextures = new Map<Emblem, string>();
     private resultArt?: HTMLCanvasElement;
     private hud?: HTMLElement;
@@ -213,7 +229,7 @@ export class DerapageScene extends Phaser.Scene {
             });
             this.inputs.cleanup(() => { button.remove(); });
         }
-        const cleanup = (): void => { this.inputs.dispose(); this.road?.destroy(); this.paint?.destroy(); for (const prop of this.props3d) prop.destroy(); this.props3d = []; this.propCount = 0; this.hud3d?.destroy(); this.hud3d = undefined; this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
+        const cleanup = (): void => { this.inputs.dispose(); this.road?.destroy(); this.paint?.destroy(); for (const image of this.kartImages) image.destroy(); this.kartImages = []; this.kartImageCount = 0; for (const prop of this.props3d) prop.destroy(); this.props3d = []; this.propCount = 0; this.hud3d?.destroy(); this.hud3d = undefined; this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         this.background = this.add.graphics().setDepth(-1);
@@ -221,6 +237,13 @@ export class DerapageScene extends Phaser.Scene {
         this.graphics = this.add.graphics().setDepth(1);
         this.paint = new ArcadePaint(this, 96);
         for (const id of ids) for (const expression of expressions) this.kartTextures.set(`${id}-${expression}`, this.paint.texture(`kart-${id}-${expression}`, vehicleDrawing(id, 'dessus', expression)));
+        // The drawn karts arrive in their own chunk; until then (or for a mascot without them) the vector kart is drawn.
+        void import('./kart-atlas').then(({ sprites }) => {
+            if (!this.sys.isActive()) return;
+            for (const [key, url] of Object.entries(sprites)) if (!this.textures.exists(kartTexture(key))) this.load.image(kartTexture(key), url);
+            this.load.once('complete', () => { if (this.sys.isActive()) this.draw(); });
+            this.load.start();
+        }).catch(() => undefined);
         for (const id of ids) for (const expression of expressions) this.rearTextures.set(`${id}-${expression}`, this.paint.texture(`rear-${id}-${expression}`, vehicleDrawing(id, 'arriere', expression)));
         for (const kind of sceneryKinds) this.sceneryTextures.set(kind,this.paint.texture(`roadside-${kind}`, sceneryDrawing(kind)));
         for (const kind of Object.keys(emblems) as Emblem[]) this.emblemTextures.set(kind, this.paint.texture(`emblem-${kind}`, emblems[kind], 80));
@@ -304,7 +327,7 @@ export class DerapageScene extends Phaser.Scene {
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
                 performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.time }),
                 fingerReceipts: receipts,
-                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); },
+                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id), null] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
                 hudText: () => this.hud?.textContent ?? '', usefulArea: () => ({ x: 0, y: 96, width: 360, height: 544 }),
@@ -442,6 +465,8 @@ export class DerapageScene extends Phaser.Scene {
         background.clear();
         this.road?.hide();
         this.paint?.begin();
+        for (let i = 0; i < this.kartImageCount; i++) this.kartImages[i]?.setVisible(false);
+        this.kartImageCount = 0; this.kartViews = [];
         for (let i=0;i<this.propCount;i++) this.props3d[i]?.clear().setVisible(false);
         this.propCount = 0;
         this.hud3d?.clear();
@@ -455,6 +480,8 @@ export class DerapageScene extends Phaser.Scene {
         if (this.active3d) {
             this.renderCost = draw3d(g,e,(id,x,y,size,rotation,depth) => {
                 const driver = id === 0 ? this.hero : this.rivals[id-1];
+                // The view follows the kart's heading relative to the camera: back, ¾, profile or front.
+                if (this.drawnKart(kartSprite(driver?.id, kartView(rotation)), x, y, size * .92, 0, depth)) return;
                 const art = driver && this.rearTextures.get(`${driver.id}-${driver.expression}`);
                 if (art) this.paint?.draw(art,x,y-size/2,size,rotation,1,depth);
                 else {
@@ -646,7 +673,8 @@ export class DerapageScene extends Phaser.Scene {
             const livery = liveries[driver?.id ?? 'panda'];
             if (driver) {
                 const key = this.kartTextures.get(`${driver.id}-${driver.expression}`);
-                if (key) this.paint?.draw(key, a.x, a.y - height * scale, 46 * size * jumpScale, k.angle + (this.overviewMode ? 0 : angle) + Math.PI / 2);
+                const rotation = k.angle + (this.overviewMode ? 0 : angle) + Math.PI / 2;
+                if (!this.drawnKart(kartSprite(driver.id, 'top'), a.x, a.y - height * scale, 42 * size * jumpScale, rotation, 1) && key) this.paint?.draw(key, a.x, a.y - height * scale, 46 * size * jumpScale, rotation);
             } else {
                 g.fillStyle(0x89949c); g.fillRoundedRect(-13, -8, 26, 16, 4);
                 g.fillStyle(0x222937); for (const x of [-8, 8]) for (const y of [-9, 9]) g.fillCircle(x, y, 4);
