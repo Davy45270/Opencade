@@ -246,12 +246,19 @@ concentré, surpris, endormi, heureux et triste restent visibles sur les pilotes
 Sur l'accueil, ouvrir « véhicule et lanceur » sur une carte de personnage permet
 d'examiner ses dix vues ; ces dessins sont créés à la première ouverture.
 
-Les bonus conservent intégralement leurs règles. `turbo` et Élan prennent le signe
-de propulsion du personnage, `ressort` son emblème, `flaque` son piège (bombe bambou,
-feuille, feu, banane ou étoile), et `bulle` son bouclier, cœur ou arc-en-ciel.
-Le bonus tenu, le saut, la propulsion, le bouclier et les pièges déposés montrent
-ces signes ; un piège garde l'identité de son propriétaire. Il n'y a plus de pilote
-neutre : cinq karts, un par mascotte. Les caisses de bonus gardent une silhouette commune contrastée.
+Les bonus conservent intégralement leurs règles. Le bonus tenu montre les icônes
+dessinées par David (Z43), **communes aux cinq mascottes** : comète filante = `turbo`,
+tornade confettis = `ressort`, nuage farceur = `flaque`, bulle rebond = `bulle` ; 36 px
+dans le cadre doré sous la mini-carte, 20 px sur le kart en vue de dessus. La boîte de
+bonus est la **capsule de malice** (vue de dessus, 20 px ; en 3D, sa face en panneau
+tourné vers la caméra), et la flaque posée est le nuage farceur (vue de dessus, 26 px ;
+en 3D, sa face en panneau). Ces dessins arrivent dans leur propre module (`bonus-atlas`,
+WebP, 12 textures carrées d'environ deux fois leur taille à l'écran, 31 Ko, 43 Ko
+une fois inlinés), chargé à l'ouverture du jeu et gardé hors ligne ; d'ici là, l'ancien
+dessin vectoriel reste affiché. Sous 24 px à l'écran, une réduction dédiée (40 px, contour
+sombre d'un texel) remplace la grande, pour que le filtre ne réduise jamais plus de deux fois.
+Élan prend le signe de propulsion du personnage ; le saut, la propulsion et le bouclier
+gardent les emblèmes de la mascotte. Il n'y a plus de pilote neutre : cinq karts, un par mascotte.
 
 Dans Bubble Lab, les six teintes restent identiques pour tous les compagnons.
 Chaque bulle porte un emblème thématique et un motif géométrique stable par couleur :

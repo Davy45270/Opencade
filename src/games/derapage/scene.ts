@@ -11,6 +11,7 @@ import { arcadeArt, bonusEmblem, emblems, liveries, vehicleDrawing, type Emblem 
 import { ids, expressions } from '../../characters/model';
 import { ArcadePaint } from '../../characters/arcade-phaser';
 import { renderCharacter } from '../../characters/canvas';
+import { bonusIcon, bonusTexture, pickupPanel, type BonusSpriteKey } from './bonus-sprites';
 import { KART_SPRITES, chaseView, kartSprite, kartTexture, kartView, type KartSpriteKey, type KartView } from './kart-sprites';
 import { required } from '../../engines/derapage/access';
 import Phaser from 'phaser';
@@ -45,7 +46,7 @@ export interface DerapageHook {
     art(): string[];
     overview(enabled: boolean): void;
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: string[] };
+    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; bonusViews: string[]; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: string[] };
     loadLevel(i: number, seed?: number): void;
     /** Places a kart (test only): position and heading, simulation frozen, one frame drawn. */
     pose(id: number, x: number, y: number, angle: number): void;
@@ -128,6 +129,15 @@ export class DerapageScene extends Phaser.Scene {
         this.kartImages[this.kartImageCount++] = image;
         image.setTexture(kartTexture(key)).setOrigin(s.ox, s.oy).setPosition(x, y).setDisplaySize(height * s.w / s.h, height).setRotation(rotation).setDepth(depth).setVisible(true);
         this.kartViews.push(key);
+        return true;
+    }
+    /** Sprite keys of the drawn bonuses (capsule, cloud, icons) in the last frame, for tests. */
+    private bonusViews: string[] = [];
+    /** Draws one of David's bonuses once its chunk is loaded; false until then (the vector art stays the fallback). */
+    private drawnBonus(key: BonusSpriteKey, x: number, y: number, size: number, depth: number): boolean {
+        if (!this.paint || !this.textures.exists(bonusTexture(key))) return false;
+        this.paint.draw(bonusTexture(key), x, y, size, 0, 1, depth);
+        this.bonusViews.push(key);
         return true;
     }
     private emblemTextures = new Map<Emblem, string>();
@@ -248,6 +258,13 @@ export class DerapageScene extends Phaser.Scene {
             this.load.once('complete', () => { if (this.sys.isActive()) this.draw(); });
             this.load.start();
         }).catch(() => undefined);
+        // David's bonuses (capsule, comet, tornado, cloud, bubble), same pattern: the vector art until their chunk arrives.
+        void import('./bonus-atlas').then(({ sprites }) => {
+            if (!this.sys.isActive()) return;
+            for (const [key, url] of Object.entries(sprites)) if (!this.textures.exists(bonusTexture(key))) this.load.image(bonusTexture(key), url);
+            this.load.once('complete', () => { if (this.sys.isActive()) this.draw(); });
+            this.load.start();
+        }).catch(() => undefined);
         for (const id of ids) for (const expression of expressions) this.rearTextures.set(`${id}-${expression}`, this.paint.texture(`rear-${id}-${expression}`, vehicleDrawing(id, 'arriere', expression)));
         for (const kind of sceneryKinds) this.sceneryTextures.set(kind,this.paint.texture(`roadside-${kind}`, sceneryDrawing(kind)));
         for (const kind of Object.keys(emblems) as Emblem[]) this.emblemTextures.set(kind, this.paint.texture(`emblem-${kind}`, emblems[kind], 80));
@@ -331,7 +348,7 @@ export class DerapageScene extends Phaser.Scene {
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
                 performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.time }),
                 fingerReceipts: receipts,
-                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id)] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
+                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], bonusViews: [...this.bonusViews], fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id)] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
                 hudText: () => this.hud?.textContent ?? '', usefulArea: () => ({ x: 0, y: 96, width: 360, height: 544 }),
@@ -470,7 +487,7 @@ export class DerapageScene extends Phaser.Scene {
         this.road?.hide();
         this.paint?.begin();
         for (let i = 0; i < this.kartImageCount; i++) this.kartImages[i]?.setVisible(false);
-        this.kartImageCount = 0; this.kartViews = [];
+        this.kartImageCount = 0; this.kartViews = []; this.bonusViews = [];
         for (let i=0;i<this.propCount;i++) this.props3d[i]?.clear().setVisible(false);
         this.propCount = 0;
         this.hud3d?.clear();
@@ -494,7 +511,7 @@ export class DerapageScene extends Phaser.Scene {
                 const size=item.radius*2*a.scale;
                 const texture=this.sceneryTextures.get(item.kind);
                 if(texture) this.paint?.draw(texture,a.x,a.y-size/2,size,0,1,depth);
-            });
+            }, (kind,x,y,size,depth) => this.drawnBonus(pickupPanel(kind,size),x,y-size/2,size,depth));
         } else {
         background.fillStyle(t.circuit.theme.ground);
         background.fillRect(0, 96, 360, 544);
@@ -625,13 +642,15 @@ export class DerapageScene extends Phaser.Scene {
             const a = project(c.x, c.y);
             if (a.y > 106 && a.y < 630) {
                 if ('owner' in c) {
+                    // The prankster cloud, seen from above; until the chunk arrives, the trap emblem of its owner.
+                    if (this.drawnBonus('cloud_top', a.x, a.y, 26, 1)) continue;
                     const owner = c.owner === 0 ? this.hero : this.rivals[c.owner - 1];
                     const kind = liveries[owner?.id ?? 'panda'].trap;
                     const key = this.emblemTextures.get(kind);
                     // A dark rim keeps the trap readable against every road surface.
                     g.fillStyle(0x181b2c); g.fillCircle(a.x, a.y, 11);
                     if (key) this.paint?.draw(key, a.x, a.y, 24);
-                } else {
+                } else if (!this.drawnBonus('capsule_top', a.x, a.y, 20, 1)) {
                     g.fillStyle(0xffd166); g.fillRoundedRect(a.x - 7, a.y - 7, 14, 14, 3);
                     g.lineStyle(2, 0x533946); g.strokeRoundedRect(a.x - 7, a.y - 7, 14, 14, 3);
                     g.lineBetween(a.x - 4, a.y, a.x + 4, a.y); g.lineBetween(a.x, a.y - 4, a.x, a.y + 4);
@@ -675,15 +694,23 @@ export class DerapageScene extends Phaser.Scene {
                 const rotation = k.angle + (this.overviewMode ? 0 : angle) + Math.PI / 2;
                 if (!this.drawnKart(kartSprite(driver.id, 'top'), a.x, a.y - height * scale, 42 * size * jumpScale, rotation, 1) && key) this.paint?.draw(key, a.x, a.y - height * scale, 46 * size * jumpScale, rotation);
             }
+            const at = (localX: number, localY: number) => {
+                const r = k.angle + (this.overviewMode ? 0 : angle);
+                return { x: a.x + (localX * Math.cos(r) - localY * Math.sin(r)) * size, y: a.y - height * scale + (localX * Math.sin(r) + localY * Math.cos(r)) * size };
+            };
             const emblemAt = (kind: Emblem, localX: number, localY: number, diameter: number): void => {
-                const key = this.emblemTextures.get(kind), r = k.angle + (this.overviewMode ? 0 : angle);
-                if (key) this.paint?.draw(key, a.x + (localX * Math.cos(r) - localY * Math.sin(r)) * size, a.y - height * scale + (localX * Math.sin(r) + localY * Math.cos(r)) * size, diameter * size, 0, 1, 2);
+                const key = this.emblemTextures.get(kind), q = at(localX, localY);
+                if (key) this.paint?.draw(key, q.x, q.y, diameter * size, 0, 1, 2);
             };
             if (k.boostMs > 0 || (k.specialMs ?? 0) > 0) {
                 g.fillStyle(0xffdb70); g.fillTriangle(-15, -5, -15, 5, -29, 0);
                 emblemAt(livery.boost, -29, 0, 23);
             }
-            if (k.item) emblemAt(bonusEmblem(driver?.id ?? 'panda', k.item), 0, -29, 20);
+            if (k.item) {
+                // The same drawn icon for every mascot; the mascot's emblem until the chunk arrives.
+                const q = at(0, -29);
+                if (!this.drawnBonus(bonusIcon(k.item, 20 * size < 24), q.x, q.y, 20 * size, 2)) emblemAt(bonusEmblem(driver?.id ?? 'panda', k.item), 0, -29, 20);
+            }
             if (k.jumpMs > 0) emblemAt(livery.motif, 0, 28, 17);
             if (k.shield) {
                 g.lineStyle(2, Number.parseInt(livery.light.slice(1), 16));
@@ -737,11 +764,12 @@ export class DerapageScene extends Phaser.Scene {
         // in landscape the DOM lap chronos keep their size on a canvas shrunk to half, and reach x = 245.
         this.heldBonus = null;
         if (p.item) {
-            const kind = bonusEmblem(this.hero.id, p.item), key = this.emblemTextures.get(kind);
+            const kind = bonusEmblem(this.hero.id, p.item), key = this.emblemTextures.get(kind), icon = bonusIcon(p.item);
             g.fillStyle(0x24324a); g.fillRoundedRect(306,102,44,44,10);
             g.lineStyle(2,0xffd166); g.strokeRoundedRect(306,102,44,44,10);
-            if (key) this.paint?.draw(key, 328, 124, 36, 0, 1, 1001);
-            this.heldBonus = kind;
+            // David's icon, common to the five mascots; the mascot's emblem until the chunk arrives.
+            if (this.drawnBonus(icon, 328, 124, 36, 1001)) this.heldBonus = icon;
+            else { if (key) this.paint?.draw(key, 328, 124, 36, 0, 1, 1001); this.heldBonus = kind; }
         }
         }
         // Off the road, an arrow points back to the track, a little ahead, in both views.

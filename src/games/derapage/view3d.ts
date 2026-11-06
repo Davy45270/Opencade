@@ -49,7 +49,7 @@ export class Cadence {
 }
 export interface RenderCost { lines: number; samples: number; segmentChecks: number; boostChecks: number; sprites: number }
 /** Fixed grid: 107 lines × 30 samples. Each sample visits the 96 segments plus the initial hint. */
-export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engine['snapshot']>, kart: (id: number, x: number, y: number, size: number, rotation: number, depth: number) => void, layer?: (depth: number) => Phaser.GameObjects.Graphics, scenery?: (item: Scenery, screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => void): RenderCost {
+export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engine['snapshot']>, kart: (id: number, x: number, y: number, size: number, rotation: number, depth: number) => void, layer?: (depth: number) => Phaser.GameObjects.Graphics, scenery?: (item: Scenery, screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => void, pickup?: (kind: 'crate' | 'puddle', x: number, y: number, size: number, depth: number) => boolean): RenderCost {
     const g=graphics;
     const p=e.karts[0];
     const cost={lines:0,samples:0,segmentChecks:0,boostChecks:0,sprites:0};
@@ -126,6 +126,8 @@ export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engi
         cost.sprites++;
         if(item.kind==='scenery') { scenery?.({...item,kind:item.art},a,FAR-a.depth+2); }
         else if(item.kind==='kart') { kart(item.id,a.x,a.y-(item.jumpHeight ?? 0)*a.scale,Math.min(90,4*a.scale),item.angle-p.angle,FAR-a.depth+2); }
+        // Drawn panels (capsule, cloud) once their chunk is loaded; the vector box and puddle stay the fallback.
+        else if((item.kind==='crate' || item.kind==='puddle') && pickup?.(item.kind,a.x,a.y,3*a.scale,FAR-a.depth+2)) { continue; }
         else {
         const g=layer?.(FAR-a.depth+2) ?? graphics;
         if(item.kind==='tree') {

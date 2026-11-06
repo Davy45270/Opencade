@@ -220,12 +220,48 @@ async function miniMapAndHeldBonus() {
     } finally { h.cleanup(); }
     console.log('Mini-map arrow and bonus in hand: both views');
 }
+// Z43: David's drawn bonuses. Once their chunk is loaded, the bonus in hand shows the same icon for every mascot
+// (comet, tornado, cloud, bubble), the item box is the capsule of mischief, and the puddle is the prankster cloud,
+// in the top view and in the 3D view.
+async function drawnBonuses() {
+    const keys = ['icon_turbo', 'icon_ressort', 'icon_flaque', 'icon_bulle', 'icon_turbo_small', 'icon_ressort_small', 'icon_flaque_small', 'icon_bulle_small', 'capsule_top', 'capsule', 'capsule_far', 'cloud_top'];
+    const shown = (h, key) => h.images.some(i => i.placements.setVisible?.at(-1) && i.texture.key === `derapage-bonus-${key}`);
+    const held = {};
+    for (const id of ['dragon', 'singe', 'licorne']) {
+        const h = await mount('derapage', id, false); h.session.send('start');
+        try {
+            for (const key of keys) h.textures.add(`derapage-bonus-${key}`);
+            h.engine.loadLevel(0, 28);
+            const p = h.engine.karts[0], crate = h.engine.crates[0];
+            assert(crate, 'circuit 1 has item boxes');
+            for (const view3d of [false, true]) {
+                h.scene.view3d = view3d;
+                // Behind the box, facing it: visible in both views.
+                Object.assign(p, { x: crate.x - Math.cos(.35) * 6, y: crate.y - Math.sin(.35) * 6, angle: .35, vx: 0, vy: 0 });
+                for (const item of ['turbo', 'ressort', 'flaque', 'bulle']) {
+                    p.item = item; h.frame();
+                    assert.equal(h.scene.heldBonus, `icon_${item}`, `${id}: the bonus in hand is the common drawn icon (${item}, ${view3d ? '3D' : 'top'})`);
+                    assert(shown(h, `icon_${item}`), `${id}: drawn icon of ${item} on screen`);
+                    (held[item] ??= new Set()).add(h.scene.heldBonus);
+                }
+                p.item = null; h.frame();
+                assert(shown(h, view3d ? 'capsule' : 'capsule_top') || (view3d && shown(h, 'capsule_far')), `${id}: the item box is the capsule of mischief (${view3d ? '3D' : 'top'})`);
+                h.engine.puddles.push({ x: crate.x, y: crate.y, owner: 1, remaining: 1000 }); h.engine.crates.forEach(c => { c.cooldown = 5000; }); h.frame();
+                assert(shown(h, view3d ? 'icon_flaque' : 'cloud_top') || (view3d && shown(h, 'icon_flaque_small')), `${id}: the puddle is the prankster cloud (${view3d ? '3D' : 'top'})`);
+                h.engine.puddles.length = 0; h.engine.crates.forEach(c => { c.cooldown = 0; });
+            }
+        } finally { h.cleanup(); }
+    }
+    for (const [item, kinds] of Object.entries(held)) assert.equal(kinds.size, 1, `one icon for ${item} whatever the mascot`);
+    console.log('Drawn bonuses: common icons, capsule box, cloud puddle, both views');
+}
 await renderBudget();
 assert.equal(budgetChecks,384,'all real frame counts submitted');
 assert.throws(() => withinBudget(521, 591), { name: 'AssertionError' }, 'negative budget boundary');
 await clockChecks();
 await allCircuitBudgets();
 await miniMapAndHeldBonus();
+await drawnBonuses();
 if(process.argv.includes('--audit-mutations')) {
 const { mutationModule } = await import('./mutation-module.js');
 // Execute actual scene mutations: an inflated render and a return to smoothed time.
