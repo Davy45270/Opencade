@@ -1,11 +1,14 @@
 import type Phaser from 'phaser';
 import type { Primitive } from '../../characters/model';
 import { renderCharacter } from '../../characters/phaser';
-import { nearest, TREE_CLEARANCE, type Track, type Vec } from '../../engines/derapage/track';
+import { at, nearest, wrap, TREE_CLEARANCE, type Track, type Vec } from '../../engines/derapage/track';
+import { DECOR_MARGIN, decorFootprint, decorReach, decorTop } from './decor-sprites';
 
-export const sceneryKinds = ['building','lamp','crossing','fence','flowers','hay','rock','turn','arrow','stand','flag','banner','fir','stump','pond','bollard','cargo','anchor','cliff','bush','stones','pennant','mound','ribbon','tree'] as const;
+export const sceneryKinds = ['building','lamp','crossing','fence','flowers','hay','rock','turn','arrow','stand','flag','banner','fir','stump','pond','bollard','cargo','anchor','cliff','bush','stones','pennant','mound','ribbon','tree','barrier','sign'] as const;
 export type SceneryKind = typeof sceneryKinds[number];
-export interface Scenery extends Vec { kind: SceneryKind; radius: number }
+/** `angle`: heading of the road at a drawn prop (barrier and crate lie along it, the sign faces the karts coming
+ *  down it); `mirror`: a sign announcing a left bend. */
+export interface Scenery extends Vec { kind: SceneryKind; radius: number; angle?: number; mirror?: boolean }
 const cache = new WeakMap<Track, readonly Scenery[]>();
 /** Theme colours identify the existing eight palettes without changing engine data. */
 export function sceneryTheme(t: Track): number {
@@ -17,8 +20,16 @@ export function roadside(t: Track): readonly Scenery[] {
     if (!t.circuit.theme.kart && theme>=0) for(let i=0;i<t.points.length;i+=4) {
         const p=t.points[i]; if(!p) continue;
         const n=nearest(t,p);
+        const slot=(side: number): SceneryKind | undefined => sceneryKinds[theme*3+(i/4+(side===1?1:0))%3];
+        const preferred=(i-4)/8%2 ? 1 : -1, barrierSide=slot(preferred)==='cargo' ? -preferred : preferred;
         for(const side of [-1,1]) {
-            const kind=sceneryKinds[theme*3+(i/4+(side===1?1:0))%3];
+            const kind=slot(side);
+            // David's works barrier (Z47) takes one regular slot in eight points of the city circuits, on alternate
+            // sides, at the kerb and along the road; never a crate's slot (the quays keep their crates).
+            if(t.circuit.theme.urban && i%8===4 && side===barrierSide && kind!=='cargo') {
+                const barrier=beside(t,t.distances[i] ?? 0,side,'barrier',3.2);
+                if(clear(t,barrier)) { items.push(barrier); continue; }
+            }
             // A fir is one of David's trees (Z46): its crown needs the trees' clearance.
             const radius=4, clearance=kind==='fir' ? TREE_CLEARANCE : radius+4, offset=(t.widths[i] ?? 28)/2+(kind==='fir' ? TREE_CLEARANCE+1 : radius+7);
             const q={x:p.x+n.nx*side*offset,y:p.y+n.ny*side*offset};
@@ -33,10 +44,75 @@ export function roadside(t: Track): readonly Scenery[] {
                     if(Math.hypot(q.x-a.x-u*dx,q.y-a.y-u*dy)<shortcut.width+clearance) continue;
                 }
             }
-            if(kind) items.push({...q,kind,radius});
+            // The technical cup's yellow chevrons are David's direction signs now, set before the bends (below).
+            if(kind && kind!=='turn' && kind!=='arrow') items.push({...q,kind,radius,angle:Math.atan2(-n.nx,n.ny)});
         }
     }
-    cache.set(t,items);return items;
+    if (!t.circuit.theme.kart && theme===2) items.push(...signs(t));
+    // From above a barrier never lies over another prop (tight bends bring the other side's props close): the
+    // prop's drawing (70 % of its box) stays clear of the bar; otherwise the slot stays empty.
+    const half=decorTop({x:0,y:0,kind:'barrier',radius:0,angle:0}).width/2;
+    const over=(b: Scenery): boolean => items.some(o => {
+        if(o===b) return false;
+        const c=Math.cos(b.angle ?? 0), sn=Math.sin(b.angle ?? 0), u=Math.max(-half,Math.min(half,(o.x-b.x)*c+(o.y-b.y)*sn));
+        return Math.hypot(o.x-b.x-u*c,o.y-b.y-u*sn)<2+.7*o.radius;
+    });
+    const kept=items.filter(item => item.kind!=='barrier' || !over(item));
+    cache.set(t,kept);return kept;
+}
+/** Off the road with DECOR_MARGIN at every point of its footprint, and off the shortcut. */
+function clear(t: Track, item: Scenery): boolean {
+    const shortcut=t.circuit.shortcut, a=shortcut && t.points[shortcut.from], b=shortcut && t.points[shortcut.to];
+    return decorFootprint(item).every(q => {
+        const n=nearest(t,q);
+        if(n.distance<(t.widths[n.index] ?? 28)/2+DECOR_MARGIN) return false;
+        if(!shortcut || !a || !b) return true;
+        const dx=b.x-a.x,dy=b.y-a.y, u=Math.max(0,Math.min(1,((q.x-a.x)*dx+(q.y-a.y)*dy)/(dx*dx+dy*dy)));
+        return Math.hypot(q.x-a.x-u*dx,q.y-a.y-u*dy)>=shortcut.width+DECOR_MARGIN;
+    });
+}
+/** A prop at `along` on the road, `side` = 1 to the right of the driver, -1 to the left, standing just off the edge. */
+function beside(t: Track, along: number, side: number, kind: 'barrier' | 'sign', radius: number, mirror?: boolean): Scenery {
+    const p=at(t,along), n=nearest(t,p), offset=(t.widths[n.index] ?? 28)/2+DECOR_MARGIN+decorReach(kind)+1;
+    const q={x:p.x+n.nx*side*offset,y:p.y+n.ny*side*offset}, edge=nearest(t,q);
+    // Square to the road section it stands beside (in a bend, the nearest one), not to the point it was measured from.
+    return {...q,kind,radius,angle:Math.atan2(-edge.nx,edge.ny),...(mirror===undefined ? {} : {mirror})};
+}
+/** Heading change over the next 20 units of road, in radians: positive = a right bend (the y axis points down). */
+export function turnAhead(t: Track, along: number): number {
+    const heading=(s: number): number => { const a=at(t,s), b=at(t,s+2); return Math.atan2(b.y-a.y,b.x-a.x); };
+    return wrap(heading(along+20)-heading(along));
+}
+/** Bends of the road: where the heading starts to change by more than 25° over 20 units (until it falls under 12°),
+ *  with their direction (the strongest change in the bend). */
+export function bends(t: Track): { along: number; right: boolean }[] {
+    const step=2, count=Math.floor(t.length/step), turns=Array.from({length:count},(_,k)=>turnAhead(t,k*step));
+    const quiet=Math.max(0,turns.findIndex(v=>Math.abs(v)<12*Math.PI/180));
+    const found: { along: number; right: boolean }[]=[];
+    let start=-1, peak=0;
+    for(let j=0;j<=count;j++) {
+        const k=(quiet+j)%count, v=turns[k] ?? 0;
+        if(start<0 && Math.abs(v)>25*Math.PI/180) { start=k; peak=v; }
+        else if(start>=0 && Math.abs(v)>Math.abs(peak) && Math.sign(v)===Math.sign(peak)) peak=v;
+        if(start>=0 && (Math.abs(v)<12*Math.PI/180 || Math.sign(v)!==Math.sign(peak))) { found.push({along:start*step,right:peak>0}); start=-1; }
+    }
+    return found;
+}
+/** David's direction signs (7-2421): one before each bend of the technical cup, on its outside, arrows towards it
+ *  (mirrored for a left bend). Not at a fixed interval: the first lead (15 units upstream, then 10 to 30) that clears the road. */
+function signs(t: Track): Scenery[] {
+    const items: Scenery[]=[];
+    for(const bend of bends(t)) for(const lead of [15,20,10,25,30]) {
+        const item=beside(t,bend.along-lead,bend.right ? -1 : 1,'sign',2,!bend.right);
+        if(!clear(t,item) || items.some(o=>Math.hypot(o.x-item.x,o.y-item.y)<12)) continue;
+        // A driver at the sign must meet this bend first, not the end of the previous one.
+        const from=nearest(t,item).along;
+        let first=0;
+        for(let d=5;d<=55 && Math.abs(first)<25*Math.PI/180;d++) first=turnAhead(t,from+d);
+        if(Math.abs(first)<25*Math.PI/180 || first>0!==bend.right) continue;
+        items.push(item); break;
+    }
+    return items;
 }
 const spriteCache = new WeakMap<Track, readonly Scenery[]>();
 /** Existing trees remain visible because they already have engine collisions. */
@@ -69,8 +145,11 @@ export function sceneryDrawing(kind: SceneryKind): Primitive[] {
     } else if(kind==='hay') {oval(120,137,89,66,'#e5bd61');oval(120,137,54,46,'#bf8f43');oval(120,137,24,24,'#e5bd61');
     } else if(kind==='rock' || kind==='cliff' || kind==='stones') {
         poly([[24,190],[40,77],[96,37],[173,55],[213,190]],kind==='cliff'?'#758b98':'#a79c89');poly([[40,77],[96,37],[115,120],[24,190]],'#677783');
-    } else if(kind==='turn' || kind==='arrow') {
-        if(kind==='turn') post();rect(24,45,192,95,'#f2cd61');poly([[60,63],[113,63],[164,93],[113,123],[60,123],[111,93]],'#384453');
+    } else if(kind==='barrier') {
+        for(const x of [44,176]) {rect(x,96,20,110,'#8d96a0');oval(x+10,82,16,16,'#f6a73a');}
+        for(const y of [112,160]) {rect(24,y,192,26,'#e4473f');for(let x=40;x<200;x+=48) poly([[x,y],[x+20,y],[x+8,y+26],[x-12,y+26]],'#f4efe6');}
+    } else if(kind==='turn' || kind==='arrow' || kind==='sign') {
+        if(kind!=='arrow') post();rect(24,45,192,95,'#f2cd61');poly([[60,63],[113,63],[164,93],[113,123],[60,123],[111,93]],'#384453');
     } else if(kind==='stand') {
         for(let i=0;i<4;i++) {rect(25,60+i*38,190,30,'#b6a2cb');for(let j=0;j<6;j++) oval(40+j*30,65+i*38,8,9,j%2?'#e5c979':'#775a9e');}
     } else if(kind==='flag' || kind==='banner' || kind==='pennant' || kind==='ribbon') {

@@ -6,7 +6,9 @@ export const HORIZON = 212;
 export const FAR = 180;
 export const BAND = 4;
 export const COLUMN = 12;
-const FOCAL = 220, HEIGHT = 7, BEHIND = 6;
+const FOCAL = 220, HEIGHT = 7;
+/** The camera stands this far behind the player's kart. */
+export const BEHIND = 6;
 export interface Camera extends Vec { angle: number }
 export function groundDistance(y: number): number { return Math.min(FAR, HEIGHT * FOCAL / Math.max(1, y-HORIZON)); }
 export function projectPoint(point: Vec, camera: Camera): { x: number; y: number; scale: number; depth: number } | null {

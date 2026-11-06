@@ -1,5 +1,6 @@
 import { scenerySprites, drawScenery, groundTexture } from './scenery';
 import { treeEssence } from './tree-sprites';
+import { isDecor } from './decor-sprites';
 import { kartLandscape, kartRoadArt, kartTree } from './kart-art';
 import type Phaser from 'phaser';
 import { nearest } from '../../engines/derapage/track';
@@ -75,8 +76,9 @@ export function roadBounds(t: Track): { left: number; top: number; width: number
 }
 /** The static road layer at the top-view scale 5, world (left, top) at the origin: ground texture,
  * landscape, road, rails, road art, trees and roadside props. Shared by the scene and the thumbnail.
- * `drawnTrees`: David's trees are drawn by the scene from above, so their vector trees are left out. */
-export function paintRoadLayer(g: Phaser.GameObjects.Graphics, t: Track, left: number, top: number, drawnTrees = false): void {
+ * `drawnTrees`: David's trees are drawn by the scene from above, so their vector trees are left out.
+ * `drawnDecor`: likewise his barrier, crate and direction sign (Z47). */
+export function paintRoadLayer(g: Phaser.GameObjects.Graphics, t: Track, left: number, top: number, drawnTrees = false, drawnDecor = false): void {
     const projectStatic = (x: number, y: number): Vec => ({ x: (x - left) * 5, y: (y - top) * 5 });
     groundTexture(g,t,projectStatic);
     kartLandscape(g,t,projectStatic,5,0,true);
@@ -88,6 +90,7 @@ export function paintRoadLayer(g: Phaser.GameObjects.Graphics, t: Track, left: n
         kartTree(g,theme,projectStatic(tree.x,tree.y),tree.radius,5,0,true);
     for (const item of scenerySprites(t)) {
         if (drawnTrees && (item.kind === 'tree' || item.kind === 'fir') && treeEssence(t, item, item.kind)) continue;
+        if (drawnDecor && isDecor(item.kind)) continue;
         drawScenery(g,item,projectStatic(item.x,item.y),5);
     }
 }
@@ -97,19 +100,20 @@ export function paintRoadLayer(g: Phaser.GameObjects.Graphics, t: Track, left: n
 export class RoadLayer {
     private track?: Track;
     private drawnTrees = false;
+    private drawnDecor = false;
     private image?: Phaser.GameObjects.Image;
     private left = 0;
     private top = 0;
     private readonly key = 'derapage-road';
     constructor(private readonly scene: Phaser.Scene) {}
-    draw(t: Track, project: (x: number, y: number) => Vec, scale: number, rotation: number, drawnTrees = false): void {
-        if (this.track !== t || this.drawnTrees !== drawnTrees) {
+    draw(t: Track, project: (x: number, y: number) => Vec, scale: number, rotation: number, drawnTrees = false, drawnDecor = false): void {
+        if (this.track !== t || this.drawnTrees !== drawnTrees || this.drawnDecor !== drawnDecor) {
             this.destroy();
-            this.drawnTrees = drawnTrees;
+            this.drawnTrees = drawnTrees; this.drawnDecor = drawnDecor;
             const box = roadBounds(t);
             this.left = box.left; this.top = box.top;
             const g = this.scene.make.graphics({ x: 0, y: 0 });
-            paintRoadLayer(g, t, box.left, box.top, drawnTrees);
+            paintRoadLayer(g, t, box.left, box.top, drawnTrees, drawnDecor);
             const { width, height } = box;
             g.generateTexture(this.key, width, height);
             g.destroy();

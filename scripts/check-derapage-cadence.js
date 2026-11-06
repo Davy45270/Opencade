@@ -2,7 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { vehicleLengthAt } from '../tests/arcade-art-checks.ts';
-import { roadside } from '../src/games/derapage/scenery.ts';
+import { roadside, scenerySprites } from '../src/games/derapage/scenery.ts';
 import { graphicsFps } from './derapage-cadence-model.js';
 process.argv.push('--harness-only');
 const { mount, useSceneModule } = await import('./derapage-mobile-scene.js');
@@ -418,6 +418,220 @@ async function treeSizes() {
         console.log(`Tree sizes: 3D ${ratios.side.map(r => r.toFixed(2))} kart heights, top ${ratios.top.map(r => r.toFixed(2))} kart lengths`);
     } finally { h.cleanup(); }
 }
+// Z47: David's drawn roadside props (decisions of 06/11). A works barrier on the eight city circuits, set at the kerb
+// along the road; the crate without "?" in place of the program's cargo crate on the four quay circuits; the
+// direction sign in place of the yellow chevrons of the technical cup, set upstream of each bend, arrows towards
+// it (mirrored for a left bend), on the outside. Placement first: it only needs the roadside of the track.
+const URBAN = [1, 2, 3, 4, 20, 21, 22, 23], QUAYS = [20, 21, 22, 23], TECHNICAL = [8, 9, 10, 11];
+async function decorPlacement() {
+    const { Engine } = await import('../src/engines/derapage/engine.ts');
+    const { nearest, at, wrap } = await import('../src/engines/derapage/track.ts');
+    const heading = (t, s) => { const a = at(t, s), b = at(t, s + 2); return Math.atan2(b.y - a.y, b.x - a.x); };
+    // Heading change over the next 20 units, in degrees (positive = right turn, the y axis points down).
+    const turn = (t, s) => wrap(heading(t, s + 20) - heading(t, s)) * 180 / Math.PI;
+    let signs = 0, barriers = 0, bends = 0;
+    for (let level = 0; level < 30; level++) {
+        const t = new Engine(level, 28).track, items = roadside(t);
+        const of = kind => items.filter(i => i.kind === kind);
+        const urban = URBAN.includes(level), technical = TECHNICAL.includes(level);
+        if (urban) {
+            assert(of('barrier').length >= 6, `circuit ${level + 1}: works barriers along the city road (${of('barrier').length})`);
+            for (const b of of('barrier')) {
+                const n = nearest(t, b), road = Math.atan2(n.nx, -n.ny);
+                assert(Math.abs(Math.sin(b.angle - road)) < .2, `circuit ${level + 1}: a barrier lies along the road (${b.angle.toFixed(2)} vs ${road.toFixed(2)})`);
+                // Seen from above it never lies over another prop (a crate, a lamp...): their drawing (70 % of the
+                // box) stays clear of its bar, 12.5 units long and 2 thick.
+                for (const o of items) {
+                    if (o === b) continue;
+                    const c = Math.cos(b.angle), sn = Math.sin(b.angle), u = Math.max(-6.24, Math.min(6.24, (o.x - b.x) * c + (o.y - b.y) * sn));
+                    assert(Math.hypot(o.x - b.x - u * c, o.y - b.y - u * sn) >= 2 + .7 * o.radius, `circuit ${level + 1}: a barrier lies over a ${o.kind}`);
+                }
+            }
+            barriers += of('barrier').length;
+        } else assert.equal(of('barrier').length, 0, `circuit ${level + 1}: barriers only in the city`);
+        if (QUAYS.includes(level)) assert(of('cargo').length >= 10, `circuit ${level + 1}: the quays keep their crates`);
+        if (!technical) { assert.equal(of('sign').length, 0, `circuit ${level + 1}: direction signs only in the technical cup`); continue; }
+        assert.equal(of('turn').length + of('arrow').length, 0, `circuit ${level + 1}: no yellow chevron at a fixed interval any more`);
+        assert(of('sign').length >= 4, `circuit ${level + 1}: a direction sign before each bend (${of('sign').length})`);
+        for (const s of of('sign')) {
+            const n = nearest(t, s), side = (s.x - n.x) * n.nx + (s.y - n.y) * n.ny; // > 0: right of the road
+            // The bend it announces: the first heading change of 25° (over 20 units) between 5 and 55 units ahead.
+            let best = 0;
+            for (let d = 5; d <= 55 && Math.abs(best) < 25; d += 1) best = turn(t, n.along + d);
+            assert(Math.abs(best) >= 25, `circuit ${level + 1}: a sign stands upstream of a bend (${best.toFixed(0)}°)`);
+            assert.equal(Boolean(s.mirror), best < 0, `circuit ${level + 1}: the arrows point towards the bend (${best.toFixed(0)}°, mirror ${s.mirror})`);
+            assert(best > 0 ? side < 0 : side > 0, `circuit ${level + 1}: the sign stands on the outside of the bend`);
+            assert(Math.abs(Math.sin(s.angle - Math.atan2(n.nx, -n.ny))) < .2, `circuit ${level + 1}: a sign is set square to the road`);
+        }
+        // Every sharp bend (50° over 20 units) is announced 5 to 60 units upstream; not a fixed interval.
+        for (let s = 0; s < t.length; s += 2) {
+            if (Math.abs(turn(t, s)) < 50 || Math.abs(turn(t, s - 2)) >= 50) continue;
+            bends++;
+            assert(of('sign').some(g => { const d = ((s - nearest(t, g).along) % t.length + t.length) % t.length; return d >= 5 && d <= 60; }), `circuit ${level + 1}: the bend at ${s.toFixed(0)} is announced`);
+        }
+        const gaps = of('sign').map(g => nearest(t, g).along).sort((a, b) => a - b).map((a, i, l) => (l[i + 1] ?? l[0] + t.length) - a);
+        assert(Math.max(...gaps) - Math.min(...gaps) > 20, `circuit ${level + 1}: signs follow the bends, not a fixed interval (${gaps.map(g => g.toFixed(0))})`);
+        signs += of('sign').length;
+    }
+    // Off the road: every point of a prop's footprint, from above and its 3D base, clears the road edge by 4 units
+    // (beyond the city rail, 3 units after the edge), on all thirty circuits.
+    const { decorFootprint, DECOR_MARGIN } = await import('../src/games/derapage/decor-sprites.ts');
+    let points = 0;
+    for (let level = 0; level < 30; level++) {
+        const t = new Engine(level, 28).track;
+        for (const item of roadside(t)) {
+            if (!['barrier', 'sign', 'cargo'].includes(item.kind)) continue;
+            for (const q of decorFootprint(item)) {
+                const n = nearest(t, q);
+                assert(n.distance >= (t.widths[n.index] ?? 28) / 2 + DECOR_MARGIN - 1e-9, `circuit ${level + 1}: ${item.kind} off the road (${n.distance.toFixed(1)})`);
+                points++;
+            }
+        }
+    }
+    assert.equal(DECOR_MARGIN, 4);
+    console.log(`Props placed: ${barriers} barriers in the city, ${signs} signs before ${bends} sharp bends, ${points} footprint points off the road`);
+}
+// The drawings in the scene: top view from above (turning with the road), a view chosen by the angle in 3D, the
+// vector props neither baked nor drawn once the chunk is loaded, and the vector fallback until it arrives.
+async function decorInScene() {
+    const { DECOR_SPRITES, drawnDecor } = await import('../src/games/derapage/decor-sprites.ts');
+    const { KART_SPRITES } = await import('../src/games/derapage/kart-sprites.ts');
+    const shown = h => h.images.filter(i => i.placements.setVisible?.at(-1) && i.texture.key.startsWith('derapage-decor-'));
+    const h = await mount('derapage', 'dragon', false); h.session.send('start');
+    try {
+        for (const key of Object.keys(DECOR_SPRITES)) h.textures.add(`derapage-decor-${key}`);
+        for (const [level, kind, prefix] of [[1, 'barrier', 'barriere'], [21, 'barrier', 'barriere'], [21, 'cargo', 'caisse'], [9, 'sign', 'panneau']]) {
+            h.engine.loadLevel(level, 28);
+            const t = h.engine.track, items = drawnDecor(t).filter(i => i.kind === kind), item = items[Math.floor(items.length / 2)];
+            assert(item, `circuit ${level + 1}: a ${kind}`);
+            for (const view3d of [false, true]) {
+                h.scene.view3d = view3d;
+                // 16 units before it along the road, facing down the road.
+                const a = item.angle;
+                Object.assign(h.engine.karts[0], { x: item.x - Math.cos(a) * 16, y: item.y - Math.sin(a) * 16, angle: a, vx: 0, vy: 0 });
+                for (const k of h.engine.karts.slice(1)) Object.assign(k, { x: 9999, y: 9999 });
+                h.frame();
+                const keys = shown(h).map(i => i.texture.key.slice(15)).filter(k => k.startsWith(prefix));
+                assert(keys.length > 0, `circuit ${level + 1}: David's ${kind} is drawn (${view3d ? '3D' : 'top'})`);
+                assert(keys.every(k => view3d ? !/_dessus(_g)?$/.test(k) : /_dessus(_g)?$/.test(k)), `circuit ${level + 1}: ${view3d ? 'side views in 3D' : 'top views from above'} (${keys})`);
+                if (view3d) assert(!h.images.some(i => i.placements.setVisible?.at(-1) && /roadside-(barrier|sign|cargo|turn|arrow)$/.test(i.texture.key)), `circuit ${level + 1}: no vector prop panel in 3D`);
+            }
+            h.scene.view3d = false;
+        }
+        // Views by the angle between the camera and the object, like the karts. Barrier on circuit 2 (index 1).
+        h.engine.loadLevel(1, 28);
+        const t = h.engine.track, barrier = drawnDecor(t).find(i => i.kind === 'barrier'), sign = (h.engine.loadLevel(9, 28), drawnDecor(h.engine.track).find(i => i.kind === 'sign' && !i.mirror)), left = drawnDecor(h.engine.track).find(i => i.kind === 'sign' && i.mirror);
+        assert(barrier && sign && left, 'a barrier, a right sign and a left sign');
+        h.scene.view3d = true;
+        const seen = (level, item, bearing) => {
+            h.engine.loadLevel(level, 28);
+            // The camera stands 20 units from the object along `bearing` (world angle from the object) and looks at it.
+            Object.assign(h.engine.karts[0], { x: item.x + Math.cos(bearing) * 20, y: item.y + Math.sin(bearing) * 20, angle: bearing + Math.PI, vx: 0, vy: 0 });
+            for (const k of h.engine.karts.slice(1)) Object.assign(k, { x: 9999, y: 9999 });
+            h.frame();
+            const near = shown(h).reduce((m, i) => !m || Math.abs(i.placements.setPosition[0] - 180) < Math.abs(m.placements.setPosition[0] - 180) ? i : m, null);
+            return near?.texture.key.slice(15);
+        };
+        const b = barrier.angle, n = b + Math.PI / 2;
+        assert.equal(seen(1, barrier, n), 'barriere_face', 'square to its long side: the face');
+        assert.equal(seen(1, barrier, n + Math.PI), 'barriere_face', 'from the other side: the face too (it is symmetric)');
+        assert.match(seen(1, barrier, b), /^barriere_profil(_g)?$/, 'down its axis: the profile');
+        const q1 = seen(1, barrier, n - Math.PI / 4), q2 = seen(1, barrier, n + Math.PI / 4);
+        assert(/^barriere_3q(_g)?$/.test(q1) && /^barriere_3q(_g)?$/.test(q2) && q1 !== q2, `at 45° on either side: the ¾ and its mirror (${q1}, ${q2})`);
+        // The sign faces the oncoming karts: its face from upstream, its back from downstream, its edge from the side.
+        const s = sign.angle;
+        assert.equal(seen(9, sign, s + Math.PI), 'panneau_face', 'right bend, from upstream: the face, arrows to the right');
+        assert.equal(seen(9, sign, s), 'panneau_arriere', 'from downstream: its back');
+        assert.match(seen(9, sign, s + Math.PI / 2), /^panneau_cote$/, 'from the side: its edge');
+        assert.equal(seen(9, left, left.angle + Math.PI), 'panneau_face_g', 'left bend, from upstream: the mirrored face, arrows to the left');
+        // Top view: the barrier lies along the road and turns with the map.
+        h.scene.view3d = false; h.engine.loadLevel(1, 28);
+        Object.assign(h.engine.karts[0], { x: barrier.x - Math.cos(b) * 16, y: barrier.y - Math.sin(b) * 16, angle: b, vx: 0, vy: 0 });
+        h.frame();
+        const top = shown(h).find(i => i.texture.key === 'derapage-decor-barriere_dessus');
+        assert(top, 'the barrier top view');
+        // It turns with the map (the rotation of the road layer) and lies along the road: image axis = road heading.
+        const road = h.scene.road?.image;
+        assert(road, 'the road layer');
+        const off = top.placements.setRotation[0] - road.placements.setRotation[0];
+        assert(Math.abs(Math.sin(off - b)) < 1e-9 && Math.cos(off - b) > 0, `from above it lies along the road (${off.toFixed(2)} vs ${b.toFixed(2)})`);
+        h.scene.cameraFixed = !h.scene.cameraFixed; h.frame();
+        const turned = shown(h).find(i => i.texture.key === 'derapage-decor-barriere_dessus'), road2 = h.scene.road?.image;
+        assert(Math.abs(Math.sin(turned.placements.setRotation[0] - road2.placements.setRotation[0] - b)) < 1e-9, 'and keeps lying along it when the map turns');
+        h.scene.cameraFixed = !h.scene.cameraFixed;
+        // Without the chunk: vector props, baked into the road layer.
+        h.baked.length = 0; h.engine.loadLevel(1, 28); h.frame();
+        const bakedDrawn = h.baked.length;
+        for (const key of Object.keys(DECOR_SPRITES)) h.textures.delete(`derapage-decor-${key}`);
+        h.baked.length = 0; h.engine.loadLevel(1, 28); h.frame();
+        assert.equal(shown(h).length, 0, 'vector fallback until the chunk arrives');
+        assert(h.baked.length > bakedDrawn, `the vector props are baked only without the chunk (${h.baked.length} > ${bakedDrawn})`);
+        void KART_SPRITES;
+    } finally { h.cleanup(); }
+    console.log('Drawn props: barrier in the city, crate on the quays, signs in the technical cup, views by angle, vector fallback');
+}
+// Scale (proposed scale sheet, 06/11): at equal depth the barrier stands about 1 kart high, the sign 1.6 karts,
+// the crate 3 units (the size of the bonus box). No prop panel hides the player's kart or the road 12, 18 and 24
+// units ahead, driving the centre line of the twelve circuits that have them (1152 frames); witness: a barrier put
+// across the road.
+async function decorSizes() {
+    const { DECOR_SPRITES, drawnDecor } = await import('../src/games/derapage/decor-sprites.ts');
+    const { KART_SPRITES } = await import('../src/games/derapage/kart-sprites.ts');
+    const { projectPoint, FAR } = await import('../src/games/derapage/view3d.ts');
+    const { at } = await import('../src/engines/derapage/track.ts');
+    const visible = (h, prefix) => h.images.filter(i => i.placements.setVisible?.at(-1) && i.texture.key.startsWith(prefix));
+    const h = await mount('derapage', 'dragon', false); h.session.send('start');
+    try {
+        for (const key of Object.keys(DECOR_SPRITES)) h.textures.add(`derapage-decor-${key}`);
+        for (const key of Object.keys(KART_SPRITES)) h.textures.add(`derapage-kart-${key}`);
+        const ratios = {};
+        h.scene.view3d = true;
+        for (const [level, kind, low, high] of [[1, 'barrier', .9, 1.1], [9, 'sign', 1.5, 1.7], [21, 'cargo', .75, .9]]) {
+            h.engine.loadLevel(level, 28);
+            const item = drawnDecor(h.engine.track).find(i => i.kind === kind);
+            // The player 24 units away, a rival beside the prop at the same depth (1 unit nearer the road).
+            const a = item.angle;
+            Object.assign(h.engine.karts[0], { x: item.x - Math.cos(a) * 24, y: item.y - Math.sin(a) * 24, angle: a, vx: 0, vy: 0 });
+            Object.assign(h.engine.karts[1], { x: item.x - Math.sin(a) * 6, y: item.y + Math.cos(a) * 6, angle: a, vx: 0, vy: 0 });
+            for (const k of h.engine.karts.slice(2)) Object.assign(k, { x: 9999, y: 9999 });
+            h.frame();
+            const rival = visible(h, 'derapage-kart-').reduce((m, k) => k.placements.setPosition[1] < m.placements.setPosition[1] ? k : m);
+            const panel = visible(h, 'derapage-decor-').reduce((m, i) => !m || Math.abs(i.placements.setPosition[0] - 180) < Math.abs(m.placements.setPosition[0] - 180) ? i : m, null);
+            assert(panel && rival, `circuit ${level + 1}: a ${kind} and a kart at the same depth`);
+            ratios[kind] = panel.placements.setDisplaySize[1] / rival.placements.setDisplaySize[1];
+            assert(ratios[kind] >= low && ratios[kind] <= high, `${kind} height / kart height: ${ratios[kind].toFixed(2)} within [${low}, ${high}]`);
+        }
+        const look = (t, i) => {
+            const p = t.points[i], q = t.points[(i + 1) % 96];
+            Object.assign(h.engine.karts[0], { x: p.x, y: p.y, angle: Math.atan2(q.y - p.y, q.x - p.x), vx: 0, vy: 0 });
+            for (const k of h.engine.karts.slice(1)) Object.assign(k, { x: 9999, y: 9999 });
+            h.frame();
+            const panels = visible(h, 'derapage-decor-').map(im => { const [x, y] = im.placements.setPosition, [w, ht] = im.placements.setDisplaySize; return { x0: x - w / 2, x1: x + w / 2, y0: y - ht / 2, y1: y + ht / 2, depth: im.placements.setDepth[0] }; });
+            const kart = visible(h, 'derapage-kart-')[0], [kx, ky] = kart.placements.setPosition, [kw, kh] = kart.placements.setDisplaySize;
+            if (panels.some(r => r.depth > kart.placements.setDepth[0] && r.x1 > kx - kw / 2 && r.x0 < kx + kw / 2 && r.y1 > ky - kh && r.y0 < ky)) return 'kart';
+            const camera = { x: p.x, y: p.y, angle: h.engine.karts[0].angle };
+            for (const ahead of [12, 18, 24]) {
+                const a = projectPoint(at(t, t.distances[i] + ahead), camera);
+                if (a && panels.some(r => r.depth >= FAR - a.depth + 2 - 1e-6 && r.x0 < a.x && r.x1 > a.x && r.y0 < a.y && r.y1 > a.y)) return `road ${ahead} ahead`;
+            }
+            return null;
+        };
+        let frames = 0, drawn = 0;
+        for (const level of [...URBAN, ...TECHNICAL]) {
+            h.engine.loadLevel(level, 28);
+            for (let i = 0; i < 96; i++) { const hidden = look(h.engine.track, i); assert.equal(hidden, null, `circuit ${level + 1}, position ${i}: a prop hides the ${hidden}`); frames++; drawn += visible(h, 'derapage-decor-').length; }
+        }
+        assert.equal(frames, 1152);
+        assert(drawn > 1000, `props were on screen (${drawn} panels over the frames)`);
+        // Witness: a barrier set across the road 18 units ahead (its face towards the kart) is caught.
+        h.engine.loadLevel(1, 28);
+        const t1 = h.engine.track, w = at(t1, t1.distances[10] + 18), w2 = at(t1, t1.distances[10] + 20), items = scenerySprites(t1);
+        items.push({ ...items.find(i => i.kind === 'barrier'), x: w.x, y: w.y, angle: Math.atan2(w2.y - w.y, w2.x - w.x) + Math.PI / 2 });
+        assert.match(look(t1, 10) ?? '', /^road |^kart$/, 'witness: a barrier on the road ahead is caught');
+        items.pop();
+        console.log(`Prop sizes at equal depth: barrier ${ratios.barrier.toFixed(2)}, sign ${ratios.sign.toFixed(2)}, crate ${ratios.cargo.toFixed(2)} kart heights; ${frames} frames, none hidden`);
+    } finally { h.cleanup(); }
+}
 await renderBudget();
 assert.equal(budgetChecks,384,'all real frame counts submitted');
 assert.throws(() => withinBudget(521, 591), { name: 'AssertionError' }, 'negative budget boundary');
@@ -428,11 +642,14 @@ await drawnBonuses();
 await drawnTreesInScene();
 await horizonSky();
 await treeSizes();
+await decorPlacement();
+await decorInScene();
+await decorSizes();
 if(process.argv.includes('--audit-mutations')) {
 const { mutationModule } = await import('./mutation-module.js');
 // Execute actual scene mutations: an inflated render and a return to smoothed time.
 for (const [name, before, after, check] of [
-    ['road redrawn each frame', 'this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady);', 'this.road?.destroy(); this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady);', renderBudget],
+    ['road redrawn each frame', 'this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady,decorReady);', 'this.road?.destroy(); this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady,decorReady);', renderBudget],
     ['smoothed simulation delta', 'this.tick(this.manual ? 0 : delta);', 'this.tick(this.manual ? 0 : Number(arguments[1]));', clockChecks],
     ['uncapped hidden interval', 'Math.min(250, elapsed)', 'elapsed', clockChecks],
 ]) {

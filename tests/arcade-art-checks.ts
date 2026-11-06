@@ -149,7 +149,9 @@ export function ordinaryScenery(): void {
             const n=nearest(a,item);
             assert(n.distance>=(a.widths[n.index] ?? 28)/2+item.radius+4,'whole decoration outside road with clearance');
         }
-        const kinds=new Set(items.map(item=>item.kind));assert.equal(kinds.size,3);
+        // Three props per theme; the city adds David's works barrier, the technical cup has his direction signs in place
+        // of its two yellow chevrons (Z47).
+        const kinds=new Set(items.map(item=>item.kind));assert.equal(kinds.size,a.circuit.theme.urban ? 4 : sceneryTheme(a)===2 ? 2 : 3);
         themes.set(sceneryTheme(a),kinds);
     }
     assert.equal(ordinary,27);assert.equal(themes.size,8);

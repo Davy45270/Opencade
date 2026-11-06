@@ -288,6 +288,47 @@ fois toutes les textures arrivées. Vue de côté : 160 px de haut, réduction d
 sous 80 px à l'écran ; vue de dessus : 112 px (la couronne fait environ 115 px à l'écran). Les arbres dessinés ont leur propre réserve
 de 128 images, distincte de celle des emblèmes et des bonus.
 
+Trois décors du bord de route sont dessinés par David (Z47, décisions de David du 06/11), sans effet sur
+la course (pas de collision) :
+- **Barrière de chantier**, sur les 8 circuits de ville (urbains et quais) : elle prend la
+  place d'un décor régulier tous les 8 points de piste, d'un côté puis de l'autre, jamais celle
+  d'une caisse, et n'est pas posée si elle passerait par-dessus un autre décor vu de dessus
+  (8 à 11 par circuit) ; au bord du trottoir, parallèle à la section de route la plus proche. Ce
+  n'est pas le rail : le rail de ville et les murs invisibles ne changent pas. En 3D, la vue
+  suit l'angle entre le rayon de la caméra et l'axe de la barrière, comme pour les karts :
+  face quand on la regarde de travers (à moins de 22,5° de la perpendiculaire), profil dans
+  son axe (à moins de 22,5°), ¾ entre les deux ; la ¾ gauche et le profil gauche sont les
+  miroirs des vues droites (la source ¾ gauche, au faux damier, est écartée). Vue de dessus :
+  la vraie vue de dessus de la planche « 4 objets » du 06/11, tournée selon la route.
+- **Caisse sans « ? »**, sur les 4 circuits de quais, à la place de la caisse `cargo`
+  dessinée par le programme (mêmes emplacements) : sa face sans « ? » en 3D, tournée vers la
+  caméra ; vue de dessus, la face à plat, tournée selon la route (les planches de vues de
+  dessus n'ont pas de caisse). La capsule reste la boîte à bonus.
+- **Panneau directionnel**, sur la coupe technique, à la place des panneaux jaunes `turn` et
+  `arrow` (qui étaient posés tous les 4 points, des deux côtés, sans tenir compte des
+  virages) : un panneau par virage (4 à 6 par circuit), 15 unités en amont (puis 20, 10, 25
+  ou 30 si la place manque), à l'extérieur du virage, face aux karts qui arrivent. Un virage
+  commence là où le cap change de plus de 25° sur les 20 unités suivantes (il finit sous 12°).
+  Les flèches pointent vers le virage : le dessin pour la droite, son miroir pour la gauche.
+  Le panneau à deux flèches est gardé tel quel. En 3D : face vu de l'amont (à moins de 60°),
+  dos vu de l'aval, tranche entre les deux. Vue de dessus : la vue de dessus des planches,
+  perpendiculaire à la route (celle de la planche « 4 objets », bleue et jaune aux flèches
+  opposées, ne correspond pas à ce panneau et n'est pas reprise).
+
+Échelle (planche d'échelle proposée le 06/11) : en 3D, à même distance, la barrière mesure une
+hauteur de kart (3,68 unités × l'échelle de perspective), le panneau 1,6 et la caisse
+3 unités (la taille de la boîte à bonus) ; vu de dessus, chaque décor fait deux fois sa
+largeur en 3D, comme les karts. Chaque point de l'empreinte d'un décor (coins et milieux de la
+vue de dessus, et un cercle aussi large que sa plus large vue 3D) reste à 4 unités du bord de
+toute section de route et du raccourci (`DECOR_MARGIN`, au-delà du rail de ville à 3 unités).
+En 3D, roulant sur la ligne centrale des 12 circuits décorés, aucun décor ne cache le kart du
+joueur ni la route 12, 18 et 24 unités devant. Ces dessins arrivent dans leur propre module
+(`decor-atlas`, 16 WebP, 98 Ko : vues de côté de 96 à 160 px de haut, vues de dessus de 64 à
+160 px de large, miroirs compris) chargé à l'ouverture du jeu et gardé hors ligne ; d'ici là,
+les décors vectoriels restent affichés (la barrière a le sien), et la couche de route n'est
+recuite sans eux qu'une fois toutes les textures arrivées. Ils ont leur propre réserve de
+64 images.
+
 En vue 3D, le ciel est l'horizon dessiné par David pour la coupe (Z45) : urbaine = Paris,
 rapide = vallée printanière, technique = désert des dunes, ovales = galaxie étoilée,
 nature = forêt des Ardennes, quais = Évian, falaises = Bénodet-Loctudy, slalom et BMX =
