@@ -85,8 +85,8 @@ test('PP-ISO-05 the cat to rescue is David\'s kitten (calling, relieved when car
     expect(victimSprite(cat, -1)).toBe('chaton_appel');
     expect(victimSprite(cat, cat.id)).toBe('chaton_soulage');
     expect(victimSprite({ ...cat, saved: true }, -1)).toBe('chaton_heureux');
-    // The dog and the people keep their sprites.
-    expect(victimSprite(dog as typeof cat, -1)).toBe('chien'); expect(victimSprite(person as typeof cat, -1)).toBe('enfant');
+    // The dog keeps its sprite; the people are David's children (PP-ISO-06).
+    expect(victimSprite(dog as typeof cat, -1)).toBe('chien'); expect(victimSprite(person as typeof cat, -1)).toBe('enfant_emma_attente');
     for (const key of ['chaton_appel', 'chaton_soulage', 'chaton_heureux', 'barriere'] as const) {
         const s = SPRITES[key];
         expect(existsSync(`src/games/petits-pompiers/iso/${key}.webp`)).toBe(true);
@@ -102,4 +102,28 @@ test('PP-ISO-05 the cat to rescue is David\'s kitten (calling, relieved when car
     // The room is above the door: the wall runs along x, its visible face is the south-west one (the ¾ right view mirrored).
     expect(barrier?.flip).toBe(true);
     expect(plan.some(p => p.key === 'caisse' && p.at === doors[0])).toBe(false);
+});
+
+test('PP-ISO-06 the people to rescue are David\'s children: one per person, standing while they wait, a side walk cycle while they follow', async () => {
+    const { CHILDREN, childOf, childPose, victimSprite } = await import('../src/games/petits-pompiers/actors');
+    const { existsSync } = await import('node:fs');
+    // Every level casts its people among the children, and the levels together show all of them.
+    const seen = new Set<string>();
+    LEVELS.forEach((level, i) => {
+        const e = new Engine(); e.loadLevel(i);
+        const people = e.victims.filter(v => v.species === 'person'), cast = people.map(v => childOf(level.id, e.victims, v.id));
+        expect(new Set(cast).size).toBe(people.length);
+        for (const v of people) { seen.add(childOf(level.id, e.victims, v.id)); expect(victimSprite(v, -1, level.id, e.victims)).toBe(`enfant_${childOf(level.id, e.victims, v.id)}_attente`); }
+    });
+    expect([...seen].sort()).toEqual([...CHILDREN].sort());
+    // The walk is the drawn side view: west as drawn, east mirrored; eight frames looped by distance walked.
+    expect(childPose('noe', null, false)).toEqual({ key: 'enfant_noe_attente', flip: false });
+    expect(childPose('noe', 0, false)).toEqual({ key: 'enfant_noe_marche1', flip: false });
+    expect(childPose('noe', 9, true)).toEqual({ key: 'enfant_noe_marche2', flip: true });
+    for (const child of CHILDREN) for (const pose of ['attente', ...Array.from({ length: 8 }, (_, n) => `marche${String(n + 1)}`)]) {
+        const key = `enfant_${child}_${pose}` as keyof typeof SPRITES, s = SPRITES[key];
+        expect(s, key).toBeDefined(); expect(existsSync(`src/games/petits-pompiers/iso/${key}.webp`)).toBe(true);
+        // One common scale: a child is about 30 world units tall, smaller than a firefighter (≈ 37).
+        expect(s.h / 3).toBeGreaterThan(25); expect(s.h / 3).toBeLessThan(33); expect(s.oy).toBeGreaterThan(.9);
+    }
 });

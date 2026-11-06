@@ -7,6 +7,7 @@ export const pompiersEffects: SoundEffects = {
     extinguished: () => ({ frequency: 920, duration: .18, type: 'triangle' }),
     rescued: () => ({ frequency: 1040, duration: .23, type: 'sine' }),
     carried: () => ({ frequency: 560, duration: .12, type: 'triangle' }),
+    following: () => ({ frequency: 560, duration: .12, type: 'triangle' }),
     tool: () => ({ frequency: 440, duration: .07, type: 'triangle' }),
     'pickup-tool': () => ({ frequency: 660, duration: .1, type: 'triangle' }),
     break: () => ({ frequency: 180, duration: .1, type: 'triangle' }),

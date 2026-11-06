@@ -18,7 +18,7 @@ export interface Victim {
 export interface Fire { at: number; intensity: number; units: number; idle?: number }
 export type JobKind = 'spray' | 'foam' | 'refill' | 'pickup' | 'deposit' | 'heal' | 'break' | 'climb' | 'call';
 export interface Job { kind: JobKind; target: number; remaining: number; elapsed: number }
-export interface Event { type: JobKind | 'empty' | 'foam-empty' | 'extinguished' | 'spread' | 'hurt' | 'revealed' | 'rescued' | 'tool' | 'pickup-tool' | 'won' | 'lost' | 'ladder' | 'healed' | 'cleared' | 'climbed' | 'refilled' | 'carried'; at: number; value?: number }
+export interface Event { type: JobKind | 'empty' | 'foam-empty' | 'extinguished' | 'spread' | 'hurt' | 'revealed' | 'rescued' | 'tool' | 'pickup-tool' | 'won' | 'lost' | 'ladder' | 'healed' | 'cleared' | 'climbed' | 'refilled' | 'carried' | 'following'; at: number; value?: number }
 export interface Guide { type: ObjectiveKind | 'exit' | 'safe' | 'tool' | 'refill' | 'break' | 'ladder' | 'call'; at: number; tool?: Tool }
 export function tileCenter(at: number): { x: number; y: number } { return { x: (at % WIDTH + .5) * TILE, y: (Math.floor(at / WIDTH) + .5) * TILE }; }
 export function gridAt(x: number, y: number): number { return Math.floor(y / TILE) * WIDTH + Math.floor(x / TILE); }
@@ -80,8 +80,11 @@ export class Engine {
         }
         const hurt = this.victims.find(v => this.accessible(v) && v.injured && this.near(v.at));
         if (hurt && this.has('kit')) { this.start('heal', hurt.id, .8); return; }
-        const victim = this.victims.find(v => this.accessible(v) && !v.injured && this.near(v.at));
-        if (victim && this.player.carried < 0) { this.start('pickup', victim.id, this.character === 'singe' ? .15 : .6); return; }
+        // A person takes the firefighter's hand and follows (arbitrage 7-2430: the children walk, Inès rolls);
+        // an animal is carried, one at a time.
+        const followers = this.victims.filter(v => v.following).length;
+        const victim = this.victims.find(v => this.accessible(v) && !v.injured && this.near(v.at) && (v.kind === 'person' ? followers < FOLLOW_LIMIT : this.player.carried < 0));
+        if (victim) { this.start('pickup', victim.id, this.character === 'singe' ? .15 : .6); return; }
         const hydrant = this.tiles.findIndex((c, at) => c === 'R' && this.near(at));
         if (hydrant >= 0 && this.player.water < ABILITIES[this.character].water - .01) { this.start('refill', hydrant, 1.5); return; }
         const obstacle = this.tiles.findIndex((c, at) => 'XbB#'.includes(c) && this.near(at));
@@ -89,7 +92,7 @@ export class Engine {
             this.start('break', obstacle, this.character === 'dragon' ? .3 : this.tiles[obstacle] === '#' ? 2 : 1); return;
         }
         const upper = this.victims.find(v => v.upper && !v.saved && this.near(v.at + WIDTH));
-        if (upper && this.has('ladder') && this.player.carried < 0) {
+        if (upper && this.has('ladder') && this.victims.filter(v => v.following).length < FOLLOW_LIMIT) {
             if (!this.ladders.includes(upper.at)) { this.ladders.push(upper.at); this.emit('ladder', upper.at); }
             this.start('climb', upper.id, this.character === 'pandaroux' ? 1 : 2); return;
         }
@@ -115,10 +118,12 @@ export class Engine {
     private complete(job: Job): void {
         const victim = this.victims[job.target];
         if (job.kind === 'refill' && this.player.water > ABILITIES[this.character].water - .001) this.player.water = ABILITIES[this.character].water;
-        if (job.kind === 'pickup' && victim && !victim.injured && this.player.carried < 0) { this.player.carried = victim.id; this.emit('carried', victim.at, victim.id); }
+        if (job.kind === 'pickup' && victim && !victim.injured && victim.kind === 'person' && !victim.following) { victim.following = true; victim.waypoint = null; this.emit('following', victim.at, victim.id); }
+        if (job.kind === 'pickup' && victim && !victim.injured && victim.kind === 'animal' && this.player.carried < 0) { this.player.carried = victim.id; this.emit('carried', victim.at, victim.id); }
         if (job.kind === 'heal' && victim?.injured) { victim.injured = false; this.progress.heal++; this.emit('healed', victim.at, victim.id); }
         if (job.kind === 'break' && 'XbB#'.includes(this.tiles[job.target] ?? 'W')) { this.tiles[job.target] = 'H'; this.emit('cleared', job.target); }
-        if (job.kind === 'climb' && victim && this.player.carried < 0 && this.ladders.includes(victim.at)) { victim.upper = false; this.player.carried = victim.id; this.emit('climbed', victim.at, victim.id); }
+        // Down the ladder, the person stands at its foot and follows.
+        if (job.kind === 'climb' && victim?.upper && this.ladders.includes(victim.at)) { victim.upper = false; victim.at += WIDTH; Object.assign(victim, tileCenter(victim.at)); victim.following = true; victim.waypoint = null; this.emit('climbed', victim.at, victim.id); }
         if (job.kind === 'refill') this.emit('refilled', job.target);
         if (job.kind === 'call') this.reassure(4);
         if (job.kind === 'deposit') {

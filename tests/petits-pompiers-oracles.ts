@@ -17,6 +17,8 @@ export function createOracles(E: typeof Engine = Engine, V: typeof validateLevel
     function victim(e: Engine, at: number, properties: Partial<Victim> = {}): Victim {
         const v: Victim = { id: e.victims.length, at, ...tileCenter(at), kind: 'person', species: 'person', injured: false, hidden: false, upper: false, following: false, saved: false, waypoint: null, ...properties }; e.victims.push(v); return v;
     }
+    // Animals are carried; people take the firefighter's hand and follow (arbitrage 7-2430).
+    const ANIMAL: Partial<Victim> = { kind: 'animal', species: 'cat' };
     function press(e: Engine, intent: Partial<Intent> = {}, ms = FIXED): void {
         e.input({ ...IDLE }); e.step(FIXED); e.input({ ...IDLE, action: true, ...intent }); e.step(ms);
     }
@@ -66,10 +68,10 @@ export function createOracles(E: typeof Engine = Engine, V: typeof validateLevel
         }],
         ['PP-10 priorité dépôt secours soin borne obstacle et jet', () => {
             const e = room(); e.tiles[60] = 'S'; e.tiles[59] = 'R'; e.tiles[61] = 'X'; e.tools.push('axe', 'kit', 'foam'); e.selected = 3; e.charges = 6; e.player.water = 20;
-            const a = victim(e, 60), b = victim(e, 60, { injured: true }); e.player.carried = a.id;
+            const a = victim(e, 60, ANIMAL), b = victim(e, 60, { injured: true }); e.player.carried = a.id;
             press(e); equal(e.job?.kind, 'deposit'); e.step(700); check(a.saved);
             press(e); equal(e.job?.kind, 'heal'); e.step(900); check(!b.injured);
-            press(e); equal(e.job?.kind, 'pickup'); e.step(700); equal(e.player.carried, b.id);
+            press(e); equal(e.job?.kind, 'pickup'); e.step(700); equal(e.player.carried, -1); check(b.following);
             e.tiles[60] = 'H'; press(e); equal(e.job?.kind, 'refill'); e.step(1600);
             press(e); equal(e.job?.kind, 'break'); e.step(1100); e.selected = 0; press(e); equal(e.job?.kind, 'spray');
         }],
@@ -78,15 +80,19 @@ export function createOracles(E: typeof Engine = Engine, V: typeof validateLevel
             e.input({ ...IDLE }); e.step(FIXED); e.input({ ...IDLE, tool: true }); e.step(FIXED); equal(e.selected, 2);
             e.input({ ...IDLE, action: true }); e.step(2200); equal(e.job?.kind, 'spray'); check(e.player.water < 68); e.input({ ...IDLE }); e.step(1100); check(!e.job);
         }],
-        ['PP-12 un seul porté et dépôt compté une fois', () => {
-            const e = room(); const a = victim(e, 60), b = victim(e, 60); press(e, {}, 700); equal(e.player.carried, a.id);
+        ['PP-12 un seul animal porté, personnes qui suivent, dépôt compté une fois', () => {
+            const e = room(); const a = victim(e, 60, ANIMAL), b = victim(e, 60, ANIMAL); press(e, {}, 700); equal(e.player.carried, a.id);
             press(e, {}, 1100); equal(e.player.carried, a.id); check(!b.saved);
-            e.tiles[60] = 'S'; press(e, {}, 700); equal(e.player.carried, -1); equal(e.progress.rescue_person, 1);
-            e.victims = [a]; press(e, {}, 700); equal(e.progress.rescue_person, 1);
+            e.tiles[60] = 'S'; press(e, {}, 700); equal(e.player.carried, -1); equal(e.progress.rescue_animal, 1);
+            e.victims = [a]; press(e, {}, 700); equal(e.progress.rescue_animal, 1);
+            // A person is never carried: she takes the hand and follows, even while an animal is in the arms.
+            const f = room(); const cat = victim(f, 60, ANIMAL), child = victim(f, 60); press(f, {}, 700); equal(f.player.carried, cat.id);
+            press(f, {}, 700); equal(f.player.carried, cat.id); check(child.following && !child.saved);
+            f.tiles[60] = 'S'; press(f, {}, 700); check(cat.saved && child.saved); equal(f.progress, { extinguish: 0, rescue_person: 1, rescue_animal: 1, heal: 0 });
         }],
         ['PP-13 blessure exige un soin avant évacuation', () => {
             const e = room(); const v = victim(e, 60, { injured: true }); press(e); check(e.job?.kind !== 'pickup'); e.step(1100); equal(e.player.carried, -1); check(v.injured);
-            e.tools.push('kit'); press(e); equal(e.job?.kind, 'heal'); e.step(900); equal(e.progress.heal, 1); press(e, {}, 700); equal(e.player.carried, v.id);
+            e.tools.push('kit'); press(e); equal(e.job?.kind, 'heal'); e.step(900); equal(e.progress.heal, 1); press(e, {}, 700); equal(e.player.carried, -1); check(v.following);
         }],
         ['PP-14 ouvrages cassables et jamais mur', () => {
             for (const tile of ['X', 'b', 'B', '#', 'W']) { const e = room(); e.tools.push('axe'); e.tiles[61] = tile; press(e, {}, 2200); equal(e.tiles[61], tile === 'W' ? 'W' : 'H'); }
@@ -94,7 +100,7 @@ export function createOracles(E: typeof Engine = Engine, V: typeof validateLevel
         }],
         ['PP-15 fenêtre exige échelle au pied et montée', () => {
             const e = room(); const v = victim(e, 46, { upper: true }); e.tiles[46] = 'U'; press(e, {}, 2100); equal(e.player.carried, -1); check(v.upper);
-            e.tools.push('ladder'); press(e); equal(e.job?.kind, 'climb'); check(e.ladders.includes(46)); e.step(1000); equal(e.player.carried, -1); e.step(1100); equal(e.player.carried, v.id);
+            e.tools.push('ladder'); press(e); equal(e.job?.kind, 'climb'); check(e.ladders.includes(46)); e.step(1000); check(v.upper); e.step(1100); equal(e.player.carried, -1); check(v.following); equal([v.upper, v.at], [false, 60]);
         }],
         ['PP-16 mégaphone révèle, rassure et respecte chemin et limite', () => {
             const e = room(); e.tools.push('megaphone'); const v = victim(e, 63, { hidden: true }); press(e, {}, 500); check(!v.hidden && v.following);
@@ -121,7 +127,7 @@ export function createOracles(E: typeof Engine = Engine, V: typeof validateLevel
         }],
         ['PP-21 CaliRoux vitesse et montée double distinctives', () => {
             const moved = ids.map(id => { const e = room(id); e.input({ ...IDLE, dx: 1 }); e.step(500); return e.player.x; }); check(required(moved[1]) > Math.max(...moved.filter((_, i) => i !== 1)));
-            const durations = ids.map(id => { const e = room(id); if (!e.has('ladder')) e.tools.push('ladder'); victim(e, 46, { upper: true }); press(e); let ticks = 1; while (e.player.carried < 0 && ticks < 200) { e.step(FIXED); ticks++; } return ticks; });
+            const durations = ids.map(id => { const e = room(id); if (!e.has('ladder')) e.tools.push('ladder'); const v = victim(e, 46, { upper: true }); press(e); let ticks = 1; while (!v.following && ticks < 200) { e.step(FIXED); ticks++; } return ticks; });
             equal(durations, [120, 60, 120, 120, 120]);
         }],
         ['PP-22 Pestouille déblaiement sans hache et plus rapide', () => {
@@ -129,9 +135,9 @@ export function createOracles(E: typeof Engine = Engine, V: typeof validateLevel
             for (const id of ids) { const e = room(id); if (!e.has('axe')) e.tools.push('axe'); e.tiles[61] = '#'; press(e, {}, 400); equal(e.tiles[61] === 'H', id === 'dragon'); }
         }],
         ['PP-23 Tutu gestes rapides et port sans ralentissement', () => {
-            for (const id of ids) { const e = room(id); victim(e, 60); press(e, {}, 250); equal(e.player.carried >= 0, id === 'singe');
-                e.step(700); e.tiles[60] = 'S'; press(e, {}, 250); equal(e.progress.rescue_person > 0, id === 'singe');
-                const a = room(id), b = room(id); victim(a, 60); a.player.carried = 0; for (const r of [a, b]) { r.input({ ...IDLE, dx: 1 }); r.step(500); }
+            for (const id of ids) { const e = room(id); victim(e, 60, ANIMAL); press(e, {}, 250); equal(e.player.carried >= 0, id === 'singe');
+                e.step(700); e.tiles[60] = 'S'; press(e, {}, 250); equal(e.progress.rescue_animal > 0, id === 'singe');
+                const a = room(id), b = room(id); victim(a, 60, ANIMAL); a.player.carried = 0; for (const r of [a, b]) { r.input({ ...IDLE, dx: 1 }); r.step(500); }
                 equal(Math.abs(a.player.x - b.player.x) < .001, id === 'singe'); }
         }],
         ['PP-24 Lumi halo révèle et rassure sans outil', () => {
@@ -177,9 +183,9 @@ export function createOracles(E: typeof Engine = Engine, V: typeof validateLevel
                 if (kind === 'deposit') { e.tiles[46] = 'S'; e.player.carried = v.id; }
                 press(e); check(e.job?.kind !== kind, kind);
             }
-            const e = room(); Object.assign(e.player, tileCenter(59)); victim(e, 46); e.tiles[32] = e.tiles[45] = e.tiles[47] = 'W'; e.tiles[60] = 'X';
-            press(e, {}, 700); equal(e.player.carried, -1);
-            e.tiles[60] = 'H'; e.job = null; Object.assign(e.player, tileCenter(60)); press(e, {}, 700); equal(e.player.carried, 0);
+            const e = room(); Object.assign(e.player, tileCenter(59)); const w = victim(e, 46); e.tiles[32] = e.tiles[45] = e.tiles[47] = 'W'; e.tiles[60] = 'X';
+            press(e, {}, 700); check(!w.following);
+            e.tiles[60] = 'H'; e.job = null; Object.assign(e.player, tileCenter(60)); press(e, {}, 700); check(w.following); equal(e.player.carried, -1);
         }],
         ['PP-32 paramètres finis et domaines stricts', () => {
             for (const [key, value] of [['intensity', 0], ['intensity', -1], ['intensity', 1.5], ['intensity', NaN], ['maxIntensity', 0], ['maxIntensity', 4], ['maxIntensity', 2.5], ['seconds', NaN], ['seconds', 0], ['seconds', -1], ['seconds', Infinity], ['baseExtinguishUnits', NaN], ['baseExtinguishUnits', 0], ['baseExtinguishUnits', -1], ['spreadIntervalSeconds', -1], ['spreadIntervalSeconds', NaN], ['spreadIntervalSeconds', Infinity]] as const) {
@@ -243,8 +249,8 @@ export function createOracles(E: typeof Engine = Engine, V: typeof validateLevel
         }],
         ['PP-39 maintenir jet et mousse sans répéter les secours', () => {
             const e = room(); e.input({ ...IDLE, action: true }); e.step(2500); check(e.player.water < 61); equal(e.job?.kind, 'spray');
-            const f = room(); f.tools.push('foam'); f.selected = 1; f.charges = 6; f.input({ ...IDLE, action: true }); f.step(2000); equal(f.charges, 3); victim(f, 60); f.step(1000); equal(f.player.carried, -1); check(f.job?.kind !== 'pickup');
-            const p = room(); victim(p, 60); victim(p, 60); p.tiles[60] = 'S'; p.input({ ...IDLE, action: true }); p.step(2500); equal(p.player.carried, 0); equal(p.progress.rescue_person, 0);
+            const f = room(); f.tools.push('foam'); f.selected = 1; f.charges = 6; f.input({ ...IDLE, action: true }); f.step(2000); equal(f.charges, 3); const g = victim(f, 60); f.step(1000); check(!g.following); check(f.job?.kind !== 'pickup');
+            const p = room(); victim(p, 60); victim(p, 60); p.tiles[60] = 'S'; p.input({ ...IDLE, action: true }); p.step(2500); check(p.victims[0]?.following); check(!p.victims[1]?.following); equal(p.progress.rescue_person, 0);
             const guide = room(); guide.level.id = 'arbitrary'; guide.pickups.push({ at: 70, tool: 'foam' }); equal(guide.nextObjective(), { type: 'tool', at: 70, tool: 'foam' });
         }],
         ['PP-40 étoiles exactes sur parties construites', () => {

@@ -5249,9 +5249,12 @@ rencontrés se ramassent au passage. Le choix d'outil reste mémorisé, mais ne
 masque jamais un secours pertinent. Hors contexte, un outil de secours revient
 au tuyau ; l'extincteur sélectionné conserve ses charges et sa recharge propres.
 
-Un seul porté ; vitesse × 0,72, sauf Tutu. File de quatre personnes rassurées
-au maximum, suivant un vrai chemin et déposées près de la zone sûre. Animaux
-portés ; victimes blessées soignées avant port. Échelle obligatoire, posée au
+Les personnes ne sont jamais portées (arbitrage de David du 2026-11-06, 7-2430) :
+au contact, l'appui leur prend la main et elles suivent le pompier, comme après
+le mégaphone ou le halo ; une blessée suit une fois soignée, une personne à la
+fenêtre suit depuis le pied de l'échelle. Seuls les animaux sont portés, un à la
+fois ; vitesse × 0,72, sauf Tutu. File de quatre personnes au maximum, suivant
+un vrai chemin et déposées près de la zone sûre. Échelle obligatoire, posée au
 pied extérieur accessible (herbe, route ou neige au-dessous de la fenêtre
 en façade), puis montée chronométrée. La hache casse
 caisses, planches, portes bloquées et gravats, jamais les murs ; les portes
@@ -5263,7 +5266,7 @@ Tutu 125/85 + trousse, Lumi 105/100 + mégaphone. Tous ont le tuyau.
 Boubou porte à 4 cases au lieu de 3, utilise 100 % de l'eau au lieu de 90 %.
 CaliRoux monte en 1 s au lieu de 2. Pestouille déblaie en 0,3 s au lieu de
 1 s (2 s pour les gravats), et caisses/gravats même sans hache. Tutu ramasse
-et dépose en 0,15 s au lieu de 0,6. Le halo de signalisation de Lumi révèle
+(ou prend la main) et dépose en 0,15 s au lieu de 0,6. Le halo de signalisation de Lumi révèle
 et rassure sans outil à 3 cases ; le mégaphone porte à 4. Aucun pouvoir de feu.
 
 Le tuyau consomme 24 unités/s, chaque unité d'intensité coûte 12 unités utiles.
@@ -5313,7 +5316,7 @@ Vitest ou Playwright n'est nécessaire à ces preuves.
 | Borne et capacité maximale | PP-09 |
 | Priorité contextuelle, même si l'extincteur est sélectionné | PP-10 |
 | Fronts montants contextuels et outil, maintien du jet | PP-11 |
-| Un seul porté, dépôt compté une seule fois | PP-12 |
+| Un seul animal porté, personnes qui suivent (même bras pris), dépôt compté une seule fois | PP-12 |
 | Blessure non évacuable avant soin | PP-13 |
 | Hache sur ouvrages seulement, mur intact | PP-14 |
 | Échelle au pied et durée de montée | PP-15 |
@@ -5364,25 +5367,25 @@ PP-41 recalcule cette formule à chaque rejeu, sans marge de tolérance cachée.
 
 | N° | Thème | Nouveauté / combinaison | Boubou | CaliRoux | Pestouille | Tutu | Lumi | Délai défi |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | Quartier | Maison, habitant et chat | 10.78 / 10.78 | 8.92 / 8.92 | 10.17 / 10.17 | 7.00 / 7.00 | 9.50 / 9.50 | 60 s |
-| 2 | Quartier | Propagation lente | 16.75 / 16.75 | 13.30 / 13.30 | 15.53 / 15.53 | 11.08 / 11.08 | 13.97 / 14.10 | 60 s |
-| 3 | Quartier | Fumée | 15.48 / 15.48 | 12.38 / 12.38 | 14.40 / 14.40 | 10.12 / 10.12 | 18.40 / 24.72 | 80 s |
-| 4 | Centre-ville | Caisse et hache | 19.93 / 19.93 | 15.93 / 15.93 | 15.52 / 15.52 | 14.12 / 14.12 | 17.75 / 17.75 | 60 s |
-| 5 | Centre-ville | Fenêtre en façade, échelle | 15.18 / 15.18 | 11.10 / 11.78 | 14.83 / 14.83 | 11.55 / 11.55 | 15.30 / 15.30 | 60 s |
-| 6 | Centre-ville | Soin et trousse | 13.62 / 13.62 | 11.17 / 11.17 | 12.75 / 12.75 | 8.13 / 8.13 | 12.60 / 12.60 | 60 s |
-| 7 | Forêt | Extincteur | 38.82 / 39.32 | 29.87 / 29.87 | 35.73 / 36.28 | 26.75 / 27.30 | 35.28 / 35.83 | 120 s |
+| 1 | Quartier | Maison, habitant et chat | 10.55 / 10.55 | 10.27 / 10.27 | 9.95 / 9.95 | 8.50 / 8.50 | 9.50 / 9.50 | 60 s |
+| 2 | Quartier | Propagation lente | 17.02 / 17.02 | 13.75 / 13.75 | 15.90 / 15.90 | 12.08 / 12.08 | 13.97 / 14.10 | 60 s |
+| 3 | Quartier | Fumée | 15.02 / 15.02 | 13.28 / 13.28 | 14.07 / 14.07 | 11.12 / 11.12 | 18.40 / 24.72 | 80 s |
+| 4 | Centre-ville | Caisse et hache | 20.25 / 20.25 | 16.38 / 16.38 | 15.90 / 15.90 | 15.12 / 15.12 | 17.75 / 17.75 | 70 s |
+| 5 | Centre-ville | Fenêtre en façade, échelle | 14.33 / 14.33 | 11.57 / 12.25 | 15.08 / 15.08 | 12.55 / 12.55 | 15.47 / 15.47 | 60 s |
+| 6 | Centre-ville | Soin et trousse | 13.63 / 13.63 | 11.43 / 11.43 | 12.88 / 12.88 | 9.13 / 9.13 | 12.60 / 12.60 | 60 s |
+| 7 | Forêt | Extincteur | 38.18 / 38.68 | 30.42 / 30.42 | 36.15 / 36.70 | 27.75 / 28.30 | 35.28 / 35.83 | 120 s |
 | 8 | Forêt | Appel, personnes cachées | 12.85 / 13.35 | 11.95 / 11.95 | 12.65 / 13.20 | 11.17 / 11.17 | 7.70 / 8.25 | 60 s |
 | 9 | Forêt | Combinaison en forêt | 28.85 / 29.35 | 24.00 / 24.00 | 27.57 / 28.12 | 22.80 / 23.23 | 20.35 / 32.43 | 100 s |
-| 10 | Montagne | Neige | 39.37 / 42.78 | 31.07 / 42.13 | 36.97 / 39.42 | 28.42 / 38.82 | 42.08 / 51.18 | 160 s |
-| 11 | Montagne | Gravats | 34.63 / 34.63 | 34.65 / 36.08 | 23.23 / 23.23 | 25.78 / 25.78 | 32.22 / 32.22 | 110 s |
-| 12 | Montagne | Deux chalets | 28.47 / 28.97 | 26.33 / 26.63 | 26.93 / 26.93 | 20.37 / 20.37 | 33.10 / 47.93 | 150 s |
-| 13 | Port | Eau, quai et caisses | 16.62 / 16.62 | 20.27 / 26.27 | 15.95 / 15.95 | 12.45 / 12.45 | 26.00 / 28.83 | 90 s |
+| 10 | Montagne | Neige | 37.25 / 40.73 | 30.48 / 41.58 | 36.05 / 37.50 | 29.42 / 39.82 | 42.08 / 51.18 | 160 s |
+| 11 | Montagne | Gravats | 32.88 / 32.88 | 35.35 / 36.12 | 22.22 / 22.22 | 26.57 / 26.57 | 32.22 / 32.22 | 110 s |
+| 12 | Montagne | Deux chalets | 26.75 / 27.25 | 26.08 / 26.38 | 26.03 / 26.03 | 21.12 / 21.12 | 32.83 / 47.68 | 150 s |
+| 13 | Port | Eau, quai et caisses | 16.13 / 16.13 | 20.93 / 35.05 | 16.12 / 16.12 | 12.67 / 12.67 | 26.00 / 28.83 | 110 s |
 | 14 | Port | Borne éloignée | 14.52 / 14.52 | 19.53 / 21.17 | 14.52 / 14.52 | 11.72 / 11.72 | 12.45 / 15.65 | 70 s |
-| 15 | Port | Sauvetage combiné | 32.80 / 34.25 | 32.80 / 74.63 | 39.60 / 50.35 | 30.35 / 31.98 | 31.05 / 62.75 | 230 s |
+| 15 | Port | Sauvetage combiné | 32.42 / 33.87 | 33.95 / 75.78 | 40.32 / 51.07 | 31.35 / 32.98 | 30.92 / 62.63 | 230 s |
 
-Le tutoriel détente dure au maximum **10.78 s**, sous les 90 s exigées.
-Les cinq premiers niveaux durent en moyenne **13.70 s**, les cinq derniers
-**27.02 s** (rapport **1.97**). Le dernier dépasse le double du premier
+Le tutoriel détente dure au maximum **10.55 s**, sous les 90 s exigées.
+Les cinq premiers niveaux durent en moyenne **14.05 s**, les cinq derniers
+**27.14 s** (rapport **1.93**). Le dernier dépasse le double du premier
 pour chacune des cinq mascottes dans chaque mode. Les introductions créent des
 respirations ; cette progression mesurée du pilote n'est pas une estimation
 de la durée d'un enfant.

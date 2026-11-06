@@ -9,13 +9,34 @@ import { waterEnd, type View } from './view';
 type G = Phaser.GameObjects.Graphics;
 type Image = Phaser.GameObjects.Image;
 const FIRE: Record<number, SpriteKey> = { 1: 'feu_petit', 2: 'feu_moyen', 3: 'feu_grand' };
-const SPECIES: Record<string, SpriteKey> = { person: 'enfant', dog: 'chien' };
-/** Sprite of a victim. David's kitten changes with the rescue: it calls for help while it waits,
- *  is relieved in the firefighter's arms and happy once saved. The dog and the people keep one sprite. */
-export function victimSprite(v: Pick<Victim, 'id' | 'species' | 'saved'>, carried: number): SpriteKey {
-    if (v.species === 'cat') return v.saved ? 'chaton_heureux' : v.id === carried ? 'chaton_soulage' : 'chaton_appel';
-    return SPECIES[v.species] ?? 'enfant';
+const SPECIES: Record<string, SpriteKey> = { dog: 'chien' };
+/** David's children, cast as the people to rescue. Nobody carries them: they take the firefighter's
+ *  hand and walk behind him, Inès rolling in her wheelchair (arbitrage 7-2430). */
+export const CHILDREN = ['emma', 'noe', 'ines', 'chloe', 'lucas'] as const;
+export type Child = typeof CHILDREN[number];
+/** The child playing person victim `id`: one per person in a level, the cast shifting from level to level. */
+export function childOf(levelId: string, victims: readonly Pick<Victim, 'id' | 'species'>[], id: number): Child {
+    const rank = victims.filter(v => v.species === 'person' && v.id < id).length, level = Number(levelId.replace(/\D/g, '')) || 0;
+    return CHILDREN[(level + rank) % CHILDREN.length] ?? 'emma';
 }
+/** A child's sprite: standing and facing us while it waits (`step` null), otherwise frame
+ *  `step` of the side walk cycle. The grid runs at 26.6° on screen, so the side view is always the nearest:
+ *  drawn facing west, mirrored for east. */
+export function childPose(child: Child, step: number | null, east: boolean): { key: SpriteKey; flip: boolean } {
+    if (step === null) return { key: `enfant_${child}_attente`, flip: false };
+    return { key: `enfant_${child}_marche${String((Math.floor(step) % 8 + 8) % 8 + 1)}` as SpriteKey, flip: east };
+}
+/** Sprite of a victim. David's kitten changes with the rescue: it calls for help while it waits,
+ *  is relieved in the firefighter's arms and happy once saved. The dog keeps one sprite; a person is a child, standing. */
+export function victimSprite(v: Pick<Victim, 'id' | 'species' | 'saved'>, carried: number, levelId = '', victims: readonly Pick<Victim, 'id' | 'species'>[] = [v]): SpriteKey {
+    if (v.species === 'cat') return v.saved ? 'chaton_heureux' : v.id === carried ? 'chaton_soulage' : 'chaton_appel';
+    if (v.species === 'person') return childPose(childOf(levelId, victims, v.id), null, false).key;
+    return SPECIES[v.species] ?? 'chien';
+}
+/** World units walked per frame of a child's walk cycle (eight frames make two strides). */
+const STRIDE = 5;
+/** A child keeps walking this long (ms of game time) after its last move, so frames between engine steps do not flicker. */
+const WALK_HOLD = 160;
 const TOOL: Partial<Record<string, SpriteKey>> = { hose: 'outil_lance', foam: 'outil_lance', kit: 'outil_trousse' };
 /** Upper windows hold their victim this high above the ground (iso units). */
 export const UPPER = 30;
@@ -37,6 +58,9 @@ const depthAt = (p: { x: number; y: number }, bias = 0): number => { const g = u
 export class ActorLayer {
     private pool: Image[] = [];
     private used = 0;
+    /** Per victim, renderer only: last drawn point, distance walked, facing, and when it last moved. */
+    private trail = new Map<number, { x: number; y: number; walked: number; east: boolean; moved: number }>();
+    private trailOf: unknown;
     constructor(private scene: Phaser.Scene) {}
     private sprite(key: SpriteKey, view: View, at: { x: number; y: number }, depth: number, scale = 1, alpha = 1, flip = false): void {
         if (!this.scene.textures.exists(spriteKey(key))) return;
@@ -56,10 +80,19 @@ export class ActorLayer {
             if (e.level.smoke) this.sprite('fumee', view, { x: p.x + 4, y: p.y - 26 }, d + .2, 1, .72);
             this.sprite(FIRE[Math.min(3, Math.max(1, f.intensity))] ?? 'feu_petit', view, p, d, sway);
         }
+        if (this.trailOf !== e.level) { this.trail.clear(); this.trailOf = e.level; }
         for (const v of e.victims) if ((!v.saved || v.species === 'cat') && v.id !== e.player.carried && !v.hidden) {
             // A saved kitten sits on the safe spot's cross, happy, rather than under the firefighter who set it down.
-            const safe = e.tiles.indexOf('S'), p = v.saved && safe >= 0 ? { x: cell(safe).x - 4, y: cell(safe).y - 2 } : point(v.x, v.y), key = victimSprite(v, e.player.carried);
-            this.sprite(key, view, { x: p.x, y: p.y - (v.upper ? UPPER : 0) }, depthAt(p, v.upper ? 2.5 : 1));
+            const safe = e.tiles.indexOf('S'), p = v.saved && safe >= 0 ? { x: cell(safe).x - 4, y: cell(safe).y - 2 } : point(v.x, v.y);
+            let key = victimSprite(v, e.player.carried, e.level.id, e.victims), flip = false;
+            if (v.species === 'person') {
+                // A following child walks: the frame comes from the distance it covered, the facing from its screen motion.
+                const t = this.trail.get(v.id) ?? { x: p.x, y: p.y, walked: 0, east: false, moved: -Infinity }, dx = p.x - t.x, d = Math.hypot(dx, p.y - t.y);
+                if (d > .01) { t.walked += d; t.moved = e.time; if (Math.abs(dx) > .01) t.east = dx > 0; }
+                t.x = p.x; t.y = p.y; this.trail.set(v.id, t);
+                if (e.time - t.moved < WALK_HOLD) ({ key, flip } = childPose(childOf(e.level.id, e.victims, v.id), reduced ? 0 : t.walked / STRIDE, t.east));
+            }
+            this.sprite(key, view, { x: p.x, y: p.y - (v.upper ? UPPER : 0) }, depthAt(p, v.upper ? 2.5 : 1), 1, 1, flip);
         }
         for (const p of e.pickups) {
             const at = cell(p.at), key = TOOL[p.tool];
@@ -98,7 +131,7 @@ export class ActorLayer {
             const sx = Math.sign(p.dx - p.dy), sy = Math.sign(p.dx + p.dy);
             firefighter(player, e.character, x, y, 48, time, sx, sy, moving, false, p.immune > 0);
         }
-        if (p.carried >= 0) { const v = e.victims[p.carried]; if (v) { if (this.scene.textures.exists(spriteKey(victimSprite(v, p.carried)))) this.sprite(victimSprite(v, p.carried), view, { x: x + 15, y: y - 20 }, depthAt(at, 1.3), .8); else victim(player, x + 16, y - 25, v.species, 21); } }
+        if (p.carried >= 0) { const v = e.victims[p.carried], key = v && victimSprite(v, p.carried, e.level.id, e.victims); if (v && key) { if (this.scene.textures.exists(spriteKey(key))) this.sprite(key, view, { x: x + 15, y: y - 20 }, depthAt(at, 1.3), .8); else victim(player, x + 16, y - 25, v.species, 21); } }
         if (e.job?.kind === 'spray' || e.job?.kind === 'foam') {
             const end = waterEnd(e), d = direction(p.dx, p.dy), start = { x: x + d.x * 12, y: y - 8 + d.y * 12 };
             front.lineStyle(7, 0xe9543e); front.lineBetween(x, y - 10, start.x, start.y);

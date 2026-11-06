@@ -186,7 +186,7 @@ const maps = [
 ] as const;
 const novelties = ['premiers secours', 'propagation', 'fumée', 'porte bloquée et hache', 'fenêtre et échelle', 'soin et trousse', 'extincteur', 'appel et personnes cachées', 'combinaison en forêt', 'neige', 'gravats', 'deux bâtiments', 'eau et quai', 'borne éloignée', 'sauvetage combiné'];
 // Triple of the slowest recorded challenge pilot, rounded up to 10 s, minimum 60 s.
-export const CHALLENGE_SECONDS = [60, 60, 80, 60, 60, 60, 120, 60, 100, 160, 110, 150, 90, 70, 230];
+export const CHALLENGE_SECONDS = [60, 60, 80, 70, 60, 60, 120, 60, 100, 160, 110, 150, 110, 70, 230];
 export const LEVELS: readonly Level[] = maps.map((map, i) => {
     const cells = map.join('');
     const count = (symbols: string) => Array.from(cells).filter(c => symbols.includes(c)).length;

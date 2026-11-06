@@ -41,10 +41,12 @@ Priorité exacte d'un appui :
 
 1. Déposer près de la zone sûre si une victime portée ou un suiveur est présent.
 2. Soigner une victime accessible blessée si la trousse est possédée.
-3. Porter une victime accessible, visible et soignée si les bras sont libres.
+3. Prendre par la main une personne accessible, visible et soignée (elle suit,
+   dans la limite de la file), ou porter un animal accessible si les bras sont libres.
 4. Remplir près d'une borne si la réserve n'est pas pleine.
 5. Déblayer un ouvrage adjacent si l'outil ou la capacité le permet.
-6. Poser l'échelle et monter auprès du pied d'une fenêtre si les bras sont libres.
+6. Poser l'échelle et monter auprès du pied d'une fenêtre si la file n'est pas pleine ;
+   descendue, la personne suit depuis le pied de l'échelle.
 7. Appeler une personne cachée ou pouvant rejoindre le joueur avec le mégaphone.
 8. Utiliser l'extincteur s'il est sélectionné ; sinon lancer un jet de tuyau.
 
@@ -61,8 +63,15 @@ En vue isométrique, `B` est la barrière dessinée par David (vue ¾ droite, en
 quand le mur court selon x), posée dans l'embrasure le long du mur ; le niveau 4
 (« porte bloquée et hache ») en a une. Le chat à secourir (`C`) est son chaton :
 « appel à l'aide » pendant l'attente, « soulagé » dans les bras du pompier, « heureux »
-une fois sauvé, assis près du point de secours. Le chien et les personnes gardent
-leur sprite ; le dessin vectoriel reste le repli tant que les sprites ne sont pas chargés.
+une fois sauvé, assis près du point de secours. Les personnes (`V`, `I`, `?`, `U`) sont
+les enfants de David, Emma, Noé, Inès, Chloé et Lucas : un enfant par personne du niveau,
+la distribution tournant d'un niveau à l'autre (`childOf`). L'enfant est debout, de face,
+quand il attend ; quand il suit le pompier, il marche de profil, Inès roule (8 images
+bouclées selon la distance parcourue, vue gauche telle que dessinée, miroir pour la droite :
+la grille avance à 26,6° à l'écran, le profil est toujours la vue la plus proche). Le
+mouvement est lu par le rendu seul, d'une image à l'autre. Le compteur des personnes montre le premier enfant du
+niveau. Le chien garde son sprite ; le dessin vectoriel reste le repli tant que les sprites ne
+sont pas chargés.
 Pestouille peut déblayer caisses et gravats même sans hache ; ses autres travaux
 cassables utilisent sa hache de départ. Chaque outil rencontré au sol est
 ramassé automatiquement en entrant dans sa tuile. La touche outil parcourt
@@ -79,14 +88,15 @@ borne rend 80 unités/s sans dépasser la capacité.
 
 Vitesses/réserves : Boubou 100/120, CaliRoux 135/80, Pestouille 110/95,
 Tutu 125/85, Lumi 105/100. Tous commencent avec le tuyau ; respectivement
-aucun supplément, échelle, hache, trousse, mégaphone. Porter multiplie la vitesse
+aucun supplément, échelle, hache, trousse, mégaphone. Porter un animal multiplie la vitesse
 par 0,72 sauf pour Tutu ; neige × 0,7, fumée × 0,65, effets cumulables.
 Le halo de signalisation de Lumi révèle et rassure à 3 tuiles ; le mégaphone
-à 4 tuiles. Seules les personnes valides et à hauteur du sol suivent ; animaux
-et victimes blessées se portent après soin. La file est limitée à 4 personnes,
+à 4 tuiles. Seules les personnes valides et à hauteur du sol suivent ; une blessée
+suit après soin. Aucune personne n'est portée (arbitrage 7-2430) ; seuls les animaux
+le sont. La file est limitée à 4 personnes,
 ordonnées par identifiant, avec un chemin recalculé et une vitesse de 92.
 Une personne peut être révélée derrière un obstacle sans pouvoir le traverser.
-Le dépôt compte chaque sauvetage une seule fois ; le port est limité à une victime.
+Le dépôt compte chaque sauvetage une seule fois ; le port est limité à un animal.
 
 Les foyers se propagent sur un voisin cardinal inflammable libre, choisi avec
 `Random(seed)` à chaque intervalle du niveau. Une nouvelle flamme commence à
@@ -124,7 +134,7 @@ identifiant de victime ou un indice d'outil. Les types d'événements sont :
 
 - Départ d'action : `spray`, `foam`, `refill`, `pickup`, `deposit`, `heal`,
   `break`, `climb`, `call` ; synchroniser les animations avec `job`.
-- Résultats : `carried`, `healed`, `cleared`, `climbed`, `refilled`, `rescued`,
+- Résultats : `carried` (animal), `following` (personne prise par la main), `healed`, `cleared`, `climbed`, `refilled`, `rescued`,
   `extinguished`, `revealed`, `ladder`, `pickup-tool`, `tool`, `spread`.
 - Retours : `empty`, `foam-empty`, `hurt`, `won`, `lost`.
 
