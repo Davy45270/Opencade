@@ -158,3 +158,11 @@ test('PP-ISO-08 the tools on the ground and the hydrant are David\'s drawings; o
         expect(Math.max(s.w, s.h) / 3).toBeLessThan(key === 'borne' ? 28 : 23); expect(s.oy).toBeGreaterThan(.9);
     }
 });
+
+test('PP-ISO-09 the exit is David\'s fire engine, seen three-quarter front left like the scene', async () => {
+    const { existsSync } = await import('node:fs');
+    const s = SPRITES.camion;
+    expect(existsSync('src/games/petits-pompiers/iso/camion.webp')).toBe(true);
+    // His long engine (ladder on the roof) is much wider than tall, and as wide as the old truck: about 58 world units.
+    expect(s.w / s.h).toBeGreaterThan(1.5); expect(s.w / 3).toBeGreaterThan(50); expect(s.w / 3).toBeLessThan(64); expect(s.oy).toBeGreaterThan(.9);
+});

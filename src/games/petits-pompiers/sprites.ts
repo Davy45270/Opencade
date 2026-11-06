@@ -23,7 +23,7 @@ export const SPRITES = {
     cabane: { w: 237, h: 215, ox: 0.4652, oy: 0.9938 },
     chalet: { w: 254, h: 234, ox: 0.5009, oy: 0.9937 },
     hangar_port: { w: 292, h: 228, ox: 0.4415, oy: 0.9947 },
-    camion: { w: 174, h: 144, ox: 0.5007, oy: 0.96 },
+    camion: { w: 174, h: 102, ox: 0.5, oy: 0.97 },
     gravats: { w: 113, h: 63, ox: 0.4978, oy: 0.9445 },
     borne: { w: 48, h: 76, ox: 0.5, oy: 1 },
     point_secours: { w: 117, h: 86, ox: 0.5, oy: 0.9951 },
