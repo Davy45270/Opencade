@@ -1,10 +1,25 @@
 import { createDemo } from '../../engines/caisses/demo';
 import { doorOpen } from '../../engines/caisses/rules';
 import { backdrop, crate, worldOf } from '../universal/art';
-import { boxPaint, cellMarks, workshopLayout, workshopScenery } from './art';
-import { bakeArt, castSprite, thumbnailHero } from '../thumbnail-art';
+import { DRAWN_CRATE, boxPaint, cellMarks, crateTone, paintCrate, workshopLayout, workshopScenery } from './art';
+import { bake, bakeArt, canvasGraphics, castSprite, thumbnailHero } from '../thumbnail-art';
 import type { Thumbnail } from '../thumbnail';
 export { createDemo };
+/** David's crate from above for the catalogue card too (06/11): its own small chunk, asked for once in a browser,
+ *  the vector crate until the image is decoded. */
+let crateImage: CanvasImageSource | null = null, crateAsked = false;
+/** Installs the crate image (the loader below, or a test). */
+export function useThumbnailCrate(image: CanvasImageSource | null): void { crateImage = image; crateAsked = true; }
+function thumbnailCrate(): CanvasImageSource | null {
+    if (!crateAsked && typeof Image !== 'undefined') {
+        crateAsked = true;
+        void import('./crate-atlas').then(({ crate: url }) => {
+            if (!url) return;
+            const image = new Image(); image.onload = () => { crateImage = image; }; image.src = url;
+        }).catch(() => undefined);
+    }
+    return crateImage;
+}
 /** The game's workshop at its own scale (360 × 640), framed on the board: same sky, stone,
  * floor, marks, crates and character. Scenery and marks are baked per board, crates per colour. */
 export function createThumbnail(seed = 28): Thumbnail {
@@ -24,9 +39,16 @@ export function createThumbnail(seed = 28): Thumbnail {
         bakeArt(c, `caisses-marks-${board}-${String(open)}-${s.filled.join('.')}`, 0, 0, 360, 640, res, g => {
             for (let p = 0; p < b.width * b.height; p++) cellMarks(g, b, s, p, ox + p % b.width * unit, oy + Math.floor(p / b.width) * unit, unit, 0, open);
         });
+        const drawn = thumbnailCrate();
         s.boxes.forEach((p, box) => {
             const x = ox + p % b.width * unit, y = oy + Math.floor(p / b.width) * unit, { color } = boxPaint(b, s, box, p);
-            bakeArt(c, `caisses-crate-${color.toString(16)}-${String(Math.round(unit))}`, x + unit * .08, y + unit * .08, unit * .84, unit * .84, res, g => { crate(g, 0, 0, unit * .84, color); });
+            const vector = (g: Parameters<typeof crate>[0]): void => { crate(g, 0, 0, unit * .84, color); };
+            if (!drawn) { bakeArt(c, `caisses-crate-${color.toString(16)}-${String(Math.round(unit))}`, x + unit * .08, y + unit * .08, unit * .84, unit * .84, res, vector); return; }
+            // As in the game: 0.96 of a cell, centred; the tint composites on the crate's own bitmap only.
+            const tone = crateTone(b, s, box, p), w = unit * .96, h = w * DRAWN_CRATE.h / DRAWN_CRATE.w;
+            bake(c, `caisses-crate-drawn-${tone}-${String(Math.round(unit))}`, x + (unit - w) / 2, y + (unit - h) / 2, w, h, res,
+                k => { k.scale(w / DRAWN_CRATE.w, h / DRAWN_CRATE.h); paintCrate(k, drawn, tone); },
+                k => { k.translate((w - unit * .84) / 2, (h - unit * .84) / 2); vector(canvasGraphics(k)); });
         });
         const size = unit * 1.55, px = ox + s.player % b.width * unit, py = oy + Math.floor(s.player / b.width) * unit;
         castSprite(c, hero, 'face', 'concentre', 'repos', frame / 2, px + (unit - size) / 2, py + unit - size, size, res);
