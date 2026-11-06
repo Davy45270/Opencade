@@ -31,7 +31,7 @@ for (const game of ['caisses', 'traverse', 'alunir']) {
             assert.match(presentation, /import type \{ GameCharacter \} from '\.\.\/\.\.\/characters\/game'/);
             assert.match(presentation, /function lunarModule\(g: G, e: Engine, hero: GameCharacter, reduced: boolean\)/);
             assert.match(presentation, /hero.draw\(g, -20, -33, 40\)/);
-        } else assert.match(scene, /this.hero.draw\(g,/);
+        } else assert.match(scene, game === 'caisses' ? /this\.hero\.draw\(this\.top \?\? g,/ : /this.hero.draw\(g,/); // Caisses: the character on its own layer above the crates
         assert.match(scene, /character: this.hero.snapshot\(\)/);
         assert.match(scene, new RegExp(`id: '${game}-special'.*size: 56`));
     });
