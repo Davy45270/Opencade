@@ -149,7 +149,7 @@ Use **Node 22.12 or later** (see `.nvmrc`).
 ```sh
 npm ci
 npm run dev        # development server
-npm run lint       # ESLint, no warnings allowed
+npm run lint       # oxlint with type-aware rules, no warnings allowed
 npm run typecheck  # TypeScript without emitting files
 npm test           # Vitest engine and shell tests
 npm run build      # static site in dist/
@@ -194,7 +194,7 @@ tests/              engine and shell unit tests
 tests/e2e/          desktop and mobile browser journeys
 ```
 
-Engines are pure TypeScript with no Phaser or DOM dependencies. ESLint forbids
+Engines are pure TypeScript with no Phaser or DOM dependencies. oxlint forbids
 browser globals and `Math.random` there. A seeded random number generator makes
 the same inputs and seed produce the same game. Phaser scenes render engine
 state and pass inputs to it. The shared shell recreates Phaser when switching

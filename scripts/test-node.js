@@ -16,7 +16,7 @@ const root = fileURLToPath(new URL('../', import.meta.url));
 const started = performance.now();
 const cache = mkdtempSync(join(tmpdir(), 'opencade-ts-'));
 // Compile source modules once before workers start: constructor-property fallbacks
-// then load from disk without loading the TypeScript compiler in each process.
+// then load from disk without transforming them again in each process.
 process.env.OPENCADE_TS_CACHE = cache;
 process.env.NODE_COMPILE_CACHE = join(cache, 'v8');
 enableCompileCache(process.env.NODE_COMPILE_CACHE);

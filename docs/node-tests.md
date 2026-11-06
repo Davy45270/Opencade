@@ -57,7 +57,8 @@ Catégories : **V** validateur rapide (objectif < 30 s par entrée), **G** campa
 | `test-pwa.js` | V | Appelé par test:node. |
 | `e2e-impact.js` | M | Sélection des specs Playwright d’un changement (niveaux N0 à N3, jamais la suite complète) ; utilisé par la CI et en local. |
 | `test-e2e-impact.js` | V | Appelé par test:node : cas tirés de vrais commits pour `e2e-impact.js`. |
-| `transpile.js` | M | Transpilation des sources et mutations, cache temporaire partagé et repli TypeScript paresseux. |
+| `transpile.js` | M | Transpilation des sources et mutations, cache temporaire partagé ; types retirés par Node, repli Oxc (`rolldown/utils`, le transformateur du build) pour les propriétés de constructeur. |
+| `to-commonjs.js` | M | Module auxiliaire des harnais PWA : source ES (TypeScript ou JS) en script CommonJS pour `vm` ou `new Function`, refus explicite de toute forme non gérée. |
 | `orbite-verified-replay.js` | M | Mutualise uniquement les rejeux identiques déjà vérifiés ; moteurs mutés toujours rejoués. |
 | `ts-loader.js` | M | Module auxiliaire importé par les validateurs (chargeur, adaptateur, métriques ou harnais) ; aucune vérification autonome au lancement. |
 | `validate-alunir.js` | V | Appelé par test:node avec `--checks-only`. |

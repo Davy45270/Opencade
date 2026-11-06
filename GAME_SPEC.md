@@ -549,7 +549,7 @@ has no language selector and displays French.
 | C02 | Five distinct primitive counts, pairwise RGB accent distance > 75, distinct orientations/expressions and stable others |
 | C03 | All five animations change between 0 and 300 ms; every reduced pose/expression remains fixed and particle-free |
 | C04 | Exact literal storage key, defaults, corrupt values, all five choices, isolated existing saves and storage exceptions |
-| C05 | Source contains none of the four forbidden presentation terms; ESLint also applies pure-engine restrictions |
+| C05 | Source contains none of the four forbidden presentation terms; oxlint also applies pure-engine restrictions |
 | C06 | Both adapters consume every paint operation at 32, 160 and 480 px without changing the source list |
 
 Run `nice -n 19 ionice -c3 node scripts/validate-characters.js` for the same checks
@@ -3123,7 +3123,7 @@ nouveauté 4. Partie au doigt : ateliers 1 et 14 (glace et flèches).
 
 Commande reproductible, sans Vitest ni Playwright ni nouvelle dépendance :
 `node --import ./scripts/ts-loader.js scripts/validate-caisses.js`.
-Le chargeur utilise le compilateur TypeScript déjà installé dans le dépôt.
+Le chargeur retire les types avec Node ; pour les propriétés de constructeur, il utilise Oxc, le transformateur déjà installé avec l’outil de build.
 Le script vérifie C08/C09, les deux minimums, rejoue les deux solutions dans
 le moteur, vérifie les dimensions, C10b (salles historiques) et, depuis la passe 403, un budget en positions visitées au lieu du budget de 1 s par niveau
 pour les deux recherches cumulées. Les durées dépendent de la machine.

@@ -1,5 +1,5 @@
 /* global console, process, URL */
-import ts from 'typescript';
+import { transform } from './transpile.js';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { readFileSync, writeFileSync } from 'node:fs';
@@ -14,7 +14,7 @@ await import(root + '/scripts/ts-loader.js');
 async function historical(path, imports = {}) {
     const text = readFileSync(new URL(path, sourceRoot), 'utf8')
         .replace(/from '([^']+)'/g, (_, name) => `from ${JSON.stringify(imports[name] ?? new URL(name + '.ts', new URL(path, sourceRoot)).href)}`);
-    const url = 'data:text/javascript,' + encodeURIComponent(ts.transpile(text, { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext }));
+    const url = 'data:text/javascript,' + encodeURIComponent(transform(text));
     return { url, module: await import(url) };
 }
 const physics = await historical('src/engines/derapage/physics.ts');

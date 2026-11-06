@@ -15,7 +15,7 @@ const { LEVELS: caissesLevels } = await import('../src/engines/caisses/engine.ts
 const { stratum: empiloStratum } = await import('../src/engines/empilo/engine.ts');
 const { layout: serpentinLayout } = await import('../src/engines/serpentin/engine.ts');
 import { measureDiversity } from './diversity-metrics.js';
-import ts from 'typescript';
+import { transform } from './transpile.js';
 import { readFileSync } from 'node:fs';
 const ids = ['bubble', 'briqueterie', 'empilo', 'serpentin', 'orbite', 'essaim', 'dedale', 'caisses', 'alunir', 'ferraille', 'traverse', 'derapage'];
 const names = ['Bulles', 'Briqueterie', 'Empilo', 'Serpentin', 'Orbite', 'Essaim', 'Dédale', 'Caisses', 'Alunir', 'Ferraille', 'Traverse', 'Dérapage'];
@@ -89,7 +89,7 @@ async function policy(id, mod, level) {
     const url = new URL(`../src/engines/${id}/demo.ts`, import.meta.url);
     let source = readFileSync(url, 'utf8').replace(/import \{ demo \} from '..\/shared\/demo';/, 'const demo = (engine, seed, decide, advance) => ({engine, decide, advance});');
     source = source.replace(/from '(\.\.?\/[^']+)'/g, (_, path) => `from '${new URL(path + '.ts', url).href}'`);
-    const { createDemo } = await import('data:text/javascript;base64,' + Buffer.from(ts.transpile(source, { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext })).toString('base64'));
+    const { createDemo } = await import('data:text/javascript;base64,' + Buffer.from(transform(source)).toString('base64'));
     const p = createDemo(SEED); p.engine.loadLevel(level, SEED); return p;
 }
 const variations = [

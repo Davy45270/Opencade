@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import ts from 'typescript';
+import { toCommonJS } from './to-commonjs.js';
 import { harness, settle } from './pwa-harness.js';
 
 const require = createRequire(import.meta.url);
@@ -21,7 +21,7 @@ const mutations = [
 ];
 async function runTests(text, overrides = {}) {
     const tests = [];
-    const execute = new Function('exports', 'require', ts.transpile(text, { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS }));
+    const execute = new Function('exports', 'require', toCommonJS(text));
     execute({}, name => name === 'vitest' ? { it: (name, fn) => tests.push({ name, fn }), test: (name, fn) => tests.push({ name, fn }) } : name in overrides ? overrides[name] : require(name));
     assert.ok(tests.length > 0, 'No tests discovered');
     const failures = [];
@@ -50,7 +50,7 @@ console.log('PASS baseline after all 8 mutations');
 
 // Also execute the new text/brand assertions, with no Vitest runtime.
 const model = { exports: {} };
-new Function('exports', ts.transpile(readFileSync(new URL('../src/characters/model.ts', import.meta.url), 'utf8'), { module: ts.ModuleKind.CommonJS }))(model.exports);
+new Function('exports', toCommonJS(readFileSync(new URL('../src/characters/model.ts', import.meta.url), 'utf8')))(model.exports);
 for (const file of ['character-names', 'brand-guard']) {
     const failures = await runTests(readFileSync(new URL(`../tests/${file}.test.ts`, import.meta.url), 'utf8'), { '../src/characters/model': model.exports });
     assert.deepEqual(failures, [], file);

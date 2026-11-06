@@ -1,18 +1,16 @@
 /* global URL, URLSearchParams */
 import { readFileSync } from 'node:fs';
 import { runInNewContext } from 'node:vm';
-import ts from 'typescript';
+import { toCommonJS } from './to-commonjs.js';
 
-const compile = path => ts.transpile(readFileSync(new URL(path, import.meta.url), 'utf8'), {
-    target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS,
-});
+const compile = path => toCommonJS(readFileSync(new URL(path, import.meta.url), 'utf8'));
 const originalSource = readFileSync(new URL('../src/shell/pwa.ts', import.meta.url), 'utf8');
 const helpers = { exports: {} };
 runInNewContext(compile('../src/shell/pwa-utils.ts'), helpers);
 export const settle = async () => { for (let i = 0; i < 20; i++) await Promise.resolve(); };
 
 export function harness({ sw = true, waiting = false, offline = false, playing = false } = {}, sourceText = originalSource) {
-    const source = ts.transpile(sourceText, { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.CommonJS });
+    const source = toCommonJS(sourceText);
     const elements = new Map();
     function element(id) {
         const node = { hidden: true, disabled: false, textContent: '', listeners: {},

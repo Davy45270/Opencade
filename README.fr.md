@@ -155,7 +155,7 @@ Utiliser **Node 22.12 ou plus** (voir `.nvmrc`).
 ```sh
 npm ci
 npm run dev        # serveur de développement
-npm run lint       # ESLint, aucun avertissement toléré
+npm run lint       # oxlint avec règles typées, aucun avertissement toléré
 npm run typecheck  # vérification TypeScript sans émission
 npm test           # tests Vitest des moteurs et du socle
 npm run build      # site statique dans dist/
@@ -198,7 +198,7 @@ tests/              tests unitaires des moteurs et du socle
 tests/e2e/          parcours navigateur bureau et mobile
 ```
 
-Les moteurs sont du TypeScript pur, sans Phaser ni DOM. ESLint y interdit les
+Les moteurs sont du TypeScript pur, sans Phaser ni DOM. oxlint y interdit les
 globales du navigateur et `Math.random`. Un générateur pseudo-aléatoire à graine
 reproduit exactement la même partie pour les mêmes entrées et la même graine.
 Les scènes Phaser dessinent l’état du moteur et lui transmettent les entrées.

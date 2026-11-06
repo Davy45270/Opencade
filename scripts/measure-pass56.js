@@ -2,7 +2,7 @@
 import './ts-loader.js';
 import { registerHooks } from 'node:module';
 import { execFileSync } from 'node:child_process';
-import ts from 'typescript';
+import { transform } from './transpile.js';
 const baseline = new Map();
 if (process.argv.includes('--baseline')) for (const path of ['tests/essaim.test.ts','tests/thumbnails.test.ts','tests/essaim-behavior.ts','tests/essaim-generated.ts','src/engines/essaim/pilot.ts']) {
     baseline.set(new URL('../'+path, import.meta.url).href, execFileSync('git',['show','HEAD:'+path],{ encoding: 'utf8' }));
@@ -10,7 +10,7 @@ if (process.argv.includes('--baseline')) for (const path of ['tests/essaim.test.
 // Import the actual test bodies without starting Vitest or a browser.
 registerHooks({
     load(url, context, next) {
-        if (baseline.has(url)) return { format: 'module', source: ts.transpile(baseline.get(url), { target: ts.ScriptTarget.ES2022, module: ts.ModuleKind.ESNext }), shortCircuit: true };
+        if (baseline.has(url)) return { format: 'module', source: transform(baseline.get(url)), shortCircuit: true };
         return next(url, context);
     },
     resolve(name, context, next) {

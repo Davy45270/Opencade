@@ -6,7 +6,7 @@ Pass 77 updates Ferraille, Briqueterie and Essaim with nine authored catalogue l
 nice -n 19 ionice -c3 node scripts/diversity-report.js
 ```
 
-The script prints one complete JSON object followed by a Markdown table. Level numbers in this report are one-based. Seed is fixed at 28. The existing TypeScript loader and installed TypeScript compiler are reused; nothing is installed. The JSON includes each requested level, raw and normalized parameters, parameter ranges, initial and midpoint snapshots, element inventories and first appearances, layout signatures, all 29 adjacent comparisons where available, clone pairs, configuration plateaus and pilot outcomes.
+The script prints one complete JSON object followed by a Markdown table. Level numbers in this report are one-based. Seed is fixed at 28. The existing TypeScript loader and the Oxc transformer installed with the build tool are reused; nothing is installed. The JSON includes each requested level, raw and normalized parameters, parameter ranges, initial and midpoint snapshots, element inventories and first appearances, layout signatures, all 29 adjacent comparisons where available, clone pairs, configuration plateaus and pilot outcomes.
 
 ## Method and limits
 

@@ -4,9 +4,9 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { harness, settle } from './pwa-harness.js';
 import { runInNewContext } from 'node:vm';
-import ts from 'typescript';
+import { toCommonJS } from './to-commonjs.js';
 const helpers = { exports: {} };
-runInNewContext(ts.transpile(readFileSync(new URL('../src/shell/pwa-utils.ts', import.meta.url), 'utf8'), { module: ts.ModuleKind.CommonJS }), helpers);
+runInNewContext(toCommonJS(readFileSync(new URL('../src/shell/pwa-utils.ts', import.meta.url), 'utf8')), helpers);
 
 test('check runs on startup, every 30 minutes, and only on becoming visible', async () => {
     const h = harness();

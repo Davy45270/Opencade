@@ -1,42 +1,67 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
-import ts from 'typescript';
+import { parseSync } from 'rolldown/utils';
 import { renderTouchControls, virtualJoystick, type Inputs, type TouchButton } from '../../src/shell/input';
 
 const registry = readFileSync('src/games/registry.ts', 'utf8');
 // Catalogue scenes, then the scenes of games with their own site (src/games/<id>/definition.ts).
 const siteGames = readdirSync('src/games').filter(id => existsSync(`src/games/${id}/definition.ts`));
 const scenes = [...new Set([...[...registry.matchAll(/from '\.\/([^/]+)\/scene'/g)].map(match => match[1] ?? ''), ...siteGames].map(id => `src/games/${id}/scene.ts`))];
-function parse(file: string) { return ts.createSourceFile(file, readFileSync(file, 'utf8'), ts.ScriptTarget.Latest, true); }
-function walk(node: ts.Node, visit: (node: ts.Node) => void) { visit(node); node.forEachChild(child => { walk(child, visit); }); }
+type Node = { type: string; start: number; end: number; [key: string]: unknown };
+type Parsed = { text: string; program: Node };
+const isNode = (value: unknown): value is Node => typeof value === 'object' && value !== null && typeof (value as { type?: unknown }).type === 'string';
+function parse(file: string): Parsed {
+    const text = readFileSync(file, 'utf8'), { program, errors } = parseSync(file, text);
+    assert.equal(errors.length, 0, `${file}: ${errors[0]?.message ?? ''}`);
+    return { text, program: program as unknown as Node };
+}
+function walk(node: Node, visit: (node: Node) => void) {
+    visit(node);
+    for (const [key, value] of Object.entries(node)) {
+        if (key === 'parent') continue;
+        if (Array.isArray(value)) { for (const child of value) if (isNode(child)) walk(child, visit); }
+        else if (isNode(value)) walk(value, visit);
+    }
+}
+const source = (parsed: Parsed, node: Node) => parsed.text.slice(node.start, node.end);
+const child = (node: Node, key: string) => node[key] as Node;
+/** `key: value` in an object literal (not a method, accessor, shorthand or spread). */
+const isPropertyAssignment = (node: Node) => node.type === 'Property' && node.kind === 'init' && node.method === false && node.shorthand === false;
+/** Declared name without its type annotation (`fooButtons`, not `fooButtons: TouchButton[]`). */
+const bindingName = (parsed: Parsed, node: Node) => node.type === 'Identifier' ? node.name as string : source(parsed, node);
+/** Property name as written; a computed name keeps its brackets. */
+const propertyName = (parsed: Parsed, node: Node) => node.computed === true ? `[${source(parsed, child(node, 'key'))}]` : source(parsed, child(node, 'key'));
 
-function literal(node: ts.Expression): unknown {
-    if (ts.isStringLiteral(node)) return node.text;
-    if (ts.isNumericLiteral(node)) return Number(node.text);
-    if (node.kind === ts.SyntaxKind.TrueKeyword) return true;
-    if (node.kind === ts.SyntaxKind.FalseKeyword) return false;
-    if (ts.isArrayLiteralExpression(node)) return node.elements.map(literal);
-    if (ts.isObjectLiteralExpression(node)) return Object.fromEntries(node.properties.map(property => {
-        assert.ok(ts.isPropertyAssignment(property), 'literal button property');
-        return [property.name.getText(), literal(property.initializer)];
+function literal(parsed: Parsed, node: Node): unknown {
+    if (node.type === 'Literal' && ['string', 'number', 'boolean'].includes(typeof node.value)) return node.value;
+    if (node.type === 'ArrayExpression') return (node.elements as (Node | null)[]).map(element => {
+        assert.ok(element && element.type !== 'SpreadElement', `Nonliteral touch definition: ${source(parsed, node)}`);
+        return literal(parsed, element);
+    });
+    if (node.type === 'ObjectExpression') return Object.fromEntries((node.properties as Node[]).map(property => {
+        assert.ok(isPropertyAssignment(property), 'literal button property');
+        return [propertyName(parsed, property), literal(parsed, child(property, 'value'))];
     }));
-    throw new Error(`Nonliteral touch definition: ${node.getText()}`);
+    throw new Error(`Nonliteral touch definition: ${source(parsed, node)}`);
 }
 
 void test('registry scenes expose receipts separately and never return them from read()', () => {
     assert.ok(scenes.length > 0);
     for (const file of scenes) {
         let reads = 0, receipts = 0;
-        walk(parse(file), node => {
-            if (!ts.isPropertyAssignment(node)) return;
-            if (node.name.getText() === 'fingerReceipts') receipts++;
-            if (node.name.getText() !== 'read') return;
+        const parsed = parse(file);
+        walk(parsed.program, node => {
+            if (!isPropertyAssignment(node)) return;
+            if (propertyName(parsed, node) === 'fingerReceipts') receipts++;
+            if (propertyName(parsed, node) !== 'read') return;
             reads++;
-            walk(node.initializer, child => {
-                if ((ts.isPropertyAssignment(child) || ts.isShorthandPropertyAssignment(child) || ts.isPropertyAccessExpression(child))
-                    && /receipts|bombRequests|specialRequests/i.test(child.name.getText())) assert.fail(`${file}: diagnostic in read(): ${child.getText()}`);
-                if (ts.isCallExpression(child)) assert.doesNotMatch(child.expression.getText(), /receipts/i, file);
+            walk(child(node, 'value'), inner => {
+                // `name: value`, shorthand `name`, or `object.name` (not `object[name]`).
+                const named = inner.type === 'Property' && inner.kind === 'init' && inner.method === false ? propertyName(parsed, inner)
+                    : inner.type === 'MemberExpression' && inner.computed === false ? source(parsed, child(inner, 'property')) : undefined;
+                if (named !== undefined && /receipts|bombRequests|specialRequests/i.test(named)) assert.fail(`${file}: diagnostic in read(): ${source(parsed, inner)}`);
+                if (inner.type === 'CallExpression') assert.doesNotMatch(source(parsed, child(inner, 'callee')), /receipts/i, file);
             });
         });
         assert.equal(reads, 1, `${file}: read() inspected`);
@@ -65,19 +90,23 @@ void test('every registered touch button and shared joystick is a Chromium click
     try {
         const sources = [...scenes, 'src/games/registry.ts'];
         let checked = 0;
-        for (const file of sources) walk(parse(file), node => {
-            if (!ts.isVariableDeclaration(node) || !node.name.getText().endsWith('Buttons') || !node.initializer || !ts.isArrayLiteralExpression(node.initializer)) return;
-            // Read literal definitions without importing Phaser.
-            const buttons = literal(node.initializer) as TouchButton[];
-            menu.replaceChildren();
-            renderTouchControls(inputs, buttons, () => {});
-            const rendered = [...root.children.flatMap(slot => slot.children), ...menu.children];
-            assert.equal(rendered.length, buttons.length, file);
-            for (const button of rendered) {
-                assert.ok(button.tagName === 'BUTTON' || (button.attributes.get('role') === 'button' && button.listeners.has('click')), `${file}: ${button.id}`);
-                checked++;
-            }
-        });
+        for (const file of sources) {
+            const parsed = parse(file);
+            walk(parsed.program, node => {
+                const initializer = node.init as Node | null | undefined;
+                if (node.type !== 'VariableDeclarator' || !bindingName(parsed, child(node, 'id')).endsWith('Buttons') || !initializer || initializer.type !== 'ArrayExpression') return;
+                // Read literal definitions without importing Phaser.
+                const buttons = literal(parsed, initializer) as TouchButton[];
+                menu.replaceChildren();
+                renderTouchControls(inputs, buttons, () => {});
+                const rendered = [...root.children.flatMap(slot => slot.children), ...menu.children];
+                assert.equal(rendered.length, buttons.length, file);
+                for (const button of rendered) {
+                    assert.ok(button.tagName === 'BUTTON' || (button.attributes.get('role') === 'button' && button.listeners.has('click')), `${file}: ${button.id}`);
+                    checked++;
+                }
+            });
+        }
         assert.ok(checked > scenes.length);
         const parent = new Element('div');
         virtualJoystick(inputs, parent as unknown as HTMLElement, () => {});
