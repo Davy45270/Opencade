@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import { Engine, WIDTH, HEIGHT, LEVELS } from '../../engines/bombercade/engine';
-import { palettes, tile, crate } from './art';
+import { palettes, tile, crate, drawnCrate } from './art';
 
 /** Only images survive baking: no arena Graphics commands are replayed per frame. */
 export class ArenaLayer {
@@ -10,7 +10,11 @@ export class ArenaLayer {
     private blocks = new Map<number, { image: Phaser.GameObjects.Image; style: string }>();
     private blockKeys = new Map<string, string>();
     private serial = 0;
+    /** David's crate once its chunk has arrived (06/11); until then, and in the catalogue, the vector crate. */
+    drawnCrate?: CanvasImageSource;
     constructor(private scene: Phaser.Scene) {}
+    /** Style of every block on screen (`kind/hp/drawn|vector`), for tests. */
+    views(): string[] { return [...this.blocks.values()].map(entry => entry.style); }
     reset(): void {
         for (const { image } of this.blocks.values()) image.destroy();
         this.blocks.clear();
@@ -25,6 +29,13 @@ export class ArenaLayer {
         const g = this.scene.make.graphics({ x: 0, y: 0 });
         try { draw(g); g.generateTexture(key, width, height); this.keys.push(key); }
         finally { g.destroy(); }
+        return key;
+    }
+    private paint(draw: (ctx: CanvasRenderingContext2D) => void, width: number, height: number): string {
+        const key = `bombercade-arena-${String(this.serial++)}`;
+        const texture = this.scene.textures.createCanvas(key, width, height);
+        if (!texture) return '__MISSING';
+        this.keys.push(key); draw(texture.context); texture.refresh();
         return key;
     }
     sync(e: Engine): void {
@@ -46,12 +57,12 @@ export class ArenaLayer {
         const occupied = new Set(e.board.blocks.map(b => b.at));
         for (const [at, entry] of this.blocks) if (!occupied.has(at)) { entry.image.destroy(); this.blocks.delete(at); }
         for (const block of e.board.blocks) {
-            const style = `${block.kind}/${String(block.hp)}`;
+            const source = this.drawnCrate, style = `${block.kind}/${String(block.hp)}/${source ? 'drawn' : 'vector'}`;
             const entry = this.blocks.get(block.at);
             if (entry?.style === style) continue;
             let key = this.blockKeys.get(style);
             if (!key) {
-                key = this.bake(g => {
+                key = source ? this.paint(ctx => { drawnCrate(ctx, source, block); }, 32, 34) : this.bake(g => {
                     crate(g, level.arena as keyof typeof palettes, block);
                 }, 32, 34);
                 this.blockKeys.set(style, key);

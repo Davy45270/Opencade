@@ -40,6 +40,20 @@ test('B parcours victoire, suite, défaite, reprise et quatre captures', async (
     if (mobile) await page.locator('#retry-level').tap(); else await page.locator('#retry-level').click();
     expect((await read(page)).status).toBe('playing'); expect((await read(page)).actors[0]?.hearts).toBe(1);
 });
+test('B-CAISSE la caisse de David avec son « ? » remplace les blocs destructibles, chaque sorte reste lisible', async ({ page }, info) => {
+    const mobile = info.project.name === 'mobile-chromium';
+    await page.goto('/?test=1#/bombercade');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__BOMBERCADE_TEST__))).toBe(true);
+    if (mobile) await page.locator('#resume').tap(); else await page.locator('#resume').click();
+    // Level 23: ordinary, reinforced, ice and gold crates on the same board.
+    await page.evaluate(() => { window.__BOMBERCADE_TEST__?.loadLevel(22, 28); });
+    // The drawing arrives in its own chunk: every crate on screen ends up drawn, of each kind.
+    await expect.poll(() => page.evaluate(() => { window.__BOMBERCADE_TEST__?.advance(0); return window.__BOMBERCADE_TEST__?.crateViews() ?? []; }).then(v => v.length > 0 && v.every(s => s.endsWith('/drawn')))).toBe(true);
+    const views = await page.evaluate(() => window.__BOMBERCADE_TEST__?.crateViews() ?? []);
+    expect(new Set(views.map(v => v.split('/')[0]))).toEqual(new Set(['normal', 'reinforced', 'ice', 'gold']));
+    expect((await read(page)).board.blocks.length).toBe(views.length);
+    await page.screenshot({ path: info.outputPath('bombercade-caisse.png') });
+});
 test('B crochet réservé au paramètre test', async ({ page }) => {
     await page.goto('/#/bombercade'); await expect(page.locator('#game canvas')).toBeVisible();
     expect(await page.evaluate(() => window.__BOMBERCADE_TEST__)).toBeUndefined();

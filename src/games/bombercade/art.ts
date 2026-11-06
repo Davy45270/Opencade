@@ -117,6 +117,30 @@ export function crate(g: Graphics, arena: Arena, block: Block): void {
     g.fillStyle(ice ? 0xffffff : 0x493b32); for (const dx of [5, 24]) for (const dy of [5, 24]) g.fillCircle(dx, dy, 1);
     if (gold) star(g, 15, 15, 6, 0xfffaac);
 }
+/** David's crate (06/11), drawn in place of the vector crate: 64 × 59 WebP, shown 26 × 24 on its 30 px cell. */
+export const DRAWN_CRATE = { w: 64, h: 59 } as const;
+export const CRATE_TEXTURE = 'bombercade-crate';
+/** Bakes one destructible block from David's crate on a 32 × 34 canvas: the same footprint and shadow as the vector
+ *  crate, and the same cues for the special kinds (ice tinted pale blue, gold tinted gold with its star, reinforced
+ *  crossed by steel bands, thicker while it has two hits left). */
+export function drawnCrate(ctx: CanvasRenderingContext2D, source: CanvasImageSource, block: Block): void {
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(source, 2, 2, 26, 24);
+    const tint = block.kind === 'ice' ? 'rgba(160,232,255,.55)' : block.kind === 'gold' ? 'rgba(255,208,64,.5)' : '';
+    if (tint) { ctx.globalCompositeOperation = 'source-atop'; ctx.fillStyle = tint; ctx.fillRect(0, 0, 32, 34); }
+    ctx.globalCompositeOperation = 'destination-over';
+    ctx.fillStyle = 'rgba(11,16,28,.4)'; ctx.beginPath(); ctx.roundRect(4, 6, 25, 24, 3); ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    if (block.kind === 'reinforced') {
+        ctx.strokeStyle = '#647080'; ctx.lineWidth = block.hp === 2 ? 4 : 2;
+        ctx.beginPath(); ctx.moveTo(3, 9); ctx.lineTo(27, 9); ctx.moveTo(3, 21); ctx.lineTo(27, 21); ctx.stroke();
+    }
+    if (block.kind === 'gold') {
+        ctx.fillStyle = '#fffaac'; ctx.strokeStyle = '#a86b24'; ctx.lineWidth = 1; ctx.beginPath();
+        for (let i = 0; i < 10; i++) { const a = i * Math.PI / 5 - Math.PI / 2, d = 6 * (i % 2 ? .46 : 1); ctx.lineTo(15 + Math.cos(a) * d, 14 + Math.sin(a) * d); }
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+    }
+}
 /** One burning cell: a tinted glow, then arms joined to its burning neighbours [right, left, down, up].
  * `time` already carries the cell's flicker phase (engine time + cell × 65). */
 export function fireCell(g: Graphics, id: CharacterId, x: number, y: number, neighbors: readonly boolean[], time: number, alpha: number): void {

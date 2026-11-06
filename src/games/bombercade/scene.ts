@@ -13,7 +13,7 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
-import { color, drawBomb, fireCell, heart, star, powerIcon, palettes } from './art';
+import { CRATE_TEXTURE, color, drawBomb, fireCell, heart, star, powerIcon, palettes } from './art';
 import { ArenaLayer, helpBubble } from './arena';
 import { setBrief } from '../../shell/hud';
 import { cardinalDirection } from './controls';
@@ -36,6 +36,8 @@ export interface BombercadeHook {
     loadLevel(index: number, seed?: number): void;
     advance(ms: number): void;
     scenario(name: 'finish' | 'danger'): void;
+    /** Style of every crate on screen: `kind/hp/drawn` once David's crate is loaded, `kind/hp/vector` before. */
+    crateViews(): string[];
 }
 declare global { interface Window { __BOMBERCADE_TEST__?: BombercadeHook } }
 // Presentation metadata stays outside the engine. Its explosion event carries no
@@ -101,6 +103,16 @@ export class BombercadeScene extends Phaser.Scene {
         const cleanup = (): void => { this.arena?.destroy(); this.inputs.dispose(); style.remove(); document.body.classList.remove('bombercade'); delete document.body.dataset.freeBottom; delete window.__BOMBERCADE_TEST__; sound.stop(); };
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.arena = new ArenaLayer(this);
+        // David's crate with its "?" (06/11) arrives in its own chunk, like Pistouille's drawings: the vector crate until then.
+        void import('./crate-atlas').then(({ crate }) => {
+            if (!this.sys.isActive() || !crate) return;
+            if (!this.textures.exists(CRATE_TEXTURE)) this.load.image(CRATE_TEXTURE, crate);
+            this.load.once('complete', () => {
+                if (!this.sys.isActive() || !this.arena || !this.textures.exists(CRATE_TEXTURE)) return;
+                this.arena.drawnCrate = this.textures.get(CRATE_TEXTURE).getSourceImage() as CanvasImageSource; this.draw();
+            });
+            this.load.start();
+        }).catch(() => undefined);
         this.graphics = this.add.graphics().setDepth(3);
         this.hud = this.add.text(14, 16, '', { fontFamily: 'system-ui', fontSize: '16px', color: '#fff6de', lineSpacing: 7 }).setVisible(false);
         this.heading = this.add.text(24, 22, '', { fontFamily: 'system-ui', fontSize: '17px', fontStyle: 'bold', color: '#fff3cf' }).setDepth(5);
@@ -154,6 +166,7 @@ export class BombercadeScene extends Phaser.Scene {
                 return this.testPilot.readAction(this.engine);
             },
             hudText: () => this.hud?.text ?? '',
+            crateViews: () => this.arena?.views() ?? [],
             hintShown: () => this.hint?.visible === true,
             usefulArea: () => ({ x: 15, y: 140, width: 330, height: 390 }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
