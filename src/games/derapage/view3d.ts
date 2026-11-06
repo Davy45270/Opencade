@@ -51,7 +51,7 @@ export class Cadence {
 }
 export interface RenderCost { lines: number; samples: number; segmentChecks: number; boostChecks: number; sprites: number }
 /** Fixed grid: 107 lines × 30 samples. Each sample visits the 96 segments plus the initial hint. */
-export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engine['snapshot']>, kart: (id: number, x: number, y: number, size: number, rotation: number, depth: number) => void, layer?: (depth: number) => Phaser.GameObjects.Graphics, scenery?: (item: Scenery, screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => void, pickup?: (kind: 'crate' | 'puddle', x: number, y: number, size: number, depth: number) => boolean, tree?: (item: Vec & { radius: number }, kind: 'engine' | 'tree' | 'fir', screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => boolean, skyDrawn = false): RenderCost {
+export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engine['snapshot']>, kart: (id: number, x: number, y: number, size: number, rotation: number, depth: number) => void, layer?: (depth: number) => Phaser.GameObjects.Graphics, scenery?: (item: Scenery, screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => void, pickup?: (kind: 'crate' | 'puddle', x: number, y: number, size: number, depth: number) => boolean, tree?: (item: Vec & { radius: number }, kind: 'engine' | 'tree' | 'fir', screen: NonNullable<ReturnType<typeof projectPoint>>, depth: number) => boolean, skyDrawn = false, boostGround = 0x64edbd): RenderCost {
     const g=graphics;
     const p=e.karts[0];
     const cost={lines:0,samples:0,segmentChecks:0,boostChecks:0,sprites:0};
@@ -83,7 +83,7 @@ export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engi
             let color=theme.ground;
             if(n.distance<half+.7) color=n.distance>half ? theme.border : theme.road ?? 0x38434d;
             if(onShortcut(t,q)) color=0xd0a267;
-            if(n.distance<half && t.boosts.some(b=>{ cost.boostChecks++; return onBoost(t,b,q,n); })) color=0x64edbd;
+            if(n.distance<half && t.boosts.some(b=>{ cost.boostChecks++; return onBoost(t,b,q,n); })) color=boostGround;
             const a=finish.a;
             const along=((q.x-a.x)*vx+(q.y-a.y)*vy)/finishLength, across=((q.x-a.x)*-vy+(q.y-a.y)*vx)/finishLength;
             if(along>=0 && along<=finishLength && Math.abs(across)<1) color=(Math.floor(along*2)+Math.floor(across+1))%2 ? 0xffffff : 0x101827;

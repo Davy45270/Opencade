@@ -10,19 +10,23 @@ export const DECOR_SPRITES = {
     caisse_face: { w: 106, h: 96 }, caisse_dessus: { w: 64, h: 59 },
     panneau_face: { w: 101, h: 160 }, panneau_face_g: { w: 101, h: 160 }, panneau_cote: { w: 68, h: 160 }, panneau_cote_g: { w: 68, h: 160 },
     panneau_arriere: { w: 105, h: 160 }, panneau_arriere_g: { w: 105, h: 160 }, panneau_dessus: { w: 96, h: 47 }, panneau_dessus_g: { w: 96, h: 47 },
+    // Second lot (06/11 evening): the tyre stack (one ¾ view, round, for every angle) and the blue and yellow sign,
+    // drawn from above only (its side views are asked of David; in 3D its place keeps the first sign).
+    pneus_face: { w: 133, h: 112 }, pneus_dessus: { w: 80, h: 94 }, panneau2_dessus: { w: 96, h: 59 },
 } as const;
 export type DecorSpriteKey = keyof typeof DECOR_SPRITES;
 export const decorTexture = (key: string): string => `derapage-decor-${key}`;
-export type DecorKind = 'barrier' | 'sign' | 'cargo';
-export const isDecor = (kind: string): kind is DecorKind => kind === 'barrier' || kind === 'sign' || kind === 'cargo';
+export type DecorKind = 'barrier' | 'sign' | 'cargo' | 'tyres';
+export const isDecor = (kind: string): kind is DecorKind => kind === 'barrier' || kind === 'sign' || kind === 'cargo' || kind === 'tyres';
 // Scale (proposed scale sheet, 06/11): the barrier stands about 1 kart high in 3D, the sign 1.6 karts, the crate
-// 3 units (the size of the bonus box). From above everything is twice its 3D width, like the karts (a kart is 3.3
+// 3 units (the size of the bonus box), a stack of three tyres 0.9 kart. From above everything is twice its 3D width, like the karts (a kart is 3.3
 // units wide from behind in 3D, 6.6 from above).
 // KART_HEIGHT_3D of tree-sprites (not imported: scenery imports this module, tree-sprites imports scenery).
 export const KART_HEIGHT = 3.68;
-export const DECOR_HEIGHT: Record<DecorKind, number> = { barrier: KART_HEIGHT, sign: 1.6 * KART_HEIGHT, cargo: 3 };
+export const DECOR_HEIGHT: Record<DecorKind, number> = { barrier: KART_HEIGHT, sign: 1.6 * KART_HEIGHT, cargo: 3, tyres: .9 * KART_HEIGHT };
 const TOP = 2;
-const FACE: Record<DecorKind, DecorSpriteKey> = { barrier: 'barriere_face', sign: 'panneau_face', cargo: 'caisse_face' };
+const FACE: Record<DecorKind, DecorSpriteKey> = { barrier: 'barriere_face', sign: 'panneau_face', cargo: 'caisse_face', tyres: 'pneus_face' };
+const PREFIX: Record<DecorKind, string> = { barrier: 'barriere', sign: 'panneau', cargo: 'caisse', tyres: 'pneus' };
 const width3d = (kind: DecorKind, key: DecorSpriteKey): number => DECOR_HEIGHT[kind] * DECOR_SPRITES[key].w / DECOR_SPRITES[key].h;
 /** Distance kept between every point of a prop and the road edge: beyond the city rail, 3 units after the edge. */
 export const DECOR_MARGIN = 4;
@@ -46,14 +50,15 @@ export function signView(road: number, ray: number, mirror: boolean): DecorSprit
 /** The 3D panel of a prop seen along `ray`, and its height in world units (times the perspective scale). */
 export function decorPanel(item: Scenery, ray: number): { key: DecorSpriteKey; height: number } {
     const kind = item.kind as DecorKind, angle = item.angle ?? 0;
-    const key = kind === 'barrier' ? barrierView(angle, ray) : kind === 'sign' ? signView(angle, ray, Boolean(item.mirror)) : 'caisse_face';
+    const key = kind === 'barrier' ? barrierView(angle, ray) : kind === 'sign' ? signView(angle, ray, Boolean(item.mirror)) : FACE[kind];
     return { key, height: DECOR_HEIGHT[kind] };
 }
 /** The top view of a prop: its key, its size in world units and the world angle of the image's horizontal axis.
  *  The barrier and the crate lie along the road; the sign's planks stand square to it, tips to the bend side. */
 export function decorTop(item: Scenery): { key: DecorSpriteKey; width: number; height: number; rotation: number } {
     const kind = item.kind as DecorKind, angle = item.angle ?? 0;
-    const key: DecorSpriteKey = kind === 'barrier' ? 'barriere_dessus' : kind === 'sign' ? (item.mirror ? 'panneau_dessus_g' : 'panneau_dessus') : 'caisse_dessus';
+    // The blue and yellow sign points both ways: never mirrored.
+    const key: DecorSpriteKey = kind === 'sign' ? (item.alt ? 'panneau2_dessus' : item.mirror ? 'panneau_dessus_g' : 'panneau_dessus') : `${PREFIX[kind]}_dessus` as DecorSpriteKey;
     const width = TOP * width3d(kind, FACE[kind]), s = DECOR_SPRITES[key];
     return { key, width, height: width * s.h / s.w, rotation: kind === 'sign' ? angle + Math.PI / 2 : angle };
 }
@@ -66,7 +71,7 @@ export function decorFootprint(item: Scenery): Vec[] {
         const x = u * top.width / 2, y = v * top.height / 2;
         points.push({ x: item.x + x * c - y * s, y: item.y + x * s + y * c });
     }
-    const views = (Object.keys(DECOR_SPRITES) as DecorSpriteKey[]).filter(k => !k.includes('dessus') && k.startsWith({ barrier: 'barriere', sign: 'panneau', cargo: 'caisse' }[kind]));
+    const views = (Object.keys(DECOR_SPRITES) as DecorSpriteKey[]).filter(k => !k.includes('dessus') && k.startsWith(PREFIX[kind]));
     const radius = Math.max(...views.map(k => width3d(kind, k))) / 2;
     for (let i = 0; i < 8; i++) points.push({ x: item.x + Math.cos(i * Math.PI / 4) * radius, y: item.y + Math.sin(i * Math.PI / 4) * radius });
     return points;
@@ -81,4 +86,19 @@ export function drawnDecor(t: Track): readonly Scenery[] {
     const old = cache.get(t); if (old) return old;
     const items = scenerySprites(t).filter(item => isDecor(item.kind));
     cache.set(t, items); return items;
+}
+/** David's boost ramp (06/11 evening), drawn in place of the green boost strips: the same zones, the same effect.
+ *  From above one top view per tile; in 3D its four quarters along the road (0 = the far one, the chevrons point
+ *  forward), each laid on its own projected stretch of the ground. */
+export const RAMP_SPRITES = { rampe: { w: 192, h: 192 }, rampe_0: { w: 192, h: 48 }, rampe_1: { w: 192, h: 48 }, rampe_2: { w: 192, h: 48 }, rampe_3: { w: 192, h: 48 } } as const;
+export type RampSpriteKey = keyof typeof RAMP_SPRITES;
+export const rampTexture = (key: string): string => `derapage-ramp-${key}`;
+/** Ground colour of a strip under the drawn ramps in 3D (its steel frame), where the green strip used to be. */
+export const RAMP_GROUND = 0x8c939b;
+export interface RampTile { center: Vec; along: Vec; across: Vec; length: number; width: number }
+/** The ramps of a boost strip: as many square-ish tiles across the road as fit its length, the strip exactly. */
+export function rampTiles(strip: { half: number; length: number; point: (u: number, v: number) => Vec }): RampTile[] {
+    const count = Math.max(1, Math.round(2 * strip.half / strip.length)), width = 2 * strip.half / count;
+    const o = strip.point(0, 0), f = strip.point(1, 0), along = { x: f.x - o.x, y: f.y - o.y }, across = { x: -along.y, y: along.x };
+    return Array.from({ length: count }, (_, i) => ({ center: strip.point(strip.length / 2, -strip.half + width * (i + .5)), along, across, length: strip.length, width }));
 }

@@ -570,6 +570,26 @@ async function decorInScene() {
     } finally { h.cleanup(); }
     console.log('Drawn props: barrier in the city, crate on the quays, signs in the technical cup, views by angle, vector fallback');
 }
+// The prop panel (if any) that hides the player's kart or the road 12, 18 or 24 units ahead in 3D, the kart on the
+// centre line at point i of the track, facing down it.
+const { projectPoint: project3d, FAR: FAR3D } = await import('../src/games/derapage/view3d.ts');
+const { at: alongTrack } = await import('../src/engines/derapage/track.ts');
+const visibleImages = (h, prefix) => h.images.filter(i => i.placements.setVisible?.at(-1) && i.texture.key.startsWith(prefix));
+function hides(h, t, i) {
+    const p = t.points[i], q = t.points[(i + 1) % 96];
+    Object.assign(h.engine.karts[0], { x: p.x, y: p.y, angle: Math.atan2(q.y - p.y, q.x - p.x), vx: 0, vy: 0 });
+    for (const k of h.engine.karts.slice(1)) Object.assign(k, { x: 9999, y: 9999 });
+    h.frame();
+    const panels = visibleImages(h, 'derapage-decor-').map(im => { const [x, y] = im.placements.setPosition, [w, ht] = im.placements.setDisplaySize; return { x0: x - w / 2, x1: x + w / 2, y0: y - ht / 2, y1: y + ht / 2, depth: im.placements.setDepth[0] }; });
+    const kart = visibleImages(h, 'derapage-kart-')[0], [kx, ky] = kart.placements.setPosition, [kw, kh] = kart.placements.setDisplaySize;
+    if (panels.some(r => r.depth > kart.placements.setDepth[0] && r.x1 > kx - kw / 2 && r.x0 < kx + kw / 2 && r.y1 > ky - kh && r.y0 < ky)) return 'kart';
+    const camera = { x: p.x, y: p.y, angle: h.engine.karts[0].angle };
+    for (const ahead of [12, 18, 24]) {
+        const a = project3d(alongTrack(t, t.distances[i] + ahead), camera);
+        if (a && panels.some(r => r.depth >= FAR3D - a.depth + 2 - 1e-6 && r.x0 < a.x && r.x1 > a.x && r.y0 < a.y && r.y1 > a.y)) return `road ${ahead} ahead`;
+    }
+    return null;
+}
 // Scale (proposed scale sheet, 06/11): at equal depth the barrier stands about 1 kart high, the sign 1.6 karts,
 // the crate 3 units (the size of the bonus box). No prop panel hides the player's kart or the road 12, 18 and 24
 // units ahead, driving the centre line of the twelve circuits that have them (1152 frames); witness: a barrier put
@@ -577,7 +597,6 @@ async function decorInScene() {
 async function decorSizes() {
     const { DECOR_SPRITES, drawnDecor } = await import('../src/games/derapage/decor-sprites.ts');
     const { KART_SPRITES } = await import('../src/games/derapage/kart-sprites.ts');
-    const { projectPoint, FAR } = await import('../src/games/derapage/view3d.ts');
     const { at } = await import('../src/engines/derapage/track.ts');
     const visible = (h, prefix) => h.images.filter(i => i.placements.setVisible?.at(-1) && i.texture.key.startsWith(prefix));
     const h = await mount('derapage', 'dragon', false); h.session.send('start');
@@ -601,21 +620,7 @@ async function decorSizes() {
             ratios[kind] = panel.placements.setDisplaySize[1] / rival.placements.setDisplaySize[1];
             assert(ratios[kind] >= low && ratios[kind] <= high, `${kind} height / kart height: ${ratios[kind].toFixed(2)} within [${low}, ${high}]`);
         }
-        const look = (t, i) => {
-            const p = t.points[i], q = t.points[(i + 1) % 96];
-            Object.assign(h.engine.karts[0], { x: p.x, y: p.y, angle: Math.atan2(q.y - p.y, q.x - p.x), vx: 0, vy: 0 });
-            for (const k of h.engine.karts.slice(1)) Object.assign(k, { x: 9999, y: 9999 });
-            h.frame();
-            const panels = visible(h, 'derapage-decor-').map(im => { const [x, y] = im.placements.setPosition, [w, ht] = im.placements.setDisplaySize; return { x0: x - w / 2, x1: x + w / 2, y0: y - ht / 2, y1: y + ht / 2, depth: im.placements.setDepth[0] }; });
-            const kart = visible(h, 'derapage-kart-')[0], [kx, ky] = kart.placements.setPosition, [kw, kh] = kart.placements.setDisplaySize;
-            if (panels.some(r => r.depth > kart.placements.setDepth[0] && r.x1 > kx - kw / 2 && r.x0 < kx + kw / 2 && r.y1 > ky - kh && r.y0 < ky)) return 'kart';
-            const camera = { x: p.x, y: p.y, angle: h.engine.karts[0].angle };
-            for (const ahead of [12, 18, 24]) {
-                const a = projectPoint(at(t, t.distances[i] + ahead), camera);
-                if (a && panels.some(r => r.depth >= FAR - a.depth + 2 - 1e-6 && r.x0 < a.x && r.x1 > a.x && r.y0 < a.y && r.y1 > a.y)) return `road ${ahead} ahead`;
-            }
-            return null;
-        };
+        const look = (t, i) => hides(h, t, i);
         let frames = 0, drawn = 0;
         for (const level of [...URBAN, ...TECHNICAL]) {
             h.engine.loadLevel(level, 28);
@@ -632,6 +637,136 @@ async function decorSizes() {
         console.log(`Prop sizes at equal depth: barrier ${ratios.barrier.toFixed(2)}, sign ${ratios.sign.toFixed(2)}, crate ${ratios.cargo.toFixed(2)} kart heights; ${frames} frames, none hidden`);
     } finally { h.cleanup(); }
 }
+// Z48: David's second lot (06/11 evening). Tyre walls along the outside of the tight bends (60° over 20 units), stacks
+// side by side, off the road and off his other props; the blue and yellow sign every other one in the technical cup
+// (from above: his top view, in 3D: the first sign, its side views are still to come); the boost ramp drawn in place
+// of the green strips, the same zones and the same effect (the engine is untouched).
+async function decorSecondLot() {
+    const { Engine } = await import('../src/engines/derapage/engine.ts');
+    const { nearest, wrap, at, boostStrip } = await import('../src/engines/derapage/track.ts');
+    const { decorFootprint, DECOR_MARGIN, DECOR_SPRITES, RAMP_SPRITES, RAMP_GROUND, rampTiles, drawnDecor } = await import('../src/games/derapage/decor-sprites.ts');
+    const { KART_SPRITES } = await import('../src/games/derapage/kart-sprites.ts');
+    const heading = (t, s) => { const a = at(t, s), b = at(t, s + 2); return Math.atan2(b.y - a.y, b.x - a.x); };
+    const turn = (t, s) => wrap(heading(t, s + 20) - heading(t, s)) * 180 / Math.PI;
+    let stacks = 0, walls = 0, tight = 0, covered = 0, alt = 0;
+    for (let level = 0; level < 30; level++) {
+        const t = new Engine(level, 28).track, items = roadside(t), tyres = items.filter(i => i.kind === 'tyres');
+        for (const s of tyres) {
+            const n = nearest(t, s), side = (s.x - n.x) * n.nx + (s.y - n.y) * n.ny;
+            // The tight bend it lines: the heading turns by 60° or more over 20 units starting 6 to 14 units before it.
+            let bend = 0;
+            for (let d = 6; d <= 14 && Math.abs(bend) < 60; d++) bend = turn(t, n.along - d);
+            assert(Math.abs(bend) >= 60 - 1e-6, `circuit ${level + 1}: a tyre stack lines a tight bend (${bend.toFixed(0)}°)`);
+            assert(bend > 0 ? side < 0 : side > 0, `circuit ${level + 1}: tyres on the outside of the bend`);
+            assert(tyres.some(o => o !== s && Math.hypot(o.x - s.x, o.y - s.y) < 6.4), `circuit ${level + 1}: a stack belongs to a wall`);
+            for (const q of decorFootprint(s)) { const e = nearest(t, q); assert(e.distance >= (t.widths[e.index] ?? 28) / 2 + DECOR_MARGIN - 1e-9, `circuit ${level + 1}: tyres off the road (${e.distance.toFixed(1)})`); }
+            for (const o of items) if (o !== s && o.kind !== 'tyres') assert(Math.hypot(o.x - s.x, o.y - s.y) >= 3.9 + .7 * o.radius - 1e-9 || o.kind === 'barrier', `circuit ${level + 1}: a tyre stack over a ${o.kind}`);
+        }
+        stacks += tyres.length;
+        // Walls: stacks linked by neighbours less than 6.4 units apart.
+        const seen = new Set();
+        for (const s of tyres) {
+            if (seen.has(s)) continue;
+            walls++; const queue = [s]; seen.add(s);
+            while (queue.length) { const c = queue.pop(); for (const o of tyres) if (!seen.has(o) && Math.hypot(o.x - c.x, o.y - c.y) < 6.4) { seen.add(o); queue.push(o); } }
+        }
+        if (!t.circuit.theme.kart && items.length) for (let s = 0; s < t.length; s += 2) {
+            if (Math.abs(turn(t, s)) < 75 || Math.abs(turn(t, s - 2)) >= 75) continue;
+            tight++;
+            if (tyres.some(o => { const d = ((nearest(t, o).along - s) % t.length + t.length) % t.length; return d <= 30; })) covered++;
+        }
+        const signs = items.filter(i => i.kind === 'sign');
+        if (signs.length) {
+            assert(signs.some(i => i.alt) && signs.some(i => !i.alt), `circuit ${level + 1}: both signs in the bends`);
+            signs.forEach((g, i) => assert.equal(Boolean(g.alt), i % 2 === 1, `circuit ${level + 1}: the blue and yellow sign every other one`));
+            alt += signs.filter(i => i.alt).length;
+        }
+    }
+    assert(stacks >= 140 && walls >= 25, `tyre walls on the tight bends (${stacks} stacks, ${walls} walls)`);
+    assert(covered >= .6 * tight, `most very tight bends (75°) have their wall (${covered}/${tight})`);
+    // The ramps cover the strip exactly: tiles side by side across the road, its whole length.
+    let tiles = 0;
+    for (let level = 0; level < 30; level++) {
+        const t = new Engine(level, 28).track;
+        for (const b of t.boosts) {
+            const strip = boostStrip(t, b), list = rampTiles(strip);
+            assert(Math.abs(list.reduce((w, x) => w + x.width, 0) - 2 * strip.half) < 1e-9 && list.every(x => x.length === strip.length), 'the ramps cover the strip');
+            for (const x of list) assert(x.width / x.length > .6 && x.width / x.length < 1.6, `a ramp keeps its square drawing (${(x.width / x.length).toFixed(2)})`);
+            tiles += list.length;
+        }
+    }
+    // In the scene.
+    const shown = (h, prefix) => h.images.filter(i => i.placements.setVisible?.at(-1) && i.texture.key.startsWith(prefix));
+    const h = await mount('derapage', 'dragon', false); h.session.send('start');
+    try {
+        for (const key of Object.keys(DECOR_SPRITES)) h.textures.add(`derapage-decor-${key}`);
+        for (const key of Object.keys(KART_SPRITES)) h.textures.add(`derapage-kart-${key}`);
+        const place = (item, back = 16) => { const a = item.angle ?? 0; Object.assign(h.engine.karts[0], { x: item.x - Math.cos(a) * back, y: item.y - Math.sin(a) * back, angle: a, vx: 0, vy: 0 }); for (const k of h.engine.karts.slice(1)) Object.assign(k, { x: 9999, y: 9999 }); h.frame(); };
+        const keys = (h, prefix) => shown(h, 'derapage-decor-').map(i => i.texture.key.slice(15)).filter(k => k.startsWith(prefix));
+        // Tyres: from above the top view, in 3D the ¾ stack; 0.9 kart high.
+        h.engine.loadLevel(4, 28);
+        const stack = drawnDecor(h.engine.track).filter(i => i.kind === 'tyres')[5];
+        assert(stack, 'a tyre stack on circuit 5');
+        h.scene.view3d = false; place(stack);
+        assert(keys(h, 'pneus').includes('pneus_dessus'), `tyres from above (${keys(h, 'pneus')})`);
+        h.scene.view3d = true; place(stack, 24);
+        assert(keys(h, 'pneus').length && keys(h, 'pneus').every(k => k === 'pneus_face'), `tyres in 3D (${keys(h, 'pneus')})`);
+        // The blue and yellow sign: his top view from above, the first sign in 3D.
+        h.engine.loadLevel(9, 28);
+        const blue = drawnDecor(h.engine.track).find(i => i.kind === 'sign' && i.alt);
+        h.scene.view3d = false; place(blue, 10);
+        assert(keys(h, 'panneau').includes('panneau2_dessus'), `the blue and yellow sign from above (${keys(h, 'panneau')})`);
+        h.scene.view3d = true; place(blue, 20);
+        assert(keys(h, 'panneau').length && keys(h, 'panneau').every(k => !k.includes('dessus')), `in 3D the first sign (${keys(h, 'panneau')})`);
+        // Ramps: without their chunk the green strip; with it David's ramps, from above and in four quarters in 3D,
+        // the green gone from the ground.
+        const boosted = Array.from({ length: 30 }, (_, i) => i).find(i => new Engine(i, 28).track.boosts.length > 0);
+        h.engine.loadLevel(boosted, 28);
+        const t = h.engine.track, b = t.boosts[0], strip = boostStrip(t, b), first = t.points[b.index], next = t.points[(b.index + 1) % 96];
+        const facing = Math.atan2(next.y - first.y, next.x - first.x);
+        const before = () => { Object.assign(h.engine.karts[0], { x: first.x - Math.cos(facing) * 14, y: first.y - Math.sin(facing) * 14, angle: facing, vx: 0, vy: 0 }); for (const k of h.engine.karts.slice(1)) Object.assign(k, { x: 9999, y: 9999 }); h.frame(); };
+        const green = () => h.calls.some(c => c[0] === 'fillStyle' && (c[1] === 0x64edbd || c[1] === 0x168e78));
+        for (const view3d of [false, true]) {
+            h.scene.view3d = view3d; before();
+            assert(green() && shown(h, 'derapage-ramp-').length === 0, `${view3d ? '3D' : 'top'}: the green strip until the ramps arrive`);
+        }
+        for (const key of Object.keys(RAMP_SPRITES)) h.textures.add(`derapage-ramp-${key}`);
+        h.scene.view3d = false; before();
+        const top = shown(h, 'derapage-ramp-');
+        assert(!green() && top.length === rampTiles(strip).length && top.every(i => i.texture.key === 'derapage-ramp-rampe'), `from above one ramp per tile, no green (${top.length})`);
+        const road = h.scene.road?.image, along = top[0].placements.setRotation[0] - road.placements.setRotation[0] - Math.PI / 2;
+        assert(Math.abs(Math.sin(along - facing)) < 1e-6 && Math.cos(along - facing) > 0, `from above the chevrons point down the road (${along.toFixed(2)} vs ${facing.toFixed(2)})`);
+        h.scene.view3d = true; before();
+        const ramps = shown(h, 'derapage-ramp-'), quarters = new Set(ramps.map(i => i.texture.key.slice(14)));
+        assert(!green() && h.calls.some(c => c[0] === 'fillStyle' && c[1] === RAMP_GROUND), '3D: the strip ground is the ramp steel, no green');
+        assert.deepEqual([...quarters].sort(), ['rampe_0', 'rampe_1', 'rampe_2', 'rampe_3'], '3D: the four quarters');
+        // Perspective: along a tile the far quarter is higher on screen and narrower than the near one; under every standing sprite.
+        const q0 = ramps.filter(i => i.texture.key.endsWith('_0')), q3 = ramps.filter(i => i.texture.key.endsWith('_3'));
+        assert(Math.max(...q0.map(i => i.placements.setPosition[1])) < Math.min(...q3.map(i => i.placements.setPosition[1])), 'the far quarter above the near one');
+        assert(Math.max(...q0.map(i => i.placements.setDisplaySize[0])) < Math.min(...q3.map(i => i.placements.setDisplaySize[0])), 'the far quarter narrower');
+        assert(ramps.every(i => i.placements.setDepth[0] < 2), 'ramps on the ground, under the sprites');
+        for (const key of Object.keys(RAMP_SPRITES)) h.textures.delete(`derapage-ramp-${key}`);
+        // Sizes: a tyre stack 0.9 kart high at equal depth; no stack hides the player's kart or the road ahead, driving
+        // the centre line of the circuits that have walls.
+        h.engine.loadLevel(4, 28);
+        const st = drawnDecor(h.engine.track).filter(i => i.kind === 'tyres')[5], a = Math.atan2(-nearest(h.engine.track, st).nx, nearest(h.engine.track, st).ny);
+        Object.assign(h.engine.karts[0], { x: st.x - Math.cos(a) * 24, y: st.y - Math.sin(a) * 24, angle: a, vx: 0, vy: 0 });
+        Object.assign(h.engine.karts[1], { x: st.x - Math.sin(a) * 6, y: st.y + Math.cos(a) * 6, angle: a, vx: 0, vy: 0 });
+        for (const k of h.engine.karts.slice(2)) Object.assign(k, { x: 9999, y: 9999 });
+        h.frame();
+        const rival = shown(h, 'derapage-kart-').reduce((m, k) => k.placements.setPosition[1] < m.placements.setPosition[1] ? k : m);
+        const panel = shown(h, 'derapage-decor-pneus').reduce((m, i) => !m || Math.abs(i.placements.setPosition[0] - 180) < Math.abs(m.placements.setPosition[0] - 180) ? i : m, null);
+        const ratio = panel.placements.setDisplaySize[1] / rival.placements.setDisplaySize[1];
+        assert(ratio > .8 && ratio < 1, `tyres height / kart height ${ratio.toFixed(2)}`);
+        let frames = 0;
+        for (const level of [2, 4, 6, 9, 15, 20, 23, 24, 27, 29]) {
+            h.engine.loadLevel(level, 28);
+            const tt = h.engine.track;
+            for (let i = 0; i < 96; i++) { const hidden = hides(h, tt, i); assert.equal(hidden, null, `circuit ${level + 1}, position ${i}: a prop hides the ${hidden}`); frames++; }
+        }
+        console.log(`Second lot: ${stacks} tyre stacks in ${walls} walls (${covered}/${tight} very tight bends), ${alt} blue and yellow signs, ${tiles} ramp tiles; tyres ${ratio.toFixed(2)} kart; ${frames} frames, none hidden`);
+    } finally { h.cleanup(); }
+}
 await renderBudget();
 assert.equal(budgetChecks,384,'all real frame counts submitted');
 assert.throws(() => withinBudget(521, 591), { name: 'AssertionError' }, 'negative budget boundary');
@@ -645,6 +780,7 @@ await treeSizes();
 await decorPlacement();
 await decorInScene();
 await decorSizes();
+await decorSecondLot();
 if(process.argv.includes('--audit-mutations')) {
 const { mutationModule } = await import('./mutation-module.js');
 // Execute actual scene mutations: an inflated render and a return to smoothed time.

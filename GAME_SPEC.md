@@ -312,8 +312,9 @@ la course (pas de collision) :
   Les flèches pointent vers le virage : le dessin pour la droite, son miroir pour la gauche.
   Le panneau à deux flèches est gardé tel quel. En 3D : face vu de l'amont (à moins de 60°),
   dos vu de l'aval, tranche entre les deux. Vue de dessus : la vue de dessus des planches,
-  perpendiculaire à la route (celle de la planche « 4 objets », bleue et jaune aux flèches
-  opposées, ne correspond pas à ce panneau et n'est pas reprise).
+  perpendiculaire à la route. Un panneau sur deux est le second panneau de David, bleu et
+  jaune aux flèches opposées (Z48) : jamais retourné ; il n'existe pour l'instant que vu de
+  dessus, donc en 3D sa place montre le premier panneau.
 
 Échelle (planche d'échelle proposée le 06/11) : en 3D, à même distance, la barrière mesure une
 hauteur de kart (3,68 unités × l'échelle de perspective), le panneau 1,6 et la caisse
@@ -328,6 +329,28 @@ joueur ni la route 12, 18 et 24 unités devant. Ces dessins arrivent dans leur p
 les décors vectoriels restent affichés (la barrière a le sien), et la couche de route n'est
 recuite sans eux qu'une fois toutes les textures arrivées. Ils ont leur propre réserve de
 64 images.
+
+Second lot de David (Z48, arbitrages du 06/11 au soir), toujours sans effet sur la course :
+- **Murs de pneus** le long de l'extérieur des virages serrés (le cap tourne d'au moins 60° sur
+  les 20 unités suivantes ; un creux de moins de 5 unités sous le seuil ne coupe pas le mur) :
+  des piles de trois pneus côte à côte, centres à 4 unités (elles se touchent en 3D), sur tous
+  les circuits qui ont un bord de route. Une pile seule n'est pas posée. Le mur cède la place
+  aux autres décors de David ; les décors ordinaires du programme cèdent la place au mur. En 3D,
+  la vue ¾ de la pile (ronde, la même sous tous les angles), 0,9 hauteur de kart ; vue de
+  dessus, la vue de dessus de la planche « 4 objets ». Empreinte hors route comme les autres
+  décors (avec 1 unité de jeu en plus dans les virages). Environ 150 piles en 67 murs.
+- **Rampe d'accélération** : elle remplace le dessin des bandes vertes, pas le jeu (mêmes zones,
+  même effet, le moteur n'est pas touché). Chaque bande est couverte de rampes côte à côte en
+  travers de la route (autant que la longueur de la bande en loge, presque carrées), chevrons
+  vers l'avant. Vue de dessus : la vue de dessus de la planche « 4 objets » par rampe, tournée
+  avec la carte. En 3D, la vue ¾ ne colle pas à la projection du sol : chaque rampe est posée
+  à plat en quatre quarts dans le sens de la route, chacun ajusté sur sa portion de sol
+  projetée, pour que la perspective tienne ; le sol de la bande prend l'acier de la rampe au
+  lieu du vert. Les rampes passent sous tous les objets debout. Elles ont leur propre réserve
+  de 96 images.
+Ces dessins sont dans le même module `decor-atlas` (19 WebP de décor, 111 Ko ; 5 WebP de rampe,
+20 Ko) ; d'ici là, le vectoriel (une pile de pneus dessinée par code, la bande verte) reste
+affiché.
 
 En vue 3D, le ciel est l'horizon dessiné par David pour la coupe (Z45) : urbaine = Paris,
 rapide = vallée printanière, technique = désert des dunes, ovales = galaxie étoilée,

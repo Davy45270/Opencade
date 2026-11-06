@@ -1,6 +1,6 @@
 import { fingerProof } from './finger';
 import { sceneryKinds, sceneryDrawing, type SceneryKind } from './scenery';
-import { BEHIND, Cadence, draw3d, screenHeading, type RenderCost } from './view3d';
+import { BEHIND, Cadence, draw3d, projectPoint, screenHeading, type RenderCost } from './view3d';
 import { beginThumb, moveThumb, thumbDirection, thumbIntensity, acceptsThumb, type Thumb } from './joystick';
 import { RoadLayer, inView } from './road';
 import { kartLandscape, kartRoadArt, kartTree } from './kart-art';
@@ -13,7 +13,7 @@ import { ArcadePaint } from '../../characters/arcade-phaser';
 import { renderCharacter } from '../../characters/canvas';
 import { bonusIcon, bonusTexture, pickupPanel, type BonusSpriteKey } from './bonus-sprites';
 import { HORIZON_WIDTH, SKY, horizonLeft, horizonOf, horizonTexture, type Horizon } from './horizon-sprites';
-import { DECOR_SPRITES, decorPanel, decorTexture, decorTop, drawnDecor, isDecor, type DecorSpriteKey } from './decor-sprites';
+import { DECOR_SPRITES, RAMP_GROUND, RAMP_SPRITES, decorPanel, decorTexture, decorTop, drawnDecor, isDecor, rampTexture, rampTiles, type DecorSpriteKey, type RampSpriteKey } from './decor-sprites';
 import { TREE_SPRITES, drawnTrees, treeCrown, treeEssence, treeHeight, treePanel, treeTexture, treeTop, type TreeSpriteKey } from './tree-sprites';
 import { KART_SPRITES, chaseView, kartSprite, kartTexture, kartView, type KartSpriteKey, type KartView } from './kart-sprites';
 import { required } from '../../engines/derapage/access';
@@ -49,7 +49,7 @@ export interface DerapageHook {
     art(): string[];
     overview(enabled: boolean): void;
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; bonusViews: string[]; treeViews: string[]; decorViews: string[]; horizon: { key: string; x: number } | null; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: string[] };
+    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; bonusViews: string[]; treeViews: string[]; decorViews: string[]; rampViews: string[]; horizon: { key: string; x: number } | null; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: string[] };
     loadLevel(i: number, seed?: number): void;
     /** Places a kart (test only): position and heading, simulation frozen, one frame drawn. */
     pose(id: number, x: number, y: number, angle: number): void;
@@ -164,6 +164,18 @@ export class DerapageScene extends Phaser.Scene {
     /** True once every prop texture of the chunk is loaded: from then on the road is baked without the vector props. */
     private get drawnDecorReady(): boolean {
         return (Object.keys(DECOR_SPRITES) as DecorSpriteKey[]).every(key => this.textures.exists(decorTexture(key)));
+    }
+    /** Sprite keys of David's boost ramps in the last frame, for tests. */
+    private rampViews: string[] = [];
+    /** Their own pool: up to six ramps across the road, four quarters each in 3D, a few strips in sight. */
+    private rampPaint?: ArcadePaint;
+    private static readonly QUARTERS = ['rampe_0', 'rampe_1', 'rampe_2', 'rampe_3'] as const;
+    private get drawnRampReady(): boolean {
+        return (Object.keys(RAMP_SPRITES) as RampSpriteKey[]).every(key => this.textures.exists(rampTexture(key)));
+    }
+    private drawnRamp(key: RampSpriteKey, x: number, y: number, width: number, height: number, rotation: number, depth: number): void {
+        this.rampPaint?.draw(rampTexture(key), x, y, width, rotation, 1, depth, height);
+        this.rampViews.push(key);
     }
     /** Draws one of David's props centred at (x, y), `width` × `height` on screen. */
     private drawnProp(key: DecorSpriteKey, x: number, y: number, width: number, height: number, rotation: number, depth: number): void {
@@ -303,12 +315,14 @@ export class DerapageScene extends Phaser.Scene {
             });
             this.inputs.cleanup(() => { button.remove(); });
         }
-        const cleanup = (): void => { this.inputs.dispose(); this.road?.destroy(); this.paint?.destroy(); this.treePaint?.destroy(); this.decorPaint?.destroy(); for (const image of this.kartImages) image.destroy(); this.kartImages = []; for (const image of this.skyImages ?? []) image.destroy(); this.skyImages = undefined; this.kartImageCount = 0; for (const prop of this.props3d) prop.destroy(); this.props3d = []; this.propCount = 0; this.hud3d?.destroy(); this.hud3d = undefined; this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
+        const cleanup = (): void => { this.inputs.dispose(); this.road?.destroy(); this.paint?.destroy(); this.treePaint?.destroy(); this.decorPaint?.destroy(); this.rampPaint?.destroy(); for (const image of this.kartImages) image.destroy(); this.kartImages = []; for (const image of this.skyImages ?? []) image.destroy(); this.skyImages = undefined; this.kartImageCount = 0; for (const prop of this.props3d) prop.destroy(); this.props3d = []; this.propCount = 0; this.hud3d?.destroy(); this.hud3d = undefined; this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         this.background = this.add.graphics().setDepth(-1);
         this.road = new RoadLayer(this);
         this.graphics = this.add.graphics().setDepth(1);
+        // Created before the other pools: from above the ramps lie under the karts at the same depth.
+        this.rampPaint = new ArcadePaint(this, 96);
         this.paint = new ArcadePaint(this, 96);
         this.treePaint = new ArcadePaint(this, 128);
         this.decorPaint = new ArcadePaint(this, 64);
@@ -335,9 +349,10 @@ export class DerapageScene extends Phaser.Scene {
             this.load.start();
         }).catch(() => undefined);
         // David's props (barrier, crate, direction sign), same pattern: the vector props until their chunk arrives.
-        void import('./decor-atlas').then(({ sprites }) => {
+        void import('./decor-atlas').then(({ sprites, ramps }) => {
             if (!this.sys.isActive()) return;
             for (const [key, url] of Object.entries(sprites)) if (!this.textures.exists(decorTexture(key))) this.load.image(decorTexture(key), url);
+            for (const [key, url] of Object.entries(ramps)) if (!this.textures.exists(rampTexture(key))) this.load.image(rampTexture(key), url);
             this.load.once('complete', () => { if (this.sys.isActive()) this.draw(); });
             this.load.start();
         }).catch(() => undefined);
@@ -424,7 +439,7 @@ export class DerapageScene extends Phaser.Scene {
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
                 performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.time }),
                 fingerReceipts: receipts,
-                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], bonusViews: [...this.bonusViews], treeViews: [...this.treeViews], decorViews: [...this.decorViews], horizon: this.horizonView && { ...this.horizonView }, fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id)] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
+                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], bonusViews: [...this.bonusViews], treeViews: [...this.treeViews], decorViews: [...this.decorViews], rampViews: [...this.rampViews], horizon: this.horizonView && { ...this.horizonView }, fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id)] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
                 hudText: () => this.hud?.textContent ?? '', usefulArea: () => ({ x: 0, y: 96, width: 360, height: 544 }),
@@ -561,12 +576,12 @@ export class DerapageScene extends Phaser.Scene {
         g.clear();
         background.clear();
         this.road?.hide();
-        this.paint?.begin(); this.treePaint?.begin(); this.decorPaint?.begin();
+        this.paint?.begin(); this.treePaint?.begin(); this.decorPaint?.begin(); this.rampPaint?.begin();
         for (let i = 0; i < this.kartImageCount; i++) this.kartImages[i]?.setVisible(false);
-        this.kartImageCount = 0; this.kartViews = []; this.bonusViews = []; this.treeViews = []; this.decorViews = [];
+        this.kartImageCount = 0; this.kartViews = []; this.bonusViews = []; this.treeViews = []; this.decorViews = []; this.rampViews = [];
         for (const image of this.skyImages ?? []) image.setVisible(false);
         this.horizonView = null;
-        const treesReady = this.drawnTreesReady, decorReady = this.drawnDecorReady;
+        const treesReady = this.drawnTreesReady, decorReady = this.drawnDecorReady, rampReady = this.drawnRampReady;
         for (let i=0;i<this.propCount;i++) this.props3d[i]?.clear().setVisible(false);
         this.propCount = 0;
         this.hud3d?.clear();
@@ -605,7 +620,19 @@ export class DerapageScene extends Phaser.Scene {
                 const height = treeHeight(tree) * a.scale;
                 this.drawnTree(treePanel(essence, height), a.x, a.y, height, 0, depth, false);
                 return true;
-            }, skyDrawn);
+            }, skyDrawn, rampReady ? RAMP_GROUND : undefined);
+            // David's boost ramps on the ground (Z48), under every standing sprite: each tile in four quarters along the
+            // road, each quarter laid on its own projected stretch of ground, so the perspective holds (the far quarter
+            // smaller). A quarter partly behind the camera is not drawn: the steel ground of the strip shows there.
+            if (rampReady) for (const b of t.boosts) for (const tile of rampTiles(boostStrip(t, b))) {
+                for (let i = 0; i < 4; i++) {
+                    const u1 = tile.length / 2 - i * tile.length / 4, u0 = u1 - tile.length / 4, m = (u0 + u1) / 2;
+                    const ground = (u: number, v: number) => projectPoint({ x: tile.center.x + tile.along.x * u + tile.across.x * v, y: tile.center.y + tile.along.y * u + tile.across.y * v }, p);
+                    const l = ground(m, -tile.width / 2), r = ground(m, tile.width / 2), n = ground(u0, 0), f = ground(u1, 0);
+                    if (!l || !r || !n || !f) continue;
+                    this.drawnRamp(DerapageScene.QUARTERS[i] ?? 'rampe_0', (n.x + f.x) / 2, (n.y + f.y) / 2, Math.hypot(r.x - l.x, r.y - l.y), Math.hypot(n.x - f.x, n.y - f.y), Math.atan2(r.y - l.y, r.x - l.x), 1.6);
+                }
+            }
         } else {
         background.fillStyle(t.circuit.theme.ground);
         background.fillRect(0, 96, 360, 544);
@@ -669,6 +696,14 @@ export class DerapageScene extends Phaser.Scene {
             const strip=boostStrip(t,b);
             const polygon=strip.corners.map(q=>project(q.x,q.y));
             if (!inView(polygon)) continue;
+            // David's ramps (Z48) once their chunk is loaded: tiles across the strip, its exact footprint, turning with the map.
+            if (rampReady) {
+                for (const tile of rampTiles(strip)) {
+                    const a=project(tile.center.x,tile.center.y);
+                    this.drawnRamp('rampe',a.x,a.y,tile.width*scale,tile.length*scale,Math.atan2(tile.across.y,tile.across.x)+(this.overviewMode ? 0 : angle),1);
+                }
+                continue;
+            }
             g.fillStyle(0x168e78); g.fillPoints(polygon,true);
             // Chevrons travel along the strip, clipped to its exact footprint.
             const phase=(artTime/500)%1;

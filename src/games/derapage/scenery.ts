@@ -2,13 +2,13 @@ import type Phaser from 'phaser';
 import type { Primitive } from '../../characters/model';
 import { renderCharacter } from '../../characters/phaser';
 import { at, nearest, wrap, TREE_CLEARANCE, type Track, type Vec } from '../../engines/derapage/track';
-import { DECOR_MARGIN, decorFootprint, decorReach, decorTop } from './decor-sprites';
+import { DECOR_MARGIN, decorFootprint, decorReach, decorTop, isDecor, type DecorKind } from './decor-sprites';
 
-export const sceneryKinds = ['building','lamp','crossing','fence','flowers','hay','rock','turn','arrow','stand','flag','banner','fir','stump','pond','bollard','cargo','anchor','cliff','bush','stones','pennant','mound','ribbon','tree','barrier','sign'] as const;
+export const sceneryKinds = ['building','lamp','crossing','fence','flowers','hay','rock','turn','arrow','stand','flag','banner','fir','stump','pond','bollard','cargo','anchor','cliff','bush','stones','pennant','mound','ribbon','tree','barrier','sign','tyres'] as const;
 export type SceneryKind = typeof sceneryKinds[number];
 /** `angle`: heading of the road at a drawn prop (barrier and crate lie along it, the sign faces the karts coming
- *  down it); `mirror`: a sign announcing a left bend. */
-export interface Scenery extends Vec { kind: SceneryKind; radius: number; angle?: number; mirror?: boolean }
+ *  down it); `mirror`: a sign announcing a left bend; `alt`: the blue and yellow sign, every other one. */
+export interface Scenery extends Vec { kind: SceneryKind; radius: number; angle?: number; mirror?: boolean; alt?: boolean }
 const cache = new WeakMap<Track, readonly Scenery[]>();
 /** Theme colours identify the existing eight palettes without changing engine data. */
 export function sceneryTheme(t: Track): number {
@@ -58,6 +58,17 @@ export function roadside(t: Track): readonly Scenery[] {
         return Math.hypot(o.x-b.x-u*c,o.y-b.y-u*sn)<2+.7*o.radius;
     });
     const kept=items.filter(item => item.kind!=='barrier' || !over(item));
+    // Tyre walls (Z48) on the outside of the tight bends, where no other prop stands.
+    if (!t.circuit.theme.kart && theme>=0) {
+        const reach=decorTop({x:0,y:0,kind:'tyres',radius:0,angle:0}).width/2;
+        const near=(o: Scenery, stack: Scenery): boolean => Math.hypot(o.x-stack.x,o.y-stack.y)<reach+(o.kind==='barrier' ? half : .7*o.radius);
+        // A wall gives way to David's other props, the program's ordinary props give way to the wall.
+        const free=tyreWalls(t).filter(stack => !kept.some(o => isDecor(o.kind) && near(o,stack)));
+        // A stack alone is not a wall.
+        const stacks=free.filter(a => free.some(b => b!==a && Math.hypot(a.x-b.x,a.y-b.y)<1.6*TYRE_SPACING));
+        const walled=[...kept.filter(o => isDecor(o.kind) || !stacks.some(stack => near(o,stack))),...stacks];
+        cache.set(t,walled);return walled;
+    }
     cache.set(t,kept);return kept;
 }
 /** Off the road with DECOR_MARGIN at every point of its footprint, and off the shortcut. */
@@ -72,8 +83,8 @@ function clear(t: Track, item: Scenery): boolean {
     });
 }
 /** A prop at `along` on the road, `side` = 1 to the right of the driver, -1 to the left, standing just off the edge. */
-function beside(t: Track, along: number, side: number, kind: 'barrier' | 'sign', radius: number, mirror?: boolean): Scenery {
-    const p=at(t,along), n=nearest(t,p), offset=(t.widths[n.index] ?? 28)/2+DECOR_MARGIN+decorReach(kind)+1;
+function beside(t: Track, along: number, side: number, kind: Exclude<DecorKind, 'cargo'>, radius: number, mirror?: boolean, slack=1): Scenery {
+    const p=at(t,along), n=nearest(t,p), offset=(t.widths[n.index] ?? 28)/2+DECOR_MARGIN+decorReach(kind)+slack;
     const q={x:p.x+n.nx*side*offset,y:p.y+n.ny*side*offset}, edge=nearest(t,q);
     // Square to the road section it stands beside (in a bend, the nearest one), not to the point it was measured from.
     return {...q,kind,radius,angle:Math.atan2(-edge.nx,edge.ny),...(mirror===undefined ? {} : {mirror})};
@@ -110,7 +121,33 @@ function signs(t: Track): Scenery[] {
         let first=0;
         for(let d=5;d<=55 && Math.abs(first)<25*Math.PI/180;d++) first=turnAhead(t,from+d);
         if(Math.abs(first)<25*Math.PI/180 || first>0!==bend.right) continue;
-        items.push(item); break;
+        // David's blue and yellow sign every other one (06/11 evening), to vary the bends.
+        items.push(items.length%2 ? {...item,alt:true} : item); break;
+    }
+    return items;
+}
+/** A tight bend: the heading turns by this much over the next 20 units of road. */
+export const TIGHT_BEND = 60*Math.PI/180;
+/** Centre distance between two stacks of a tyre wall: they touch in 3D (a stack is 3.9 units wide). */
+export const TYRE_SPACING = 4;
+/** David's tyre stacks (06/11 evening): walls side by side along the outside of the tight bends, off the road. */
+function tyreWalls(t: Track): Scenery[] {
+    const items: Scenery[]=[], step=.25;
+    // The tight stretches of road, a short dip under the threshold bridged (the wall runs on).
+    const runs: { from: number; to: number; right: boolean }[]=[];
+    for(let s=0;s<t.length;s+=step) {
+        const turn=turnAhead(t,s);
+        if(Math.abs(turn)<TIGHT_BEND) continue;
+        const last=runs.at(-1);
+        if(last && last.right===turn>0 && s-last.to<=5) last.to=s;
+        else runs.push({from:s,to:s,right:turn>0});
+    }
+    // Fine steps: on the outside of a tight bend one unit of the centre line is two or three units of the wall.
+    for(const run of runs) for(let s=run.from;s<=run.to;s+=step) {
+        // In a bend the road widens and turns: a little more slack than along a straight.
+        const item=beside(t,s+10,run.right ? -1 : 1,'tyres',2,undefined,2);
+        if(!clear(t,item) || items.some(o=>Math.hypot(o.x-item.x,o.y-item.y)<TYRE_SPACING)) continue;
+        items.push(item);
     }
     return items;
 }
@@ -148,6 +185,8 @@ export function sceneryDrawing(kind: SceneryKind): Primitive[] {
     } else if(kind==='barrier') {
         for(const x of [44,176]) {rect(x,96,20,110,'#8d96a0');oval(x+10,82,16,16,'#f6a73a');}
         for(const y of [112,160]) {rect(24,y,192,26,'#e4473f');for(let x=40;x<200;x+=48) poly([[x,y],[x+20,y],[x+8,y+26],[x-12,y+26]],'#f4efe6');}
+    } else if(kind==='tyres') {
+        for(const y of [178,128,78]) {oval(120,y,92,30,y===128 ? '#ece8e0' : '#e4473f');oval(120,y-8,52,13,'#30323a');}
     } else if(kind==='turn' || kind==='arrow' || kind==='sign') {
         if(kind!=='arrow') post();rect(24,45,192,95,'#f2cd61');poly([[60,63],[113,63],[164,93],[113,123],[60,123],[111,93]],'#384453');
     } else if(kind==='stand') {
