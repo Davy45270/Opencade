@@ -142,7 +142,7 @@ export function createOracles(E: typeof Engine = Engine, V: typeof validateLevel
             const bad = structuredClone(required(LEVELS[0])); bad.map = ['?']; check(V(bad).includes('dimensions'));
             const blocked = structuredClone(required(LEVELS[0])); blocked.map = blocked.map.map(row => row.replace('P', 'W')); check(V(blocked).length > 0);
             const unknown = structuredClone(required(LEVELS[0])); unknown.map = unknown.map.map(row => row.replace('C', '!')); check(V(unknown).includes('legend'));
-            const sealed = structuredClone(required(LEVELS[3])); sealed.map = sealed.map.map(row => row.replace('X', 'W')); check(V(sealed).some(error => error.startsWith('unreachable V')));
+            const sealed = structuredClone(required(LEVELS[3])); sealed.map = sealed.map.map(row => row.replace('B', 'W')); check(V(sealed).some(error => error.startsWith('unreachable V')));
             const missingTool = structuredClone(required(LEVELS[4])); missingTool.map = missingTool.map.map(row => row.replace('l', '.')); check(V(missingTool).some(error => error.startsWith('facade')));
         }],
         ['PP-26 flèche définie et prérequis outils sur toute la campagne', () => {

@@ -1,6 +1,6 @@
 import type Phaser from 'phaser';
 import type { CharacterId } from '../../characters/model';
-import { WIDTH, type Engine } from '../../engines/petits-pompiers/engine';
+import { WIDTH, type Engine, type Victim } from '../../engines/petits-pompiers/engine';
 import { drop, firefighter, ink, toolArt, victim } from './art';
 import { spriteKey } from './arena';
 import { cell, depthOf, direction, point, unproject } from './iso';
@@ -9,7 +9,13 @@ import { waterEnd, type View } from './view';
 type G = Phaser.GameObjects.Graphics;
 type Image = Phaser.GameObjects.Image;
 const FIRE: Record<number, SpriteKey> = { 1: 'feu_petit', 2: 'feu_moyen', 3: 'feu_grand' };
-const SPECIES: Record<string, SpriteKey> = { person: 'enfant', cat: 'chat', dog: 'chien' };
+const SPECIES: Record<string, SpriteKey> = { person: 'enfant', dog: 'chien' };
+/** Sprite of a victim. David's kitten changes with the rescue: it calls for help while it waits,
+ *  is relieved in the firefighter's arms and happy once saved. The dog and the people keep one sprite. */
+export function victimSprite(v: Pick<Victim, 'id' | 'species' | 'saved'>, carried: number): SpriteKey {
+    if (v.species === 'cat') return v.saved ? 'chaton_heureux' : v.id === carried ? 'chaton_soulage' : 'chaton_appel';
+    return SPECIES[v.species] ?? 'enfant';
+}
 const TOOL: Partial<Record<string, SpriteKey>> = { hose: 'outil_lance', foam: 'outil_lance', kit: 'outil_trousse' };
 /** Upper windows hold their victim this high above the ground (iso units). */
 export const UPPER = 30;
@@ -50,8 +56,9 @@ export class ActorLayer {
             if (e.level.smoke) this.sprite('fumee', view, { x: p.x + 4, y: p.y - 26 }, d + .2, 1, .72);
             this.sprite(FIRE[Math.min(3, Math.max(1, f.intensity))] ?? 'feu_petit', view, p, d, sway);
         }
-        for (const v of e.victims) if (!v.saved && v.id !== e.player.carried && !v.hidden) {
-            const p = point(v.x, v.y), key = SPECIES[v.species] ?? 'enfant';
+        for (const v of e.victims) if ((!v.saved || v.species === 'cat') && v.id !== e.player.carried && !v.hidden) {
+            // A saved kitten sits on the safe spot's cross, happy, rather than under the firefighter who set it down.
+            const safe = e.tiles.indexOf('S'), p = v.saved && safe >= 0 ? { x: cell(safe).x - 4, y: cell(safe).y - 2 } : point(v.x, v.y), key = victimSprite(v, e.player.carried);
             this.sprite(key, view, { x: p.x, y: p.y - (v.upper ? UPPER : 0) }, depthAt(p, v.upper ? 2.5 : 1));
         }
         for (const p of e.pickups) {
@@ -91,7 +98,7 @@ export class ActorLayer {
             const sx = Math.sign(p.dx - p.dy), sy = Math.sign(p.dx + p.dy);
             firefighter(player, e.character, x, y, 48, time, sx, sy, moving, false, p.immune > 0);
         }
-        if (p.carried >= 0) { const v = e.victims[p.carried]; if (v) { if (this.scene.textures.exists(spriteKey(SPECIES[v.species] ?? 'enfant'))) this.sprite(SPECIES[v.species] ?? 'enfant', view, { x: x + 15, y: y - 20 }, depthAt(at, 1.3), .8); else victim(player, x + 16, y - 25, v.species, 21); } }
+        if (p.carried >= 0) { const v = e.victims[p.carried]; if (v) { if (this.scene.textures.exists(spriteKey(victimSprite(v, p.carried)))) this.sprite(victimSprite(v, p.carried), view, { x: x + 15, y: y - 20 }, depthAt(at, 1.3), .8); else victim(player, x + 16, y - 25, v.species, 21); } }
         if (e.job?.kind === 'spray' || e.job?.kind === 'foam') {
             const end = waterEnd(e), d = direction(p.dx, p.dy), start = { x: x + d.x * 12, y: y - 8 + d.y * 12 };
             front.lineStyle(7, 0xe9543e); front.lineBetween(x, y - 10, start.x, start.y);

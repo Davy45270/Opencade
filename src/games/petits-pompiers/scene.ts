@@ -16,6 +16,7 @@ import { contextualAction, actionIcons, sectorDirection } from './controls';
 import { firefighter, drop, flame, victim, toolArt, UNIT } from './art';
 import { ArenaLayer, spriteKey } from './arena';
 import { ActorLayer } from './actors';
+import { SPRITES } from './sprites';
 import { BACKGROUND, STICK_ARROWS, worldOf } from './iso';
 import { mascotGallery } from './gallery';
 import { cameraView, edgeGuide, hudLayout, onScreen, playerPoint, tutorialAction, type Frame, type View } from './view';
@@ -55,6 +56,8 @@ export class PetitsPompiersScene extends Phaser.Scene {
     private front?: Phaser.GameObjects.Graphics;
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: Phaser.GameObjects.Graphics;
+    /** David's kitten on the animal counter, once the sprites are loaded (vector cat until then). */
+    private hudCat?: Phaser.GameObjects.Image;
     private hudLabels: Phaser.GameObjects.Text[] = [];
     private hudLayer?: Phaser.GameObjects.Container;
     private overlay?: Phaser.GameObjects.Graphics;
@@ -115,7 +118,8 @@ export class PetitsPompiersScene extends Phaser.Scene {
         this.hud = this.add.graphics();
         for (let i = 0; i < 7; i++) this.hudLabels.push(this.add.text(0, 0, '', { fontFamily: 'system-ui', fontSize: '18px', fontStyle: 'bold', color: '#263c51' }));
         // The HUD cells float over the map in the top-left corner, scaled to the screen, never under the ⏸.
-        this.hudLayer = this.add.container(0, 0, [this.hud, ...this.hudLabels]).setDepth(1000);
+        this.hudCat = this.add.image(0, 0, '__MISSING').setVisible(false);
+        this.hudLayer = this.add.container(0, 0, [this.hud, this.hudCat, ...this.hudLabels]).setDepth(1000);
         this.overlay = this.add.graphics().setDepth(950);
         this.cameras.main.setBackgroundColor('#eef4e9');
         this.instruction = this.add.text(180, 455, '', { fontFamily: 'system-ui', fontSize: '30px', color: '#263c51' }).setOrigin(.5, 0).setDepth(1000);
@@ -222,6 +226,8 @@ export class PetitsPompiersScene extends Phaser.Scene {
         if (hud) {
             hud.clear();
             const cells = hudLayout(e);
+            const kitten = this.hudCat && e.victims.some(v => v.species === 'cat') && this.textures.exists(spriteKey('chaton_appel')) ? this.hudCat : undefined;
+            this.hudCat?.setVisible(false);
             // Counters are read by children: at least 18 px on screen, whatever the HUD scale.
             const shown = place.scale * this.cssScale(), font = Math.min(28, Math.max(18, Math.ceil(COUNTER_PX / (shown || 1))));
             this.hudLabels.forEach((label, i) => {
@@ -234,6 +240,7 @@ export class PetitsPompiersScene extends Phaser.Scene {
                     drop(hud, x + 17, y + 19, 13); hud.fillStyle(0xc7d8d5); hud.fillRoundedRect(x + 33, y + 10, width - 43, 14, 7);
                     hud.fillStyle(0x49bce4); hud.fillRoundedRect(x + 33, y + 10, (width - 43) * e.player.water / ABILITIES[e.character].water, 14, 7);
                 } else if (cell.id === 'extinguish') flame(hud, x + 19, y + 26, 18);
+                else if (cell.id === 'rescue_animal' && kitten) { const s = SPRITES.chaton_appel, k = 38 / s.h; kitten.setTexture(spriteKey('chaton_appel')).setOrigin(s.ox, s.oy).setScale(k).setPosition(x + 19, y + height - 4).setVisible(true); }
                 else if (cell.id === 'rescue_person' || cell.id === 'rescue_animal') victim(hud, x + 19, y + 23, cell.id === 'rescue_person' ? 'person' : 'cat', 24);
                 else if (cell.id === 'heal') toolArt(hud, 'kit', x + 19, y + 25);
                 label.setOrigin(0, .5).setPosition(x + (['hearts', 'time'].includes(cell.id) ? 7 : 37), y + height / 2);

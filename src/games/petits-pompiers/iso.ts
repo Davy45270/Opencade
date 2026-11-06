@@ -100,7 +100,9 @@ export function objectPlan(e: Engine): Placement[] {
         if (tile === 'W') out.push({ key: world === 'ville' ? 'mur_ville' : 'mur_maison', gx: gx + 1, gy: gy + 1, depth: d, alpha: see, at: -1 });
         else if (tile === 'D') out.push({ key: inside.has(at - WIDTH) || inside.has(at + WIDTH) ? 'porte_SO' : 'porte_SE', gx: gx + 1, gy: gy + 1, depth: d, alpha: see, at: -1 });
         else if (tile === 'U') out.push({ key: 'fenetre_haute', gx: gx + 1, gy: gy + 1, depth: d, alpha: see, at: -1 });
-        else if ('XbB'.includes(tile)) out.push({ key: 'caisse', gx: cx + .31, gy: cy + .31, depth: d, alpha: 1, at });
+        // The blocked door: David's barrier in the doorway, along its wall (¾ right view, mirrored when the wall runs along x).
+        else if (tile === 'B') { const alongX = inside.has(at - WIDTH) || inside.has(at + WIDTH); out.push({ key: 'barriere', gx: cx + (alongX ? 0 : .22), gy: cy + (alongX ? .22 : 0), depth: d, alpha: 1, at, flip: alongX }); }
+        else if ('Xb'.includes(tile)) out.push({ key: 'caisse', gx: cx + .31, gy: cy + .31, depth: d, alpha: 1, at });
         else if (tile === '#') out.push({ key: 'gravats', gx: cx, gy: cy, depth: d, alpha: 1, at });
         else if (tile === 'T') out.push({ key: TREE[world], gx: cx, gy: cy, depth: d, alpha: 1, at: -1 });
         else if (tile === 'R') out.push({ key: 'borne', gx: cx, gy: cy, depth: d, alpha: 1, at: -1 });

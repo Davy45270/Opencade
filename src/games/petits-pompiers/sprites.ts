@@ -15,6 +15,8 @@ export const SPRITES = {
     porte_SO: { w: 145, h: 164, ox: 0.5003, oy: 0.9953 },
     fenetre_haute: { w: 146, h: 237, ox: 0.5023, oy: 0.9948 },
     caisse: { w: 91, h: 87, ox: 0.5006, oy: 0.9891 },
+    // David's barrier (¾ right view) for the blocked door; mirrored for the south-west wall face.
+    barriere: { w: 105, h: 84, ox: 0.5, oy: 0.93 },
     caserne: { w: 261, h: 236, ox: 0.3972, oy: 0.9939 },
     maison: { w: 260, h: 236, ox: 0.4672, oy: 0.9929 },
     immeuble: { w: 219, h: 327, ox: 0.4997, oy: 0.9956 },
@@ -37,7 +39,10 @@ export const SPRITES = {
     feu_grand: { w: 135, h: 92, ox: 0.5, oy: 0.9944 },
     fumee: { w: 113, h: 97, ox: 0.4978, oy: 0.9968 },
     enfant: { w: 56, h: 90, ox: 0.5002, oy: 0.9679 },
-    chat: { w: 52, h: 68, ox: 0.5031, oy: 0.9608 },
+    // David's kitten, cut from his sheet: calling for help while waiting, relieved when carried, happy once saved.
+    chaton_appel: { w: 62, h: 74, ox: 0.4969, oy: 1 },
+    chaton_soulage: { w: 62, h: 77, ox: 0.5188, oy: 1 },
+    chaton_heureux: { w: 70, h: 77, ox: 0.4779, oy: 1 },
     chien: { w: 59, h: 68, ox: 0.4985, oy: 0.9608 },
     outil_lance: { w: 76, h: 62, ox: 0.5033, oy: 0.9534 },
     outil_trousse: { w: 68, h: 60, ox: 0.4963, oy: 0.9623 },

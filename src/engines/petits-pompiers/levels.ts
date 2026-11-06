@@ -56,7 +56,7 @@ const maps = [
         'WHHW..WWWWW.E.',
         'WHHW..WVHHW...',
         'WWDW..WHHHW...',
-        '......WWXWW...',
+        '......WWBWW...',
         'TggFgg........',
         'TggggS.....C..',
         '....a.........',
@@ -184,7 +184,7 @@ const maps = [
         '..P..~~~~~.XX.',
     ],
 ] as const;
-const novelties = ['premiers secours', 'propagation', 'fumée', 'caisse et hache', 'fenêtre et échelle', 'soin et trousse', 'extincteur', 'appel et personnes cachées', 'combinaison en forêt', 'neige', 'gravats', 'deux bâtiments', 'eau et quai', 'borne éloignée', 'sauvetage combiné'];
+const novelties = ['premiers secours', 'propagation', 'fumée', 'porte bloquée et hache', 'fenêtre et échelle', 'soin et trousse', 'extincteur', 'appel et personnes cachées', 'combinaison en forêt', 'neige', 'gravats', 'deux bâtiments', 'eau et quai', 'borne éloignée', 'sauvetage combiné'];
 // Triple of the slowest recorded challenge pilot, rounded up to 10 s, minimum 60 s.
 export const CHALLENGE_SECONDS = [60, 60, 80, 60, 60, 60, 120, 60, 100, 160, 110, 150, 90, 70, 230];
 export const LEVELS: readonly Level[] = maps.map((map, i) => {

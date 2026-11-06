@@ -75,3 +75,31 @@ test('PP-ISO-04 the drawn mascots face each of the 8 screen directions; Tutu kee
     }
     expect(mascotPose('singe', 1, 0)).toBeUndefined();
 });
+
+test('PP-ISO-05 the cat to rescue is David\'s kitten (calling, relieved when carried, happy once saved); the blocked door is his barrier', async () => {
+    const { victimSprite } = await import('../src/games/petits-pompiers/actors');
+    const { existsSync } = await import('node:fs');
+    const e = new Engine(); e.loadLevel(3);
+    const cat = e.victims.find(v => v.species === 'cat'), dog = { ...cat, species: 'dog' }, person = { ...cat, species: 'person' };
+    expect(cat).toBeDefined(); if (!cat) return;
+    expect(victimSprite(cat, -1)).toBe('chaton_appel');
+    expect(victimSprite(cat, cat.id)).toBe('chaton_soulage');
+    expect(victimSprite({ ...cat, saved: true }, -1)).toBe('chaton_heureux');
+    // The dog and the people keep their sprites.
+    expect(victimSprite(dog as typeof cat, -1)).toBe('chien'); expect(victimSprite(person as typeof cat, -1)).toBe('enfant');
+    for (const key of ['chaton_appel', 'chaton_soulage', 'chaton_heureux', 'barriere'] as const) {
+        const s = SPRITES[key];
+        expect(existsSync(`src/games/petits-pompiers/iso/${key}.webp`)).toBe(true);
+        expect(s.oy).toBeGreaterThan(.9); expect(s.ox).toBeGreaterThan(.3); expect(s.ox).toBeLessThan(.7);
+    }
+    // One common scale for the kitten: about 25 world units, smaller than a firefighter (≈ 37).
+    for (const key of ['chaton_appel', 'chaton_soulage', 'chaton_heureux'] as const) { expect(SPRITES[key].h / 3).toBeGreaterThan(22); expect(SPRITES[key].h / 3).toBeLessThan(28); }
+    // Level 4 has a cat and a blocked door; the door is drawn as the barrier, along its wall.
+    const doors = [...e.tiles.entries()].filter(([, t]) => t === 'B').map(([at]) => at);
+    expect(doors.length).toBe(1);
+    const plan = objectPlan(e), barrier = plan.find(p => p.at === doors[0]);
+    expect(barrier?.key).toBe('barriere');
+    // The room is above the door: the wall runs along x, its visible face is the south-west one (the ¾ right view mirrored).
+    expect(barrier?.flip).toBe(true);
+    expect(plan.some(p => p.key === 'caisse' && p.at === doors[0])).toBe(false);
+});

@@ -57,6 +57,12 @@ La fenêtre occupe la façade de la maison, avec un intérieur au-dessus. Une fe
 à pied ; le travail de montée ramène son occupant dans les bras du joueur.
 Les portes `D` s'ouvrent au passage. `B` représente une porte bloquée cassable,
 `b` des planches, `X` une caisse, `#` des gravats. La hache ne casse jamais `W`.
+En vue isométrique, `B` est la barrière dessinée par David (vue ¾ droite, en miroir
+quand le mur court selon x), posée dans l'embrasure le long du mur ; le niveau 4
+(« porte bloquée et hache ») en a une. Le chat à secourir (`C`) est son chaton :
+« appel à l'aide » pendant l'attente, « soulagé » dans les bras du pompier, « heureux »
+une fois sauvé, assis près du point de secours. Le chien et les personnes gardent
+leur sprite ; le dessin vectoriel reste le repli tant que les sprites ne sont pas chargés.
 Pestouille peut déblayer caisses et gravats même sans hache ; ses autres travaux
 cassables utilisent sa hache de départ. Chaque outil rencontré au sol est
 ramassé automatiquement en entrant dans sa tuile. La touche outil parcourt
