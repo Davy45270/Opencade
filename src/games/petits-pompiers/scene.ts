@@ -228,7 +228,9 @@ export class PetitsPompiersScene extends Phaser.Scene {
         if (hud) {
             hud.clear();
             const cells = hudLayout(e);
-            const kitten = this.hudCat && e.victims.some(v => v.species === 'cat') && this.textures.exists(spriteKey('chaton_appel')) ? this.hudCat : undefined;
+            // The animals counter shows the level's animal: the kitten, otherwise the puppy.
+            const animalKey = e.victims.some(v => v.species === 'cat') ? 'chaton_appel' : e.victims.some(v => v.species === 'dog') ? 'chien_face' : undefined;
+            const kitten = this.hudCat && animalKey && this.textures.exists(spriteKey(animalKey)) ? this.hudCat : undefined;
             this.hudCat?.setVisible(false); this.hudChild?.setVisible(false);
             // The people counter shows the level's first child, standing, as the kitten shows on the animals counter.
             const person = e.victims.find(v => v.species === 'person'), childKey = person && victimSprite(person, -1, e.level.id, e.victims);
@@ -245,7 +247,7 @@ export class PetitsPompiersScene extends Phaser.Scene {
                     drop(hud, x + 17, y + 19, 13); hud.fillStyle(0xc7d8d5); hud.fillRoundedRect(x + 33, y + 10, width - 43, 14, 7);
                     hud.fillStyle(0x49bce4); hud.fillRoundedRect(x + 33, y + 10, (width - 43) * e.player.water / ABILITIES[e.character].water, 14, 7);
                 } else if (cell.id === 'extinguish') flame(hud, x + 19, y + 26, 18);
-                else if (cell.id === 'rescue_animal' && kitten) { const s = SPRITES.chaton_appel, k = 38 / s.h; kitten.setTexture(spriteKey('chaton_appel')).setOrigin(s.ox, s.oy).setScale(k).setPosition(x + 19, y + height - 4).setVisible(true); }
+                else if (cell.id === 'rescue_animal' && kitten && animalKey) { const s = SPRITES[animalKey], k = 38 / s.h; kitten.setTexture(spriteKey(animalKey)).setOrigin(s.ox, s.oy).setScale(k).setPosition(x + 19, y + height - 4).setVisible(true); }
                 else if (cell.id === 'rescue_person' && child) { const s = SPRITES[child.key], k = 38 / s.h; child.image.setTexture(spriteKey(child.key)).setOrigin(s.ox, s.oy).setScale(k).setPosition(x + 19, y + height - 4).setVisible(true); }
                 else if (cell.id === 'rescue_person' || cell.id === 'rescue_animal') victim(hud, x + 19, y + 23, cell.id === 'rescue_person' ? 'person' : 'cat', 24);
                 else if (cell.id === 'heal') toolArt(hud, 'kit', x + 19, y + 25);

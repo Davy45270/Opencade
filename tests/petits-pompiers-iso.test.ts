@@ -86,7 +86,7 @@ test('PP-ISO-05 the cat to rescue is David\'s kitten (calling, relieved when car
     expect(victimSprite(cat, cat.id)).toBe('chaton_soulage');
     expect(victimSprite({ ...cat, saved: true }, -1)).toBe('chaton_heureux');
     // The dog keeps its sprite; the people are David's children (PP-ISO-06).
-    expect(victimSprite(dog as typeof cat, -1)).toBe('chien'); expect(victimSprite(person as typeof cat, -1)).toBe('enfant_emma_attente');
+    expect(victimSprite(dog as typeof cat, -1)).toBe('chien_face'); expect(victimSprite(person as typeof cat, -1)).toBe('enfant_emma_attente');
     for (const key of ['chaton_appel', 'chaton_soulage', 'chaton_heureux', 'barriere'] as const) {
         const s = SPRITES[key];
         expect(existsSync(`src/games/petits-pompiers/iso/${key}.webp`)).toBe(true);
@@ -126,4 +126,22 @@ test('PP-ISO-06 the people to rescue are David\'s children: one per person, stan
         // One common scale: a child is about 30 world units tall, smaller than a firefighter (≈ 37).
         expect(s.h / 3).toBeGreaterThan(25); expect(s.h / 3).toBeLessThan(33); expect(s.oy).toBeGreaterThan(.9);
     }
+});
+
+test('PP-ISO-07 the dog is David\'s puppy, standing in four directions: it looks at the firefighter, and where he goes once in his arms', async () => {
+    const { dogPose } = await import('../src/games/petits-pompiers/actors');
+    const { existsSync } = await import('node:fs');
+    // Screen vector from the puppy to what it looks at; the profile is drawn facing west, mirrored for east.
+    expect(dogPose(0, 10)).toEqual({ key: 'chien_face', flip: false });
+    expect(dogPose(0, -10)).toEqual({ key: 'chien_dos', flip: false });
+    expect(dogPose(-10, 3)).toEqual({ key: 'chien_profil', flip: false });
+    expect(dogPose(10, -3)).toEqual({ key: 'chien_profil', flip: true });
+    expect(dogPose(0, 0)).toEqual({ key: 'chien_face', flip: false });
+    for (const key of ['chien_face', 'chien_profil', 'chien_dos'] as const) {
+        const s = SPRITES[key];
+        expect(existsSync(`src/games/petits-pompiers/iso/${key}.webp`)).toBe(true); expect(s.oy).toBeGreaterThan(.9);
+        // One common scale: a puppy about 26 world units tall, a little taller than the kitten (≈ 25).
+        expect(s.h / 3).toBeGreaterThan(20); expect(s.h / 3).toBeLessThan(28);
+    }
+    expect(existsSync('src/games/petits-pompiers/iso/chien.webp')).toBe(false);
 });

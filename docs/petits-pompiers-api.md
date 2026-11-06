@@ -70,8 +70,11 @@ quand il attend ; quand il suit le pompier, il marche de profil, Inès roule (8 
 bouclées selon la distance parcourue, vue gauche telle que dessinée, miroir pour la droite :
 la grille avance à 26,6° à l'écran, le profil est toujours la vue la plus proche). Le
 mouvement est lu par le rendu seul, d'une image à l'autre. Le compteur des personnes montre le premier enfant du
-niveau. Le chien garde son sprite ; le dessin vectoriel reste le repli tant que les sprites ne
-sont pas chargés.
+niveau. Le chien (`O`) est le chiot de David, debout, en quatre directions tirées de
+sa planche de marche (face, profil, dos ; profil en miroir vers l'est) : en attendant, il
+regarde le pompier ; dans ses bras, il regarde où il va. Il figure sur le compteur des
+animaux quand le niveau n'a pas de chat. Le dessin vectoriel reste le repli
+tant que les sprites ne sont pas chargés.
 Pestouille peut déblayer caisses et gravats même sans hache ; ses autres travaux
 cassables utilisent sa hache de départ. Chaque outil rencontré au sol est
 ramassé automatiquement en entrant dans sa tuile. La touche outil parcourt

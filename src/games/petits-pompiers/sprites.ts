@@ -87,7 +87,10 @@ export const SPRITES = {
     chaton_appel: { w: 62, h: 74, ox: 0.4969, oy: 1 },
     chaton_soulage: { w: 62, h: 77, ox: 0.5188, oy: 1 },
     chaton_heureux: { w: 70, h: 77, ox: 0.4779, oy: 1 },
-    chien: { w: 59, h: 68, ox: 0.4985, oy: 0.9608 },
+    // David's puppy, cut from his walk sheet: standing frame of the face, side and back views.
+    chien_face: { w: 54, h: 78, ox: 0.5331, oy: 1 },
+    chien_profil: { w: 57, h: 65, ox: 0.5903, oy: 1 },
+    chien_dos: { w: 51, h: 79, ox: 0.5236, oy: 1 },
     outil_lance: { w: 76, h: 62, ox: 0.5033, oy: 0.9534 },
     outil_trousse: { w: 68, h: 60, ox: 0.4963, oy: 0.9623 },
     // Mascots in uniform, cut from the multi-view sheet: one sprite per screen direction (W is the E profile mirrored).
