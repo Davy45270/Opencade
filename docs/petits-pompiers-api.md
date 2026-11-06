@@ -79,7 +79,9 @@ moteur n'en sait rien (espèce, case et règles inchangées). Les outils au sol 
 mégaphone, extincteur) la borne `R` (bouche d'incendie) et le camion de la sortie `E` sont dessinés par David ; l'échelle
 garde son icône vectorielle. Les sols herbe, sable, route,
 pavés, quai et plancher sont les tuiles carrées de David tournées en losange 2:1 ; neige et eau
-gardent les leurs. Derrière la carte, la caserne, la maison, le commerce, l'école et l'immeuble
+gardent les leurs. Au centre-ville, `streetKey` habille les cases de rue `.` d'après leurs voisines :
+angle de trottoir de David là où la rue tourne, passage piéton devant une porte `D` ; décor seul.
+Derrière la carte, la caserne, la maison, le commerce, l'école et l'immeuble
 sont les bâtiments de David, en vue de ¾ tournée vers la carte (¾ droite au bord nord-est, ¾ gauche
 au bord nord-ouest) ; dans le quartier et le centre-ville, l'anneau sud mêle son banc, sa
 jardinière et sa poubelle aux buissons. Le dessin vectoriel reste le repli tant que les sprites ne sont pas

@@ -9,6 +9,13 @@ export const SPRITES = {
     sol_sable: { w: 144, h: 72, ox: 0.5, oy: 0.5 },
     sol_plancher: { w: 144, h: 72, ox: 0.5, oy: 0.5 },
     sol_eau: { w: 144, h: 72, ox: 0.5, oy: 0.5 },
+    // Town streets: David's kerb corner (his square tile turned four ways) and zebra crossings painted on his asphalt.
+    route_angle_no: { w: 144, h: 72, ox: 0.5, oy: 0.5 },
+    route_angle_ne: { w: 144, h: 72, ox: 0.5, oy: 0.5 },
+    route_angle_se: { w: 144, h: 72, ox: 0.5, oy: 0.5 },
+    route_angle_so: { w: 144, h: 72, ox: 0.5, oy: 0.5 },
+    route_pieton_ns: { w: 144, h: 72, ox: 0.5, oy: 0.5 },
+    route_pieton_eo: { w: 144, h: 72, ox: 0.5, oy: 0.5 },
     mur_maison: { w: 145, h: 164, ox: 0.5027, oy: 0.9953 },
     mur_ville: { w: 145, h: 164, ox: 0.5027, oy: 0.9953 },
     porte_SE: { w: 145, h: 164, ox: 0.5027, oy: 0.9953 },

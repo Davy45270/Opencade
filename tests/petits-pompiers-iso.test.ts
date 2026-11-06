@@ -1,7 +1,7 @@
 import { expect, test } from 'vitest';
 import { Engine, HEIGHT, LEVELS, WIDTH } from '../src/engines/petits-pompiers/engine';
 import { stickDirection } from '../src/games/petits-pompiers/controls';
-import { SLOPE, STICK_ARROWS, cell, cellAt, direction, groundPlan, objectPlan, project } from '../src/games/petits-pompiers/iso';
+import { SLOPE, STICK_ARROWS, cell, cellAt, direction, groundPlan, objectPlan, project, streetKey } from '../src/games/petits-pompiers/iso';
 import { SPRITES } from '../src/games/petits-pompiers/sprites';
 import { cameraView, cellOnScreen, onScreen } from '../src/games/petits-pompiers/view';
 
@@ -213,3 +213,25 @@ test('PP-ISO-12 one level in three shows David\'s grey rabbit in place of its an
     for (const key of ['lapin_face', 'lapin_profil', 'lapin_dos'] as const) { const s = SPRITES[key]; expect(s.h / 3).toBeGreaterThan(24); expect(s.h / 3).toBeLessThan(32); expect(s.oy).toBe(1); }
 });
 
+test('PP-ISO-13 town streets are decor: kerb corners where the street turns and zebra crossings at the doors, the map untouched', () => {
+    const e = new Engine(), counts: Record<string, number> = {};
+    for (const level of [3, 4, 5]) {
+        e.loadLevel(level);
+        const before = [...e.tiles].join('');
+        for (const p of groundPlan(e).filter(q => q.at >= 0 && q.key.startsWith('route_'))) {
+            counts[p.key] = (counts[p.key] ?? 0) + 1;
+            expect(e.tiles[p.at]).toBe('.');
+            const x = p.at % WIDTH, door = [e.tiles[p.at - WIDTH], e.tiles[p.at + WIDTH], x > 0 ? e.tiles[p.at - 1] : '', x < WIDTH - 1 ? e.tiles[p.at + 1] : ''];
+            if (p.key.startsWith('route_pieton')) expect(door).toContain('D');
+        }
+        expect([...e.tiles].join('')).toBe(before);
+    }
+    // Every town level has corners, and a crossing in front of at least one door per level.
+    expect(Object.keys(counts).filter(k => k.startsWith('route_angle')).length).toBeGreaterThanOrEqual(3);
+    expect((counts.route_pieton_ns ?? 0) + (counts.route_pieton_eo ?? 0)).toBeGreaterThanOrEqual(3);
+    // A street cell between two kerbs facing each other is plain asphalt; the other worlds never get streets.
+    const strip = Array.from({ length: WIDTH * HEIGHT }, (_, i) => Math.floor(i / WIDTH) === 4 ? '.' : 'g');
+    expect(streetKey(strip, 4 * WIDTH + 5)).toBeUndefined();
+    expect(streetKey(strip, 4 * WIDTH)).toBeUndefined();
+    e.loadLevel(0); expect(groundPlan(e).some(p => p.key.startsWith('route_'))).toBe(false);
+});

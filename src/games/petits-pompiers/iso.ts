@@ -60,6 +60,23 @@ export function groundKey(tile: string, world: World): SpriteKey {
     if ('HXbB#WDU'.includes(tile)) return 'sol_plancher';
     return ROAD[world];
 }
+/** Town streets (centre-ville), decor only: David's asphalt gets his kerb corner where the street turns
+ *  (two neighbouring sides off the street, the map border included) and a zebra crossing in front of a door.
+ *  Map rows and columns are the sides of his square tiles: 'no' = kerb on the row above and the column left. */
+export function streetKey(tiles: readonly string[], at: number): SpriteKey | undefined {
+    if (tiles[at] !== '.') return undefined;
+    const x = at % WIDTH, y = Math.floor(at / WIDTH);
+    const tileAt = (dx: number, dy: number): string | undefined => x + dx < 0 || y + dy < 0 || x + dx >= WIDTH || y + dy >= HEIGHT ? undefined : tiles[(y + dy) * WIDTH + x + dx];
+    const off = (dx: number, dy: number): boolean => { const t = tileAt(dx, dy); return t === undefined || groundKey(t, 'ville') !== 'sol_route'; };
+    if (tileAt(0, -1) === 'D' || tileAt(0, 1) === 'D') return 'route_pieton_ns';
+    if (tileAt(-1, 0) === 'D' || tileAt(1, 0) === 'D') return 'route_pieton_eo';
+    const n = off(0, -1), s = off(0, 1), w = off(-1, 0), east = off(1, 0);
+    if (n && w && !s && !east) return 'route_angle_no';
+    if (n && east && !s && !w) return 'route_angle_ne';
+    if (s && east && !n && !w) return 'route_angle_se';
+    if (s && w && !n && !east) return 'route_angle_so';
+    return undefined;
+}
 export const WALLISH = 'WDUB';
 /** Cells enclosed by walls (doors closed): the walls in front of them are drawn see-through. */
 export function interior(tiles: readonly string[]): Set<number> {
@@ -86,7 +103,7 @@ export function groundPlan(e: Engine): Placement[] {
     for (let gy = -RING; gy < HEIGHT + RING; gy++) for (let gx = -RING; gx < WIDTH + RING; gx++) {
         const inside = gx >= 0 && gy >= 0 && gx < WIDTH && gy < HEIGHT, at = inside ? gy * WIDTH + gx : -1;
         const tile = inside ? e.tiles[at] ?? 'g' : '';
-        const key = inside ? groundKey(tile, world) : world === 'port' && (gx >= WIDTH + 1 || gy >= HEIGHT + 1) ? 'sol_eau' : RING_GROUND[world];
+        const key = inside ? (world === 'ville' ? streetKey(e.tiles, at) : undefined) ?? groundKey(tile, world) : world === 'port' && (gx >= WIDTH + 1 || gy >= HEIGHT + 1) ? 'sol_eau' : RING_GROUND[world];
         out.push({ key, gx: gx + .5, gy: gy + .5, depth: 0, alpha: 1, at });
     }
     return out;
