@@ -235,7 +235,8 @@ export class DerapageScene extends Phaser.Scene {
                 this.session.send('start');
             if (this.session.paused || this.selecting)
                 return;
-            if (id === 'special') this.engine.special();
+            // Élan starts an 800 ms impulse (specialMs), not a boost: it gets the boost sound here, once per lap.
+            if (id === 'special' && this.engine.special()) sound.playEffect('boost');
             if (id === 'bonus')
                 this.pendingBonus = true;
             this.held.add(id);

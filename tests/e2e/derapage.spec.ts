@@ -218,3 +218,25 @@ test('Z37 clavier : directions absolues et diagonales en caméra fixe', async ({
         for (const key of keys) await page.keyboard.up(key);
     }
 });
+
+test('Z39 Élan : le mini turbo se fait entendre, une fois par tour', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium');
+    await page.addInitScript(() => {
+        const w = window as unknown as { __freqs: number[] }; w.__freqs = [];
+        // Read through the descriptor: the real method is kept unbound and called with the patched receiver.
+        const original = Object.getOwnPropertyDescriptor(AudioParam.prototype, 'setValueAtTime')?.value as (this: AudioParam, value: number, time: number) => AudioParam;
+        AudioParam.prototype.setValueAtTime = function (value: number, time: number) { w.__freqs.push(Math.round(value)); return original.call(this, value, time); };
+    });
+    await page.goto('/?test=1#/derapage'); await page.locator('#resume').tap();
+    await page.evaluate(() => { window.__DERAPAGE_TEST__?.loadLevel(0, 28); window.__DERAPAGE_TEST__?.advance(1500); });
+    const heard = async (): Promise<number> => page.evaluate(() => (window as unknown as { __freqs: number[] }).__freqs.filter(f => f === 740).length);
+    // The game clock is manual (advance), so nothing else can sound between the reads and the taps.
+    const before = await heard();
+    await page.locator('#derapage-special').tap();
+    expect(await page.evaluate(() => window.__DERAPAGE_TEST__?.read().karts[0]?.specialMs ?? 0)).toBeGreaterThan(0);
+    await expect.poll(heard).toBe(before + 1);
+    // Already used on this lap: no impulse, no sound.
+    await page.locator('#derapage-special').tap();
+    await page.waitForTimeout(300);
+    expect(await heard()).toBe(before + 1);
+});
