@@ -181,3 +181,18 @@ test('PP-ISO-10 every sprite file has the size its table entry declares (the gro
     expect(files).toEqual(Object.keys(SPRITES).sort());
     for (const key of files) expect([key, ...size(readFileSync(dir + key + '.webp'))]).toEqual([key, SPRITES[key as keyof typeof SPRITES].w, SPRITES[key as keyof typeof SPRITES].h]);
 });
+
+test('PP-ISO-11 the buildings behind the map are David\'s, each ¾ view turned towards the map; the towns get his street furniture', () => {
+    const e = new Engine(), seen: Record<string, string[]> = {}, FACING: Record<string, string> = { caserne: 'NE', maison: 'NE', commerce: 'NE', ecole: 'NW', immeuble: 'NW' };
+    for (const level of [0, 3, 6, 9, 12]) {
+        e.loadLevel(level);
+        const plan = objectPlan(e), builds = plan.filter(p => p.key in FACING);
+        // ¾ right (facade on the left) along the north-east edge, ¾ left along the north-west edge.
+        for (const b of builds) expect([b.key, b.gy < 0 ? 'NE' : 'NW']).toEqual([b.key, FACING[b.key]]);
+        seen[level] = [...new Set(plan.filter(p => p.at < 0 && (p.gx > WIDTH || p.gy > HEIGHT)).map(p => p.key))].sort();
+        expect(builds.map(b => b.key)).toContain('caserne');
+    }
+    expect(seen[0]).toEqual(expect.arrayContaining(['banc', 'jardiniere']));
+    expect(seen[3]).toEqual(expect.arrayContaining(['banc', 'poubelle', 'jardiniere']));
+    for (const level of [6, 9, 12]) expect(seen[level]).not.toEqual(expect.arrayContaining(['banc']));
+});

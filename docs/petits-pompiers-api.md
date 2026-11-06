@@ -77,7 +77,10 @@ animaux quand le niveau n'a pas de chat. Les outils au sol (hache, trousse,
 mégaphone, extincteur) la borne `R` (bouche d'incendie) et le camion de la sortie `E` sont dessinés par David ; l'échelle
 garde son icône vectorielle. Les sols herbe, sable, route,
 pavés, quai et plancher sont les tuiles carrées de David tournées en losange 2:1 ; neige et eau
-gardent les leurs. Le dessin vectoriel reste le repli tant que les sprites ne sont pas
+gardent les leurs. Derrière la carte, la caserne, la maison, le commerce, l'école et l'immeuble
+sont les bâtiments de David, en vue de ¾ tournée vers la carte (¾ droite au bord nord-est, ¾ gauche
+au bord nord-ouest) ; dans le quartier et le centre-ville, l'anneau sud mêle son banc, sa
+jardinière et sa poubelle aux buissons. Le dessin vectoriel reste le repli tant que les sprites ne sont pas
 chargés.
 Pestouille peut déblayer caisses et gravats même sans hache ; ses autres travaux
 cassables utilisent sa hache de départ. Chaque outil rencontré au sol est

@@ -43,10 +43,12 @@ export const BACKGROUND: Record<World, string> = { quartier: '#5d9b2f', ville: '
 const ROAD: Record<World, SpriteKey> = { quartier: 'sol_paves', ville: 'sol_route', foret: 'sol_sable', montagne: 'sol_paves', port: 'sol_quai' };
 const TREE: Record<World, SpriteKey> = { quartier: 'arbre_feuillu', ville: 'arbre_bac', foret: 'sapin', montagne: 'sapin_neige', port: 'arbre_feuillu' };
 const RING_GROUND: Record<World, SpriteKey> = { quartier: 'sol_herbe', ville: 'sol_paves', foret: 'sol_herbe', montagne: 'sol_neige', port: 'sol_quai' };
+/** Town worlds mix David's street furniture into the low south decor. */
+const LOW: Partial<Record<World, SpriteKey[]>> = { quartier: ['buisson_fleuri', 'banc', 'jardiniere'], ville: ['banc', 'poubelle', 'jardiniere'] };
 /** Decorative buildings behind the north-east and north-west edges: [sprite, corner gx, corner gy]. */
 const DECOR: Record<World, [SpriteKey, number, number][]> = {
-    quartier: [['caserne', 4, -1.2], ['maison', 10, -1.2], ['maison', -1.2, 5]],
-    ville: [['immeuble', 3, -1.2], ['caserne', 8, -1.2], ['immeuble', -1.2, 4]],
+    quartier: [['caserne', 4, -1.2], ['maison', 10, -1.2], ['ecole', -1.2, 5]],
+    ville: [['commerce', 3, -1.2], ['caserne', 8, -1.2], ['immeuble', -1.2, 4]],
     foret: [['cabane', 5, -1.2], ['caserne', 11, -1.2], ['cabane', -1.2, 5]],
     montagne: [['chalet', 4, -1.2], ['caserne', 10, -1.2], ['chalet', -1.2, 5]],
     port: [['hangar_port', 4, -1.2], ['caserne', 11, -1.2], ['hangar_port', -1.2, 5]],
@@ -119,7 +121,7 @@ export function objectPlan(e: Engine): Placement[] {
         if (world === 'port' && !north) continue;
         const near = [-1, 0, 1].some(i => [-1, 0, 1].some(j => taken.has(`${String(gx + i)},${String(gy + j)}`) || taken.has(`${String(gx + i)},${String(gy + j - 1)}`) || taken.has(`${String(gx + i - 1)},${String(gy + j)}`)));
         if (north && !near && r < .3 && (gx <= -2 || gy <= -2)) out.push({ key: tall, gx: gx + .5, gy: gy + .5, depth: depthOf(gx + .5, gy + .5), alpha: 1, at: -1 });
-        else if (!north && r < .14 && (gx >= WIDTH + 1 || gy >= HEIGHT + 1)) out.push({ key: low, gx: gx + .5, gy: gy + .5, depth: depthOf(gx + .5, gy + .5), alpha: 1, at: -1 });
+        else if (!north && r < .14 && (gx >= WIDTH + 1 || gy >= HEIGHT + 1)) out.push({ key: LOW[world]?.[Math.floor(r * 100) % 3] ?? low, gx: gx + .5, gy: gy + .5, depth: depthOf(gx + .5, gy + .5), alpha: 1, at: -1 });
     }
     return out;
 }

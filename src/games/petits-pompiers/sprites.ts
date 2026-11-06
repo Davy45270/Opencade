@@ -17,9 +17,12 @@ export const SPRITES = {
     caisse: { w: 91, h: 87, ox: 0.5006, oy: 0.9891 },
     // David's barrier (¾ right view) for the blocked door; mirrored for the south-west wall face.
     barriere: { w: 105, h: 84, ox: 0.5, oy: 0.93 },
-    caserne: { w: 261, h: 236, ox: 0.3972, oy: 0.9939 },
-    maison: { w: 260, h: 236, ox: 0.4672, oy: 0.9929 },
-    immeuble: { w: 219, h: 327, ox: 0.4997, oy: 0.9956 },
+    // David's buildings, ¾ views turned towards the map: ¾ right on the north-east edge, ¾ left on the north-west edge.
+    caserne: { w: 357, h: 213, ox: 0.5, oy: 0.97 },
+    maison: { w: 268, h: 191, ox: 0.5, oy: 0.97 },
+    commerce: { w: 322, h: 208, ox: 0.5, oy: 0.97 },
+    ecole: { w: 302, h: 221, ox: 0.5, oy: 0.97 },
+    immeuble: { w: 228, h: 207, ox: 0.5, oy: 0.97 },
     cabane: { w: 237, h: 215, ox: 0.4652, oy: 0.9938 },
     chalet: { w: 254, h: 234, ox: 0.5009, oy: 0.9937 },
     hangar_port: { w: 292, h: 228, ox: 0.4415, oy: 0.9947 },
@@ -33,6 +36,10 @@ export const SPRITES = {
     sapin_neige: { w: 116, h: 216, ox: 0.501, oy: 0.9679 },
     buisson_fleuri: { w: 94, h: 81, ox: 0.5025, oy: 0.9614 },
     lampadaire: { w: 54, h: 139, ox: 0.4974, oy: 0.9702 },
+    // David's street furniture for the south ring of the town worlds.
+    banc: { w: 92, h: 63, ox: 0.5, oy: 0.95 },
+    poubelle: { w: 48, h: 65, ox: 0.5, oy: 0.97 },
+    jardiniere: { w: 78, h: 70, ox: 0.5, oy: 0.97 },
     souche: { w: 90, h: 60, ox: 0.5, oy: 0.9514 },
     feu_petit: { w: 80, h: 90, ox: 0.4997, oy: 0.9959 },
     feu_moyen: { w: 108, h: 99, ox: 0.5, oy: 0.994 },
