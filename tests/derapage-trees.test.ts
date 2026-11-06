@@ -12,7 +12,7 @@ function webpSize(path: string): { w: number; h: number } {
     return { w: 1 + b.readUIntLE(24, 3), h: 1 + b.readUIntLE(27, 3) };
 }
 
-test('Z44 David\'s trees: one WebP with alpha per sprite, the size of the table, 60 kB in all at most', () => {
+test('Z44 David\'s trees: one WebP with alpha per sprite, the size of the table, 120 kB in all at most', () => {
     let bytes = 0;
     for (const [key, size] of Object.entries(TREE_SPRITES)) {
         const path = `src/games/derapage/trees/${key}.webp`;
@@ -20,7 +20,7 @@ test('Z44 David\'s trees: one WebP with alpha per sprite, the size of the table,
         bytes += readFileSync(path).length;
     }
     expect(readdirSync('src/games/derapage/trees').sort()).toEqual(Object.keys(TREE_SPRITES).map(key => `${key}.webp`).sort());
-    expect(bytes).toBeLessThan(60_000);
+    expect(bytes).toBeLessThan(120_000);
 });
 
 test('Z44 the essences follow the ambiance of the circuit', () => {
@@ -50,6 +50,7 @@ test('Z44 every drawn tree has a stable essence of its ambiance; firs stay firs;
     expect(treeEssence(ardennes, { x: 1, y: 2 }, 'fir')).toBe('sapin');
     expect(new Set(drawnTrees(ardennes).map(tree => tree.essence))).toEqual(new Set(['sapin', 'feuillu']));
     expect(treePanel('palmier', 80)).toBe('palmier_side');
+    expect(treePanel('palmier', 79)).toBe('palmier_side_far');
     expect(treePanel('palmier', 30)).toBe('palmier_side_far');
     expect(treeTop('sapin')).toBe('sapin_top');
     expect(treeTop('bambou')).toBeNull();

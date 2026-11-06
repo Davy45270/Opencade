@@ -4,7 +4,7 @@ import { legacyCircuits, type Circuit } from '../src/engines/derapage/circuits';
 import { required } from '../src/engines/derapage/access';
 /** Restore the frozen geometry and its starting grid/crates together. */
 export function restoreHistoricalGeometry(e: Engine, circuit: Circuit): void {
-    e.track=createTrack(e.level,e.seed,circuit);
+    e.track=createTrack(e.level,e.seed,circuit,true);
     for(const k of e.karts) {
         const p=at(e.track,-3-Math.floor(k.id/2)*4),next=at(e.track,1-Math.floor(k.id/2)*4);
         const angle=Math.atan2(next.y-p.y,next.x-p.x),offset=k.id%2===0 ? -2 : 2;
@@ -16,6 +16,8 @@ export function restoreHistoricalGeometry(e: Engine, circuit: Circuit): void {
 export class HistoricalBoostEngine extends Engine {
     /** The frozen evidence was raced by six karts (before the sixth, mascot-less kart was removed). */
     protected override get kartCount(): number { return 6; }
+    /** ...and with the tree margin of that time (before Z46). */
+    protected override get legacyTrees(): boolean { return true; }
     override loadLevel(level: number, seed=28): void {
         super.loadLevel(level,seed);
         if([17,19].includes(level)) restoreHistoricalGeometry(this,{...this.track.circuit,controls:required(legacyCircuits[level]).controls});

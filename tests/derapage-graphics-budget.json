@@ -476,11 +476,11 @@
       "level": 18,
       "name": "Bambou Express",
       "top": 314,
-      "view3d": 779,
+      "view3d": 774,
       "topMean": 266.1562499999999,
-      "view3dMean": 404.3958333333332,
+      "view3dMean": 398.9791666666667,
       "topIndex": 87,
-      "view3dIndex": 75
+      "view3dIndex": 78
     },
     {
       "level": 19,
@@ -496,11 +496,11 @@
       "level": 20,
       "name": "Feuilles Folles",
       "top": 439,
-      "view3d": 777,
+      "view3d": 776,
       "topMean": 325.71875,
-      "view3dMean": 412.5208333333334,
+      "view3dMean": 411.70833333333337,
       "topIndex": 39,
-      "view3dIndex": 79
+      "view3dIndex": 80
     },
     {
       "level": 21,

@@ -26,7 +26,8 @@ export function difficulty(level: number) {
     return { width: 20 - n * .27, aiSpeed: 15 + n * .23, error: .18 - n * .005, brakeDelay: .45 - n * .012, bend: .015 + n * .0015, wallFraction: .12 + n * .02, grassGrip: .45 - n * .001 };
 }
 export const LEVELS = circuits.map(c => ({ name: c.name }));
-export function createTrack(level: number, seed = 28, source?: Circuit): Track {
+/** `legacyTrees`: the tree margin before Z46, for the frozen historical oracles only (tests). */
+export function createTrack(level: number, seed = 28, source?: Circuit, legacyTrees = false): Track {
     const r = new Random(seed + level * 997), d = difficulty(level), circuit = source ?? required(circuits[level]);
     const dense: Vec[] = [], denseWidths: number[] = [];
     const controls = circuit.controls, size = controls.length;
@@ -84,14 +85,20 @@ export function createTrack(level: number, seed = 28, source?: Circuit): Track {
     for (let i = 0; i < 96; i += circuit.family === 'nature' ? 1 : 2 + level % 3) {
         const p = required(points[i]), n = nearest(track, p), radius = 1.5 + r.next();
         const side = r.next() < .5 ? -1 : 1;
-        const offset = required(track.widths[i]) / 2 + radius * 2 + 2 + r.next() * 4;
+        // Z46: a drawn crown is about 23 units across, so the trunk stands TREE_CLEARANCE beyond the edge and no
+        // crown ever covers a road section, a hairpin or the shortcut (same random draws, so the rest is unchanged).
+        // Urban circuits (no visible tree) and the volcano's rock spires keep their former margin.
+        const crowned = !legacyTrees && !circuit.theme.urban && circuit.theme.kart !== 'volcano', margin = crowned ? TREE_CLEARANCE : 2 * radius;
+        const offset = required(track.widths[i]) / 2 + (crowned ? TREE_CLEARANCE + radius : radius * 2 + 2) + r.next() * 4;
         const tree = { x: p.x + n.nx * offset * side, y: p.y + n.ny * offset * side, radius };
         const edge = nearest(track, tree);
-        if (edge.distance >= required(track.widths[edge.index]) / 2 + 2 * radius && (shortcutAt(track,tree)?.distance ?? Infinity) > (circuit.shortcut?.width ?? 0)/2 + 2*radius)
+        if (edge.distance >= required(track.widths[edge.index]) / 2 + margin && (shortcutAt(track,tree)?.distance ?? Infinity) > (circuit.shortcut?.width ?? 0)/2 + margin)
             track.trees.push(tree);
     }
     return track;
 }
+/** Distance from the road edge to a tree's centre, at least (Z46): the drawn crowns, 23 units across, stay off the road. */
+export const TREE_CLEARANCE = 12;
 export function bendAt(t: Track, i: number): number {
     const a = required(t.points[(i + 95) % 96]), b = required(t.points[i]), c = required(t.points[(i + 1) % 96]);
     return Math.abs(wrap(Math.atan2(c.y - b.y, c.x - b.x) - Math.atan2(b.y - a.y, b.x - a.x)));

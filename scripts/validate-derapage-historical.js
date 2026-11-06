@@ -15,6 +15,8 @@ const reference = JSON.parse(readFileSync('tests/fixtures/derapage-038a0c1.json'
 class WithoutElan extends Engine {
     // The 038a0c1 oracle was raced by six karts: the game now has five (one per mascot).
     get kartCount() { return 6; }
+    // ...with the tree margin of that time (before Z46).
+    get legacyTrees() { return true; }
     special() { return false; }
     loadLevel(level, seed = 28) {
         super.loadLevel(level, seed);

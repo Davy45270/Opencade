@@ -13,7 +13,7 @@ import { ArcadePaint } from '../../characters/arcade-phaser';
 import { renderCharacter } from '../../characters/canvas';
 import { bonusIcon, bonusTexture, pickupPanel, type BonusSpriteKey } from './bonus-sprites';
 import { HORIZON_WIDTH, SKY, horizonLeft, horizonOf, horizonTexture, type Horizon } from './horizon-sprites';
-import { TREE_SPRITES, drawnTrees, treeEssence, treePanel, treeTexture, treeTop, type TreeSpriteKey } from './tree-sprites';
+import { TREE_SPRITES, drawnTrees, treeCrown, treeEssence, treeHeight, treePanel, treeTexture, treeTop, type TreeSpriteKey } from './tree-sprites';
 import { KART_SPRITES, chaseView, kartSprite, kartTexture, kartView, type KartSpriteKey, type KartView } from './kart-sprites';
 import { required } from '../../engines/derapage/access';
 import Phaser from 'phaser';
@@ -569,11 +569,11 @@ export class DerapageScene extends Phaser.Scene {
                 const size=item.radius*2*a.scale;
                 const texture=this.sceneryTextures.get(item.kind);
                 if(texture) this.paint?.draw(texture,a.x,a.y-size/2,size,0,1,depth);
-            }, (kind,x,y,size,depth) => this.drawnBonus(pickupPanel(kind,size),x,y-size/2,size,depth), (tree,kind,a,depth) => {
-                // David's side view, facing the camera, as tall as the vector tree it replaces.
-                const essence = treesReady ? treeEssence(t, tree, kind === 'fir' ? 'fir' : 'tree') : undefined;
+            }, (kind,x,y,size,depth) => this.drawnBonus(pickupPanel(kind,size),x,y-size/2,size,depth), !treesReady ? undefined : (tree,kind,a,depth) => {
+                // David's side view, facing the camera, about 3.5 kart heights tall (Z46).
+                const essence = treeEssence(t, tree, kind === 'fir' ? 'fir' : 'tree');
                 if (!essence) return false;
-                const height = (kind === 'engine' ? 5 + tree.radius : tree.radius * 2) * a.scale;
+                const height = treeHeight(tree) * a.scale;
                 this.drawnTree(treePanel(essence, height), a.x, a.y, height, 0, depth, false);
                 return true;
             }, skyDrawn);
@@ -612,8 +612,8 @@ export class DerapageScene extends Phaser.Scene {
         // David's trees seen from above, turning with the map; the road layer is then baked without its vector trees.
         if (treesReady) for (const tree of drawnTrees(t)) {
             const key = treeTop(tree.essence);
-            if (!key) continue;
-            const a = project(tree.x, tree.y), size = tree.radius * 2 * scale;
+            if (!key || tree.hiddenFromAbove) continue;
+            const a = project(tree.x, tree.y), size = treeCrown(tree) * scale;
             if (!inView([a], size)) continue;
             this.drawnTree(key, a.x, a.y, size, this.overviewMode ? 0 : angle, 1, true);
         }

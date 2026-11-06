@@ -261,8 +261,18 @@ sombre d'un texel) remplace la grande, pour que le filtre ne réduise jamais plu
 gardent les emblèmes de la mascotte. Il n'y a plus de pilote neutre : cinq karts, un par mascotte.
 
 Les arbres du décor sont ceux dessinés par David (Z44) : vue de dessus en vue de dessus,
-vue de côté en 3D (panneau tourné vers la caméra, ancré au pied du dessin, de la hauteur
-de l'arbre vectoriel qu'il remplace). Les essences suivent l'ambiance de la coupe :
+vue de côté en 3D (panneau tourné vers la caméra, ancré au pied du dessin). Ils sont à
+l'échelle des karts (Z46) : en 3D, à même distance, un arbre mesure 3,5 hauteurs de kart
+(12,9 unités × l'échelle de perspective) ; vu de dessus, une couronne fait 2,75 longueurs
+de kart (23,1 unités, le kart faisant 42 px de long à l'échelle 5), à 5 % près selon le
+rayon du tronc. Pour qu'aucune couronne ne couvre la route, le tronc est placé à au moins
+12 unités du bord de toute section de route et du raccourci (`TREE_CLEARANCE`), et les
+sapins du bord de route aussi ; la collision reste celle du tronc. Les circuits urbains et
+les flèches de Volcan Turbo gardent leur marge d'avant ; les oracles historiques sont rejoués
+avec la marge de leur époque (`legacyTrees`). Vu de dessus, une couronne dont le centre tombe
+sous une couronne déjà dessinée (à moins de 40 % de son diamètre) se fond dans celle-ci et
+n'est pas redessinée. En 3D, roulant sur la ligne centrale, aucun panneau ne cache le kart
+du joueur ni la route 12, 18 et 24 unités devant. Les essences suivent l'ambiance de la coupe :
 prés de la coupe rapide = feuillu et cerisier ; coupe technique = érable et pommier ;
 ovales = cerisier et pommier ; forêt des Ardennes (nature) = sapin et feuillu, et les sapins
 du bord de route restent des sapins ; falaises = palmier (la côte) ; slalom et BMX = sapin
@@ -272,10 +282,10 @@ Les circuits urbains n'ont pas d'arbre visible et les flèches de Volcan Turbo s
 ils ne changent pas. L'essence d'un arbre ne dépend que de sa position, donc les deux vues
 et toutes les images concordent. Baobab, saule et glycine (planche de référence) ne sont pas
 utilisés : ils n'ont pas de vue de dessus. Ces dessins arrivent dans leur propre module
-(`tree-atlas`, 20 WebP, 53 Ko) chargé à l'ouverture du jeu et gardé hors ligne ; d'ici là,
+(`tree-atlas`, 20 WebP, 105 Ko) chargé à l'ouverture du jeu et gardé hors ligne ; d'ici là,
 les arbres vectoriels restent affichés, et la couche de route n'est recuite sans eux qu'une
-fois toutes les textures arrivées. Vue de côté : 96 px de haut, réduction dédiée de 40 px
-sous 48 px à l'écran ; vue de dessus : 48 px. Les arbres dessinés ont leur propre réserve
+fois toutes les textures arrivées. Vue de côté : 160 px de haut, réduction dédiée de 64 px
+sous 80 px à l'écran ; vue de dessus : 112 px (la couronne fait environ 115 px à l'écran). Les arbres dessinés ont leur propre réserve
 de 128 images, distincte de celle des emblèmes et des bonus.
 
 En vue 3D, le ciel est l'horizon dessiné par David pour la coupe (Z45) : urbaine = Paris,

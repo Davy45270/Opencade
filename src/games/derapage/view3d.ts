@@ -121,12 +121,14 @@ export function draw3d(graphics: Phaser.GameObjects.Graphics, e: ReturnType<Engi
         .map(item=>({item,screen:projectPoint(item,p)})).filter(v=>v.screen!==null).sort((a,b)=>(b.screen?.depth ?? 0)-(a.screen?.depth ?? 0));
     for(const {item,screen:a} of sprites) {
         if(!a) continue;
-        const half=item.kind==='kart' ? Math.min(90,4*a.scale)/2 : (item.kind==='tree' || item.kind==='scenery') ? item.radius*a.scale : 1.5*a.scale;
-        const height=item.kind==='kart' ? Math.min(90,4*a.scale) : (item.kind==='tree' || item.kind==='scenery') ? (5+item.radius)*a.scale : item.kind==='crate' ? 3*a.scale : a.scale;
+        // David's trees (when drawn) are about 13 units tall and 13 wide: culled by their panel, not their trunk.
+        const drawnTree=tree && (item.kind==='tree' || (item.kind==='scenery' && (item.art==='tree' || item.art==='fir')));
+        const half=drawnTree ? 7*a.scale : item.kind==='kart' ? Math.min(90,4*a.scale)/2 : (item.kind==='tree' || item.kind==='scenery') ? item.radius*a.scale : 1.5*a.scale;
+        const height=drawnTree ? 13*a.scale : item.kind==='kart' ? Math.min(90,4*a.scale) : (item.kind==='tree' || item.kind==='scenery') ? (5+item.radius)*a.scale : item.kind==='crate' ? 3*a.scale : a.scale;
         if(a.x+half<0 || a.x-half>360 || a.y<96 || a.y-height>640) continue;
         cost.sprites++;
         // David's drawn trees (side view, facing the camera) once their chunk is loaded; the vector trees stay the fallback.
-        if((item.kind==='tree' || (item.kind==='scenery' && (item.art==='tree' || item.art==='fir'))) && tree?.(item,item.kind==='tree' ? 'engine' : item.art==='fir' ? 'fir' : 'tree',a,FAR-a.depth+2)) continue;
+        if(drawnTree && tree(item,item.kind==='tree' ? 'engine' : item.art==='fir' ? 'fir' : 'tree',a,FAR-a.depth+2)) continue;
         if(item.kind==='scenery') { scenery?.({...item,kind:item.art},a,FAR-a.depth+2); }
         else if(item.kind==='kart') { kart(item.id,a.x,a.y-(item.jumpHeight ?? 0)*a.scale,Math.min(90,4*a.scale),item.angle-p.angle,FAR-a.depth+2); }
         // Drawn panels (capsule, cloud) once their chunk is loaded; the vector box and puddle stay the fallback.

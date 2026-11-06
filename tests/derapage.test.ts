@@ -241,8 +241,9 @@ test('Z16 contrat monde sérialisable sans notion de vue', () => {
     expect(Object.keys(s).sort()).toEqual(['controls', 'crates', 'cup', 'frames', 'karts', 'level', 'order', 'puddles', 'random', 'remainder', 'score', 'seed', 'status', 'time', 'timing', 'track']);
     expect(JSON.stringify(s)).not.toMatch(/camera|screen|viewport|pixel|canvas/i);
     // advance is simulation time; special is the kart's per-lap Élan, both in world space; kartCount is the grid size
-    // (five, one per mascot), overridden only by the six-kart historical oracles.
-    expect(Object.getOwnPropertyNames(Engine.prototype).sort()).toEqual(['advance', 'constructor', 'input', 'kartCount', 'loadLevel', 'snapshot', 'special', 'step']);
+    // (five, one per mascot), overridden only by the six-kart historical oracles, like legacyTrees (their tree margin
+    // before Z46).
+    expect(Object.getOwnPropertyNames(Engine.prototype).sort()).toEqual(['advance', 'constructor', 'input', 'kartCount', 'legacyTrees', 'loadLevel', 'snapshot', 'special', 'step']);
 });
 
 test('Z09 rejouer une course ne double pas les points de coupe', () => {

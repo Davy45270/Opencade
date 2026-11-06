@@ -1,7 +1,7 @@
 import type Phaser from 'phaser';
 import type { Primitive } from '../../characters/model';
 import { renderCharacter } from '../../characters/phaser';
-import { nearest, type Track, type Vec } from '../../engines/derapage/track';
+import { nearest, TREE_CLEARANCE, type Track, type Vec } from '../../engines/derapage/track';
 
 export const sceneryKinds = ['building','lamp','crossing','fence','flowers','hay','rock','turn','arrow','stand','flag','banner','fir','stump','pond','bollard','cargo','anchor','cliff','bush','stones','pennant','mound','ribbon','tree'] as const;
 export type SceneryKind = typeof sceneryKinds[number];
@@ -18,20 +18,21 @@ export function roadside(t: Track): readonly Scenery[] {
         const p=t.points[i]; if(!p) continue;
         const n=nearest(t,p);
         for(const side of [-1,1]) {
-            const radius=4, offset=(t.widths[i] ?? 28)/2+radius+7;
+            const kind=sceneryKinds[theme*3+(i/4+(side===1?1:0))%3];
+            // A fir is one of David's trees (Z46): its crown needs the trees' clearance.
+            const radius=4, clearance=kind==='fir' ? TREE_CLEARANCE : radius+4, offset=(t.widths[i] ?? 28)/2+(kind==='fir' ? TREE_CLEARANCE+1 : radius+7);
             const q={x:p.x+n.nx*side*offset,y:p.y+n.ny*side*offset};
             const edge=nearest(t,q);
             // Check against every road section, including tight hairpins and shortcuts.
-            if(edge.distance<(t.widths[edge.index] ?? 28)/2+radius+4) continue;
+            if(edge.distance<(t.widths[edge.index] ?? 28)/2+clearance) continue;
             const shortcut=t.circuit.shortcut;
             if(shortcut) {
                 const a=t.points[shortcut.from], b=t.points[shortcut.to];
                 if(a && b) {
                     const dx=b.x-a.x,dy=b.y-a.y, u=Math.max(0,Math.min(1,((q.x-a.x)*dx+(q.y-a.y)*dy)/(dx*dx+dy*dy)));
-                    if(Math.hypot(q.x-a.x-u*dx,q.y-a.y-u*dy)<shortcut.width+radius+4) continue;
+                    if(Math.hypot(q.x-a.x-u*dx,q.y-a.y-u*dy)<shortcut.width+clearance) continue;
                 }
             }
-            const kind=sceneryKinds[theme*3+(i/4+(side===1?1:0))%3];
             if(kind) items.push({...q,kind,radius});
         }
     }

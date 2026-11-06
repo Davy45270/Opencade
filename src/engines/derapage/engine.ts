@@ -33,6 +33,8 @@ export class Engine {
     constructor(level = 0, seed = 28) { this.loadLevel(level, seed); }
     /** Karts on the grid: the five mascots. The six-kart historical oracles (tests) override it. */
     protected get kartCount(): number { return KART_COUNT; }
+    /** The frozen historical oracles (tests) race with the tree margin they were recorded with, before Z46. */
+    protected get legacyTrees(): boolean { return false; }
     loadLevel(level: number, seed = 28): void {
         if (!Number.isInteger(level) || level < 0 || level > 29)
             throw new RangeError('Niveau invalide');
@@ -46,7 +48,7 @@ export class Engine {
         this.level = level;
         this.seed = seed;
         this.random = new Random(seed);
-        this.track = createTrack(level, seed);
+        this.track = createTrack(level, seed, undefined, this.legacyTrees);
         this.lapStartFrame = 0;
         this.lapPenaltyStartMs = 0;
         this.lapTimesMs = [];

@@ -337,6 +337,87 @@ async function horizonSky() {
     } finally { h.cleanup(); }
     console.log('Horizons: one per cup in the 3D sky, seamless, scrolling with the heading, flat sky fallback');
 }
+// Z46: David's trees at the scale of the karts (his feedback: "they look like flowers"). With the drawn karts and
+// trees loaded: in 3D, at equal distance, a tree stands 3 to 4 kart heights tall; from above, a crown is 2.5 to 3
+// kart lengths across. Neither ever covers the road: the crown from above and the 3D panel stay off the track.
+async function treeSizes() {
+    const { TREE_SPRITES, drawnTrees } = await import('../src/games/derapage/tree-sprites.ts');
+    const { KART_SPRITES } = await import('../src/games/derapage/kart-sprites.ts');
+    const { nearest } = await import('../src/engines/derapage/track.ts');
+    const visible = (h, prefix) => h.images.filter(i => i.placements.setVisible?.at(-1) && i.texture.key.startsWith(prefix));
+    const h = await mount('derapage', 'dragon', false); h.session.send('start');
+    try {
+        for (const key of Object.keys(TREE_SPRITES)) h.textures.add(`derapage-tree-${key}`);
+        for (const key of Object.keys(KART_SPRITES)) h.textures.add(`derapage-kart-${key}`);
+        const ratios = { side: [], top: [] };
+        for (const level of [5, 16, 27, 28, 19]) {
+            h.engine.loadLevel(level, 28);
+            const t = h.engine.track, trees = drawnTrees(t).filter(tree => !tree.kart || t.circuit.theme.kart === 'autumn');
+            const tree = trees[Math.floor(trees.length / 2)];
+            // 3D: a rival kart beside the tree, at the same depth, the player 24 units behind both.
+            h.scene.view3d = true;
+            Object.assign(h.engine.karts[0], { x: tree.x - 24, y: tree.y, angle: 0, vx: 0, vy: 0 });
+            Object.assign(h.engine.karts[1], { x: tree.x, y: tree.y + 1, angle: 0, vx: 0, vy: 0 });
+            h.frame();
+            // The rival is the farther kart (higher on screen); the panel is the tree drawn closest to it.
+            const rival = visible(h, 'derapage-kart-').reduce((m, k) => k.placements.setPosition[1] < m.placements.setPosition[1] ? k : m);
+            const panel = visible(h, 'derapage-tree-').reduce((m, i) => !m || Math.abs(i.placements.setPosition[0] - rival.placements.setPosition[0]) < Math.abs(m.placements.setPosition[0] - rival.placements.setPosition[0]) ? i : m, null);
+            assert(panel && rival, `circuit ${level + 1}: a tree panel and a kart at the same depth`);
+            ratios.side.push(panel.placements.setDisplaySize[1] / rival.placements.setDisplaySize[1]);
+            // Top view: the crown against the player's kart, nose to tail.
+            h.scene.view3d = false;
+            Object.assign(h.engine.karts[1], { x: tree.x + 400, y: tree.y });
+            Object.assign(h.engine.karts[0], { x: tree.x - 14, y: tree.y });
+            h.frame();
+            const crown = visible(h, 'derapage-tree-').find(i => i.texture.key.endsWith('_top'));
+            const kart = visible(h, 'derapage-kart-').find(i => i.texture.key.endsWith('_top'));
+            assert(crown && kart, `circuit ${level + 1}: a crown and the player's kart from above`);
+            ratios.top.push(crown.placements.setDisplaySize[0] / kart.placements.setDisplaySize[1]);
+        }
+        console.log(`Tree sizes measured: 3D ${ratios.side.map(r => r.toFixed(2))} kart heights, top ${ratios.top.map(r => r.toFixed(2))} kart lengths`);
+        const range = (list, low, high, name) => assert(list.every(r => r >= low && r <= high), `${name}: ${list.map(r => r.toFixed(2))} within [${low}, ${high}]`);
+        range(ratios.side, 3, 4, 'tree height / kart height at equal depth (3D)');
+        range(ratios.top, 2.5, 3, 'crown / kart length (top view)');
+        // Off the road: every drawn crown (world diameter from treeCrown) clears the edge of the nearest road section.
+        const { treeCrown } = await import('../src/games/derapage/tree-sprites.ts');
+        for (let level = 0; level < 30; level++) {
+            h.engine.loadLevel(level, 28);
+            const t = h.engine.track;
+            for (const q of drawnTrees(t)) {
+                const n = nearest(t, q);
+                assert(n.distance >= (t.widths[n.index] ?? 28) / 2 + treeCrown(q) / 2, `circuit ${level + 1}: crown off the road (${n.distance.toFixed(1)} < ${((t.widths[n.index] ?? 28) / 2 + treeCrown(q) / 2).toFixed(1)})`);
+            }
+        }
+        // Driving on the centre line in 3D, no tree panel covers the player's kart, nor the road 12, 18 or 24 units
+        // ahead; witness: a tree put on the road 18 units ahead is caught.
+        const { projectPoint, FAR } = await import('../src/games/derapage/view3d.ts');
+        const { at } = await import('../src/engines/derapage/track.ts');
+        const look = (t, i) => {
+            const p = t.points[i], q = t.points[(i + 1) % 96];
+            Object.assign(h.engine.karts[0], { x: p.x, y: p.y, angle: Math.atan2(q.y - p.y, q.x - p.x), vx: 0, vy: 0 });
+            for (const k of h.engine.karts.slice(1)) Object.assign(k, { x: 9999, y: 9999 });
+            h.frame();
+            const panels = visible(h, 'derapage-tree-').map(im => { const [x, y] = im.placements.setPosition, [w, ht] = im.placements.setDisplaySize; return { x0: x - w / 2, x1: x + w / 2, y0: y - ht / 2, y1: y + ht / 2, depth: im.placements.setDepth[0] }; });
+            const kart = visible(h, 'derapage-kart-')[0], [kx, ky] = kart.placements.setPosition, [kw, kh] = kart.placements.setDisplaySize;
+            if (panels.some(r => r.depth > kart.placements.setDepth[0] && r.x1 > kx - kw / 2 && r.x0 < kx + kw / 2 && r.y1 > ky - kh && r.y0 < ky)) return 'kart';
+            const camera = { x: p.x, y: p.y, angle: h.engine.karts[0].angle };
+            for (const ahead of [12, 18, 24]) {
+                const a = projectPoint(at(t, t.distances[i] + ahead), camera);
+                if (a && panels.some(r => r.depth >= FAR - a.depth + 2 - 1e-6 && r.x0 < a.x && r.x1 > a.x && r.y0 < a.y && r.y1 > a.y)) return `road ${ahead} ahead`;
+            }
+            return null;
+        };
+        h.scene.view3d = true;
+        for (const level of [5, 16, 27, 28, 19]) {
+            h.engine.loadLevel(level, 28);
+            for (let i = 0; i < 96; i++) { const hidden = look(h.engine.track, i); assert.equal(hidden, null, `circuit ${level + 1}, position ${i}: a tree hides the ${hidden}`); }
+        }
+        h.engine.loadLevel(16, 28);
+        const t16 = h.engine.track, w = at(t16, t16.distances[10] + 18); t16.trees.push({ x: w.x, y: w.y, radius: 2 });
+        assert.match(look(t16, 10) ?? '', /^road /, 'witness: a tree on the road ahead is caught');
+        console.log(`Tree sizes: 3D ${ratios.side.map(r => r.toFixed(2))} kart heights, top ${ratios.top.map(r => r.toFixed(2))} kart lengths`);
+    } finally { h.cleanup(); }
+}
 await renderBudget();
 assert.equal(budgetChecks,384,'all real frame counts submitted');
 assert.throws(() => withinBudget(521, 591), { name: 'AssertionError' }, 'negative budget boundary');
@@ -346,6 +427,7 @@ await miniMapAndHeldBonus();
 await drawnBonuses();
 await drawnTreesInScene();
 await horizonSky();
+await treeSizes();
 if(process.argv.includes('--audit-mutations')) {
 const { mutationModule } = await import('./mutation-module.js');
 // Execute actual scene mutations: an inflated render and a return to smoothed time.
