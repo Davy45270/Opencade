@@ -318,13 +318,22 @@ export class Engine {
             this.status = 'lost';
             return this.last = { popped: [], fallen: [], attached: null };
         }
+        // Prisms are wild: they join any colour group and pass it on.
+        const group = (): Cell[] => this.flood([target], c => (c.color === target.color && matchable(c)) || c.kind === 'prism');
         if (this.rainbowShot) {
             const adjacent = (struck && matchable(struck) ? struck : undefined) ?? neighbors(target).map(n => this.grid.find(c => key(c) === key(n))).find(c => c && matchable(c));
+            // A rainbow shot takes the colour it touched, but never at the cost of the group its own
+            // colour completes: it then keeps the colour it was fired with (and shown in flight).
+            const own = target.color;
             if (adjacent) target.color = adjacent.color;
+            if (group().length < 3) {
+                const touched = target.color;
+                target.color = own;
+                if (group().length < 3) target.color = touched;
+            }
         }
         this.grid.push(target);
-        // Prisms are wild: they join any colour group and pass it on.
-        const connected = this.flood([target], c => (c.color === target.color && matchable(c)) || c.kind === 'prism');
+        const connected = group();
         const popped = connected.length >= 3 ? connected : [];
         // Chain reactions: a bomb blasts its six neighbours, a leaf sweeps its whole row;
         // stone, ice, stars and crystals survive both, and new bombs/leaves chain on.
