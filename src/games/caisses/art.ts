@@ -39,3 +39,23 @@ export function boxPaint(b: Board, s: Position, box: number, p: number): { home:
     const isRed = (s.colors[box] ?? 0) === 1, home = target >= 0 && (b.targetColors[target] ?? 0) === (s.colors[box] ?? 0);
     return { home, color: home ? 0x5fbf6a : isRed ? 0xc4483c : 0xd08a3e };
 }
+/** David's crate from above (06/11, the view without "?", like Pistouille's): 96 × 89 WebP. */
+export const DRAWN_CRATE = { w: 96, h: 89 } as const;
+export const CRATE_TEXTURE = 'caisses-crate';
+export type CrateTone = 'wood' | 'red' | 'home';
+/** Tone of a crate as `boxPaint` decides it: green once home, red for a red crate, wood otherwise. */
+export function crateTone(b: Board, s: Position, box: number, p: number): CrateTone {
+    const { home } = boxPaint(b, s, box, p);
+    return home ? 'home' : (s.colors[box] ?? 0) === 1 ? 'red' : 'wood';
+}
+/** Bakes David's crate in one tone (the same cue as the vector crate: red crates go to red targets, a crate home
+ *  turns green). The tint is painted into the texture, so it does not depend on the renderer. */
+export function paintCrate(ctx: CanvasRenderingContext2D, source: CanvasImageSource, tone: CrateTone): void {
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(source, 0, 0, DRAWN_CRATE.w, DRAWN_CRATE.h);
+    if (tone === 'wood') return;
+    ctx.globalCompositeOperation = 'source-atop';
+    ctx.fillStyle = tone === 'red' ? 'rgba(210,40,32,.6)' : 'rgba(60,200,96,.55)';
+    ctx.fillRect(0, 0, DRAWN_CRATE.w, DRAWN_CRATE.h);
+    ctx.globalCompositeOperation = 'source-over';
+}

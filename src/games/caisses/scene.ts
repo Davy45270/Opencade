@@ -14,7 +14,7 @@ import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { crate, hudVeil, worldOf, SceneryLayer } from '../universal/art';
-import { boxPaint, cellMarks, workshopLayout, workshopScenery } from './art';
+import { CRATE_TEXTURE, DRAWN_CRATE, boxPaint, cellMarks, crateTone, paintCrate, workshopLayout, workshopScenery, type CrateTone } from './art';
 export const caissesButtons: readonly TouchButton[] = [
     // Moves are swipes on the board; Annuler always shows, Tirer only next to a pullable crate.
     { id: 'caisses-undo', label: '↶', ariaLabel: 'Annuler', size: 56, placement: 'left', mode: 'tap' },
@@ -30,6 +30,8 @@ export interface CaissesHook {
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
     scenario(name: 'finish' | 'corner'): void;
+    /** Tone and drawing of every crate on screen: `wood|red|home/drawn` once David's crate is loaded, `/vector` before. */
+    crateViews(): string[];
 }
 declare global { interface Window { __CAISSES_TEST__?: CaissesHook } }
 export class CaissesScene extends Phaser.Scene {
@@ -43,6 +45,12 @@ export class CaissesScene extends Phaser.Scene {
     private down = false;
     private heroBounds = { x: 0, y: 0, width: 0, height: 0 };
     private graphics?: Phaser.GameObjects.Graphics;
+    /** The character, above the crates: it stands a head taller than its cell. */
+    private top?: Phaser.GameObjects.Graphics;
+    /** David's crate (06/11), one image per crate on screen, once its chunk has arrived; the vector crate until then. */
+    private crates: Phaser.GameObjects.Image[] = [];
+    private drawnCrate = false;
+    private crateViews: string[] = [];
     /** Static scenery layer, repainted only when its key changes (level, board): software rendering stays fast. */
     private scenery?: SceneryLayer;
     private hud?: Phaser.GameObjects.Text;
@@ -58,7 +66,25 @@ export class CaissesScene extends Phaser.Scene {
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.scenery = new SceneryLayer(this, 'caisses');
         this.graphics = this.add.graphics();
-        this.hud = this.add.text(12, 20, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 6 });
+        this.top = this.add.graphics().setDepth(2);
+        this.hud = this.add.text(12, 20, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 6 }).setDepth(3);
+        this.crates = []; this.drawnCrate = false;
+        // David's crate arrives in its own chunk, like Pistouille's drawings: baked once per tone, the vector crate until then.
+        void import('./crate-atlas').then(({ crate }) => {
+            if (!this.sys.isActive() || !crate) return;
+            if (!this.textures.exists(CRATE_TEXTURE)) this.load.image(CRATE_TEXTURE, crate);
+            this.load.once('complete', () => {
+                if (!this.sys.isActive() || !this.textures.exists(CRATE_TEXTURE)) return;
+                const source = this.textures.get(CRATE_TEXTURE).getSourceImage() as CanvasImageSource;
+                for (const tone of ['wood', 'red', 'home'] as const) {
+                    const key = `${CRATE_TEXTURE}-${tone}`; if (this.textures.exists(key)) continue;
+                    const texture = this.textures.createCanvas(key, DRAWN_CRATE.w, DRAWN_CRATE.h);
+                    if (texture) { paintCrate(texture.context, source, tone); texture.refresh(); }
+                }
+                this.drawnCrate = true; this.draw();
+            });
+            this.load.start();
+        }).catch(() => undefined);
         const action = (d: Direction | 'undo' | 'special'): void => {
             if (this.session.paused || this.selecting) return;
             if (d === 'special') {
@@ -113,7 +139,7 @@ export class CaissesScene extends Phaser.Scene {
             fingerReceipts: receipts,
             read: () => ({ fingerInput: { paused: this.session.paused, pulling: this.pulling, down: this.down }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
-            hudText: () => this.hud?.text ?? '', usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
+            hudText: () => this.hud?.text ?? '', crateViews: () => [...this.crateViews], usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             scenario: name => {
                 this.start(0, 28, true);
                 // Ordinary legal moves only; level one is already one approach step from its push.
@@ -154,13 +180,22 @@ export class CaissesScene extends Phaser.Scene {
         if (special) { const reach = this.pullable().length > 0; special.hidden = !reach; special.setAttribute('aria-pressed', String(reach && this.pulling)); if (!reach) this.pulling = false; }
         this.panels(); this.draw();
     }
+    /** Shows crate image `index` of the pool, centred at (x, y), `size` wide. */
+    private crate(index: number, tone: CrateTone, x: number, y: number, size: number): void {
+        const key = `${CRATE_TEXTURE}-${tone}`;
+        let image = this.crates[index];
+        if (!image) { image = this.add.image(x, y, key).setDepth(1); this.crates[index] = image; }
+        if (image.texture.key !== key) image.setTexture(key);
+        image.setPosition(x, y).setDisplaySize(size, size * DRAWN_CRATE.h / DRAWN_CRATE.w).setVisible(true);
+    }
     private draw(): void {
         const g = this.graphics; if (!g) return;
         this.hero.advance(0, this.session.paused || this.selecting, this.engine.status, this.engine.specialMs > 0);
         const b = this.engine.board, s = this.engine.state;
         const world = worldOf(this.engine.level), time = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : this.time.now / 1000;
-        g.clear();
+        g.clear(); this.top?.clear();
         const { unit, ox, oy } = workshopLayout(b);
+        let shown = 0; this.crateViews = [];
         const layer = this.scenery, sg = layer?.g;
         if (layer && sg && layer.stale(b)) {
             workshopScenery(sg, world, b); hudVeil(sg, world, 6, 12, 348, 116);
@@ -174,7 +209,10 @@ export class CaissesScene extends Phaser.Scene {
             if (box >= 0) {
                 const { home, color } = boxPaint(b, s, box, p);
                 if (home) { g.fillStyle(0x64e4cc, .45); g.fillRoundedRect(x+1, y+1, unit-2, unit-2, unit*.2); }
-                crate(g, x+unit*.08, y+unit*.08, unit*.84, color);
+                const tone: CrateTone = crateTone(b, s, box, p);
+                if (this.drawnCrate) this.crate(shown++, tone, x + unit / 2, y + unit / 2, unit * .96);
+                else crate(g, x+unit*.08, y+unit*.08, unit*.84, color);
+                this.crateViews.push(`${tone}/${this.drawnCrate ? 'drawn' : 'vector'}`);
             }
             if (s.player===p) {
                 // The character stands a head taller than its cell so it reads on a phone.
@@ -184,7 +222,8 @@ export class CaissesScene extends Phaser.Scene {
             }
         }
         // Drawn after every tile: the raised character overlaps its neighbours instead of hiding under them.
-        this.hero.draw(g, this.heroBounds.x, this.heroBounds.y, this.heroBounds.width);
+        for (let i = shown; i < this.crates.length; i++) this.crates[i]?.setVisible(false);
+        this.hero.draw(this.top ?? g, this.heroBounds.x, this.heroBounds.y, this.heroBounds.width);
         const left = this.engine.budgetLeft(), tip = this.engine.status === 'lost' ? 'Budget épuisé : annulez ↶ ou recommencez' : workshopTip(this.engine.level);
         const text = `CAISSES · ${String(this.engine.level+1)}/30 · ${LEVELS[this.engine.level]?.name ?? ''} · SCORE ${String(s.score)}\nPAS ${String(s.moves)}${left > 0 || this.engine.status === 'lost' ? ` (reste ${String(left)})` : ''} · POUSSÉES ${String(s.pushes)}\nTIRER ${String(this.engine.specialUses)}/1${this.pulling ? ' : direction ?' : ''}\nRecords sans/avec : ${String(LEVELS[this.engine.level]?.minimumPushes ?? 0)}/${String(pullRecords[this.engine.level]?.pushes ?? 0)} poussées${this.engine.snapshot().deadlocked ? '\nCoin bloqué : annulez ↶' : `\n${tip}`}`;
         this.hud?.setText(text);

@@ -26,6 +26,19 @@ async function swipe(page: Page, name: keyof typeof keys) {
 async function direction(page: Page, name: keyof typeof keys, mobile: boolean) {
     if (mobile) await swipe(page, name); else await page.keyboard.press(keys[name]);
 }
+test('C-CAISSE la caisse de David remplace le dessin des caisses, rouge et rangée restent lisibles', async ({ page }, info) => {
+    await page.goto('/?test=1#/caisses');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__CAISSES_TEST__))).toBe(true);
+    const views = (level: number) => page.evaluate(level => { window.__CAISSES_TEST__?.loadLevel(level, 28); window.__CAISSES_TEST__?.advance(0); return window.__CAISSES_TEST__?.crateViews() ?? []; }, level);
+    // The drawing arrives in its own chunk: every crate ends up drawn, a red one in red.
+    await expect.poll(async () => (await views(25)).sort().join(' ')).toBe('red/drawn wood/drawn');
+    await page.screenshot({ path: info.outputPath('caisses-caisse-rouge.png') });
+    const home = await views(28);
+    expect(home.every(v => v.endsWith('/drawn'))).toBe(true);
+    expect(home.filter(v => v === 'home/drawn')).toHaveLength(2);
+    expect(home).toHaveLength((await read(page))?.boxes.length ?? -1);
+    await page.screenshot({ path: info.outputPath('caisses-caisse-rangee.png') });
+});
 test('C01 C04 C05 C06 C11 victoire, reprise, impasse sans défaite', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium';
     await page.goto('/?test=1#/caisses');
