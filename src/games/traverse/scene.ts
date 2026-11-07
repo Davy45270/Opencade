@@ -1,6 +1,6 @@
 import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
-import { swipeDirection } from '../../shell/gestures';
+import { TAP_STEP_MS, due, land, lift, slide, type TapGesture } from './tap';
 import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
 import { Engine, LEVELS, PLANS, filled, castawayAt, shelterOpen, type Direction } from '../../engines/traverse/engine';
@@ -48,7 +48,7 @@ export class TraverseScene extends Phaser.Scene {
     private under?: Phaser.GameObjects.Graphics;
     private paintedRocks = 0;
     private hud?: Phaser.GameObjects.Text;
-    private gesture: { x: number; y: number; id: number; acted: boolean } | null = null;
+    private gesture: (TapGesture & { id: number; timer?: ReturnType<typeof setTimeout> }) | null = null;
     private heroBounds = { x: 0, y: 0, width: 24, height: 24 };
     private drawn = { red: 0, green: 0, rocks: 0, castaway: false, closedShelters: 0 };
     
@@ -77,26 +77,32 @@ export class TraverseScene extends Phaser.Scene {
         renderTouchControls(this.inputs, traverseButtons, (id, held) => { if (held) direction(id.replace('traverse-', '') as Direction | 'special'); });
         const area = document.querySelector<HTMLElement>('#game');
         if (area) {
+            const drop = (): void => { if (this.gesture) clearTimeout(this.gesture.timer); this.gesture = null; };
+            this.inputs.cleanup(drop);
             this.inputs.on(area, 'pointerdown', event => {
                 const e = event as PointerEvent;
                 if (this.gesture || this.session.paused || this.selecting) return;
                 e.preventDefault(); area.setPointerCapture(e.pointerId);
-                this.gesture = { x: e.clientX, y: e.clientY, id: e.pointerId, acted: false };
+                // A still finger steps forward on release, or TAP_STEP_MS after landing if it is still down (whichever comes first).
+                const g = { ...land(e.clientX, e.clientY, performance.now()), id: e.pointerId, timer: undefined as ReturnType<typeof setTimeout> | undefined };
+                g.timer = setTimeout(() => { if (this.gesture === g && due(g, performance.now())) direction('up'); }, TAP_STEP_MS);
+                this.gesture = g;
             });
-            // A swipe acts as soon as it is long enough; a tap steps forward on release.
+            // A swipe acts as soon as it is long enough; sideways travel before the step cancels the forward step.
             this.inputs.on(area, 'pointermove', event => {
                 const e = event as PointerEvent, g = this.gesture;
-                if (!g || e.pointerId !== g.id || g.acted) return;
-                const d = swipeDirection(e.clientX - g.x, e.clientY - g.y, 20);
-                if (d) { g.acted = true; direction(d); }
+                if (!g || e.pointerId !== g.id) return;
+                const d = slide(g, e.clientX, e.clientY);
+                if (d) direction(d);
             });
             this.inputs.on(area, 'pointerup', event => {
                 const e = event as PointerEvent, g = this.gesture;
                 if (!g || e.pointerId !== g.id) return;
-                this.gesture = null;
-                if (!g.acted) direction(swipeDirection(e.clientX - g.x, e.clientY - g.y, 20) ?? 'up');
+                drop();
+                const d = lift(g, e.clientX, e.clientY);
+                if (d) direction(d);
             });
-            for (const type of ['pointercancel', 'lostpointercapture']) this.inputs.on(area, type, () => { this.gesture = null; });
+            for (const type of ['pointercancel', 'lostpointercapture']) this.inputs.on(area, type, drop);
         }
         const keys: Record<string, Direction> = { ArrowUp: 'up', KeyW: 'up', KeyZ: 'up', ArrowDown: 'down', KeyS: 'down', ArrowLeft: 'left', KeyA: 'left', KeyQ: 'left', ArrowRight: 'right', KeyD: 'right' };
         this.inputs.on(document, 'keydown', event => {

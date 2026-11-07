@@ -87,7 +87,7 @@ test('A07b barre compacte et canevas mobile', async ({ page }) => {
     }
 });
 
-for (const id of ['derapage', 'alunir', 'serpentin', 'briqueterie', 'empilo', 'orbite', 'essaim', 'dedale', 'ferraille', 'bubble'] as const) {
+for (const id of ['derapage', 'traverse', 'alunir', 'serpentin', 'briqueterie', 'empilo', 'orbite', 'essaim', 'dedale', 'ferraille', 'bubble'] as const) {
     test(`A11 ${id} horloge manuelle, regroupement et pause`, async ({ page }) => {
         await page.goto(`/?test=1#/${id}`);
         await expect.poll(() => page.evaluate(id => Boolean(window.__ARCADE_TEST__?.games[id]), id)).toBe(true);

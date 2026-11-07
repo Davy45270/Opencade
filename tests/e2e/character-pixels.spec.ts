@@ -1,7 +1,6 @@
 import { test, expect } from './fixture';
 
 for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} pixels du personnage en jeu : repos et spécial`, async ({ page }, info) => {
-    test.skip(game === 'traverse', 'Traverse est retenu hors du catalogue public jusqu’à sa correction.');
     test.skip(info.project.name !== 'mobile-chromium');
     await page.addInitScript(() => { localStorage.setItem('arcade-lab:character:v1', 'panda'); });
     await page.goto(`/?test=1#/${game}`);

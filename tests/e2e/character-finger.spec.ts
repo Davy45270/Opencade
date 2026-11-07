@@ -45,7 +45,6 @@ async function capture(page: Page, info: TestInfo, game: Game, id: CharacterId, 
     await info.attach(`perso-${id}-${game}-${kind}`, { path, contentType: 'image/png' });
 }
 for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} doigt bruité : niveaux 1 et 10`, async ({ page }, info) => {
-    test.skip(game === 'traverse', 'Traverse est retenu hors du catalogue public jusqu’à sa correction.');
     test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(1800000);
     await page.setViewportSize({ width: 390, height: 844 });
     const id = ids[game === 'caisses' ? 0 : game === 'traverse' ? 1 : 4];

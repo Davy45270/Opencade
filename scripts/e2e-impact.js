@@ -51,10 +51,10 @@ export const GAME_SPECS = {
     'pepites': ['pepites', 'pepites-finger'],
     'petits-pompiers': ['petits-pompiers', 'petits-pompiers-finger', 'petits-pompiers-touch', 'site-pompiers'],
     'serpentin': ['serpentin'],
+    'traverse': ['traverse'],
 };
 /** Games held out of the public catalogue (absent from the registry) until they return; their specs stay owned here. */
 export const HELD_BACK = {
-    'traverse': ['traverse'],
 };
 /** Cross-game specs, grouped by what they exercise. None is tied to a single game. */
 export const CROSS_SPECS = {
@@ -92,6 +92,7 @@ export const SMOKE_TESTS = {
     'pepites': ['pepites', 'P13 mise en page : mine entière visible, boutons de 56 px sous le canevas, HUD lisible', 14.4],
     'petits-pompiers': ['petits-pompiers', 'Petits Pompiers : défi choisi par deux gros boutons, crochet réservé aux tests', 12.7],
     'serpentin': ['serpentin', 'N14 écluses : ouverte, clignotante la dernière demi-seconde, puis fermée', 5.9],
+    'traverse': ['traverse', 'R01 glisser tactile unique, pause et crochet de production absent', 3.5],
 };
 /** Seconds per spec file (all projects), same measurements; used only to size CI shards. */
 export const SPEC_SECONDS = {
@@ -116,7 +117,7 @@ export const SPLIT_SPECS = {
     'mobile-layout': {
         'ferraille': 38.0, 'alunir': 33.9, 'briqueterie': 33.9, 'petits-pompiers': 24.7, 'pepites': 24.5, 'essaim': 22.8, 'collier': 22.5,
         'derapage': 18.1, 'bombercade': 17.6, 'gourmandises': 16.7, 'orbite': 16.4, 'marmaille': 15.0, 'dedale': 14.2, 'serpentin': 13.8,
-        'bubble': 13.3, 'caisses': 12.7, 'empilo': 11.7, '': 5.1,
+        'traverse': 13.7, 'bubble': 13.3, 'caisses': 12.7, 'empilo': 11.7, '': 5.1,
     },
 };
 /** N2 shell zones: the specs that exercise that part of the shell, added to the N2 selection. */
