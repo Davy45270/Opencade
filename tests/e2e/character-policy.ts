@@ -2,6 +2,8 @@ import { pilot, type Engine as Lander } from '../../src/engines/alunir/engine';
 import { transition, castawayAt, type Action, type Engine as Crossing } from '../../src/engines/traverse/engine';
 
 export const crossingInputWindowMs = 300;
+/** A swipe's finger travel (60 px in 60 ms) after its landing: the side step lands this much later than a tap. */
+export const swipeTravelMs = 60;
 
 /** Replan from the observed cell/phase on every traffic quantum. */
 export function crossingAction(s: ReturnType<Crossing['snapshot']>): Action {

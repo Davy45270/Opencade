@@ -5,7 +5,7 @@ import { Engine as Crates, directions, type Direction } from '../../src/engines/
 import { solve as solveCrates, type PullInput } from '../../src/engines/caisses/solver';
 import { pull, push } from '../../src/engines/caisses/rules';
 import { difficulty } from '../../src/engines/traverse/engine';
-import { crossingAction, landingControl, crossingInputWindowMs } from './character-policy';
+import { crossingAction, landingControl, crossingInputWindowMs, swipeTravelMs } from './character-policy';
 import { Engine as Lander } from '../../src/engines/alunir/engine';
 type Game = 'caisses' | 'traverse' | 'alunir';
 import { Finger } from './finger-stepped';
@@ -101,9 +101,10 @@ for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} d
                         continue; // Observe again before planning.
                     }
                     // One queued command per quantum, leaving enough room for input latency. A tap (step
-                    // forward) lands on release like a button press; a swipe needs one more reaction (its move).
+                    // forward) lands on release like a button press; a swipe also needs its finger travel
+                    // (the 60 ms move below), not a second reaction: at level 10 a step lasts 416.7 ms.
                     const action = crossingAction(state), swiped = action === 'left' || action === 'right' || action === 'down';
-                    if (state.phase === lastPhase || (difficulty(state.level).flowFrames - state.frames) * 1000 / 60 < Math.max(crossingInputWindowMs + (swiped ? 200 : 0), clock.horizon)) {
+                    if (state.phase === lastPhase || (difficulty(state.level).flowFrames - state.frames) * 1000 / 60 < Math.max(crossingInputWindowMs + (swiped ? swipeTravelMs : 0), clock.horizon)) {
                         await finger.advance(10); continue;
                     }
                     decisions.push({ timeMs: clock.elapsed, state, action });
@@ -116,7 +117,7 @@ for (const game of ['caisses', 'traverse', 'alunir'] as const) test(`P-${game} d
                         const [dx, dy] = ({ left: [-1, 0], right: [1, 0], down: [0, 1] } as const)[action];
                         await finger.touch('touchStart', [road]);
                         // 60 px in 60 ms (the same gesture, no second reaction): the +-12 px noise never brings it under the 20 px threshold or onto the other axis.
-                        await finger.touch('touchMove', [{ id: 0, x: road.x + dx * 60, y: road.y + dy * 60 }], undefined, 60); await finger.release();
+                        await finger.touch('touchMove', [{ id: 0, x: road.x + dx * 60, y: road.y + dy * 60 }], undefined, swipeTravelMs); await finger.release();
                     } else await finger.press([]);
 
                 }

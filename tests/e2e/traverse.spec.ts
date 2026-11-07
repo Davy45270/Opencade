@@ -78,6 +78,8 @@ test('R11 traversées d\'introduction annoncées, HUD hors de la zone utile', as
 });
 test('T20 tactile : aucune flèche, Bond accessible, voies visibles', async ({ page }, info) => {
     test.skip(info.project.name !== 'mobile-chromium', 'Commandes tactiles');
+    // Page timers on a test clock: CDP round trips under load must not count as a finger held still.
+    await page.clock.install({ time: 0 });
     await page.goto('/?test=1#/traverse');
     await expect.poll(() => page.evaluate(() => Boolean(window.__TRAVERSE_TEST__))).toBe(true);
     await page.locator('#resume').tap();
@@ -93,10 +95,20 @@ test('T20 tactile : aucune flèche, Bond accessible, voies visibles', async ({ p
     for (const c of [bond, pause]) expect(c.x >= canvas.x + canvas.w || c.x + c.w <= canvas.x || c.y >= canvas.y + canvas.h || c.y + c.h <= canvas.y).toBe(true);
     // A swipe right queues a side step; a tap queues a step forward.
     await page.evaluate(() => { window.__TRAVERSE_TEST__?.advance(0); });
+    await page.clock.pauseAt(3600000);
     const x = canvas.x + canvas.w / 2, y = canvas.y + canvas.h / 2, cdp = await page.context().newCDPSession(page);
+    // A still finger steps forward 90 ms after landing at the latest, without waiting for its release.
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    await page.clock.runFor(89); expect((await read(page))?.queue).toEqual([]);
+    await page.clock.runFor(1); expect((await read(page))?.queue).toEqual(['up']);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); expect((await read(page))?.queue).toEqual(['up']);
+    await page.evaluate(() => { window.__TRAVERSE_TEST__?.advance(1000); }); expect((await read(page))?.queue).toEqual([]);
+    // A quick sideways slide cancels the forward step: only the side step, even long after the deadline.
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    await page.clock.runFor(30);
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: x + 40, y }] });
     expect((await read(page))?.queue).toContain('right');
+    await page.clock.runFor(200); expect((await read(page))?.queue).not.toContain('up');
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] }); await cdp.detach();
     expect((await read(page))?.queue).not.toContain('up');
     await page.touchscreen.tap(x, y); expect((await read(page))?.queue).toContain('up');
