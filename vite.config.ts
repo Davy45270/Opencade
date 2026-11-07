@@ -14,10 +14,10 @@ const version = process.env.PWA_FIXTURE_VERSION ?? pkg.version;
 const builtAt = new Date().toISOString();
 const path = (relative: string): string => fileURLToPath(new URL(relative, import.meta.url));
 const sites = Object.keys(SITES);
-/** A site page is the catalogue's index.html with its own title, touch icon and entry module. */
+/** A site page is the catalogue's index.html with its own title, icons and entry module. */
 const sitePage = (name: string, title: string): Plugin => ({ name: 'opencade-site-page', transformIndexHtml: { order: 'pre', handler: html => html
     .replace('<title>Opencade</title>', `<title>${title}</title>`)
-    .replace('href="./icons/opencade-192.png"', `href="./icons/${name}-192.png"`)
+    .replaceAll('href="./icons/opencade-192.png"', `href="./icons/${name}-192.png"`)
     .replace('src="/src/main.ts"', 'src="/src/site.ts"') } });
 export default defineConfig({
     define: { __APP_VERSION__: JSON.stringify(version), __BUILD_DATE__: JSON.stringify(builtAt) },
