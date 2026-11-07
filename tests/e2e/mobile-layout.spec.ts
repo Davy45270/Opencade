@@ -3,7 +3,7 @@ import { test, expect, goHome } from './fixture';
 const ids = ['petits-pompiers', 'bombercade', 'marmaille', 'gourmandises', 'pepites', 'collier', 'derapage', 'traverse', 'caisses', 'alunir', 'ferraille', 'dedale', 'essaim', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin'];
 const windows = [{ width: 390, height: 844 }, { width: 360, height: 640 }, { width: 390, height: 600 }];
 for (const viewport of windows) for (const id of ids) {
-    test(`M01 M02 M02b M03 ${id} ${String(viewport.width)}x${String(viewport.height)}`, async ({ page }, testInfo) => {
+    test(`M01 M02 M02b M03 M04 ${id} ${String(viewport.width)}x${String(viewport.height)}`, async ({ page }, testInfo) => {
         await page.setViewportSize(viewport);
         await page.goto(`/?test=1#/${id}`);
         await expect.poll(() => page.evaluate(id => Boolean(window.__ARCADE_TEST__?.games[id]), id)).toBe(true);
@@ -35,6 +35,10 @@ for (const viewport of windows) for (const id of ids) {
             };
         }, id);
         const before = await measure();
+        // M04: no two HUD items (nor a HUD item and a bar button) overlap, whatever the width of their values.
+        const hud = await page.evaluate(() => Array.from(document.querySelectorAll('#hud .hud-item, #topbar button')).filter(e => e.getBoundingClientRect().width > 0).map(e => { const r = e.getBoundingClientRect(); return { text: e.textContent, left: r.left, right: r.right, top: r.top, bottom: r.bottom }; }));
+        const overlaps = hud.flatMap((a, i) => hud.slice(i + 1).filter(b => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5).map(b => `${a.text ?? ''} × ${b.text ?? ''}`));
+        expect(overlaps, `${id} HUD`).toEqual([]);
         await page.touchscreen.tap(before.canvas.x + before.canvas.width / 2, before.canvas.y + 80);
         await page.waitForTimeout(1000);
         await expect(page.locator('body')).toHaveClass(/touch/);
