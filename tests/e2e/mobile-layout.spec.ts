@@ -35,9 +35,9 @@ for (const viewport of windows) for (const id of ids) {
             };
         }, id);
         const before = await measure();
-        // M04: no two HUD items (nor a HUD item and a bar button) overlap, whatever the width of their values.
+        // M04: two HUD items (or a HUD item and a bar button) side by side keep at least 6 px between them.
         const hud = await page.evaluate(() => Array.from(document.querySelectorAll('#hud .hud-item, #topbar button')).filter(e => e.getBoundingClientRect().width > 0).map(e => { const r = e.getBoundingClientRect(); return { text: e.textContent, left: r.left, right: r.right, top: r.top, bottom: r.bottom }; }));
-        const overlaps = hud.flatMap((a, i) => hud.slice(i + 1).filter(b => a.left < b.right - 0.5 && b.left < a.right - 0.5 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5).map(b => `${a.text} × ${b.text}`));
+        const overlaps = hud.flatMap((a, i) => hud.slice(i + 1).filter(b => a.left < b.right + 6 && b.left < a.right + 6 && a.top < b.bottom - 0.5 && b.top < a.bottom - 0.5).map(b => `${a.text} × ${b.text}`));
         expect(overlaps, `${id} HUD`).toEqual([]);
         await page.touchscreen.tap(before.canvas.x + before.canvas.width / 2, before.canvas.y + 80);
         await page.waitForTimeout(1000);
