@@ -35,7 +35,7 @@ export const LEVELS: readonly LevelDef[] = [
         map: board(FLOOR, f(6, 11, 14, 11, '#'), f(5, 12, 5, 12, '#'), f(4, 13, 4, 13, '#'), f(3, 14, 3, 14, '#'), f(2, 15, 2, 15, '#'), f(1, 16, 1, 16, '#')),
         spawn: { x: 9, y: 7 }, exit: { x: 1, y: 17 }, count: 6, needed: 5, rate: 8, seconds: 140, roles: { block: 1 } },
     { id: 'M4', name: 'Le pont', lesson: 'Bâtisseur : pose cinq marches au-dessus du vide',
-        map: board(FLOOR, f(9, 18, 11, 18, '~')), spawn: { x: 2, y: 14 }, exit: { x: 17, y: 17 }, count: 6, needed: 5, rate: 12, seconds: 140, roles: { build: 2 } },
+        map: board(FLOOR, f(0, 16, 6, 17, '#'), f(7, 18, 10, 18, '~')), spawn: { x: 17, y: 14 }, dir: -1, exit: { x: 2, y: 15 }, count: 6, needed: 5, rate: 12, seconds: 140, roles: { build: 2 } },
     { id: 'M5', name: 'La corniche', lesson: 'Bâtir pour monter sur un rebord',
         map: board(FLOOR, f(14, 14, 19, 17, '#')), spawn: { x: 2, y: 14 }, exit: { x: 18, y: 13 }, count: 8, needed: 6, rate: 12, seconds: 160, roles: { build: 2 } },
     { id: 'M6', name: 'La cave', lesson: 'Creuseur : perce la terre sous ses pieds',

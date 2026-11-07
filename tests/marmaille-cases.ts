@@ -1,5 +1,5 @@
 import { Engine, FALL_MAX, BUILD_STEPS, ROLES, TICK_MS, type Role, type Kid } from '../src/engines/marmaille/engine';
-import { LEVELS } from '../src/engines/marmaille/levels';
+import { LEVELS, type LevelDef } from '../src/engines/marmaille/levels';
 import { solutions } from './marmaille-solutions';
 function check(ok: boolean, message: string): void { if (!ok) throw new Error(message); }
 type Factory = typeof Engine;
@@ -25,11 +25,11 @@ function sandbox(E: Factory, rows: string[], kid: Partial<Kid>, roles: Partial<R
     return e;
 }
 const rows = (spec: Record<number, string>): string[] => Array.from({ length: 22 }, (_, y) => (spec[y] ?? '').padEnd(20, '.'));
-export const marmailleCases: Record<string, (E?: Factory) => void> = {
+export const marmailleCases: Record<string, (E?: Factory, levels?: readonly LevelDef[]) => void> = {
     'MA-01 trente niveaux gagnés par rejeu, perdus sans rôles': (E = Engine) => {
         check(LEVELS.length === 30 && solutions.length === 30, 'thirty levels and solutions');
         // Literal end ticks: a level ends as soon as nobody is left walking (posted blockers do not hold it open).
-        const ends = [50, 59, 68, 83, 104, 58, 109, 58, 83, 67, 73, 67, 92, 92, 118, 93, 83, 85, 74, 94, 88, 92, 68, 73, 97, 103, 86, 94, 78, 118];
+        const ends = [50, 59, 68, 81, 104, 58, 109, 58, 83, 67, 73, 67, 92, 92, 118, 93, 83, 85, 74, 94, 88, 92, 68, 73, 97, 103, 86, 94, 78, 118];
         LEVELS.forEach((def, level) => {
             const won = replay(E, level, solutions[level] ?? []);
             check(won.status === 'won' && won.saved >= def.needed, `M${String(level + 1)} solution wins`);
@@ -150,5 +150,13 @@ export const marmailleCases: Record<string, (E?: Factory) => void> = {
                 check(without.status === 'lost', `M${String(level + 1)} is lost without ${role}`);
             }
         });
+    },
+    'MA-11 aucun plateau ne recopie un autre : même départ, même sortie, même sens, moins de 4 cases changées': (_E = Engine, levels = LEVELS) => {
+        // M4 was M1 plus three cells of water (3 cells apart, same spawn, exit and direction): a quasi-clone.
+        const cells = (a: LevelDef, b: LevelDef): number => a.map.reduce((n, row, y) => n + Array.from({ length: row.length }, (_, x) => row[x] !== b.map[y]?.[x]).filter(Boolean).length, 0);
+        levels.forEach((a, i) => { levels.slice(i + 1).forEach(b => {
+            const same = a.spawn.x === b.spawn.x && a.spawn.y === b.spawn.y && a.exit.x === b.exit.x && a.exit.y === b.exit.y && (a.dir ?? 1) === (b.dir ?? 1);
+            check(!same || cells(a, b) >= 4, `${a.id} and ${b.id} share spawn, exit and direction and differ by ${String(cells(a, b))} cells`);
+        }); });
     },
 };

@@ -46,4 +46,11 @@ for (const [name, before, after, id] of [
     assert.ok(run, id); assert.throws(() => run(module.Engine), name);
     console.log(`rejected mutation: ${name} (${id})`);
 }
-console.log('Marmaille: 10 rule cases, 3 art cases (2 art mutations rejected), 30 recorded victories with literal end ticks and scores, 29 levels lost without roles, every offered role needed, 23 mutations rejected.');
+// Board mutation: M4 back to M1 plus three cells of water must be caught as a quasi-clone.
+{
+    const { module } = await mutationModule('../src/engines/marmaille/levels.ts', "map: board(FLOOR, f(0, 16, 6, 17, '#'), f(7, 18, 10, 18, '~')), spawn: { x: 17, y: 14 }, dir: -1, exit: { x: 2, y: 15 },", "map: board(FLOOR, f(9, 18, 11, 18, '~')), spawn: { x: 2, y: 14 }, exit: { x: 17, y: 17 },");
+    const run = Object.entries(marmailleCases).find(([n]) => n.startsWith('MA-11'))?.[1];
+    assert.ok(run, 'MA-11'); assert.throws(() => run(undefined, module.LEVELS), 'M4 quasi-clone of M1');
+    console.log('rejected mutation: M4 quasi-clone of M1 (MA-11)');
+}
+console.log('Marmaille: 11 rule cases, 3 art cases (2 art mutations rejected), 30 recorded victories with literal end ticks and scores, 29 levels lost without roles, every offered role needed, 24 mutations rejected.');

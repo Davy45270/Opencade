@@ -9,7 +9,7 @@ export const TRIGGERS = [
     [],
     [[0, 'block', 12]],
     [[0, 'block', 13]],
-    [[0, 'build', 8]],
+    [[0, 'build', 11]],
     [[0, 'build', 9]],
     [[0, 'dig', 10]],
     [[0, 'dig', 3, 11, -1]],
