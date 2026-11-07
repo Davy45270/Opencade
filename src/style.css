@@ -434,7 +434,7 @@ body.playing.side-controls #essaim-steer .steer-zone { width: 64px; height: 160p
   body.playing #hud {
     position: absolute; z-index: 2; top: 0; left: 0; right: 60px; height: 52px; padding: 4px 8px;
     /* Side slots share the room equally while they fit, and never shrink below their content (no overlap on 360 px). */
-    display: grid; grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr); align-items: center; pointer-events: none;
+    display: grid; grid-template-columns: minmax(max-content, 1fr) auto minmax(max-content, 1fr); column-gap: 12px; align-items: center; pointer-events: none;
     color: #f4fbff; text-shadow: 0 1px 2px #000a; font-variant-numeric: tabular-nums;
   }
   body.playing #hud[hidden] { display: none; }
