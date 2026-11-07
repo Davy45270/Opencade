@@ -54,20 +54,22 @@ Let n be available levels, C the clone count divided by n−1, N the number of p
 
 ## Ranked results
 
+Regenerated on 2026-11-07 with `node scripts/diversity-report.js` (seed 28, same formula and thresholds) on the current campaigns. Serpentin, Empilo, Caisses and Traverse were rewritten since pass 77: the clone shares of the first three fall from 37.9 %, 62.1 % and 13.8 % to 0 %, 0 % and 3.4 % (one historical pair, rooms 2 and 3), and Traverse goes from 1 to 8 novelties (score 41.4 to 21.6). The remaining adjacent clones are Alunir 6–7, 7–8 and 27–28 (same terrain, close parameters). The pilot coverage table below is the pass 77 record: the report no longer replays pilots.
+
 | Game | Score | Novelties (count; levels) | Clone share | Longest flat plateau | What actually varies |
 | --- | ---: | --- | ---: | ---: | --- |
-| Serpentin | 62.1 | 3; 2, 5, 6 | 37.9% | 3 | Obstacle placement and patterns, boundary wrapping, speed and apple target. |
-| Empilo | 59.5 | 5; 6, 9, 11, 16, 21 | 62.1% | 3 | Piece vocabulary, initial rubble and sealed tiles, gravity and line target. |
-| Alunir | 56.9 | 2; 2, 15 | 41.4% | 3 | Terrain relief, landing width, wind, gusts, fuel and initial offset. |
-| Caisses | 56.9 | 0; none | 13.8% | 5 | Authored room topology, box/target positions and solution length; the rules stay fixed. |
-| Traverse | 41.4 | 1; 10 | 0.0% | 3 | Lane placement, direction and phase, diving logs, shelters and flow speed. |
-| Dérapage | 38.8 | 4; 3, 24, 29, 30 | 0.0% | 0 | Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning. |
+| Alunir | 55.2 | 0; none | 10.3% | 0 | Terrain relief, landing width, wind, gusts, fuel and initial offset. |
+| Dérapage | 32.8 | 6; 2, 3, 11, 27, 29, 30 | 0.0% | 0 | Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning. |
 | Bulles | 25.9 | 7; 2, 11, 14, 17, 20, 23, 26 | 0.0% | 0 | Thirty seeded layouts with increasing density and pressure; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers. |
-| Dédale | 22.4 | 8; 4, 5, 9, 13, 16, 19, 22, 25 | 0.0% | 3 | Five seeded topologies; observed colored doors, one-way passages, paired portals, switches, cyclic walls, sliding ice, reduced sight and distinct wisp behaviors. |
+| Caisses | 24.1 | 7; 4, 5, 8, 12, 16, 21, 26 | 3.4% | 0 | Thirty workshops; fifteen historical rooms, then ice, one-way floors, plate doors, pits, paired pads and colour-matched boxes, five move-budget challenges. |
+| Dédale | 22.4 | 8; 4, 5, 9, 13, 16, 19, 22, 25 | 0.0% | 3 | Seeded routes inside five topologies; observed mechanism positions, colored locks, one-way passages, portals, switches, cyclic walls, sliding ice, darkness and distinct wisp behaviors. |
+| Traverse | 21.6 | 8; 4, 5, 7, 8, 12, 16, 21, 26 | 0.0% | 0 | Thirty crossings; traffic lights, diving logs, rapids, tides, bank rocks, a castaway to rescue, shelters in order, five one-life challenges and slower flow after each. |
+| Serpentin | 20.7 | 9; 2, 3, 4, 5, 8, 12, 16, 21, 26 | 0.0% | 0 | Thirty authored rooms; portals, timed gates, a fleeing prey, arrows imposing the next move, scissors and sentries, five timed challenges and calmer rooms after each new rule. |
+| Empilo | 19 | 11; 3, 4, 5, 7, 8, 11, 12, 16, 18, 21, 26 | 0.0% | 0 | Thirty authored strata; bombs, dig-for-gems objectives, sliding conveyor rows, a rising floor, padlocks with a key, fog over the queue, five timed challenges and calmer strata after each new rule. |
 | Briqueterie | 18.1 | 10; 4, 5, 7, 10, 13, 16, 19, 22, 25, 28 | 0.0% | 0 | Thirty authored silhouettes; observed sliding rows, chicanes, neighbor explosions, regrowth, portals, inclined reflections, keys, brick multiball, inverse-gravity zones and falling suspensions. |
-| Orbite | 18.1 | 12; 4, 5, 7, 10, 13, 15, 16, 19, 20, 22, 25, 30 | 0.0% | 3 | Six authored formations; observed rotating shields, split fragments, asteroid deflections, gravity curves, stealth, local repair, satellite defense and coordinated swarms; six guardians and a two-phase finale. |
-| Essaim | 16.4 | 14; 2, 3, 4, 5, 7, 10, 13, 15, 16, 19, 20, 22, 25, 30 | 0.0% | 3 | Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship. |
-| Ferraille | 11.2 | 19; 2, 4, 5, 6, 7, 8, 10, 11, 12, 14, 15, 16, 18, 20, 21, 24, 25, 26, 30 | 0.0% | 0 | Authored ascent/descent, wagon rides, hostage rescues, six enemy behaviors, three special weapons and five guardian patterns plus a three-phase reactor. |
+| Orbite | 18.1 | 12; 4, 5, 7, 10, 13, 15, 16, 19, 20, 22, 25, 30 | 0.0% | 0 | Six authored formations; observed rotating shields, split fragments, asteroid deflections, gravity curves, stealth, local repair, satellite defense and coordinated swarms; six guardians and a two-phase finale. |
+| Essaim | 17.2 | 13; 2, 3, 4, 5, 7, 10, 13, 15, 16, 19, 22, 25, 30 | 0.0% | 3 | Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship. |
+| Ferraille | 0 | 29; 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30 | 0.0% | 0 | Authored ascent/descent, wagon rides, hostage rescues, six enemy behaviors, three special weapons and five guardian patterns plus a three-phase reactor. |
 
 “Flat” in the table refers to the configuration proxy above. A zero means no qualifying window, not proof of continuous experiential difficulty growth. The JSON carries the exact ranges and pairs.
 
