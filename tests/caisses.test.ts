@@ -40,7 +40,7 @@ test('C06 compteurs, score relatif au minimum de pas', () => {
 });
 test('C07 validation des dimensions, symboles, occupants et fermeture', () => {
     // Pass 403: pit rooms carry one extra box per pit.
-    // HL-479: at most one spare crate per cracked slab, to fill the hole it leaves.
+    // 2026-11-08: at most one spare crate per cracked slab, to fill the hole it leaves.
     for (const level of LEVELS) { const b=parse(level.text), spare=b.boxes.length - b.targets.length - b.pits.length; expect(spare).toBeGreaterThanOrEqual(0); expect(spare).toBeLessThanOrEqual(b.cracks.length); }
     for (const text of ['###\n#@#\n###', '#####\n#@@$#\n# . #\n#####', '####\n#@$ .#\n####', '#####\n @$ .\n#####', '#####\n#@x.#\n#####']) expect(() => parse(text)).toThrow();
     expect(parse('#####\n#+* #\n# $ #\n#####').targets).toHaveLength(2);
@@ -65,7 +65,7 @@ test('C10 campagne : une mécanique neuve tous les 4 à 5 ateliers, défi à bud
     expect([last.ice, last.arrows, last.doors, last.pits, last.pads].every(a => a.length > 0) && last.boxColors.includes(1)).toBe(true);
     expect(new Set(LEVELS.map(l => l.name)).size).toBe(30); expect(difficulty(4).budget).toBe(13);
 });
-// HL-479 (2026-11-08): 24.1 -> 21.6 (atelier 3 distinct de l'atelier 2, dalle fragile au 18) ; aucun clone toléré.
+// 2026-11-08: 24.1 -> 21.6 (atelier 3 distinct de l'atelier 2, dalle fragile au 18) ; aucun clone toléré.
 test('C10 diversité mesurée : score <= 22, aucun clone, et des ateliers identiques seraient détectés', () => {
     const r = caissesDiversity(caisses);
     expect(r.score).toBeLessThanOrEqual(22); expect(r.cloneShare).toBe(0); expect(r.noveltyLevels).toContain(18); expect(r.maxGapWithoutNovelty).toBeLessThanOrEqual(5);

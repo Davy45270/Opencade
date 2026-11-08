@@ -7,14 +7,14 @@
  *   O pit: impassable for the player; a box pushed in fills it and disappears.
  *   1 2 paired pads: the player arriving on one pad reappears on the other if free.
  *   r red box, R red target: red boxes count only on red targets (gold on gold).
- *   % cracked floor (HL-479): it bears the player once and gives way behind them:
+ *   % cracked floor: it bears the player once and gives way behind them:
  *     the cell becomes a hole, impassable on foot, that a pushed box fills like a pit. */
 export type Direction = 'up' | 'down' | 'left' | 'right';
 export const directions: Direction[] = ['up', 'right', 'down', 'left'];
 export interface Board {
     width: number; height: number; walls: number[]; targets: number[]; boxes: number[]; player: number;
     ice: number[]; arrows: { at: number; direction: Direction }[]; plates: number[]; doors: number[]; pits: number[]; pads: number[];
-    /** Cracked floor cells (HL-479); they collapse once the player leaves them. */
+    /** Cracked floor cells; they collapse once the player leaves them. */
     cracks: number[];
     /** 0 gold, 1 red; aligned with `boxes` and `targets`. */
     boxColors: number[]; targetColors: number[];
@@ -109,7 +109,7 @@ export function solved(board: Board, pos: Position): boolean {
 }
 /** Which mechanisms a sequence of ordinary inputs actually uses (pass 403 oracle):
  * a slide, an arrow entered (player or box), a door crossed (player or box), a pit filled, a teleport,
- * a crack given way (HL-479). */
+ * a crack given way. */
 export function usage(board: Board, inputs: readonly string[]): Set<string> {
     let pos: Position = { player: board.player, boxes: [...board.boxes], colors: [...board.boxColors], filled: [], broken: [] };
     const used = new Set<string>();

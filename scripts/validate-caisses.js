@@ -35,7 +35,7 @@ for (const [i, level] of LEVELS.entries()) {
         try { other = solve(parse(neutral(level.text)), 'steps'); } catch { invalid = true; }
         without = invalid ? 'invalide' : other ? String(other.inputs.length) : 'insoluble';
         if (!board.pits.length) assert(invalid || !other || Math.abs(other.inputs.length - steps.inputs.length) >= 4, `C13 mécanisme décoratif ${i + 1}`);
-        // HL-479: a cracked room with a spare crate is invalid once neutralised. Solid floor and each crate removed in
+        // 2026-11-08: a cracked room with a spare crate is invalid once neutralised. Solid floor and each crate removed in
         // turn must be solved at least 4 steps sooner, or not at all: the slab that gives way changes the room.
         if (board.cracks.length && board.boxes.length > board.targets.length + board.pits.length) {
             const solid = level.text.replace(/%/g, ' '), shortest = Math.min(...board.boxes.map(b => {
