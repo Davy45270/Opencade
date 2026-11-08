@@ -21,7 +21,7 @@ export function workshopScenery(g: G, world: World, b: Board): void {
         if (b.walls.includes(p)) stoneBlock(g, world, x, y, unit, column * 7 + row * 3); else if (b.ice.includes(p)) iceTile(g, x, y, unit); else floorTile(g, world, x, y, unit, (column + row) % 2 === 1);
     }
 }
-/** Arrows, plates, doors, pits, pads and targets of one cell (top left x, y). */
+/** Arrows, plates, doors, pits, cracks, pads and targets of one cell (top left x, y). */
 export function cellMarks(g: G, b: Board, s: Position, p: number, x: number, y: number, unit: number, time: number, open: boolean): void {
     const cx = x + unit / 2, cy = y + unit / 2, red = 0xff6b6b;
     const arrow = b.arrows.find(a => a.at === p);
@@ -29,6 +29,11 @@ export function cellMarks(g: G, b: Board, s: Position, p: number, x: number, y: 
     if (b.plates.includes(p)) { g.fillStyle(0xffd166); g.fillCircle(cx, cy, unit*.22); g.lineStyle(2, 0x8a6d1f); g.strokeCircle(cx, cy, unit*.22); }
     if (b.doors.includes(p)) { g.lineStyle(3, 0xffd166); g.strokeRect(x+3, y+3, unit-6, unit-6); if (!open) { g.fillStyle(0xb8892a); g.fillRect(x+5, y+5, unit-10, unit-10); } }
     if (b.pits.includes(p)) { g.fillStyle(s.filled.includes(p) ? 0x5b4636 : 0x05080d); g.fillRoundedRect(x+3, y+3, unit-6, unit-6, unit*.3); }
+    if (b.cracks.includes(p)) {
+        // Cracked slab while it holds; a hole once it has given way, earth once a crate has filled it.
+        if (s.broken?.includes(p)) { g.fillStyle(s.filled.includes(p) ? 0x5b4636 : 0x05080d); g.fillRoundedRect(x+3, y+3, unit-6, unit-6, unit*.3); }
+        else { g.fillStyle(0x8f7a5c, .55); g.fillRect(x+2, y+2, unit-4, unit-4); g.lineStyle(2, 0x2b2118, .9); g.lineBetween(x+unit*.15, y+unit*.2, x+unit*.5, y+unit*.45); g.lineBetween(x+unit*.5, y+unit*.45, x+unit*.42, y+unit*.85); g.lineBetween(x+unit*.5, y+unit*.45, x+unit*.88, y+unit*.35); g.lineBetween(x+unit*.66, y+unit*.4, x+unit*.75, y+unit*.12); }
+    }
     if (b.pads.includes(p)) { g.lineStyle(3, 0xd29af2); g.strokeCircle(cx, cy, unit*.32); g.strokeCircle(cx, cy, unit*.16); }
     const target = b.targets.indexOf(p);
     if (target >= 0) { const tc = b.targetColors[target] ? red : 0x64e4cc; g.fillStyle(tc, .3 + .15 * Math.sin(time * 3)); g.fillCircle(cx, cy, unit*.36); g.lineStyle(3, tc); g.strokeCircle(cx, cy, unit*.3); g.strokeCircle(cx, cy, unit*.14); }

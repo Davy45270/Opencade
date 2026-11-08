@@ -8,7 +8,7 @@ import { mechanical, usage } from '../src/engines/caisses/rules.ts';
 import { solutionMetrics } from '../src/engines/caisses/metrics.ts';
 import { pullRecords } from '../src/engines/caisses/records.ts';
 // Pits are left in place (removing them would only unbalance boxes and targets); their use is checked below.
-const neutral = text => text.replace(/[~<>^v12]/g, ' ').replace(/[o|]/g, ' ').replace(/r/g, '$').replace(/R/g, '.');
+const neutral = text => text.replace(/[~<>^v12%]/g, ' ').replace(/[o|]/g, ' ').replace(/r/g, '$').replace(/R/g, '.');
 console.log('| Niveau | Caisses | Pas min. | Poussées min. | visited | Sans mécanisme | Durée ms¹ |');
 console.log('| --- | --- | --- | --- | --- | --- | --- |');
 for (const [i, level] of LEVELS.entries()) {
@@ -35,8 +35,18 @@ for (const [i, level] of LEVELS.entries()) {
         try { other = solve(parse(neutral(level.text)), 'steps'); } catch { invalid = true; }
         without = invalid ? 'invalide' : other ? String(other.inputs.length) : 'insoluble';
         if (!board.pits.length) assert(invalid || !other || Math.abs(other.inputs.length - steps.inputs.length) >= 4, `C13 mécanisme décoratif ${i + 1}`);
+        // HL-479: a cracked room with a spare crate is invalid once neutralised. Solid floor and each crate removed in
+        // turn must be solved at least 4 steps sooner, or not at all: the slab that gives way changes the room.
+        if (board.cracks.length && board.boxes.length > board.targets.length + board.pits.length) {
+            const solid = level.text.replace(/%/g, ' '), shortest = Math.min(...board.boxes.map(b => {
+                const cell = b + Math.floor(b / board.width), t = solid.slice(0, cell) + ' ' + solid.slice(cell + 1);
+                try { return solve(parse(t), 'steps')?.inputs.length ?? Infinity; } catch { return Infinity; }
+            }));
+            assert(shortest === Infinity || steps.inputs.length - shortest >= 4, `C13 dalle décorative ${i + 1}: ${shortest}`);
+            without = `${without} (sol. ${shortest === Infinity ? '—' : shortest})`;
+        }
         // Every mechanism present is used by the fewest-steps witness (colours excepted: they constrain the goal).
-        const used = usage(board, steps.inputs), present = { ice: board.ice, arrow: board.arrows, door: board.doors, pit: board.pits, pad: board.pads };
+        const used = usage(board, steps.inputs), present = { ice: board.ice, arrow: board.arrows, door: board.doors, pit: board.pits, pad: board.pads, crack: board.cracks };
         for (const [kind, cells] of Object.entries(present)) assert(!cells.length || used.has(kind), `C13 ${kind} inutilisé ${i + 1}`);
     } else if (i >= 3) {
         const m = solutionMetrics(board, solution.inputs);

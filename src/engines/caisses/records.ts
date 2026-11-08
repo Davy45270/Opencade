@@ -9,7 +9,7 @@ export const pullRecords = [
         "steps": 5
     },
     {
-        "pushes": 1,
+        "pushes": 3,
         "steps": 8
     },
     {
@@ -69,8 +69,8 @@ export const pullRecords = [
         "steps": 18
     },
     {
-        "pushes": 2,
-        "steps": 9
+        "pushes": 8,
+        "steps": 24
     },
     {
         "pushes": 3,
@@ -89,8 +89,8 @@ export const pullRecords = [
         "steps": 14
     },
     {
-        "pushes": 2,
-        "steps": 16
+        "pushes": 15,
+        "steps": 34
     },
     {
         "pushes": 3,

@@ -4,7 +4,7 @@ export function caissesFeatures(board, data) {
     const elements = ['wall', 'box', 'target', 'push', 'undo', 'deadlock'], layout = [];
     const at = i => `${i % board.width},${Math.floor(i / board.width)}`;
     for (const k of ['walls', 'targets', 'boxes']) layout.push(...board[k].map(i => `${at(i)}:${k}`));
-    const kinds = { ice: 'ice', plates: 'door', pits: 'pit', pads: 'teleporter' };
+    const kinds = { ice: 'ice', plates: 'door', pits: 'pit', pads: 'teleporter', cracks: 'crack' };
     for (const [k, name] of Object.entries(kinds)) if (board[k].length) { elements.push(name); layout.push(...board[k].map(i => `${at(i)}:${k}`)); }
     if (board.arrows.length) { elements.push('one-way'); layout.push(...board.arrows.map(a => `${at(a.at)}:${a.direction}`)); }
     if (board.boxColors.some(c => c)) elements.push('colours');

@@ -150,7 +150,7 @@ export class CaissesScene extends Phaser.Scene {
         this.sync();
     }
     private pullable(): Direction[] {
-        const s = this.engine.state, pos: Position = { player: s.player, boxes: s.boxes, colors: s.colors, filled: s.filled };
+        const s = this.engine.state, pos: Position = { player: s.player, boxes: s.boxes, colors: s.colors, filled: s.filled, broken: s.broken };
         if (this.engine.status !== 'playing' || this.engine.specialUses === 0) return [];
         return directions.filter(d => pull(this.engine.board, pos, d));
     }
@@ -201,7 +201,7 @@ export class CaissesScene extends Phaser.Scene {
             workshopScenery(sg, world, b); hudVeil(sg, world, 6, 12, 348, 116);
             layer.commit();
         }
-        const open = doorOpen(b, { player: s.player, boxes: s.boxes, colors: s.colors, filled: s.filled });
+        const open = doorOpen(b, { player: s.player, boxes: s.boxes, colors: s.colors, filled: s.filled, broken: s.broken });
         for (let p=0; p<b.width*b.height; p++) {
             const x=ox+p%b.width*unit, y=oy+Math.floor(p/b.width)*unit, cx = x+unit/2;
             cellMarks(g, b, s, p, x, y, unit, time, open);

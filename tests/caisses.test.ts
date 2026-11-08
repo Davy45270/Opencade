@@ -40,7 +40,8 @@ test('C06 compteurs, score relatif au minimum de pas', () => {
 });
 test('C07 validation des dimensions, symboles, occupants et fermeture', () => {
     // Pass 403: pit rooms carry one extra box per pit.
-    for (const level of LEVELS) { const b=parse(level.text); expect(b.boxes.length).toBe(b.targets.length + b.pits.length); }
+    // HL-479: at most one spare crate per cracked slab, to fill the hole it leaves.
+    for (const level of LEVELS) { const b=parse(level.text), spare=b.boxes.length - b.targets.length - b.pits.length; expect(spare).toBeGreaterThanOrEqual(0); expect(spare).toBeLessThanOrEqual(b.cracks.length); }
     for (const text of ['###\n#@#\n###', '#####\n#@@$#\n# . #\n#####', '####\n#@$ .#\n####', '#####\n @$ .\n#####', '#####\n#@x.#\n#####']) expect(() => parse(text)).toThrow();
     expect(parse('#####\n#+* #\n# $ #\n#####').targets).toHaveLength(2);
 });
@@ -58,15 +59,16 @@ test('C10 campagne : une mécanique neuve tous les 4 à 5 ateliers, défi à bud
     const first = (has: (b: ReturnType<typeof parse>) => boolean) => LEVELS.findIndex(l => has(parse(l.text)));
     expect(first(b => b.ice.length > 0)).toBe(3); expect(first(b => b.arrows.length > 0)).toBe(7);
     expect(first(b => b.doors.length > 0)).toBe(11); expect(first(b => b.pits.length > 0)).toBe(15);
-    expect(first(b => b.pads.length > 0)).toBe(20); expect(first(b => b.boxColors.some(c => c > 0))).toBe(25);
+    expect(first(b => b.cracks.length > 0)).toBe(17); expect(first(b => b.pads.length > 0)).toBe(20); expect(first(b => b.boxColors.some(c => c > 0))).toBe(25);
     expect(LEVELS.flatMap((l, i) => l.budget ? [i] : [])).toEqual([4, 9, 14, 19, 24]);
     const last = parse(LEVELS[29]?.text ?? '');
     expect([last.ice, last.arrows, last.doors, last.pits, last.pads].every(a => a.length > 0) && last.boxColors.includes(1)).toBe(true);
     expect(new Set(LEVELS.map(l => l.name)).size).toBe(30); expect(difficulty(4).budget).toBe(13);
 });
-test('C10 diversité mesurée : score <= 26, au plus un clone, et des ateliers identiques seraient détectés', () => {
+// HL-479 (2026-11-08): 24.1 -> 21.6 (atelier 3 distinct de l'atelier 2, dalle fragile au 18) ; aucun clone toléré.
+test('C10 diversité mesurée : score <= 22, aucun clone, et des ateliers identiques seraient détectés', () => {
     const r = caissesDiversity(caisses);
-    expect(r.score).toBeLessThanOrEqual(26); expect(r.cloneShare).toBeLessThanOrEqual(0.05); expect(r.maxGapWithoutNovelty).toBeLessThanOrEqual(5);
+    expect(r.score).toBeLessThanOrEqual(22); expect(r.cloneShare).toBe(0); expect(r.noveltyLevels).toContain(18); expect(r.maxGapWithoutNovelty).toBeLessThanOrEqual(5);
     const clones = caissesDiversity(caisses, Array<number>(30).fill(6)); expect(clones.cloneShare).toBe(1);
 });
 test('C10b dès le quatrième atelier historique, tourner une caisse et contourner', () => {
@@ -138,7 +140,7 @@ test('C20 analyseur : plots par paire unique, porte avec bouton, caisses suffisa
 test('C21 chaque mécanisme présent sert au témoin minimal en pas ; budgets exacts des cinq défis', () => {
     for (const [i, level] of LEVELS.entries()) {
         const b = parse(level.text), used = usage(b, campaign.caisses[i]?.steps.inputs ?? []);
-        for (const [kind, cells] of [['ice', b.ice], ['arrow', b.arrows], ['door', b.doors], ['pit', b.pits], ['pad', b.pads]] as const) if (cells.length) expect(used.has(kind), `${String(i + 1)} ${kind}`).toBe(true);
+        for (const [kind, cells] of [['ice', b.ice], ['arrow', b.arrows], ['door', b.doors], ['pit', b.pits], ['pad', b.pads], ['crack', b.cracks]] as const) if (cells.length) expect(used.has(kind), `${String(i + 1)} ${kind}`).toBe(true);
         if (level.budget) expect(level.budget).toBe(level.minimumSteps + Math.max(4, Math.ceil(level.minimumSteps * 0.3)));
     }
     expect(LEVELS.filter(l => !mechanical(parse(l.text)))).toHaveLength(11);
@@ -154,4 +156,20 @@ test('C23 oracle usage : glissade vers un trou comptée, rien d\'utilisé sans m
     expect([...usage(b, ['right'])].sort()).toEqual(['ice', 'pit']);
     expect([...usage(b, ['down', 'right'])]).toEqual([]);
     expect([...usage(parse('########\n#@o|  .#\n#  $   #\n########'), ['down'])]).toEqual([]);
+});
+test('C24 dalle fragile : elle porte le joueur une fois, cède derrière lui, et une caisse comble le trou', () => {
+    const e = run('#########\n#@%$ . .#\n#   $   #\n#########', 'r'); expect(e.state.player).toBe(11); expect(e.state.broken).toEqual([]);
+    e.input('right'); expect(e.state.broken).toEqual([11]); expect(e.snapshot().events).toEqual(['crack']); expect(e.state.boxes).toEqual([13, 22]);
+    e.input('left'); expect(e.state.player).toBe(12); // le trou ne se traverse plus à pied
+    const box = run('#########\n#@ %$ . #\n#  $   .#\n#########', 'r'); box.input('right'); box.input('right'); expect(box.state.broken).toEqual([12]);
+    // Une caisse poussée dans le trou le comble et disparaît ; on y marche ensuite.
+    const fill = run('#######\n#@%$  #\n#  .  #\n#######', 'rrdrrull'); expect(fill.state.broken).toEqual([9]); expect(fill.state.filled).toEqual([9]); expect(fill.state.boxes).toEqual([]);
+    fill.input('left'); expect(fill.state.player).toBe(9);
+    const intact = run('#######\n#@$%.$#\n#    .#\n#######', 'rr'); expect(intact.state.boxes).toContain(11); expect(intact.state.broken).toEqual([]); // une caisse ne fait pas céder la dalle
+    // Tirer en reculant hors de la dalle : la caisse tirée sur la dalle cédée tombe dedans.
+    const pulled = fixture('########\n#  $% @#\n#   .  #\n########'); pulled.state.player = 12; expect(pulled.special('left')).toBe(true);
+    expect(pulled.state.broken).toEqual([12]); expect(pulled.state.boxes).toEqual([]); expect(pulled.state.filled).toEqual([12]);
+    e.undo(); expect(e.state.broken).toEqual([]); expect(e.state.player).toBe(11); e.undo(); expect(e.state.player).toBe(10); // annuler restaure la dalle
+    expect([...usage(parse('#######\n#@%$.##\n#######'), ['right', 'right'])]).toEqual(['crack']);
+    expect(mechanical(parse('#######\n#@%$.##\n#######'))).toBe(true);
 });

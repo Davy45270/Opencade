@@ -111,13 +111,13 @@ export function solve(board: Board, objective: 'pushes' | 'steps' = 'pushes', wi
 }
 
 /** Pass 403: exact 0-1 breadth-first search over complete positions for rooms
- * with mechanisms (ice, one-way floors, doors, pits, pads, colours). Every edge
+ * with mechanisms (ice, one-way floors, doors, pits, pads, colours, cracks). Every edge
  * is the engine's own `push`/`pull`; cost is one per input ('steps') or one
  * per push ('pushes'). At most one pull when `withPull`. */
 function explore(board: Board, objective: 'pushes' | 'steps', withPull: boolean, limit = 400000): Solution<PullInput> | null {
-    const start: Position = { player: board.player, boxes: [...board.boxes], colors: [...board.boxColors], filled: [] };
-    // Compact key: one character per player, box (cell and colour) and filled pit.
-    const key = (p: Position, used: boolean) => String.fromCharCode(p.player, used ? 1 : 0, ...p.boxes.map((b, i) => b * 2 + (p.colors[i] ?? 0)).sort((a, b) => a - b), 65535, ...[...p.filled].sort((a, b) => a - b));
+    const start: Position = { player: board.player, boxes: [...board.boxes], colors: [...board.boxColors], filled: [], broken: [] };
+    // Compact key: one character per player, box (cell and colour), filled pit and given-way crack.
+    const key = (p: Position, used: boolean) => String.fromCharCode(p.player, used ? 1 : 0, ...p.boxes.map((b, i) => b * 2 + (p.colors[i] ?? 0)).sort((a, b) => a - b), 65535, ...[...p.filled].sort((a, b) => a - b), 65534, ...[...(p.broken ?? [])].sort((a, b) => a - b));
     interface Node { pos: Position; used: boolean; cost: number; pushes: number; parent: number; input: PullInput | null }
     const nodes: Node[] = [{ pos: start, used: !withPull, cost: 0, pushes: 0, parent: -1, input: null }];
     const best = new Map<string, number>([[key(start, !withPull), 0]]);

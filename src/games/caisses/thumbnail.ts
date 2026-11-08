@@ -35,8 +35,8 @@ export function createThumbnail(seed = 28): Thumbnail {
         const board = `${String(e.level)}-${String(b.width)}x${String(b.height)}-${b.walls.join('.')}`;
         if (viewW > 360) bakeArt(c, `caisses-wide-${world}-${String(Math.round(viewW))}`, left, 0, viewW, 640, res, g => { backdrop(g, world, viewW, 640); });
         bakeArt(c, `caisses-${world}-${board}`, 0, 0, 360, 640, res, g => { workshopScenery(g, world, b); });
-        const open = doorOpen(b, { player: s.player, boxes: s.boxes, colors: s.colors, filled: s.filled });
-        bakeArt(c, `caisses-marks-${board}-${String(open)}-${s.filled.join('.')}`, 0, 0, 360, 640, res, g => {
+        const open = doorOpen(b, { player: s.player, boxes: s.boxes, colors: s.colors, filled: s.filled, broken: s.broken });
+        bakeArt(c, `caisses-marks-${board}-${String(open)}-${s.filled.join('.')}-${s.broken.join('.')}`, 0, 0, 360, 640, res, g => {
             for (let p = 0; p < b.width * b.height; p++) cellMarks(g, b, s, p, ox + p % b.width * unit, oy + Math.floor(p / b.width) * unit, unit, 0, open);
         });
         const drawn = thumbnailCrate();

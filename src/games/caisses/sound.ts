@@ -7,5 +7,6 @@ export const caissesEffects: SoundEffects = {
     lost: () => ({ frequency: 120, duration: .35, type: 'sawtooth' }),
     slide: () => ({ frequency: 720, duration: .12, type: 'sine' }),
     fall: () => ({ frequency: 95, duration: .25, type: 'triangle' }),
+    crack: () => ({ frequency: 140, duration: .18, type: 'sawtooth' }),
     teleport: () => ({ frequency: 1240, duration: .14, type: 'sine' }),
 };

@@ -125,7 +125,7 @@ test('C10 C19 ateliers d\'introduction annoncés, défi perdu au budget puis rep
     const mobile = info.project.name === 'mobile-chromium';
     await page.goto('/?test=1#/caisses');
     await expect.poll(() => page.evaluate(() => Boolean(window.__CAISSES_TEST__))).toBe(true);
-    for (const [level, tip] of [[3, /Glace/], [7, /Flèches/], [11, /Bouton/], [15, /Trou/], [20, /Plots/], [25, /Couleurs/], [29, /Grand final/]] as const) {
+    for (const [level, tip] of [[3, /Glace/], [7, /Flèches/], [11, /Bouton/], [15, /Trou/], [17, /Dalle fragile/], [20, /Plots/], [25, /Couleurs/], [29, /Grand final/]] as const) {
         await page.evaluate(index => { window.__CAISSES_TEST__?.loadLevel(index, 28); }, level);
         expect(await page.evaluate(() => window.__CAISSES_TEST__?.hudText() ?? '')).toMatch(tip);
         await page.screenshot({ path: `test-results/screenshots/caisses-intro-${String(level + 1)}-${info.project.name}.png` });
@@ -139,4 +139,17 @@ test('C10 C19 ateliers d\'introduction annoncés, défi perdu au budget puis rep
     await page.screenshot({ path: `test-results/screenshots/caisses-budget-${info.project.name}.png` });
     await page.keyboard.press('Backspace');
     expect((await read(page))?.status).toBe('playing');
+});
+test('C24 dalle fragile : traversée au vrai clavier ou au doigt, elle cède derrière le personnage', async ({ page }, info) => {
+    const mobile = info.project.name === 'mobile-chromium';
+    await page.goto('/?test=1#/caisses');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__CAISSES_TEST__))).toBe(true);
+    await page.evaluate(() => { window.__CAISSES_TEST__?.loadLevel(17, 28); });
+    await freeze(page);
+    for (const d of ['up', 'up', 'right', 'right', 'right'] as const) await direction(page, d, mobile);
+    expect((await read(page))?.broken).toEqual([]); // sur la dalle : elle tient
+    await direction(page, 'right', mobile);
+    const after = await read(page); expect(after?.player).toBe(25); expect(after?.broken).toEqual([24]); expect(after?.events).toEqual(['crack']);
+    await direction(page, 'left', mobile); expect((await read(page))?.player).toBe(25); // le trou ne se traverse plus
+    await page.screenshot({ path: `test-results/screenshots/caisses-dalle-${info.project.name}.png` });
 });
