@@ -194,7 +194,7 @@ test('F-SCENE-03 les six descriptions de rendu sont distinctes deux à deux', as
     }));
     for (const key of ['name', 'shape', 'colors', 'parts'] as const) expect(new Set(descriptions.map(d => JSON.stringify(d?.[key]))).size).toBe(6);
 });
-test('F20 tactile : Saut plus gros que Tir et Super, joystick en bande gauche à 405×480, héros jamais sous une commande', async ({ page }, info) => {
+test('F20 tactile : Saut plus gros que Tir et Super, joystick à gauche du canevas en bandes, héros jamais sous une commande', async ({ page }, info) => {
     test.skip(info.project.name !== 'mobile-chromium', 'Commandes tactiles');
     const exposed = async () => page.evaluate(() => {
         const canvas = document.querySelector('#game canvas')?.getBoundingClientRect(), hero = window.__FERRAILLE_TEST__?.layout().hero;
@@ -217,7 +217,10 @@ test('F20 tactile : Saut plus gros que Tir et Super, joystick en bande gauche à
         await page.evaluate(() => { window.__FERRAILLE_TEST__?.advance(0); });
         const start = await exposed();
         expect(start.jump).toBeGreaterThan(start.fire); expect(start.jump).toBeGreaterThan(start.special);
-        if (width === 405) { expect(start.side).toBe(true); expect(start.joystickRight).toBeLessThanOrEqual(start.canvasLeft); }
+        // 405×480: the layout keeps the bottom row (chooseLayout, L08: side bands only gain there when the
+        // game frees rows under its canvas, which Ferraille does not). In bands, the joystick is left of the canvas.
+        if (width === 405) expect(start.side).toBe(false);
+        if (start.side) expect(start.joystickRight).toBeLessThanOrEqual(start.canvasLeft);
         expect(start.under, `${String(width)}×${String(height)} départ`).toEqual([]);
         // Walk, jump, and look again at each step.
         await walk(page, true, async () => {
