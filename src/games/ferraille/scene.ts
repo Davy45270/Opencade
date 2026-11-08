@@ -228,8 +228,9 @@ export class FerrailleScene extends Phaser.Scene {
         }
         for (const [b, text] of this.scoreTexts) if (!live.has(b)) { text.destroy(); this.scoreTexts.delete(b); }
         if (this.impacts.red > 0) { const a = this.impacts.red / 400; g.lineStyle(14, 0xff2f4e, .75 * a); g.strokeRoundedRect(7, 7, 346, 626, 16); g.fillStyle(0xff2f4e, .12 * a); g.fillRect(0, 0, 360, 640); }
-        const shake = this.impacts.offset(reducedMotion);
-        this.cameras.main.setScroll(shake.x, shake.y);
+        // Headless scene harnesses (scripts/validate-*.js) build Ferraille without cameras.
+        const shake = this.impacts.offset(reducedMotion), camera = (this as { cameras?: { main?: { setScroll?: (x: number, y: number) => unknown } } }).cameras?.main;
+        camera?.setScroll?.(shake.x, shake.y);
     }
     rendering: { palette: number[]; layers: { factor: number; x: number }[]; camera: number; boss: ReturnType<typeof bossAppearance> | null; reducedMotion: boolean } = { palette: [], layers: [], camera: 0, boss: null, reducedMotion: false };
     private layout() {
