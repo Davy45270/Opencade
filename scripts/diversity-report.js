@@ -3,6 +3,7 @@
 import './ts-loader.js';
 import { essaimFeatures, essaimDiversity } from './essaim-diversity.js';
 import { ferrailleFeatures } from './ferraille-diversity.js';
+import { alunirFeatures } from './alunir-diversity.js';
 import { dedaleDiversity } from './dedale-diversity.js';
 import { briqueterieDiversity } from './briqueterie-diversity.js';
 import { orbiteDiversity } from './orbite-diversity.js';
@@ -52,13 +53,7 @@ function extract(id, e, d) {
         Object.assign(params, { width: e.board.width, height: e.board.height }); break;
     }
     case 'alunir':
-        add('terrain', 'landing-pad', 'thrust', 'fuel'); if (d.wind) add('wind'); if (d.gust) add('gust');
-        // Fixed screen bins, not per-level rescaling: retain relief and pad width.
-        for (let x = 0; x <= 360; x += 12) {
-            const p = s.terrain.points; let i = 0; while (i < p.length - 2 && p[i + 1].x < x) i++;
-            const a = p[i], b = p[i + 1], y = a.y + (b.y - a.y) * (x - a.x) / (b.x - a.x);
-            layout.push(`${x}:${Math.floor(y / 12)}`);
-        } Object.assign(params, { padMultiplier: s.terrain.pads[0].multiplier }); break;
+        return alunirFeatures(e, d);
     case 'ferraille':
         return ferrailleFeatures(s);
     case 'traverse': {
@@ -101,7 +96,7 @@ const variations = [
     'Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship.',
     'Seeded routes inside five topologies; observed mechanism positions, colored locks, one-way passages, portals, switches, cyclic walls, sliding ice, darkness and distinct wisp behaviors.',
     'Thirty workshops; fifteen historical rooms, then ice, one-way floors, plate doors, pits, paired pads and colour-matched boxes, five move-budget challenges.',
-    'Terrain relief, landing width, wind, gusts, fuel and initial offset.',
+    'Thirty authored flight plans on a flat floor; pad choice, caves, moving pads, refuelling, cargo, comets, light gravity, wind tunnels, geysers, beacons, rescues and ice, alone (1-12) then in distinct trios (13-30).',
     'Authored ascent/descent, wagon rides, hostage rescues, six enemy behaviors, three special weapons and five guardian patterns plus a three-phase reactor.',
     'Thirty crossings; traffic lights, diving logs, rapids, tides, bank rocks, a castaway to rescue, shelters in order, five one-life challenges and slower flow after each.',
     'Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning.'
