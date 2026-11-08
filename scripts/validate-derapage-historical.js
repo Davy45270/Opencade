@@ -17,6 +17,7 @@ class WithoutElan extends Engine {
     get kartCount() { return 6; }
     // ...with the tree margin of that time (before Z46).
     get legacyTrees() { return true; }
+    get legacyAi() { return true; }
     special() { return false; }
     loadLevel(level, seed = 28) {
         super.loadLevel(level, seed);
@@ -82,11 +83,12 @@ for (const tape of recordings) {
         e.input({ steer: 0, drift: false, bonus: false, mode: 'joystick', heading: tape.events[Math.floor(frame / 9)], assist: true });
         e.advance(1000 / 60);
     }
-    // The current game races five karts (one per mascot), the oracle above six: these are five-kart frame counts.
-    const expected = { 0: 3617, 2: 4074, 4: 3404, 14: 3451 };
+    // The current game races five karts (one per mascot), the oracle above six: these are five-kart frame counts,
+    // with the rival drivers of 2026-11-08 (before: 3617, 4074, 3404, 3451). Since then the rivals themselves differ
+    // from the recording, so the divergence no longer isolates the AI Élan (levels 3 and 5 now finish without it).
+    const expected = { 0: 3619, 2: 4080, 4: 3403, 14: 3451 };
     assert.equal(e.frames, expected[tape.level]); assert.equal(e.karts[0].specialLap, undefined);
     const aiUsed = e.karts.slice(1).filter(k => k.specialLap !== undefined).map(k => k.id);
-    if (tape.level !== 14) assert(aiUsed.length > 0, 'only AI impulse changes this replay');
     divergence.push({ level: tape.level + 1, without: tape.frames, withAI: e.frames, aiUsed });
 }
 console.log(JSON.stringify({ historicalCommit: reference.commit, timings, divergence }));

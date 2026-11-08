@@ -2,8 +2,8 @@ import { required } from './access';
 import { Random } from '../shared/random';
 import { at, createTrack, difficulty, nearest, type Track } from './track';
 import { physics, collide, resolveRail, type Input, type Kart } from './physics';
-import { aiInput, aiSpeed } from './ai';
-import { checkpoint, ranking, recover, Cup, KART_COUNT, POINTS } from './race';
+import { aiInput, aiSpeed, rival, stalled } from './ai';
+import { checkpoint, ranking, recover, unstick, Cup, KART_COUNT, POINTS } from './race';
 import { updateItems, useItem, type Crate, type Puddle } from './items';
 export { LEVELS, difficulty } from './track';
 export const FIXED_MS = 1000 / 60;
@@ -35,6 +35,10 @@ export class Engine {
     protected get kartCount(): number { return KART_COUNT; }
     /** The frozen historical oracles (tests) race with the tree margin they were recorded with, before Z46. */
     protected get legacyTrees(): boolean { return false; }
+    /** The frozen historical oracles (tests) race against the rivals they were recorded with: one line, one speed, items used at once. */
+    protected get legacyAi(): boolean { return false; }
+    /** Rivals put back on the road after stopping (diagnostic, outside replayable state). */
+    unsticks = 0;
     loadLevel(level: number, seed = 28): void {
         if (!Number.isInteger(level) || level < 0 || level > 29)
             throw new RangeError('Niveau invalide');
@@ -60,6 +64,7 @@ export class Engine {
         this.status = 'playing';
         this.score = 0;
         this.recoveries = 0;
+        this.unsticks = 0;
         this.puddles = [];
         this.controls = { steer: 0, drift: false, bonus: false };
         this.karts = Array.from({ length: this.kartCount }, (_, id) => {
@@ -94,12 +99,14 @@ export class Engine {
                 // Controls, target speed and physics inspect the same position.
                 // Items change timers only; collisions/movement occur afterwards.
                 const section = nearest(this.track, k);
-                const input = k.id === 0 ? this.controls : aiInput(k, this.track, this.level, this.random.next() * 2 - 1, section);
+                const noise = k.id === 0 ? 0 : this.random.next() * 2 - 1;
+                const plan = k.id === 0 || this.legacyAi ? null : rival(k, this.karts, this.track, this.level, noise, FIXED_MS, section);
+                const input = k.id === 0 ? this.controls : plan ? plan.input : aiInput(k, this.track, this.level, noise, section);
                 // Deterministic straight-line policy, no extra random draw.
                 if (k.id > 0 && k.passed + 2 < (this.karts[0]?.passed ?? 0) && Math.abs(input.steer) < 0.12 && Math.hypot(k.vx, k.vy) > 16) this.special(k.id);
                 if (input.bonus)
                     useItem(k, this.puddles);
-                physics(k, input, this.track, FIXED_MS / 1000, difficulty(this.level).grassGrip, k.id === 0 ? 24 : aiSpeed(k, this.track, this.level, section), section);
+                physics(k, input, this.track, FIXED_MS / 1000, difficulty(this.level).grassGrip, k.id === 0 ? 24 : plan ? plan.speed : aiSpeed(k, this.track, this.level, section), section);
             }
             this.controls.bonus = false;
             for (let i = 0; i < this.karts.length; i++)
@@ -111,6 +118,7 @@ export class Engine {
                 checkpoint(k, required(previous[k.id]), this.track, this.time);
                 // After lap counting: the next step starts from the recovered point, so no gate line is crossed by the move.
                 if (recover(k, this.track, FIXED_MS) && k.id === 0) this.recoveries++;
+                else if (k.id > 0 && !this.legacyAi && stalled(k, this.track, FIXED_MS)) { unstick(k, this.track); this.unsticks++; }
                 if (k.id === 0 && k.lap > lap) {
                     const elapsed = (this.frames - this.lapStartFrame) * FIXED_MS + (k.penaltyMs ?? 0) - this.lapPenaltyStartMs;
                     this.lapPenaltyStartMs = k.penaltyMs ?? 0;

@@ -73,3 +73,9 @@ export function recover(k: Kart, t: Track, ms: number): boolean {
     delete k.lostMs;
     return true;
 }
+/** A rival that stopped making progress goes back to the centre line where it is, stopped, facing the race: no gate skipped, no time gained. */
+export function unstick(k: Kart, t: Track): void {
+    const n = nearest(t, k), count = t.points.length, p = required(t.points[n.index]), q = required(t.points[(n.index + 1) % count]);
+    k.x = p.x; k.y = p.y; k.angle = Math.atan2(q.y - p.y, q.x - p.x);
+    k.vx = 0; k.vy = 0; k.driftMs = 0; k.slipMs = 0; k.boostMs = 0;
+}

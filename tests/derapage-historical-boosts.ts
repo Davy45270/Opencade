@@ -18,6 +18,7 @@ export class HistoricalBoostEngine extends Engine {
     protected override get kartCount(): number { return 6; }
     /** ...and with the tree margin of that time (before Z46). */
     protected override get legacyTrees(): boolean { return true; }
+    protected override get legacyAi(): boolean { return true; }
     override loadLevel(level: number, seed=28): void {
         super.loadLevel(level,seed);
         if([17,19].includes(level)) restoreHistoricalGeometry(this,{...this.track.circuit,controls:required(legacyCircuits[level]).controls});

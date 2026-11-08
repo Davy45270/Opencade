@@ -242,8 +242,8 @@ test('Z16 contrat monde sérialisable sans notion de vue', () => {
     expect(JSON.stringify(s)).not.toMatch(/camera|screen|viewport|pixel|canvas/i);
     // advance is simulation time; special is the kart's per-lap Élan, both in world space; kartCount is the grid size
     // (five, one per mascot), overridden only by the six-kart historical oracles, like legacyTrees (their tree margin
-    // before Z46).
-    expect(Object.getOwnPropertyNames(Engine.prototype).sort()).toEqual(['advance', 'constructor', 'input', 'kartCount', 'legacyTrees', 'loadLevel', 'snapshot', 'special', 'step']);
+    // before Z46) and legacyAi (their rival drivers before 2026-11-08).
+    expect(Object.getOwnPropertyNames(Engine.prototype).sort()).toEqual(['advance', 'constructor', 'input', 'kartCount', 'legacyAi', 'legacyTrees', 'loadLevel', 'snapshot', 'special', 'step']);
 });
 
 test('Z09 rejouer une course ne double pas les points de coupe', () => {
@@ -454,11 +454,13 @@ test('Z15 comparaison compacte : dérive dynamique et snapshots complets', () =>
     checkReplayComparison((ok, message) => { expect(ok, message).toBe(true); });
 }, 15000);
 test('Z37 hors piste : un kart perdu loin de la piste y revient, sans sauter de porte', () => {
-    // Témoin : 60 s sans braquer ; avant la récupération, le kart s'éloignait jusqu'à 466 u et ne revenait jamais.
+    // Témoin : 80 s sans braquer ; avant la récupération, le kart s'éloignait jusqu'à 466 u et ne revenait jamais.
+    // (60 s jusqu'au 2026-11-08 : le kart sans volant reste calé contre le décor jusqu'à ce qu'un passage le
+    // décroche ; avec les nouveaux concurrents, le circuit 1 ne le perd plus qu'après 57 s, mesuré.)
     for (const level of [0, 5, 14]) {
         const e = new Engine(level, 28);
         let longestFar = 0, far = 0, maxOff = 0;
-        for (let f = 0; f < 3600; f++) {
+        for (let f = 0; f < 4800; f++) {
             const k = required(e.karts[0]), gate = k.gate, passed = k.passed;
             e.input(neutral); e.step(1000 / 60);
             const n = nearest(e.track, k), off = n.distance - required(e.track.widths[n.index]) / 2;
