@@ -59,7 +59,9 @@ test('B-SNAP-04 doigt bruité : la case fantôme est la case remplie', async ({ 
 // B-AIM-02: Shift + arrows and the mouse wheel move the guide socket by socket (the engine's
 // nextSocketAngle), a plain arrow still turns by 0.08 rad, and the shot fills the ghost socket.
 test('B-AIM-02 Maj + flèches et molette : la visée passe de case en case', async ({ page }, info) => {
-    test.skip(info.project.name !== 'desktop-chromium');
+    // This spec file runs in the mobile project only (playwright.config.ts): a keyboard and a mouse
+    // drive it there, as on a laptop with a touch screen.
+    test.skip(info.project.name !== 'mobile-chromium');
     await page.goto('/?test=1#/bubble');
     await expect.poll(() => page.evaluate(() => Boolean(window.__BUBBLE_TEST__))).toBe(true);
     const holed = generateLevel(4, 28).filter((_, i) => i % 4 !== 1);
