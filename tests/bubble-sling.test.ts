@@ -57,4 +57,7 @@ test('B-LOSS-01 ligne en danger à une rangée, défaite qui désigne la bulle f
     // A board two rows clear of the line is calm.
     const calm = new Engine(7); calm.load(Array.from({ length: 11 }, (_, row) => ({ row, col: 4, color: (row % 2) as Color })), 0, 7);
     expect(calm.danger()).toBe(false);
+    // One ceiling drop later the same board is one row from the line.
+    calm.drops = 1;
+    expect(calm.danger()).toBe(true);
 });
