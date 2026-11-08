@@ -228,3 +228,22 @@ test('F20 tactile : Saut plus gros que Tir et Super, joystick en bande gauche à
         });
     }
 });
+
+// F-FX-05: destroying the entry turret now bursts into scrap with a floating +100,
+// in the real scene, with no shake or red edges (those belong to the hero being hit).
+test('F-FX-05 la tourelle d’entrée détruite éclate en ferraille, sans retour « héros touché »', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop-chromium');
+    await page.goto('/?test=1#/ferraille');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__FERRAILLE_TEST__))).toBe(true);
+    await page.evaluate(() => { const h = window.__FERRAILLE_TEST__; h?.loadLevel(0, 460); h?.advance(0); });
+    await tap(page, '#resume', false);
+    await page.keyboard.down('KeyX');
+    let kills = 0;
+    for (let i = 0; i < 80 && !kills; i++) kills = await page.evaluate(() => { const h = window.__FERRAILLE_TEST__; h?.advance(50); return h?.impacts().counts.kills ?? 0; });
+    await page.keyboard.up('KeyX');
+    expect(kills).toBeGreaterThanOrEqual(1);
+    const fx = await page.evaluate(() => { const h = window.__FERRAILLE_TEST__; h?.advance(120); return h?.impacts(); });
+    expect(fx?.bursts).toContain('scrap'); expect(fx?.bursts).toContain('score');
+    expect(fx?.counts.hurts).toBe(0); expect(fx?.red).toBe(0);
+    await page.screenshot({ path: `test-results/screenshots/ferraille-impact-${info.project.name}.png` });
+});

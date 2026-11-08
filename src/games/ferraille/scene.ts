@@ -18,6 +18,7 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
+import { Impacts, BLAST_RADIUS } from './impacts';
 export const ferrailleButtons: readonly TouchButton[] = [
     // Main action last: Saut (72 px) sits under the thumb, bottom of the column or end of the row.
     { id: 'ferraille-special', label: 'Super', ariaLabel: 'Super-tir', size: 56, placement: 'right', mode: 'tap' },
@@ -46,6 +47,8 @@ export interface FerrailleHook {
     read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean; controls: ReturnType<Engine['snapshot']>['input'] }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger' | 'showcase'): void;
+    /** Feel layer: hits, kills, blasts and lives lost it reacted to, and the effects on screen. */
+    impacts(): { counts: Impacts['counts']; bursts: string[]; blinking: number; shake: number; red: number };
 }
 declare global { interface Window { __FERRAILLE_TEST__?: FerrailleHook } }
 export class FerrailleScene extends Phaser.Scene {
@@ -68,6 +71,8 @@ export class FerrailleScene extends Phaser.Scene {
     private jump = false;
     private fire = false;
     private flash = 0;
+    private impacts = new Impacts();
+    private scoreTexts = new Map<object, Phaser.GameObjects.Text>();
     constructor(private session = new PlaySession(true)) { super('ferraille'); }
     private panels(): void {
         const signature = `${this.engine.status}|${this.progress.state}|${String(this.engine.level)}|${String(this.engine.state.score)}|${String(this.progress.total)}|${String(this.selecting)}`;
@@ -76,7 +81,7 @@ export class FerrailleScene extends Phaser.Scene {
         renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.state.score, this.progress.total, this.selecting);
     }
     private start(index: number, seed?: number, fresh = false): void {
-        this.testManual = false; this.progress.start(index, fresh); this.engine.loadLevel(index, seed); this.selecting = false;
+        this.testManual = false; this.progress.start(index, fresh); this.engine.loadLevel(index, seed); this.impacts.reset(this.engine.state); this.selecting = false;
         this.keys.clear(); this.stick = null; this.jump = this.fire = false; this.panels(); this.draw();
     }
     private special(): void {
@@ -108,7 +113,7 @@ export class FerrailleScene extends Phaser.Scene {
         const choose = (): void => { this.selecting = !this.selecting; renderLevels(LEVELS, this.progress.save, index => { this.start(index, undefined, true); }); this.panels(); };
         for (const id of ['levels', 'result-levels', 'close-levels']) this.inputs.on(document.querySelector(`#${id}`), 'click', choose);
         this.inputs.on(document.querySelector('#next-level'), 'click', () => { if (this.progress.state === 'won') this.start(this.engine.level + 1); });
-        const retry = (): void => { this.progress.retry(); this.engine.loadLevel(this.engine.level, this.engine.seed); this.panels(); this.draw(); };
+        const retry = (): void => { this.progress.retry(); this.engine.loadLevel(this.engine.level, this.engine.seed); this.impacts.reset(this.engine.state); this.panels(); this.draw(); };
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
         this.game.canvas.setAttribute('aria-label', 'Ferraille : aventurier dans les ateliers suspendus');
         if (new URLSearchParams(location.search).get('test') === '1') window.__FERRAILLE_TEST__ = {
@@ -136,6 +141,7 @@ export class FerrailleScene extends Phaser.Scene {
             fingerReceipts: receipts,
             read: () => ({ fingerInput: { paused: this.session.paused, controls: this.controls() }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
+            impacts: () => ({ counts: { ...this.impacts.counts }, bursts: this.impacts.bursts.map(b => b.kind), blinking: this.impacts.blink.size, shake: this.impacts.shake, red: this.impacts.red }),
             scenario: name => {
                 if (name === 'showcase') {
                     const s = structuredClone(this.engine.state);
@@ -183,10 +189,47 @@ export class FerrailleScene extends Phaser.Scene {
         this.hero.advance(delta, this.session.paused, this.engine.status, false);
         if (!this.selecting && !this.session.paused) {
             this.engine.input(this.controls()); this.engine.step(delta);
-            for (const event of new Set(this.engine.events)) { sound.playEffect(event); if (['life', 'hit', 'bonus', 'checkpoint'].includes(event)) this.flash = 1; }
+            for (const event of new Set(this.engine.events)) { sound.playEffect(event); if (['bonus', 'checkpoint'].includes(event)) this.flash = 1; }
+            this.impacts.observe(this.engine.state, this.engine.events);
+            for (const effect of new Set(this.impacts.sounds)) sound.playEffect(effect);
+            this.impacts.advance(delta);
         }
         if (this.engine.status !== 'playing' && this.progress.state === 'playing') { this.progress.finish(this.engine.status, this.engine.state.score); writeSave(browserStorage(), this.progress.save, 'ferraille'); sound.playEffect(this.engine.status); }
         this.flash = Math.max(0, this.flash - delta / 300); if (!this.testAdvancing) { this.panels(); this.draw(); }
+    }
+    /** Sparks, scrap, grenade blasts, floating scores, red edges and shake (impacts.ts decides, this draws). */
+    private drawImpacts(g: Phaser.GameObjects.Graphics, xx: (x: number) => number, yy: (y: number) => number, reducedMotion: boolean): void {
+        const live = new Set<object>();
+        for (const b of this.impacts.bursts) {
+            const t = b.age / b.life, x = xx(b.x), y = yy(b.y);
+            if (b.kind === 'spark') {
+                g.lineStyle(3, 0xfff1a8, 1 - t);
+                const r0 = reducedMotion ? 10 : 6 + 22 * t, r1 = r0 + 10;
+                for (let i = 0; i < 6; i++) { const a = i * Math.PI / 3 + .4; g.lineBetween(x + Math.cos(a) * r0, y + Math.sin(a) * r0, x + Math.cos(a) * r1, y + Math.sin(a) * r1); }
+            } else if (b.kind === 'scrap') {
+                g.fillStyle(0x6d7480, .55 * (1 - t)); g.fillCircle(x, y - (reducedMotion ? 0 : 18 * t), 18 + (reducedMotion ? 0 : 26 * t));
+                g.fillStyle(0xffb35c, 1 - t); g.fillCircle(x, y, 22 * (1 - t));
+                for (let i = 0; i < 10; i++) {
+                    const a = i * 2.4, v = 50 + (i % 3) * 18, k = reducedMotion ? .35 : t;
+                    const px = x + Math.cos(a) * v * k, py = y + Math.sin(a) * v * k + (reducedMotion ? 0 : 90 * t * t);
+                    g.fillStyle(i % 2 ? 0xb7c0c8 : 0xe0904a, 1 - t * .8); g.fillRect(px - 4, py - 4, 8, 8);
+                }
+            } else if (b.kind === 'blast') {
+                const r = BLAST_RADIUS * VIEW.scale;
+                g.fillStyle(0xff7a2f, .45 * (1 - t)); g.fillCircle(x, y, r * (reducedMotion ? 1 : .55 + .45 * t));
+                g.fillStyle(0xffe08a, .8 * (1 - t)); g.fillCircle(x, y, r * .45 * (1 - t * .5));
+                g.lineStyle(4, 0xfff4cf, 1 - t); g.strokeCircle(x, y, r);
+            } else {
+                live.add(b);
+                let text = this.scoreTexts.get(b);
+                if (!text) { text = this.add.text(0, 0, b.text ?? '', { fontFamily: 'system-ui', fontSize: '20px', fontStyle: 'bold', color: '#fff1a8', stroke: '#132c3d', strokeThickness: 4 }).setOrigin(.5).setDepth(6); this.scoreTexts.set(b, text); }
+                text.setPosition(x, y - (reducedMotion ? 10 : 10 + 40 * t)).setAlpha(1 - t * t);
+            }
+        }
+        for (const [b, text] of this.scoreTexts) if (!live.has(b)) { text.destroy(); this.scoreTexts.delete(b); }
+        if (this.impacts.red > 0) { const a = this.impacts.red / 400; g.lineStyle(14, 0xff2f4e, .75 * a); g.strokeRoundedRect(7, 7, 346, 626, 16); g.fillStyle(0xff2f4e, .12 * a); g.fillRect(0, 0, 360, 640); }
+        const shake = this.impacts.offset(reducedMotion);
+        this.cameras.main.setScroll(shake.x, shake.y);
     }
     rendering: { palette: number[]; layers: { factor: number; x: number }[]; camera: number; boss: ReturnType<typeof bossAppearance> | null; reducedMotion: boolean } = { palette: [], layers: [], camera: 0, boss: null, reducedMotion: false };
     private layout() {
@@ -262,6 +305,8 @@ export class FerrailleScene extends Phaser.Scene {
             if (e.x + e.w < camera || e.x > camera + VIEW.width / VIEW.scale) continue;
             const x = xx(e.x) - 10, y = yy(e.y) - 10;
             enemyArt(g, e.kind, x, y);
+            const blink = this.impacts.blink.get(e);
+            if (blink) { g.fillStyle(0xffffff, .7 * blink / 80); g.fillRoundedRect(xx(e.x) - 4, yy(e.y) - 4, e.w * VIEW.scale + 8, e.h * VIEW.scale + 8, 8); }
         }
         const b = s.boss;
         const appearance = this.rendering.boss;
@@ -292,6 +337,7 @@ export class FerrailleScene extends Phaser.Scene {
         }
         g.fillStyle(0x3b6070); g.fillRect(HUD.x + 12, HUD.y + 58, HUD.width - 24, 5); g.fillStyle(0x74f1c7); g.fillRect(HUD.x + 12, HUD.y + 58, (HUD.width - 24) * Math.min(1, h.x / s.door), 5);
         if (this.flash && !reducedMotion) { g.lineStyle(3, 0xffe8ad, this.flash); g.strokeRoundedRect(3, 3, 354, 634, 16); }
+        this.drawImpacts(g, xx, yy, reducedMotion);
         this.specialGraphics?.clear();
         let aimX = Math.sign(s.input.x), aimY = Math.sign(s.input.y);
         if (!aimX && !aimY) aimX = s.facing;
