@@ -14,6 +14,7 @@ import { sound } from '../../shell/services';
 import { Inputs, renderTouchControls } from '../../shell/input';
 import { renderLevels } from '../../shell/levels';
 import { renderPanels } from '../../shell/panels';
+import { CANCEL_RADIUS, touchAim, type TouchAim } from './aiming';
 import { Engine, center, key, ORIGIN, ROW_STEP, LOSS_LINE, type Cell, type Color, type Point } from '../../engines/bubble/engine';
 import { LEVELS } from '../../engines/bubble/levels';
 import { Progression } from '../../shell/progression';
@@ -41,7 +42,7 @@ const LEGEND_BASE = 'c5';
 const marbleKey = (name: string): string => `bubble-marble-${name}`;
 /** Level list tiers of ten, named after their scenery. */
 const TIER_NAMES = ['Atelier', 'Lucioles', 'Dégel', 'Jungle', 'Automne', 'Volcan', 'Cirque', 'Ciel', 'Jungle de nuit', 'Automne tardif', 'Mont de feu', 'Cirque de nuit', 'Ciel profond'] as const;
-export interface Drawn { guide: number; ghost: { alpha: number; ring: number } | null; attached: Point | null; decor: string[]; icons: Record<'crystal' | 'prism' | 'leaf' | 'lock', number>; prismArcAlpha: number; specials: Partial<Record<SpecialId, number>> }
+export interface Drawn { lossLine: 'calm' | 'danger'; culprits: number; sling: boolean; cancel: boolean; guide: number; ghost: { alpha: number; ring: number } | null; attached: Point | null; decor: string[]; icons: Record<'crystal' | 'prism' | 'leaf' | 'lock', number>; prismArcAlpha: number; specials: Partial<Record<SpecialId, number>> }
 const onScreen = (p: Point): boolean => p.x >= 0 && p.x <= 360 && p.y >= 0 && p.y <= 640;
 const GHOST_ALPHA = 0.35, GHOST_RING_ALPHA = 0.85;
 interface Effect {
@@ -87,6 +88,11 @@ export class LabScene extends Phaser.Scene {
     private selecting = false;
     private tapToShoot = false;
     private aimingPointer: number | null = null;
+    /** What the aiming finger does now (touch only), and where it pulls the sling. */
+    private aimMode: TouchAim['mode'] | null = null;
+    private pull: Point | null = null;
+    private cancelElement?: HTMLElement;
+    private reasonElement?: HTMLElement;
     private testManual = false;
     private testAdvancing = false;
     private inputs = new Inputs();
@@ -119,7 +125,7 @@ export class LabScene extends Phaser.Scene {
     private effects: Effect[] = [];
     /** Last attached bubble glides from its impact point to its socket (visual only). */
     private settle = new Settle();
-    private drawn: Drawn = { guide: 0, ghost: null, attached: null, decor: [], icons: { crystal: 0, prism: 0, leaf: 0, lock: 0 }, prismArcAlpha: 0, specials: {} };
+    private drawn: Drawn = { lossLine: 'calm', culprits: 0, sling: false, cancel: false, guide: 0, ghost: null, attached: null, decor: [], icons: { crystal: 0, prism: 0, leaf: 0, lock: 0 }, prismArcAlpha: 0, specials: {} };
     private frame: Drawn = this.drawn;
     constructor(private session = new PlaySession(false)) {
         super('lab');
@@ -129,12 +135,13 @@ export class LabScene extends Phaser.Scene {
         document.body.classList.add('bubble');
         try { this.storage = window.localStorage; } catch { /* Unavailable storage. */ }
         this.tips = new SpecialTips(() => this.storage);
-        const legend = this.mountSpecials(); this.legend = legend;
+        const legend = this.mountSpecials(); this.legend = legend; this.mountCues();
         const cleanup = (): void => {
             this.alive = false;
             this.paint?.destroy();
             this.inputs.dispose(); document.body.classList.remove('bubble');
             legend?.remove(); this.tipElement?.remove(); this.tipElement = undefined;
+            this.cancelElement?.remove(); this.reasonElement?.remove(); this.cancelElement = this.reasonElement = undefined;
             document.querySelector('#level-tiers')?.remove(); document.querySelector('#level-list')?.classList.remove('grouped');
             sound.stop();
             delete window.__BUBBLE_TEST__;
@@ -196,8 +203,19 @@ export class LabScene extends Phaser.Scene {
             if (!this.session.paused && !this.selecting && pointer.y < ORIGIN.y - 15)
                 this.engine.aim(Math.atan2(pointer.x - ORIGIN.x, ORIGIN.y - pointer.y));
         };
+        // Touch: above the launcher the finger points at the target; below it the finger pulls a sling
+        // (the board stays visible); released on the launcher, the shot is cancelled, and it says so.
+        const touchMove = (pointer: Phaser.Input.Pointer): void => {
+            if (this.session.paused || this.selecting) return;
+            const aimed = touchAim(pointer);
+            this.aimMode = aimed.mode;
+            this.pull = aimed.mode === 'pull' ? { x: pointer.x, y: pointer.y } : null;
+            if ('angle' in aimed) this.engine.aim(aimed.angle);
+        };
+        const endTouch = (): void => { this.aimingPointer = null; this.aimMode = null; this.pull = null; };
         this.input.on('pointermove', (pointer: Phaser.Input.Pointer) => {
-            if (!pointer.wasTouch || this.aimingPointer === pointer.id) aim(pointer);
+            if (!pointer.wasTouch) aim(pointer);
+            else if (this.aimingPointer === pointer.id) touchMove(pointer);
         });
         this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
             if (this.aimingPointer !== null) return;
@@ -205,7 +223,7 @@ export class LabScene extends Phaser.Scene {
             if (!this.session.paused && !this.selecting && Math.hypot(pointer.x - NEXT.x, pointer.y - NEXT.y) <= NEXT_REACH) { this.engine.swap(); return; }
             if (!this.session.paused && !this.selecting && pointer.wasTouch && !this.tapToShoot) {
                 this.aimingPointer = pointer.id;
-                aim(pointer);
+                touchMove(pointer);
             } else if (!this.session.paused && !this.selecting && pointer.y < ORIGIN.y - 15) {
                 aim(pointer);
                 this.engine.shoot();
@@ -213,13 +231,14 @@ export class LabScene extends Phaser.Scene {
         });
         this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
             if (this.aimingPointer !== pointer.id) return;
-            this.aimingPointer = null;
+            const cancelled = this.aimMode === 'cancel' || touchAim(pointer).mode === 'cancel';
+            endTouch();
             // Commit the displayed guide. A finger can drift while lifting; the
             // release packet must not silently select a different rebound socket.
-            if (!this.session.paused && !this.selecting && pointer.y < ORIGIN.y - 15) this.engine.shoot();
+            if (!this.session.paused && !this.selecting && !cancelled) this.engine.shoot();
         });
-        this.input.on('pointerupoutside', () => { this.aimingPointer = null; });
-        this.inputs.on(this.game.canvas, 'touchcancel', () => { this.aimingPointer = null; });
+        this.input.on('pointerupoutside', endTouch);
+        this.inputs.on(this.game.canvas, 'touchcancel', endTouch);
         // Arrows turn the launcher by 0.08 rad; Shift + arrows and the wheel jump to the next socket.
         const fineAim = (dir: 1 | -1): void => { if (!this.session.paused && !this.selecting && !this.engine.flight) this.engine.aim(this.engine.nextSocketAngle(dir)); };
         this.inputs.on(document, 'keydown', (event: Event) => {
@@ -248,7 +267,7 @@ export class LabScene extends Phaser.Scene {
             this.effects = []; this.settle.clear();
         });
         const canvas = this.game.canvas;
-        canvas.setAttribute('aria-label', 'Aire de jeu Bubble Lab : glisser puis relâcher pour tirer ; souris : viser et cliquer');
+        canvas.setAttribute('aria-label', 'Aire de jeu Bubble Lab : glisser puis relâcher pour tirer, ou tirer en arrière sous le lanceur ; relâcher sur le lanceur annule ; souris : viser et cliquer');
         canvas.setAttribute('role', 'img');
         if (new URLSearchParams(location.search).get('test') === '1') {
             window.__BUBBLE_TEST__ = {
@@ -335,6 +354,51 @@ export class LabScene extends Phaser.Scene {
         const g = this.obstacles; if (!g) return;
         if (onScreen(p)) this.frame.icons.lock++;
         drawGlyph(g, SPECIAL.lock.glyph, p.x, p.y);
+    }
+    /** The cancel label near the launcher and the reason line of the defeat screen. */
+    private mountCues(): void {
+        const area = document.querySelector('#play-area');
+        if (area) {
+            const cancel = document.createElement('p');
+            cancel.id = 'bubble-cancel'; cancel.setAttribute('role', 'status'); cancel.hidden = true; cancel.textContent = 'Relâchez ici pour annuler';
+            cancel.style.cssText = 'position:absolute;z-index:3;left:50%;transform:translate(-50%,-100%);margin:0;padding:6px 12px;white-space:nowrap;pointer-events:none;'
+                + 'background:#10161ff0;color:#fff;border:2px solid #ff3b5c;border-radius:18px;font:600 14px/1.2 system-ui,sans-serif;box-shadow:0 2px 8px #0008';
+            area.append(cancel); this.cancelElement = cancel;
+        }
+        const title = document.querySelector('#result-title');
+        if (title) {
+            const reason = document.createElement('p');
+            reason.id = 'result-reason'; reason.hidden = true;
+            title.after(reason); this.reasonElement = reason;
+        }
+    }
+    /** Sling band, cancel ring and label, and the bubbles that lost the game. */
+    private drawCues(drawn: Drawn): void {
+        const g = this.obstacles, aiming = this.engine.status === 'playing' && !this.engine.flight;
+        if (g && aiming && this.pull) {
+            g.lineStyle(3, 0xffd23f, 0.9).lineBetween(ORIGIN.x, ORIGIN.y, this.pull.x, this.pull.y);
+            g.fillStyle(0xffd23f, 0.9).fillCircle(this.pull.x, this.pull.y, 6);
+            drawn.sling = true;
+        }
+        drawn.cancel = aiming && this.aimMode === 'cancel';
+        if (g && drawn.cancel) g.lineStyle(3, 0xff3b5c, 1).strokeCircle(ORIGIN.x, ORIGIN.y, CANCEL_RADIUS);
+        const label = this.cancelElement;
+        if (label && label.hidden === drawn.cancel) {
+            label.hidden = !drawn.cancel;
+            const canvas = this.game.canvas.getBoundingClientRect(), area = label.parentElement?.getBoundingClientRect();
+            if (area) label.style.top = `${String(canvas.top - area.top + (ORIGIN.y - CANCEL_RADIUS - 8) * canvas.height / 640)}px`;
+        }
+        const culprits = this.engine.status === 'lost' ? this.engine.culprits() : [];
+        if (g) for (const cell of culprits) {
+            const p = center(cell, this.engine.drops);
+            g.lineStyle(4, 0xff3b5c, 1).strokeCircle(p.x, p.y, 23);
+        }
+        drawn.culprits = culprits.length;
+        const reason = this.reasonElement;
+        if (reason) {
+            const text = this.engine.status !== 'lost' ? '' : culprits.length ? 'Une bulle a franchi la ligne (entourée en rouge).' : 'Plus aucune place pour tirer.';
+            if (reason.textContent !== text) { reason.textContent = text; reason.hidden = !text; }
+        }
     }
     /** Pause legend (game menu, which is the pause page on touch screens) and the first-time tip bubble. */
     private mountSpecials(): HTMLElement | undefined {
@@ -470,7 +534,7 @@ export class LabScene extends Phaser.Scene {
             return;
         g.clear();
         this.obstacles?.clear();
-        const drawn: Drawn = { guide: 0, ghost: null, attached: null, decor: [], icons: { crystal: 0, prism: 0, leaf: 0, lock: 0 }, prismArcAlpha: 0, specials: {} };
+        const drawn: Drawn = { lossLine: 'calm', culprits: 0, sling: false, cancel: false, guide: 0, ghost: null, attached: null, decor: [], icons: { crystal: 0, prism: 0, leaf: 0, lock: 0 }, prismArcAlpha: 0, specials: {} };
         this.frame = drawn;
         const attachedKey = this.engine.last.attached ? key(this.engine.last.attached) : '';
         this.paint?.begin();
@@ -487,7 +551,11 @@ export class LabScene extends Phaser.Scene {
         g.fillStyle(0x24415a, 0.75);
         g.fillRect(0, 0, 360, ceiling);
         g.lineBetween(0, ceiling + 1, 360, ceiling + 1);
-        g.lineStyle(2, 0xf080ab, 0.65);
+        // The loss line blinks red while a bubble is one row from it (steady red without motion).
+        const danger = this.engine.danger();
+        drawn.lossLine = danger ? 'danger' : 'calm';
+        if (danger) g.lineStyle(3, 0xff3b5c, still ? 1 : 0.3 + 0.7 * (0.5 + 0.5 * Math.sin(this.hero.time / 110)));
+        else g.lineStyle(2, 0xf080ab, 0.65);
         for (let x = 4; x < 360; x += 16)
             g.lineBetween(x, LOSS_LINE, x + 8, LOSS_LINE);
         if (this.engine.status === 'playing' && !this.engine.flight) {
@@ -562,6 +630,7 @@ export class LabScene extends Phaser.Scene {
                 this.paint?.draw(this.specialTexture, x, y, size, reduced || this.hero.id === 'licorne' ? 0 : a, .8, 1.8);
             }
         }
+        this.drawCues(drawn);
         const projectile = this.engine.projectile();
         if (projectile && this.engine.flight)
             this.bubble(projectile.x, projectile.y, this.engine.flight.color);

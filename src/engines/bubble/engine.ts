@@ -60,6 +60,14 @@ export function center(cell: Pick<Cell, 'row' | 'col'>, drops = 0): Point {
     return { x: RADIUS + cell.col * 2 * RADIUS + (cell.row % 2) * RADIUS, y: RADIUS + (cell.row + drops) * ROW_STEP };
 }
 const CELL_KEYS = Array.from({length:ROWS},(_,row)=>Array.from({length:9},(_,col)=>`${String(row)}:${String(col)}`));
+/** A bubble that ends the game: on the last row or touching the loss line (fixed crystals never do). */
+export function pastLine(cell: Cell, drops: number): boolean {
+    return cell.kind !== 'crystal' && (cell.row === ROWS - 1 || center(cell, drops).y + RADIUS >= LOSS_LINE);
+}
+/** One row from the loss line: the next attachment below it, or the next ceiling drop, can end the game. */
+export function nearLine(cell: Cell, drops: number): boolean {
+    return cell.kind !== 'crystal' && (cell.row >= ROWS - 2 || center(cell, drops).y + RADIUS + ROW_STEP >= LOSS_LINE);
+}
 export function key(cell: Pick<Cell, 'row' | 'col'>): string {
     return CELL_KEYS[cell.row]?.[cell.col] ?? `${String(cell.row)}:${String(cell.col)}`;
 }
@@ -386,7 +394,7 @@ export class Engine {
         this.resolved++;
         const won = this.grid.every(c => c.kind === 'crystal') || (levelAt(this.level).mechanics?.includes('star') && !this.grid.some(c => c.kind === 'star'));
         if (!won && this.grid.length && this.shotsBeforeDrop === levelAt(this.level).interval && levelAt(this.level).interval > 0) this.drops++;
-        this.status = won ? 'won' : this.grid.some(c => c.kind !== 'crystal' && (c.row === ROWS - 1 || center(c, this.drops).y + RADIUS >= LOSS_LINE)) ? 'lost' : 'playing';
+        this.status = won ? 'won' : this.grid.some(c => pastLine(c, this.drops)) ? 'lost' : 'playing';
         if (this.grid.some(c => c.kind !== 'crystal')) {
             this.next = this.queued;
             if (!this.availableColors().includes(this.next)) this.next = this.color();
@@ -423,6 +431,14 @@ export class Engine {
             travel -= length;
         }
         return this.flight.trajectory.segments.at(-1)?.to ?? null;
+    }
+    /** Bubbles that crossed the loss line: what the defeat screen points at. */
+    culprits(): Cell[] {
+        return this.grid.filter(c => pastLine(c, this.drops)).map(c => ({ ...c }));
+    }
+    /** True while play goes on with a bubble one row from the loss line. */
+    danger(): boolean {
+        return this.status === 'playing' && this.grid.some(c => nearLine(c, this.drops));
     }
     snapshot() {
         return { specialUses: this.specialUses, specialArmed: this.specialArmed, specialMs: this.specialMs, mechanics: levelAt(this.level).mechanics ?? [], level: this.level, drops: this.drops, resolved: this.resolved, shotsBeforeDrop: this.shotsBeforeDrop, grid: this.grid.map(c => ({ ...c })), score: this.score, status: this.status, next: this.next, queued: this.queued, angle: this.angle, shots: this.shots, seed: this.seed, random: this.random.state, inFlight: this.flight !== null };

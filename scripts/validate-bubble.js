@@ -83,7 +83,7 @@ for (const [name, before, after, oracle] of [
     ['leaf sweeps crystals', "return cell.kind !== 'stone' && cell.kind !== 'ice' && cell.kind !== 'star' && cell.kind !== 'crystal';", "return cell.kind !== 'stone' && cell.kind !== 'ice' && cell.kind !== 'star';", catalogue.crystal],
     ['crystal does not anchor', "this.grid.filter(c => c.row === 0 || c.kind === 'crystal')", 'this.grid.filter(c => c.row === 0)', catalogue.crystal],
     ['crystal blocks the win', "const won = this.grid.every(c => c.kind === 'crystal')", 'const won = this.grid.length === 0', catalogue.crystal],
-    ['crystal at the loss line', "this.grid.some(c => c.kind !== 'crystal' && (c.row === ROWS - 1", "this.grid.some(c => (c.row === ROWS - 1", catalogue.crystal],
+    ['crystal at the loss line', "return cell.kind !== 'crystal' && (cell.row === ROWS - 1 || center(cell, drops).y + RADIUS >= LOSS_LINE);", "return (cell.row === ROWS - 1 || center(cell, drops).y + RADIUS >= LOSS_LINE);", catalogue.crystal],
     ['crystal loads as lost', "grid.some(c => c.row === ROWS - 1 && c.kind !== 'crystal')", 'grid.some(c => c.row === ROWS - 1)', catalogue.crystal],
     ['prism not wild', "|| c.kind === 'prism');", '|| false);', catalogue.prism],
     ['stars broken by blasts and sweeps', "return cell.kind !== 'stone' && cell.kind !== 'ice' && cell.kind !== 'star' && cell.kind !== 'crystal';", "return cell.kind !== 'stone' && cell.kind !== 'ice' && cell.kind !== 'crystal';", catalogue.leaf],

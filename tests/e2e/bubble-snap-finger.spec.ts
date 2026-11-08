@@ -100,3 +100,59 @@ test('B-AIM-02 Maj + flèches et molette : la visée passe de case en case', asy
     expect(grid.map(c => socket(c)).sort()).toEqual(reference.grid.map(c => socket(c)).sort());
     await page.screenshot({ path: info.outputPath('bubble-visee-fine.png') });
 });
+// B-SLING-02: a real finger below the launcher pulls a sling (the shot leaves the other way and fills
+// the ghost socket); a finger on the launcher shows "Relâchez ici pour annuler" and fires nothing.
+// B-LOSS-02: the loss line blinks while a bubble is one row from it; the defeat circles the culprit
+// and the result panel says why.
+test('B-SLING-02 lance-pierre, annulation annoncée, ligne de défaite qui prévient', async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium'); test.setTimeout(120000);
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/?test=1#/bubble');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__BUBBLE_TEST__))).toBe(true);
+    const holed = generateLevel(4, 28).filter((_, i) => i % 4 !== 1);
+    await page.evaluate(grid => { window.__BUBBLE_TEST__?.loadLevel(4, 28); window.__BUBBLE_TEST__?.load(grid, grid[0]?.color ?? 0, 28); }, holed);
+    const cdp = await page.context().newCDPSession(page), finger = new Finger(page, cdp);
+    const box = await page.locator('canvas').boundingBox(); if (!box) throw new Error('canvas');
+    const toPage = (x: number, y: number) => ({ id: 4, x: box.x + x * box.width / 360, y: box.y + y * box.height / 640 });
+    const read = () => page.evaluate(() => ({ s: window.__BUBBLE_TEST__?.read(), v: window.__BUBBLE_TEST__?.visuals() }));
+    try {
+        // Pull down-left: the guide goes up-right, the angle mirrors the finger through the launcher.
+        const pull = { x: 120, y: 625 };
+        await finger.touch('touchStart', [toPage(pull.x, pull.y)]);
+        await finger.touch('touchMove', [toPage(pull.x - 4, pull.y + 2)]);
+        await page.waitForTimeout(150);
+        const aimed = await read(), expected = Math.atan2(ORIGIN.x - (pull.x - 4), pull.y + 2 - ORIGIN.y);
+        expect(aimed.s?.angle).toBeCloseTo(expected, 1);
+        expect(aimed.s?.angle ?? 0).toBeGreaterThan(0.3);
+        expect(aimed.v?.drawn.sling).toBe(true);
+        const ghost = aimed.v?.ghost; expect(ghost).toBeTruthy();
+        await page.screenshot({ path: info.outputPath('bubble-lance-pierre.png') });
+        await finger.release();
+        await expect.poll(async () => (await read()).s?.shots).toBe((aimed.s?.shots ?? 0) + 1);
+        await page.evaluate(() => { window.__BUBBLE_TEST__?.advance(10000); });
+        const attached = await page.evaluate(() => window.__BUBBLE_TEST__?.lastAttached());
+        expect(attached && { row: attached.row, col: attached.col }).toEqual(ghost && { row: ghost.row, col: ghost.col });
+        // On the launcher: the label shows, the release fires nothing.
+        const before = (await read()).s?.shots;
+        await finger.touch('touchStart', [toPage(120, 400)]);
+        await finger.touch('touchMove', [toPage(ORIGIN.x + 6, ORIGIN.y + 4)]);
+        await expect(page.locator('#bubble-cancel')).toBeVisible();
+        await expect(page.locator('#bubble-cancel')).toHaveText('Relâchez ici pour annuler');
+        expect((await read()).v?.drawn.cancel).toBe(true);
+        await page.screenshot({ path: info.outputPath('bubble-annuler.png') });
+        await finger.release();
+        await page.waitForTimeout(300);
+        expect((await read()).s?.shots).toBe(before);
+        await expect(page.locator('#bubble-cancel')).toBeHidden();
+    } finally { await finger.release(); await cdp.detach(); }
+    // A column one row from the line: the line is in danger; one more bubble below it loses.
+    const column = Array.from({ length: 12 }, (_, row) => ({ row, col: 4, color: row % 2 })) as Cell[];
+    await page.evaluate(grid => { window.__BUBBLE_TEST__?.load(grid, 0, 28); window.__BUBBLE_TEST__?.advance(50); }, column);
+    expect((await read()).v?.drawn.lossLine).toBe('danger');
+    await expect(page.locator('#result-reason')).toBeHidden();
+    await page.evaluate(grid => { window.__BUBBLE_TEST__?.load([...grid, { row: 12, col: 4, color: 0 }], 0, 28); window.__BUBBLE_TEST__?.advance(50); }, column);
+    await expect(page.locator('#result')).toBeVisible();
+    await expect(page.locator('#result-reason')).toHaveText('Une bulle a franchi la ligne (entourée en rouge).');
+    expect((await read()).v?.drawn.culprits).toBeGreaterThan(0);
+    await page.screenshot({ path: info.outputPath('bubble-defaite-cause.png') });
+});
