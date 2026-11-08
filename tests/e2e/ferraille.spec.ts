@@ -264,11 +264,12 @@ test('F-FX-07 super-tir visible, vie perdue qui dit la cause et l’arme perdue'
     const beam = await page.evaluate(() => window.__FERRAILLE_TEST__?.impacts());
     expect(beam?.counts.beams).toBe(1); expect(beam?.bursts).toContain('beam');
     await page.screenshot({ path: `test-results/screenshots/ferraille-super-tir-${info.project.name}.png` });
-    await page.evaluate(() => { const h = window.__FERRAILLE_TEST__; h?.advance(400); h?.inspect({ weapon: 'fan', ammo: 30 }); });
+    // The beam may already have destroyed the entry turret: the hurt comes from the pit of the danger scenario.
+    await page.evaluate(() => { const h = window.__FERRAILLE_TEST__; h?.advance(400); h?.scenario('danger'); h?.inspect({ weapon: 'fan', ammo: 30 }); });
     await page.keyboard.down('ArrowRight');
     let message = '';
     for (let i = 0; i < 200 && !message; i++) message = await page.evaluate(() => { const h = window.__FERRAILLE_TEST__; h?.advance(50); return h?.impacts().message ?? ''; });
     await page.keyboard.up('ArrowRight');
-    expect(message).toMatch(/^(Touché par .+|Chute) · Arme perdue : Éventail$/);
+    expect(message).toBe('Chute · Arme perdue : Éventail');
     await page.screenshot({ path: `test-results/screenshots/ferraille-cause-${info.project.name}.png` });
 });
