@@ -211,7 +211,8 @@ test('F20 tactile : Saut plus gros que Tir et Super, joystick à gauche du canev
     });
     for (const [width, height] of [[405, 480], [360, 640], [780, 412]] as const) {
         await page.setViewportSize({ width, height });
-        await page.goto('/?test=1#/ferraille');
+        // A distinct query per size: the same URL again would only be a hash change, not a fresh game.
+        await page.goto(`/?test=1&taille=${String(width)}#/ferraille`);
         await expect.poll(() => page.evaluate(() => Boolean(window.__FERRAILLE_TEST__))).toBe(true);
         await tap(page, '#resume', true);
         await page.evaluate(() => { window.__FERRAILLE_TEST__?.advance(0); });
