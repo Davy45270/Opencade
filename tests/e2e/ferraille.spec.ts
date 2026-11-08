@@ -251,3 +251,24 @@ test('F-FX-05 la tourelle d’entrée détruite éclate en ferraille, sans retou
     expect(fx?.counts.hurts).toBe(0); expect(fx?.red).toBe(0);
     await page.screenshot({ path: `test-results/screenshots/ferraille-impact-${info.project.name}.png` });
 });
+// F-FX-07: in the real scene, C fires a visible beam; a life lost with the fan says what hit
+// and that the fan is lost.
+test('F-FX-07 super-tir visible, vie perdue qui dit la cause et l’arme perdue', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop-chromium');
+    await page.goto('/?test=1#/ferraille');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__FERRAILLE_TEST__))).toBe(true);
+    await page.evaluate(() => { const h = window.__FERRAILLE_TEST__; h?.loadLevel(0, 460); h?.advance(0); });
+    await tap(page, '#resume', false);
+    await expect(page.locator('#keyboard-help')).toContainText('C : super-tir');
+    await page.keyboard.press('KeyC');
+    const beam = await page.evaluate(() => window.__FERRAILLE_TEST__?.impacts());
+    expect(beam?.counts.beams).toBe(1); expect(beam?.bursts).toContain('beam');
+    await page.screenshot({ path: `test-results/screenshots/ferraille-super-tir-${info.project.name}.png` });
+    await page.evaluate(() => { const h = window.__FERRAILLE_TEST__; h?.advance(400); h?.inspect({ weapon: 'fan', ammo: 30 }); });
+    await page.keyboard.down('ArrowRight');
+    let message = '';
+    for (let i = 0; i < 200 && !message; i++) message = await page.evaluate(() => { const h = window.__FERRAILLE_TEST__; h?.advance(50); return h?.impacts().message ?? ''; });
+    await page.keyboard.up('ArrowRight');
+    expect(message).toMatch(/^(Touché par .+|Chute) · Arme perdue : Éventail$/);
+    await page.screenshot({ path: `test-results/screenshots/ferraille-cause-${info.project.name}.png` });
+});
