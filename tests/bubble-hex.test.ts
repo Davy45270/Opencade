@@ -1,5 +1,6 @@
 import { expect, test } from 'vitest';
 import { trajectoryCopies } from './bubble-cases';
+import { fineAimReachesEverySocket } from './bubble-aim';
 import { Engine, center, ORIGIN, type Cell } from '../src/engines/bubble/engine';
 // All shots originate at the literal launcher (180, 570); angles are from up.
 const cases: [string, Cell[], number, number, number, number][] = [
@@ -69,3 +70,9 @@ test('B-SNAP-01 la cellule choisie contient le point d’impact (130 niveaux tro
 test('B-SNAP-02 rebonds : nombre exact, miroir, plafond', () => { wallBounces(); });
 test('B-SNAP-03 groupes détachés : toujours tombés, rien ne flotte', () => { expect(detachedGroupsFall()).toBeGreaterThan(0); });
 test('B-SNAP-05 glissement de 90 ms, gelé en pause', () => { settleGlide(); });
+test('B-AIM-01 visée fine (Maj + flèches, molette) : chaque case atteignable, visée au milieu de sa plage', () => {
+ const { sockets, arrowMisses } = fineAimReachesEverySocket();
+ expect(sockets).toBeGreaterThan(600);
+ // The plain 0.08 rad arrow step alone misses some of them: that is what the fine aim is for.
+ expect(arrowMisses).toBeGreaterThan(0);
+}, 60000);

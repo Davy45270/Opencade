@@ -56,3 +56,45 @@ test('B-SNAP-04 doigt bruité : la case fantôme est la case remplie', async ({ 
         await finger.release(); await cdp.detach();
     }
 });
+// B-AIM-02: Shift + arrows and the mouse wheel move the guide socket by socket (the engine's
+// nextSocketAngle), a plain arrow still turns by 0.08 rad, and the shot fills the ghost socket.
+test('B-AIM-02 Maj + flèches et molette : la visée passe de case en case', async ({ page }, info) => {
+    test.skip(info.project.name !== 'desktop-chromium');
+    await page.goto('/?test=1#/bubble');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__BUBBLE_TEST__))).toBe(true);
+    const holed = generateLevel(4, 28).filter((_, i) => i % 4 !== 1);
+    await page.evaluate(grid => { window.__BUBBLE_TEST__?.loadLevel(4, 28); window.__BUBBLE_TEST__?.load(grid, grid[0]?.color ?? 0, 28); }, holed);
+    const reference = new Engine(28); reference.loadLevel(4, 28); reference.load(holed.map(c => ({ ...c })), holed[0]?.color ?? 0, 28);
+    const state = () => page.evaluate(() => ({ angle: window.__BUBBLE_TEST__?.read().angle ?? NaN, ghost: window.__BUBBLE_TEST__?.visuals().ghost ?? null }));
+    const socket = (c: Cell | null) => c ? `${String(c.row)}:${String(c.col)}` : '-';
+    let s = await state();
+    for (const [key, dir] of [['Shift+ArrowRight', 1], ['Shift+ArrowRight', 1], ['Shift+ArrowLeft', -1]] as const) {
+        const expected = reference.nextSocketAngle(dir, s.angle);
+        await page.keyboard.press(key);
+        await expect.poll(async () => (await state()).angle).toBeCloseTo(expected, 9);
+        const next = await state();
+        expect(socket(next.ghost)).not.toBe(socket(s.ghost));
+        s = next;
+    }
+    await page.keyboard.press('ArrowRight');
+    await expect.poll(async () => (await state()).angle).toBeCloseTo(s.angle + 0.08, 9);
+    s = await state();
+    const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('canvas');
+    await page.mouse.move(box.x + box.width / 2, box.y + box.height * 0.6);
+    // The pointer aims as it arrives over the board; the wheel then steps from that angle.
+    await expect.poll(async () => (await state()).angle).not.toBeCloseTo(s.angle, 6);
+    s = await state();
+    const wheelTo = reference.nextSocketAngle(-1, s.angle);
+    await page.mouse.wheel(0, -100);
+    await expect.poll(async () => (await state()).angle).toBeCloseTo(wheelTo, 9);
+    // The mouse stays still over the board: the wheel aim is not overwritten by a pointer move.
+    const ghost = (await state()).ghost; expect(ghost).toBeTruthy();
+    await page.keyboard.press('Space');
+    await page.evaluate(() => { window.__BUBBLE_TEST__?.advance(10000); });
+    // Same shot in the reference engine: it fills the ghost socket, and the page's board matches it.
+    reference.aim(wheelTo); reference.shoot(); reference.advance(10000);
+    expect(socket(reference.last.attached)).toBe(socket(ghost));
+    const grid = await page.evaluate(() => window.__BUBBLE_TEST__?.read().grid ?? []);
+    expect(grid.map(c => socket(c)).sort()).toEqual(reference.grid.map(c => socket(c)).sort());
+    await page.screenshot({ path: info.outputPath('bubble-visee-fine.png') });
+});

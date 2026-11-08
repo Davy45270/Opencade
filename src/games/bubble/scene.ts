@@ -11,7 +11,7 @@ import { setBrief, setHud } from '../../shell/hud';
 import { bubbleButtons } from '../registry';
 import Phaser from 'phaser';
 import { sound } from '../../shell/services';
-import { Inputs, renderTouchControls, keyboardControls } from '../../shell/input';
+import { Inputs, renderTouchControls } from '../../shell/input';
 import { renderLevels } from '../../shell/levels';
 import { renderPanels } from '../../shell/panels';
 import { Engine, center, key, ORIGIN, ROW_STEP, LOSS_LINE, type Cell, type Color, type Point } from '../../engines/bubble/engine';
@@ -220,7 +220,23 @@ export class LabScene extends Phaser.Scene {
         });
         this.input.on('pointerupoutside', () => { this.aimingPointer = null; });
         this.inputs.on(this.game.canvas, 'touchcancel', () => { this.aimingPointer = null; });
-        keyboardControls(this.inputs, delta => { if (!this.session.paused && !this.selecting) this.engine.aim(this.engine.angle + delta); }, () => { if (!this.session.paused && !this.selecting) this.engine.shoot(); });
+        // Arrows turn the launcher by 0.08 rad; Shift + arrows and the wheel jump to the next socket.
+        const fineAim = (dir: 1 | -1): void => { if (!this.session.paused && !this.selecting && !this.engine.flight) this.engine.aim(this.engine.nextSocketAngle(dir)); };
+        this.inputs.on(document, 'keydown', (event: Event) => {
+            const k = event as KeyboardEvent;
+            if (k.target instanceof HTMLElement && k.target.closest('button')) return;
+            if (['ArrowLeft', 'ArrowRight', 'Space'].includes(k.code)) k.preventDefault();
+            const dir = k.code === 'ArrowLeft' ? -1 : k.code === 'ArrowRight' ? 1 : 0;
+            if (dir && k.shiftKey) fineAim(dir);
+            else if (dir && !this.session.paused && !this.selecting) this.engine.aim(this.engine.angle + dir * 0.08);
+            if (k.code === 'Space' && !this.session.paused && !this.selecting) this.engine.shoot();
+        });
+        this.inputs.on(this.game.canvas, 'wheel', (event: Event) => {
+            const wheel = event as WheelEvent;
+            if (!wheel.deltaY || this.session.paused || this.selecting) return;
+            wheel.preventDefault();
+            fineAim(wheel.deltaY > 0 ? 1 : -1);
+        }, { passive: false });
         this.inputs.on(document, 'keydown', (event: Event) => {
             if ((event as KeyboardEvent).code === 'KeyC' && !this.session.paused && !this.selecting) this.engine.special();
             if ((event as KeyboardEvent).code === 'KeyX' && !(event.target instanceof HTMLElement && event.target.closest('button')) && !this.session.paused && !this.selecting) this.engine.swap();

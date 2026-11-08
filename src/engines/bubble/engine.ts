@@ -10,6 +10,11 @@ export const WIDTH = 360;
 export const ROWS = 13;
 export const ROW_STEP = Math.sqrt(3) * RADIUS;
 export const ORIGIN = { x: 180, y: 570 };
+/** Aim bounds: 10° above either wall. */
+export const AIM_MIN = (10 - 90) * Math.PI / 180;
+export const AIM_MAX = (170 - 90) * Math.PI / 180;
+/** Angular resolution of the fine aim scan (0.06°, about half a pixel at the top of the board). */
+export const AIM_SCAN = 0.001;
 export type Color = 0 | 1 | 2 | 3 | 4 | 5;
 export const KINDS = ['stone', 'bomb', 'ice', 'star', 'leaf', 'crystal', 'prism'] as const;
 export type Kind = typeof KINDS[number];
@@ -213,14 +218,33 @@ export class Engine {
     }
     aim(angle: number): void {
         if (Number.isFinite(angle))
-            this.angle = Math.max((10 - 90) * Math.PI / 180, Math.min((170 - 90) * Math.PI / 180, angle));
+            this.angle = Math.max(AIM_MIN, Math.min(AIM_MAX, angle));
+    }
+    /**
+     * Fine aim (Shift + arrows, mouse wheel): the angle at the middle of the next socket the
+     * guide would fill, in direction `dir`. A socket between a wall and a row can be open over
+     * a fraction of a degree; this reaches it without hunting for the pixel. Scanned at
+     * AIM_SCAN without filling the trajectory cache. Returns `from` when no other socket lies
+     * that way.
+     */
+    nextSocketAngle(dir: 1 | -1, from = this.angle): number {
+        const inside = (a: number): boolean => a >= AIM_MIN - 1e-12 && a <= AIM_MAX + 1e-12;
+        const at = (a: number): string => { const t = this.trace(a, false).target; return t ? key(t) : '-'; };
+        const current = at(from);
+        let a = from;
+        while (inside(a + dir * AIM_SCAN) && at(a + dir * AIM_SCAN) === current) a += dir * AIM_SCAN;
+        if (!inside(a + dir * AIM_SCAN)) return from;
+        a += dir * AIM_SCAN;
+        const start = a, next = at(a);
+        while (inside(a + dir * AIM_SCAN) && at(a + dir * AIM_SCAN) === next) a += dir * AIM_SCAN;
+        return (start + a) / 2;
     }
     swap(): boolean {
         if (this.flight || this.status !== 'playing') return false;
         [this.next, this.queued] = [this.queued, this.next];
         return true;
     }
-    trace(angle = this.angle): Trajectory {
+    trace(angle = this.angle, remember = true): Trajectory {
         const shape = `${String(this.drops)}:${JSON.stringify(this.bumpers)}:${this.grid.map(key).join(';')}`;
         let geometry = geometryCache.get(this.grid);
         if (!geometry || geometry.length !== this.grid.length || geometry.drops !== this.drops || geometry.shape !== shape) {
@@ -242,7 +266,7 @@ export class Engine {
             struck:path.struck ? this.grid.find(c=>key(c) === key(path.struck as Cell)) ?? null : null});
         const cached = paths.get(angle);
         if (cached) return copy(cached);
-        const finish = (path:Trajectory):Trajectory => { paths.set(angle,path); return copy(path); };
+        const finish = (path:Trajectory):Trajectory => { if (remember) paths.set(angle,path); return copy(path); };
         let from: Point = { ...ORIGIN };
         let direction = { x: Math.sin(angle), y: -Math.cos(angle) };
         const segments: Segment[] = [];
