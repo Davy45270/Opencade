@@ -18,7 +18,7 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
-import { Impacts, BLAST_RADIUS } from './impacts';
+import { Impacts, BLAST_RADIUS, BEAM_REACH, BEAM_HALF_HEIGHT } from './impacts';
 export const ferrailleButtons: readonly TouchButton[] = [
     // Main action last: Saut (72 px) sits under the thumb, bottom of the column or end of the row.
     { id: 'ferraille-special', label: 'Super', ariaLabel: 'Super-tir', size: 56, placement: 'right', mode: 'tap' },
@@ -48,7 +48,7 @@ export interface FerrailleHook {
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'danger' | 'showcase'): void;
     /** Feel layer: hits, kills, blasts and lives lost it reacted to, and the effects on screen. */
-    impacts(): { counts: Impacts['counts']; bursts: string[]; blinking: number; shake: number; red: number };
+    impacts(): { message: string; counts: Impacts['counts']; bursts: string[]; blinking: number; shake: number; red: number };
 }
 declare global { interface Window { __FERRAILLE_TEST__?: FerrailleHook } }
 export class FerrailleScene extends Phaser.Scene {
@@ -64,6 +64,7 @@ export class FerrailleScene extends Phaser.Scene {
     private decor?: DecorCache;
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: Phaser.GameObjects.Text;
+    private hurtText?: Phaser.GameObjects.Text;
     private discovery?: Phaser.GameObjects.Text;
     private panelSignature = '';
     private keys = new Set<string>();
@@ -86,7 +87,11 @@ export class FerrailleScene extends Phaser.Scene {
     }
     private special(): void {
         if (this.session.state === 'ready') this.session.send('start');
-        if (!this.session.paused && !this.selecting && this.engine.special()) { sound.playEffect('bonus'); this.draw(); }
+        if (!this.session.paused && !this.selecting && this.engine.special()) {
+            const h = this.engine.state.hero;
+            this.impacts.superShot(h.x + h.w / 2, h.y + h.h / 2, this.engine.state.facing);
+            sound.playEffect('super'); this.draw();
+        }
     }
     create(): void {
         const receipts = fingerReceipts(this.inputs);
@@ -141,7 +146,7 @@ export class FerrailleScene extends Phaser.Scene {
             fingerReceipts: receipts,
             read: () => ({ fingerInput: { paused: this.session.paused, controls: this.controls() }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
-            impacts: () => ({ counts: { ...this.impacts.counts }, bursts: this.impacts.bursts.map(b => b.kind), blinking: this.impacts.blink.size, shake: this.impacts.shake, red: this.impacts.red }),
+            impacts: () => ({ message: this.impacts.message, counts: { ...this.impacts.counts }, bursts: this.impacts.bursts.map(b => b.kind), blinking: this.impacts.blink.size, shake: this.impacts.shake, red: this.impacts.red }),
             scenario: name => {
                 if (name === 'showcase') {
                     const s = structuredClone(this.engine.state);
@@ -190,7 +195,7 @@ export class FerrailleScene extends Phaser.Scene {
         if (!this.selecting && !this.session.paused) {
             this.engine.input(this.controls()); this.engine.step(delta);
             for (const event of new Set(this.engine.events)) { sound.playEffect(event); if (['bonus', 'checkpoint'].includes(event)) this.flash = 1; }
-            this.impacts.observe(this.engine.state, this.engine.events);
+            this.impacts.observe(this.engine.state, this.engine.events, this.engine.hurt);
             for (const effect of new Set(this.impacts.sounds)) sound.playEffect(effect);
             this.impacts.advance(delta);
         }
@@ -214,6 +219,15 @@ export class FerrailleScene extends Phaser.Scene {
                     const px = x + Math.cos(a) * v * k, py = y + Math.sin(a) * v * k + (reducedMotion ? 0 : 90 * t * t);
                     g.fillStyle(i % 2 ? 0xb7c0c8 : 0xe0904a, 1 - t * .8); g.fillRect(px - 4, py - 4, 8, 8);
                 }
+            } else if (b.kind === 'beam') {
+                // The engine's real reach: 80 px ahead, 64 px tall; a white core inside an amber glow.
+                const dir = b.facing ?? 1, len = BEAM_REACH * VIEW.scale, half = BEAM_HALF_HEIGHT * VIEW.scale, left = dir > 0 ? x : x - len;
+                g.fillStyle(0xffb000, .35 * (1 - t)); g.fillRect(left, y - half, len, half * 2);
+                g.fillStyle(0xfff4cf, .95 * (1 - t)); g.fillRect(left, y - half * .3, len, half * .6);
+                g.lineStyle(3, 0xffffff, 1 - t); g.strokeRect(left, y - half, len, half * 2);
+            } else if (b.kind === 'cause') {
+                // What cost the life: a red ring where it hit.
+                g.lineStyle(5, 0xff2f4e, 1 - t * .7); g.strokeCircle(x, y, (reducedMotion ? 22 : 30 - 8 * t) * VIEW.scale);
             } else if (b.kind === 'blast') {
                 const r = BLAST_RADIUS * VIEW.scale;
                 g.fillStyle(0xff7a2f, .45 * (1 - t)); g.fillCircle(x, y, r * (reducedMotion ? 1 : .55 + .45 * t));
@@ -227,6 +241,10 @@ export class FerrailleScene extends Phaser.Scene {
             }
         }
         for (const [b, text] of this.scoreTexts) if (!live.has(b)) { text.destroy(); this.scoreTexts.delete(b); }
+        if (this.impacts.message) {
+            this.hurtText ??= this.add.text(180, 300, '', { fontFamily: 'system-ui', fontSize: '18px', fontStyle: 'bold', color: '#ffffff', backgroundColor: '#8a1028e6', padding: { x: 10, y: 6 }, align: 'center', wordWrap: { width: 320 } }).setOrigin(.5).setDepth(7);
+            this.hurtText.setText(this.impacts.message).setVisible(true).setAlpha(Math.min(1, this.impacts.messageLeft / 300));
+        } else this.hurtText?.setVisible(false);
         if (this.impacts.red > 0) { const a = this.impacts.red / 400; g.lineStyle(14, 0xff2f4e, .75 * a); g.strokeRoundedRect(7, 7, 346, 626, 16); g.fillStyle(0xff2f4e, .12 * a); g.fillRect(0, 0, 360, 640); }
         // Headless scene harnesses (scripts/validate-*.js) build Ferraille without cameras.
         const shake = this.impacts.offset(reducedMotion), camera = (this as { cameras?: { main?: { setScroll?: (x: number, y: number) => unknown } } }).cameras?.main;

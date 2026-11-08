@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { Engine, DT, TILE, type Enemy } from '../src/engines/ferraille/engine';
-import { Impacts, SHAKE_MS, RED_MS } from '../src/games/ferraille/impacts';
+import { Impacts, SHAKE_MS, RED_MS, BEAM_REACH, BEAM_HALF_HEIGHT, MESSAGE_MS, hurtMessage } from '../src/games/ferraille/impacts';
 import { pilot } from '../src/engines/ferraille/pilot';
 // Feel layer (David's audit of 06/11): "I hit" and "I am hit" no longer share one gold frame.
 function flat(): Engine {
@@ -10,7 +10,7 @@ function flat(): Engine {
 }
 function enemy(kind: Enemy['kind'], x: number, hp = 1): Enemy { return { kind, x, y: 242, w: 14, h: 14, vx: 0, vy: 0, hp, clock: 0, originY: 190, phase: 0 }; }
 function run(e: Engine, fx: Impacts, n: number, fire = true): void {
-    for (let i = 0; i < n; i++) { e.input({ fire }); e.step(DT); fx.observe(e.state, e.events); fx.advance(DT); }
+    for (let i = 0; i < n; i++) { e.input({ fire }); e.step(DT); fx.observe(e.state, e.events, e.hurt); fx.advance(DT); }
 }
 describe('Ferraille, retours d’impact', () => {
     it('F-FX-01 ennemi touché : clignotement et étincelles, puis détruit : ferraille et +100', () => {
@@ -54,5 +54,37 @@ describe('Ferraille, retours d’impact', () => {
             expect(JSON.stringify(b.snapshot())).toBe(JSON.stringify(a.snapshot()));
             expect(fx.counts.kills + fx.counts.blinks).toBeGreaterThan(0);
         }
+    });
+    it('F-FX-05 vie perdue : la cause est désignée, l’arme spéciale perdue est nommée', () => {
+        // Contact with a turret while holding the fan: ring where it hit, and both facts in one line.
+        const e = flat(), fx = new Impacts(); e.state.grace = 0; e.state.shield = false; e.state.weapon = 'fan'; e.state.ammo = 9;
+        const turret = enemy('turret', e.state.hero.x + 2, 1); e.state.enemies = [turret]; fx.reset(e.state);
+        for (let i = 0; i < 30 && !fx.counts.hurts; i++) run(e, fx, 1, false);
+        expect(e.hurt).toMatchObject({ cause: 'turret', lostWeapon: 'fan' });
+        expect(fx.message).toBe('Touché par une tourelle · Arme perdue : Éventail');
+        const ring = fx.bursts.find(b => b.kind === 'cause');
+        expect(ring && Math.hypot(ring.x - (turret.x + turret.w / 2), ring.y - (turret.y + turret.h / 2))).toBeLessThan(0.5);
+        e.state.enemies = [];
+        run(e, fx, Math.ceil(MESSAGE_MS / DT) + 1, false);
+        expect(fx.message).toBe('');
+        // An enemy shot, a fall: named as such; no weapon line with the basic gun.
+        expect(hurtMessage({ cause: 'shot', x: 0, y: 0, lostWeapon: null })).toBe('Touché par un tir ennemi');
+        const f = flat(), fy = new Impacts(); f.state.hero.y = 400; fy.reset(f.state);
+        run(f, fy, 2, false);
+        expect(f.hurt?.cause).toBe('fall'); expect(fy.message).toBe('Chute'); expect(fy.bursts.some(b => b.kind === 'cause')).toBe(false);
+        // A new level forgets the last hurt.
+        f.loadLevel(1); expect(f.hurt).toBeNull();
+    });
+    it('F-FX-06 super-tir : un rayon sur sa portée réelle, devant le héros', () => {
+        const e = flat(), fx = new Impacts(); fx.reset(e.state);
+        const h = e.state.hero, inReach = enemy('crawler', h.x + h.w / 2 + BEAM_REACH - 20, 3), beyond = enemy('crawler', h.x + h.w / 2 + BEAM_REACH + 20, 3);
+        e.state.enemies = [inReach, beyond]; e.state.facing = 1;
+        expect(e.special()).toBe(true);
+        fx.superShot(h.x + h.w / 2, h.y + h.h / 2, e.state.facing);
+        const beam = fx.bursts.find(b => b.kind === 'beam');
+        expect(beam?.facing).toBe(1); expect(fx.counts.beams).toBe(1); expect(fx.shake).toBeGreaterThan(0);
+        // The drawn reach is the engine's: what lies inside it was hit, what lies past it was not.
+        expect(e.state.enemies.includes(inReach)).toBe(false); expect(beyond.hp).toBe(3);
+        expect(BEAM_HALF_HEIGHT).toBe(32);
     });
 });

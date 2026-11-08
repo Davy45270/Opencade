@@ -118,11 +118,16 @@ export function move(s: State, b: Body, axis: 'x' | 'y', amount: number): boolea
     }
     return false;
 }
+/** What cost the last life: an enemy kind, the boss, an enemy shot, a trap or a fall. */
+export type HurtCause = Enemy['kind'] | 'boss' | 'shot' | 'trap' | 'fall';
+export interface Hurt { cause: HurtCause; x: number; y: number; lostWeapon: Weapon | null }
 export class Engine {
+    /** Last life lost (kept outside the state: snapshots and replays are unchanged). */
+    hurt: Hurt | null = null;
     level = 0; seed = 460; status: 'playing' | 'won' | 'lost' = 'playing';
     state = generate(0, 460); events: string[] = []; private accumulator = 0;
-    loadLevel(level: number, seed = 460): void { this.level = Math.max(0, Math.min(29, level)); this.seed = seed; this.state = generate(this.level, seed); this.status = 'playing'; this.accumulator = 0; this.events = []; }
-    loadState(state: State): void { this.state = { ...generate(this.level, this.seed), ...structuredClone(state), modules: structuredClone(state.modules ?? []), moduleTrace: [...(state.moduleTrace ?? [])], actionTrace: [...(state.actionTrace ?? [])] }; this.accumulator = 0; this.status = 'playing'; }
+    loadLevel(level: number, seed = 460): void { this.hurt = null; this.level = Math.max(0, Math.min(29, level)); this.seed = seed; this.state = generate(this.level, seed); this.status = 'playing'; this.accumulator = 0; this.events = []; }
+    loadState(state: State): void { this.hurt = null; this.state = { ...generate(this.level, this.seed), ...structuredClone(state), modules: structuredClone(state.modules ?? []), moduleTrace: [...(state.moduleTrace ?? [])], actionTrace: [...(state.actionTrace ?? [])] }; this.accumulator = 0; this.status = 'playing'; }
     /** Short frontal discharge: respects walls and closed boss cores. */
     special(): boolean {
         const s = this.state, h = s.hero;
@@ -149,11 +154,12 @@ export class Engine {
         this.events = []; this.accumulator += Math.max(0, dtMs);
         while (this.accumulator + 1e-7 >= DT) { this.accumulator -= DT; if (Math.abs(this.accumulator) < 1e-7) this.accumulator = 0; if (this.status === 'playing') this.tick(); }
     }
-    private damage(fall = false): void {
+    private damage(fall = false, cause: HurtCause = fall ? 'fall' : 'shot', at: Rect = this.state.hero): void {
         const s = this.state;
         if (this.status !== 'playing') return;
         if (!fall && s.grace > 0) return;
         if (!fall && s.shield) { s.shield = false; s.grace = 1000; this.events.push('shield'); return; }
+        this.hurt = { cause, x: at.x + at.w / 2, y: at.y + at.h / 2, lostWeapon: s.weapon === 'single' ? null : s.weapon };
         s.lives--; this.events.push('life'); s.shield = false;
         if (s.lives <= 0) { this.status = 'lost'; return; }
         s.hero.x = s.checkpoint; s.hero.y = 210;
@@ -216,7 +222,7 @@ export class Engine {
                 h.y = p.y - h.h; h.vy = 0; s.grounded = true; move(s, h, 'x', p.dx);
             }
         }
-        stepModules(s, (axis, amount) => { move(s, h, axis, amount); }, () => { this.damage(true); });
+        stepModules(s, (axis, amount) => { move(s, h, axis, amount); }, () => { this.damage(true, 'trap'); });
         if (h.y > 340) { this.damage(true); return; }
         for (const x of s.checkpoints) if (h.x >= x && x > s.checkpoint) { s.checkpoint = x; s.score += 50; this.events.push('checkpoint'); }
         s.bonuses = s.bonuses.filter(b => { if (!overlaps(h, b)) return true; if (b.kind === 'shield') s.shield = true; else { s.weapon = b.kind; s.ammo = b.kind === 'flame' ? 180 : b.kind === 'grenade' ? 12 : 36; } s.score += 25; this.events.push('bonus'); return false; });
@@ -269,7 +275,7 @@ export class Engine {
                     e.clock = 0;
                 }
             }
-            if (overlaps(h, e)) this.damage();
+            if (overlaps(h, e)) this.damage(false, e.kind, e);
         }
         const boss = s.boss;
         if (boss) {
@@ -297,7 +303,7 @@ export class Engine {
                     for (const offset of [-0.18, 0, 0.18]) this.shoot(boss.x, boss.y + 14, -Math.cos(offset), Math.sin(offset), false);
                 }
             }
-            if (overlaps(h, boss)) this.damage();
+            if (overlaps(h, boss)) this.damage(false, 'boss', boss);
         }
         for (const shot of s.shots) {
             shot.life -= DT;
@@ -321,7 +327,7 @@ export class Engine {
                     if (boss.exposed) { boss.hp--; s.score += 20; this.events.push('hit'); }
                     shot.life = 0;
                 }
-            } else if (overlaps(h, shot)) { shot.life = 0; this.damage(); }
+            } else if (overlaps(h, shot)) { shot.life = 0; this.damage(false, 'shot', shot); }
         }
         for (const cage of s.cages) if (!cage.rescued && cage.hp <= 0) { cage.rescued = true; s.rescued++; s.score += 300; this.events.push('bonus'); }
         s.enemies = s.enemies.filter(e => e.hp > 0 && e.y < 340); s.shots = s.shots.filter(p => p.life > 0);

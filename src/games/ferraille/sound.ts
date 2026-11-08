@@ -8,6 +8,7 @@ export const ferrailleEffects: SoundEffects = {
     bonus: () => ({ frequency: 1180, duration: 0.18, type: 'sine' }),
     shield: () => ({ frequency: 880, duration: 0.2, type: 'triangle' }),
     checkpoint: () => ({ frequency: 1040, duration: 0.25, type: 'sine' }),
+    super: () => ({ frequency: 220, duration: 0.32, type: 'sawtooth' }),
     life: () => ({ frequency: 120, duration: 0.3, type: 'triangle' }),
     won: () => ({ frequency: 1320, duration: 0.4, type: 'triangle' }),
     lost: () => ({ frequency: 95, duration: 0.4, type: 'sawtooth' }),
