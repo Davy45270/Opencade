@@ -174,7 +174,7 @@ export function createLabyrinth(level: number, seed: number): { maze: boolean[];
         held: 0, toggled: 0, turn: 0, remaining: (level + 1) % 5 === 0 ? (level === 29 ? 40000 : 25000) : 0,
     };
     if (has('crumble')) {
-        // First route cell of its own window whose loss keeps the floor in one piece, free of any other mechanism:
+        // First route cell of its own span whose loss keeps the floor in one piece, free of any other mechanism:
         // the hero can always come back (lives, remaining seeds) by the other side of the loop.
         const taken = new Set([required(principal[0]), ...journey.keys.map(v => v.at), ...journey.doors.map(v => v.at), ...journey.arrows.map(v => v.at),
             ...journey.portals.flat(), ...journey.switches, ...journey.gates, ...journey.moving, ...journey.ice, ...journey.dark]);
