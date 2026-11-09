@@ -22,9 +22,10 @@ export function orbiteFleet(E = Orbit): void {
 }
 /** D-MIX: each board draws its own mix and order; first appearances unchanged; every family returns in each later chapter. */
 export function dedaleMix(plan = encounters, create = createLabyrinth, hud = lesson): void {
-    assert.deepEqual([0, 3, 4, 5, 8, 12, 15, 19, 21, 27, 29].map(l => plan(l).join('+')), [
-        '', 'key', 'key+arrow', 'arrow', 'portal+key', 'switch+key', 'portal+moving', 'switch+moving+ice+key+arrow+portal', 'dark', 'dark+key+key2',
-        'key2+key+arrow+portal+switch+moving+ice+dark']);
+    assert.deepEqual([0, 3, 4, 5, 8, 12, 15, 19, 21, 26, 27, 28, 29].map(l => plan(l).join('+')), [
+        '', 'key', 'key+arrow', 'arrow', 'portal+key', 'switch+key', 'portal+moving', 'switch+moving+ice+key+arrow+portal', 'dark',
+        // The crumbling slab arrives alone on the level-27 breather, never on the single-path spiral (29).
+        'crumble', 'ice+key+key2+crumble', 'key2+dark+portal+switch+key', 'dark+crumble+key2+key+arrow+portal+switch+moving+ice']);
     // HUD names the newest family really on the board; the wisp roles only on their debut (level 25).
     assert.equal(hud(24), WISP_LESSON);
     assert.equal(hud(27), 'Deux couleurs : chaque porte a sa clé'); assert.equal(hud(28), 'Deux couleurs : chaque porte a sa clé');
@@ -33,7 +34,8 @@ export function dedaleMix(plan = encounters, create = createLabyrinth, hud = les
     // Level 26 is the review board: everything acquired, in introduction order (historical placement).
     assert.equal(plan(25).join('+'), 'key+arrow+portal+switch+moving+ice+dark');
     const first = Object.fromEntries(ENCOUNTERS.map(m => [m, Array.from({ length: 30 }, (_, l) => l).find(l => plan(l).includes(m))]));
-    assert.deepEqual(first, { key: 3, arrow: 4, portal: 8, switch: 12, moving: 15, ice: 18, dark: 21, key2: 27 });
+    assert.deepEqual(first, { key: 3, arrow: 4, portal: 8, switch: 12, moving: 15, ice: 18, dark: 21, crumble: 26, key2: 27 });
+    assert.equal(hud(26), 'Dalle fêlée : un passage, puis un mur derrière vous');
     for (let l = 5; l < 30; l++) assert.notEqual(plan(l).join('+'), plan(l - 1).join('+'), `levels ${String(l)}/${String(l + 1)}`);
     for (const m of ENCOUNTERS) for (let chapter = Math.floor(first[m] / 5) + 1; chapter < 6; chapter++)
         assert.ok([0, 1, 2, 3, 4].some(k => plan(chapter * 5 + k).includes(m)), `${m} absent from chapter ${String(chapter + 1)}`);
@@ -43,6 +45,13 @@ export function dedaleMix(plan = encounters, create = createLabyrinth, hud = les
         assert.equal(j.portals.length > 0, p.includes('portal')); assert.equal(j.switches.length > 0, p.includes('switch'));
         assert.equal(j.moving.length > 0, p.includes('moving')); assert.equal(j.ice.length > 0, p.includes('ice'));
         assert.equal(j.dark.length > 0, p.includes('dark')); assert.equal(j.arrows.length > 0, p.includes('arrow'));
+        assert.equal((j.crumble ?? []).length > 0, p.includes('crumble'), `crumble L${String(l + 1)}`);
+        // A slab that gives way never splits the floor: lives and remaining seeds stay reachable round the loop.
+        for (const gone of j.crumble ?? []) {
+            const { maze } = create(l, 28), floor = maze.flatMap((v, i) => v && i !== gone ? [i] : []), seen = new Set([floor[0]]), queue = [floor[0] ?? 0];
+            for (let i = 0; i < queue.length; i++) for (const d of [-19, -1, 19, 1]) { const c = queue[i] ?? 0, n = c + d; if (maze[n] && n !== gone && !seen.has(n) && Math.abs(n % 19 - c % 19) <= 1) { seen.add(n); queue.push(n); } }
+            assert.equal(seen.size, floor.length, `crumble splits L${String(l + 1)}`);
+        }
         // Mirror levels 20 and 30 also reflect optional copies onto free branches.
         if (l === 19 || l === 29) assert.ok(j.keys.length >= (p.includes('key') ? 1 : 0) + (p.includes('key2') ? 1 : 0));
         else assert.equal(j.keys.length, (p.includes('key') ? 1 : 0) + (p.includes('key2') ? 1 : 0));
@@ -58,7 +67,7 @@ export function dedaleMix(plan = encounters, create = createLabyrinth, hud = les
         if (l !== 25 && l !== 19 && l !== 29) {
             const n = (j.principal?.length ?? 1) - 1, first: Record<string, number | undefined> = {
                 key: j.keys.find(k => k.color === 0)?.at, key2: j.keys.find(k => k.color === 1)?.at, arrow: j.arrows[0]?.at, portal: j.portals[0]?.[0],
-                switch: j.switches[0], moving: j.moving[0], ice: j.ice[0], dark: j.dark[0] };
+                switch: j.switches[0], moving: j.moving[0], ice: j.ice[0], dark: j.dark[0], crumble: j.crumble?.[0] };
             const idx = p.map(m => at(first[m] ?? -1));
             for (let i = 1; i < idx.length; i++) assert.ok((idx[i] ?? -1) > (idx[i - 1] ?? -1), `order L${String(l + 1)}`);
             p.forEach((m, i) => { const start = 0.08 + i * 0.8 / p.length, f = (idx[i] ?? -1) / n;

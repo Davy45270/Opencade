@@ -111,6 +111,8 @@ for (const [name, id, before, after] of [
     ['portail inerte', 'D-MEC-03', 'if (pair) {', 'if (false && pair) {'],
     ['interrupteur inerte', 'D-MEC-04', 'next.toggled = 1 - next.toggled;', 'next.toggled = next.toggled;'],
     ['glace sans glisse', 'D-MEC-06', 'if (j.ice.includes(next.pos)) while (allowed(next.pos, direction))', 'if (false) while (false)'],
+    ['dalle qui ne cède pas', 'D-MEC-09', "if (j.crumble?.includes(left) && !next.fallen?.includes(left))", 'if (false)'],
+    ['trou franchissable', 'D-MEC-09', 'if (next.fallen?.includes(dest)) return false;', ''],
 ]) {
     const file = 'src/engines/dedale/labyrinth.ts', { mod, line } = await mutated(file, before, after);
     const run = Object.entries(mechanicCases).find(([key]) => key.startsWith(id))[1];

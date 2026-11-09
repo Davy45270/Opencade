@@ -94,7 +94,7 @@ const variations = [
     'Thirty authored rooms; portals, timed gates, a fleeing prey, arrows imposing the next move, scissors and sentries, five timed challenges and calmer rooms after each new rule.',
     'Six authored formations; observed rotating shields, split fragments, asteroid deflections, gravity curves, stealth, local repair, satellite defense and coordinated swarms; six guardians and a two-phase finale.',
     'Six tactical pickups, shields, mines, split swarms, spirals, carried turrets, rescue, mirrors, armored columns and six guardians including a two-phase command ship.',
-    'Seeded routes inside five topologies; observed mechanism positions, colored locks, one-way passages, portals, switches, cyclic walls, sliding ice, darkness and distinct wisp behaviors.',
+    'Seeded routes inside five topologies; observed mechanism positions, colored locks, one-way passages, portals, switches, cyclic walls, sliding ice, darkness, crumbling floor tiles and distinct wisp behaviors.',
     'Thirty workshops; plain rooms first, then ice, one-way floors, plate doors, pits, cracked floor that gives way behind the player (a spare crate refills the hole), paired pads and colour-matched boxes, five move-budget challenges.',
     'Thirty authored flight plans on a flat floor; pad choice, caves, moving pads, refuelling, cargo, comets, light gravity, wind tunnels, geysers, beacons, rescues and ice, alone (1-12) then in distinct trios (13-30).',
     'Authored ascent/descent, wagon rides, hostage rescues, six enemy behaviors, three special weapons and five guardian patterns plus a three-phase reactor.',

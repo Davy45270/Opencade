@@ -45,7 +45,7 @@ test('D-RHYTHM défi chronométré, respiration et final combiné', () => {
     for (const d of (solutions[5]?.inputs ?? [])) { recovery.input(d); recovery.step(1000 / 6); if (recovery.events.includes('sun')) break; }
     expect(recovery.state.vulnerable).toBe(12000);
     const final = dedaleDiversity(Engine, solutions).levels[29];
-    for (const event of ['key', 'door', 'one-way', 'portal', 'switch', 'gate', 'moving-wall', 'slide', 'darkness', 'patrol', 'light-flee']) expect(final?.witnesses[event]).toBeDefined();
+    for (const event of ['key', 'door', 'one-way', 'portal', 'switch', 'gate', 'moving-wall', 'slide', 'darkness', 'patrol', 'light-flee', 'crumble']) expect(final?.witnesses[event]).toBeDefined();
 });
 test('D-SAVE ancien état sans extension, cadence et sérialisation', () => {
     const a = new Engine(14, 17), b = new Engine(14, 17);

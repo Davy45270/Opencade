@@ -1,6 +1,6 @@
 # Level diversity audit — pass 77 (action catalogue)
 
-Pass 77 updates Ferraille, Briqueterie and Essaim with nine authored catalogue levels. Their scores remain 11.2, 18.1 and 16.4 respectively (0% adjacent clones); formulas and thresholds are unchanged. Geometry and two winning replays per catalogue level are checked by `validate-level-catalogue.js` and recorded in `level-catalogue-validation.json`. The added lift and conveyors are verified through actual collision and movement. Art, names and palettes do not count as diversity. Orbite retains pass 66, Dédale pass 58 and Bubble Lab pass 49. Other game implementations are unchanged. Run from the repository root:
+Pass 77 updates Ferraille, Briqueterie and Essaim with nine authored catalogue levels. Their scores remain 11.2, 18.1 and 16.4 respectively (0% adjacent clones); formulas and thresholds are unchanged. Geometry and two winning replays per catalogue level are checked by `validate-level-catalogue.js` and recorded in `level-catalogue-validation.json`. The added lift and conveyors are verified through actual collision and movement. Art, names and palettes do not count as diversity. Orbite retains pass 66 and Bubble Lab pass 49. Dédale adds the crumbling floor tile on 2026-11-09 (see its section). Other game implementations are unchanged. Run from the repository root:
 
 ```sh
 nice -n 19 ionice -c3 node scripts/diversity-report.js
@@ -61,7 +61,7 @@ Regenerated on 2026-11-07 with `node scripts/diversity-report.js` (seed 28, same
 | Alunir | 31 | 11; 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12 | 0.0% | 0 | Thirty authored flight plans on a flat floor; pad choice, caves, moving pads, refuelling, cargo, comets, light gravity, wind tunnels, geysers, beacons, rescues and ice, alone (1-12) then in distinct trios (13-30). |
 | Dérapage | 31 | 7; 2, 3, 10, 12, 27, 29, 30 | 0.0% | 0 | Authored track geometry, slalom, snow, berms, jumps, boosts, width and opponent tuning. |
 | Bulles | 25.9 | 7; 2, 11, 14, 17, 20, 23, 26 | 0.0% | 0 | Thirty seeded layouts with increasing density and pressure; stone, bomb chains, rainbow shots, two-hit ice, star rescues and internal bumpers. |
-| Dédale | 22.4 | 8; 4, 5, 9, 13, 16, 19, 22, 25 | 0.0% | 3 | Seeded routes inside five topologies; observed mechanism positions, colored locks, one-way passages, portals, switches, cyclic walls, sliding ice, darkness and distinct wisp behaviors. |
+| Dédale | 19.8 | 9; 4, 5, 9, 13, 16, 19, 22, 25, 27 | 0.0% | 3 | Seeded routes inside five topologies; observed mechanism positions, colored locks, one-way passages, portals, switches, cyclic walls, sliding ice, darkness, crumbling floor tiles and distinct wisp behaviors. |
 | Caisses | 21.6 | 8; 4, 5, 8, 12, 16, 18, 21, 26 | 0.0% | 0 | Thirty workshops; plain rooms first, then ice, one-way floors, plate doors, pits, cracked floor that gives way behind the player (a spare crate refills the hole), paired pads and colour-matched boxes, five move-budget challenges. |
 | Traverse | 21.6 | 8; 4, 5, 7, 8, 12, 16, 21, 26 | 0.0% | 0 | Thirty crossings; traffic lights, diving logs, rapids, tides, bank rocks, a castaway to rescue, shelters in order, five one-life challenges and slower flow after each. |
 | Serpentin | 20.7 | 9; 2, 3, 4, 5, 8, 12, 16, 21, 26 | 0.0% | 0 | Thirty authored rooms; portals, timed gates, a fleeing prey, arrows imposing the next move, scissors and sentries, five timed challenges and calmer rooms after each new rule. |
@@ -240,6 +240,17 @@ functional weapon and boss markers remains part 2.
 
 ### Dédale
 
+2026-11-09: **19.8/100** (was 22.4), **9** novelty-bearing levels (**27** added),
+largest gap without novelty **3** (was 5, levels 6–8 unchanged), **0%** clones.
+A cracked floor tile carries the walker once and becomes a wall behind them
+(companion and wisps alike). It is introduced alone at level 27, combined with
+ice and both keys at level 28 and part of the full mix at level 30; spirals never
+carry it, and its fall never splits the floor. D-MEC-09 checks the single passage
+and the blocked return, and two mutations (a tile that never falls, a hole that
+can be crossed) are rejected. Placement salts of levels 28 and 30 were reselected
+so seeds 28 and 459 still win under D-ROUTE, D-CURVE and D-FINAL; only levels
+27, 28 and 30 changed.
+
 Corrected in pass 58: **22.4/100**, **8** novelty-bearing levels
 (**4/5/9/13/16/19/22/25**), **0%** adjacent clones. The shared formula is
 unchanged (lower is better). Nine new mechanics are observed; paired key/door,
@@ -262,7 +273,7 @@ including intermediate slide contacts (active/vulnerable), exact challenge timer
 death persistence, both sight axes, recomputed final witnesses, actual solver
 calls, mechanic grouping and geometric ring/spiral/mirror properties.
 `node scripts/validate-dedale.js --record` checks 180 connected generated maps,
-60 victories (seeds 28/459), fast replays, the same campaign assertions and six
+60 victories (seeds 28/459), fast replays, the same campaign assertions and eight
 rejected mutations. The thirty seed-28 recordings are in
 `tests/dedale-solutions.ts`. No browser or Vitest was run.
 

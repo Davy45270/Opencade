@@ -22,7 +22,7 @@ export const campaignCases: Record<string, () => void> = {
     'D-FINAL témoins recalculés et nouveautés par mécanique': () => {
         const result = dedaleDiversity(Engine, solutions), final = required(result.levels[29]);
         check(final.curve.status === 'won', 'final live replay wins');
-        for (const event of ['key', 'door', 'one-way', 'portal', 'switch', 'gate', 'moving-wall', 'slide', 'darkness', 'patrol', 'light-flee']) check(!!final.witnesses[event], `live final ${event}`);
+        for (const event of ['key', 'door', 'one-way', 'portal', 'switch', 'gate', 'moving-wall', 'slide', 'darkness', 'patrol', 'light-flee', 'crumble']) check(!!final.witnesses[event], `live final ${event}`);
         check(new Set(['key', 'door', 'switch', 'gate', 'wall-wait', 'moving-wall'].map(mechanicForEvent)).size === 3, 'six events are three mechanics');
         const baseline = new Set(required(result.levels[0]).elements);
         check(new Set(result.levels.flatMap(r => r.elements).filter(v => !baseline.has(v))).size >= 7, 'seven played mechanics');

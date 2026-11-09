@@ -8,8 +8,10 @@ export interface Journey {
     arrows: { at: number; direction: Heading }[]; portals: [number, number][];
     switches: number[]; gates: number[]; moving: number[]; ice: number[]; dark: number[];
     held: number; toggled: number; turn: number; remaining: number;
+    /** Crumbling slabs: they bear the hero once and become wall behind them; `fallen` lists those gone. */
+    crumble?: number[]; fallen?: number[];
 }
-export interface Walker { pos: number; held: number; toggled: number; phase: number; direction: Heading }
+export interface Walker { pos: number; held: number; toggled: number; phase: number; direction: Heading; fallen?: number[] }
 function required<T>(value: T | undefined): T {
     if (value === undefined) throw new RangeError('Case absente');
     return value;
@@ -17,15 +19,16 @@ function required<T>(value: T | undefined): T {
 const width = 19;
 // Seed salts selected by full engine replays, route separation and campaign pacing
 // (levels 20, 24, 27-30 re-selected for the per-level encounter mix, pass 503: both seeds won, D-ROUTE ≤ 30 %, D-CURVE;
-// level 26 is the review board and keeps its historical salt and placement).
-const placementSalts = [0, 837832, 0, 733103, 0, 0, 0, 209458, 104729, 104729, 0, 0, 0, 209458, 209458, 523645, 104729, 104729, 733103, 314501198, 733103, 1256748, 117087022, 1466367, 418916, 22097819, 2723136, 319842377, 56344398, 324869369];
+// level 26 is the review board and keeps its historical salt and placement). Levels 28 and 30 re-selected on 2026-11-09 for the
+// crumbling slab: both seeds won, D-ROUTE ≤ 30 %, D-CURVE, every live witness of the final.
+export const placementSalts = [0, 837832, 0, 733103, 0, 0, 0, 209458, 104729, 104729, 0, 0, 0, 209458, 209458, 523645, 104729, 104729, 733103, 314501198, 733103, 1256748, 117087022, 1466367, 418916, 22097819, 2723136, 1047291, 56344398, 6912115];
 const offsets: Record<Heading, number> = { up: -19, left: -1, down: 19, right: 1 };
 /** The principal corridor is also the placement frame: there is no common gallery. */
 export const labyrinthSeed = (level: number, seed: number): number => (seed + level * 7919 + (placementSalts[level] ?? 0)) >>> 0;
 /** Placement families, in order of first appearance (level = index + 1). */
-export const ENCOUNTERS = ['key', 'arrow', 'portal', 'switch', 'moving', 'ice', 'dark', 'key2'] as const;
+export const ENCOUNTERS = ['key', 'arrow', 'portal', 'switch', 'moving', 'ice', 'dark', 'crumble', 'key2'] as const;
 export type Encounter = typeof ENCOUNTERS[number];
-const INTRO: Record<Encounter, number> = { key: 3, arrow: 4, portal: 8, switch: 12, moving: 15, ice: 18, dark: 21, key2: 27 };
+const INTRO: Record<Encounter, number> = { key: 3, arrow: 4, portal: 8, switch: 12, moving: 15, ice: 18, dark: 21, crumble: 26, key2: 27 };
 const BREATHERS = [5, 10, 16, 21, 26];
 const REVIEW = 25;
 /** Historical route fractions, kept for the review board (its long route stays distinct from the short early ones). */
@@ -36,7 +39,8 @@ const HISTORICAL: Partial<Record<Encounter, number>> = { key: 0.08, portal: 0.30
  * neighbouring levels never meet the same set in the same order.
  */
 export function encounters(level: number): Encounter[] {
-    const acquired = ENCOUNTERS.filter(m => INTRO[m] <= level && m !== 'key2');
+    // A crumbling slab needs a loop around it (the floor stays in one piece): never on the single-path spiral.
+    const acquired = ENCOUNTERS.filter(m => INTRO[m] <= level && m !== 'key2' && !(m === 'crumble' && SHAPES[level % 5] === 'spiral'));
     const newest = [...acquired].sort((a, b) => INTRO[b] - INTRO[a])[0];
     if (!newest) return [];
     // From level 28 the second colour comes with its first-colour pair (it needs its own key).
@@ -166,12 +170,32 @@ export function createLabyrinth(level: number, seed: number): { maze: boolean[];
         portals: has('portal') ? [[point(at('portal')), point(at('portal') + (level === REVIEW ? 0.02 : Math.max(0.02, 3 / (length - 1))))]] : [],
         switches: has('switch') ? [point(at('switch'))] : [], gates: has('switch') ? [point(at('switch') + 0.06)] : [],
         moving: has('moving') ? [point(at('moving'))] : [], ice: has('ice') ? [level === REVIEW ? point(at('ice')) : straight(at('ice'))] : [], dark: has('dark') ? [point(at('dark')), point(at('dark') + 0.01)] : [],
+        crumble: [], fallen: [],
         held: 0, toggled: 0, turn: 0, remaining: (level + 1) % 5 === 0 ? (level === 29 ? 40000 : 25000) : 0,
     };
+    if (has('crumble')) {
+        // First route cell of its own window whose loss keeps the floor in one piece, free of any other mechanism:
+        // the hero can always come back (lives, remaining seeds) by the other side of the loop.
+        const taken = new Set([required(principal[0]), ...journey.keys.map(v => v.at), ...journey.doors.map(v => v.at), ...journey.arrows.map(v => v.at),
+            ...journey.portals.flat(), ...journey.switches, ...journey.gates, ...journey.moving, ...journey.ice, ...journey.dark]);
+        const whole = (gone: number): boolean => {
+            const floor = maze.flatMap((v, i) => v && i !== gone ? [i] : []), first = required(floor[0]), seen = new Set([first]), queue = [first];
+            for (let i = 0; i < queue.length; i++) for (const d of [-19, -1, 19, 1]) {
+                const p = required(queue[i]) + d;
+                if (maze[p] && p !== gone && !seen.has(p) && Math.abs((p % width) - (required(queue[i]) % width)) <= 1) { seen.add(p); queue.push(p); }
+            }
+            return seen.size === floor.length;
+        };
+        const begin = at('crumble'), end = begin + 0.8 / Math.max(1, plan.length);
+        for (let i = Math.max(1, Math.ceil(begin * (length - 1))); i < length - 1 && i / (length - 1) < end; i++) {
+            const cell = required(principal[i]);
+            if (!taken.has(cell) && whole(cell)) { journey.crumble = [cell]; break; }
+        }
+    }
     // Goals on both sides of every interaction make the route playable evidence.
     const goals = new Set([point(0.05), point(0.25), point(0.52), point(1),
         ...journey.keys.map(v => v.at), ...journey.doors.map(v => v.at), ...journey.arrows.map(v => v.at),
-        ...journey.switches, ...journey.gates, ...journey.moving, ...journey.ice, ...journey.dark,
+        ...journey.switches, ...journey.gates, ...journey.moving, ...journey.ice, ...journey.dark, ...(journey.crumble ?? []),
         // A goal just past the portal makes the route take it (historical 0.34 = 0.30 + 0.04).
         ...(journey.portals.length ? [point(at('portal') + (level === REVIEW ? 0.04 : Math.max(0.04, 5 / (length - 1))))] : [])]);
     const suns = [point(0.05), point(0.25), point(0.52), point(1)];
@@ -182,7 +206,7 @@ export function createLabyrinth(level: number, seed: number): { maze: boolean[];
         const reflect = (at: number): number => Math.floor(at / width) * width + 18 - at % width;
         const occupied = new Set([...principal, ...journey.keys.map(v => v.at), ...journey.doors.map(v => v.at),
             ...journey.arrows.map(v => v.at), ...journey.portals.flat(), ...journey.switches, ...journey.gates,
-            ...journey.moving, ...journey.ice, ...journey.dark]);
+            ...journey.moving, ...journey.ice, ...journey.dark, ...(journey.crumble ?? [])]);
         const free = (at: number): boolean => reflect(at) !== at && !occupied.has(reflect(at));
         for (const list of [journey.keys, journey.doors]) for (const item of [...list]) {
             if (free(item.at)) list.push({ ...item, at: reflect(item.at) });
@@ -206,13 +230,17 @@ export function walk(maze: readonly boolean[], j: Journey, from: Walker, request
         if (j.arrows.some(a => (a.at === dest || a.at === pos) && a.direction !== d)) return false;
         if (j.gates.includes(dest) && !next.toggled) return false;
         if (j.moving.includes(dest) && from.phase < 2) return false;
+        if (next.fallen?.includes(dest)) return false;
         return true;
     };
     const direction = allowed(from.pos, requested) ? requested : from.direction;
     if (!allowed(from.pos, direction)) { if (j.moving.includes(from.pos + offsets[direction])) events.push('wall-wait'); return { next, visited, events }; }
     next.direction = direction;
     const enter = (): void => {
+        const left = next.pos;
         next.pos += offsets[direction]; visited.push(next.pos);
+        // The slab just left gives way: wall from now on, for the hero and the wisps alike.
+        if (j.crumble?.includes(left) && !next.fallen?.includes(left)) { next.fallen = [...(next.fallen ?? []), left].sort((a, b) => a - b); events.push('crumble'); }
         for (const key of j.keys) if (key.at === next.pos && !(next.held & (1 << key.color))) { next.held |= 1 << key.color; events.push('key'); }
         if (j.doors.some(v => v.at === next.pos)) events.push('door');
         if (j.arrows.some(v => v.at === next.pos)) events.push('one-way');

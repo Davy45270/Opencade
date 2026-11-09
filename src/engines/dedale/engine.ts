@@ -101,7 +101,7 @@ export class Engine {
     special(): boolean {
         if (this.status !== 'playing' || this.specialUses === 0) return false;
         const s = this.state, j = s.journey;
-        const initial: Walker = { pos: index(s.hero), direction: s.hero.direction, held: j?.held ?? 0, toggled: j?.toggled ?? 0, phase: (j?.turn ?? 0) % 4 };
+        const initial: Walker = { pos: index(s.hero), direction: s.hero.direction, held: j?.held ?? 0, toggled: j?.toggled ?? 0, phase: (j?.turn ?? 0) % 4, fallen: [...(j?.fallen ?? [])] };
         const queue = [{ state: initial, parent: -1, visited: [] as number[] }], seen = new Set([JSON.stringify(initial)]);
         for (let i = 0; i < queue.length; i++) {
             const node = queue[i]; if (!node) continue;
@@ -158,7 +158,10 @@ export class Engine {
             s.heroClock -= 1000 / 6;
             if (s.journey) {
                 const j = s.journey;
-                const result = walk(s.maze, j, { pos: index(s.hero), direction: s.hero.direction, held: j.held, toggled: j.toggled, phase: j.turn % 4 }, s.requested);
+                const result = walk(s.maze, j, { pos: index(s.hero), direction: s.hero.direction, held: j.held, toggled: j.toggled, phase: j.turn % 4, fallen: [...(j.fallen ?? [])] }, s.requested);
+                // A slab that gave way becomes wall in a new floor array (returning wisps recompute their field).
+                const gone = (result.next.fallen ?? []).filter(at => !(j.fallen ?? []).includes(at));
+                if (gone.length) { j.fallen = [...(result.next.fallen ?? [])]; s.maze = s.maze.slice(); for (const at of gone) s.maze[at] = false; }
                 j.turn++;
                 for (const at of result.visited) {
                     Object.assign(s.hero, cell(at));

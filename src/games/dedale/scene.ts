@@ -217,6 +217,8 @@ export class DedaleScene extends Phaser.Scene {
                     ctx.beginPath(); for (let n = 0; n < 3; n++) { const a = n * Math.PI / 3; ctx.moveTo(cx - Math.cos(a) * 7, cy - Math.sin(a) * 7); ctx.lineTo(cx + Math.cos(a) * 7, cy + Math.sin(a) * 7); } ctx.stroke();
                 } else if (label === 'switch') {
                     ctx.beginPath(); ctx.arc(cx, cy, 6, Math.PI * 0.2, Math.PI * 1.8); ctx.moveTo(cx, cy - 7); ctx.lineTo(cx, cy); ctx.stroke();
+                } else if (label === 'crumble') {
+                    ctx.beginPath(); ctx.moveTo(cx - 7, cy - 5); ctx.lineTo(cx - 1, cy); ctx.lineTo(cx - 3, cy + 7); ctx.moveTo(cx - 1, cy); ctx.lineTo(cx + 7, cy - 2); ctx.moveTo(cx + 3, cy - 1); ctx.lineTo(cx + 4, cy - 7); ctx.stroke();
                 } else ctx.fillText(label, cx, cy);
             };
             for (const at of j.dark) mark(at, '·', '#5b4194');
@@ -227,6 +229,7 @@ export class DedaleScene extends Phaser.Scene {
             j.portals.forEach(pair => { pair.forEach(at => { mark(at, 'portal', '#8754df'); }); });
             for (const at of j.switches) mark(at, 'switch', j.toggled ? '#39b879' : '#d66b25');
             for (const at of j.gates) mark(at, j.toggled ? '┄' : '╳', '#ffb669', !j.toggled);
+            for (const at of j.crumble ?? []) if (!j.fallen?.includes(at)) mark(at, 'crumble', '#9a7b55');
             for (const at of j.moving) mark(at, j.turn % 4 < 2 ? '▥' : '┄', '#f17788', j.turn % 4 < 2);
         }
         texture.refresh();

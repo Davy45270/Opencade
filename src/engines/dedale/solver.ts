@@ -8,7 +8,7 @@ export function route(engine: Engine): Direction[] | undefined {
     const s = engine.state, j = s.journey;
     if (!j) return undefined;
     const goals = new Set([...s.seeds, ...s.suns]);
-    const initial: Walker = { pos: index(s.hero), held: j.held, toggled: j.toggled, phase: j.turn % 4, direction: s.hero.direction };
+    const initial: Walker = { pos: index(s.hero), held: j.held, toggled: j.toggled, phase: j.turn % 4, direction: s.hero.direction, fallen: [...(j.fallen ?? [])] };
     const queue = [{ state: initial, parent: -1, action: 'up' as Direction }];
     const key = (v: Walker): string => JSON.stringify(v);
     const seen = new Set([key(initial)]);

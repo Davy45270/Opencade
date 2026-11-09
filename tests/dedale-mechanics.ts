@@ -84,6 +84,20 @@ export const mechanicCases: Record<string, (move?: typeof walk) => void> = {
         const e = new Engine(); e.state.journey = j; e.state.maze = maze; e.state.hero = { x: 1, y: 1, direction: 'right' }; j.dark = [21]; e.state.wisps = [];
         e.input('right'); e.step(1000 / 6); check(e.events.includes('darkness'), 'darkness entered in live engine');
     },
+    'D-MEC-09 dalle fêlée : un passage, puis un mur pour le héros et les follets': (move = walk) => {
+        const j = fixture(); j.crumble = [21];
+        const on = move(maze, j, start(), 'right');
+        check(on.next.pos === 21 && !on.next.fallen?.length && !on.events.includes('crumble'), 'the slab bears the hero');
+        const off = move(maze, j, on.next, 'right');
+        check(off.next.pos === 22 && off.next.fallen?.join() === '21' && off.events.includes('crumble'), 'it gives way once left');
+        check(move(maze, j, { ...off.next, direction: 'left' }, 'left').next.pos === 22, 'no way back over the hole');
+        check(move(maze, j, { ...start(), pos: 22, direction: 'left' }, 'left').next.pos === 21, 'an intact slab is ordinary floor');
+        const e = new Engine(); e.state.journey = j; e.state.maze = maze; e.state.hero = { x: 1, y: 1, direction: 'right' }; e.state.wisps = [];
+        e.input('right'); e.step(1000 / 6); e.step(1000 / 6);
+        check(e.state.hero.x === 3 && e.events.includes('crumble'), 'live engine crosses and breaks the slab');
+        check(e.state.maze[21] === false && maze[21] === true, 'wall for the wisps too, in a new floor array');
+        check(e.state.journey.fallen?.join() === '21', 'journey keeps the fallen slab');
+    },
     'D-MEC-08 follets poursuivent patrouillent et fuient la lumière': () => {
         const e = new Engine(24), s = e.state; s.maze = maze; s.mode = 'chase'; s.hero = { x: 7, y: 1, direction: 'left' };
         const w = { x: 4, y: 1, direction: 'up' as const, kind: 'tracker' as const, returning: false, wait: 0 };

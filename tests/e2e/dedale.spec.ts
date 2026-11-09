@@ -1,5 +1,6 @@
 import { openGameMenu, test, expect, measureLayout, goHome } from './fixture';
 import type { Page } from '@playwright/test';
+import { solutions } from '../dedale-solutions';
 async function read(page: Page) { return page.evaluate(() => window.__DEDALE_TEST__?.read()); }
 async function tap(page: Page, selector: string, mobile: boolean): Promise<void> {
     await openGameMenu(page, selector);
@@ -166,4 +167,25 @@ test('D20 tactile : balayage par défaut, une icône, aucune aide clavier, croix
     await tap(page, '#dedale-up', true); expect((await read(page))?.requested).toBe('up');
     await page.reload(); await expect.poll(() => page.evaluate(() => Boolean(window.__DEDALE_TEST__))).toBe(true);
     await expect(page.locator('#dedale-up')).toBeVisible();
+});
+test('D-MEC-09 dalle fêlée : la vraie scène la fait céder derrière le compagnon, mur pour tous', async ({ page }, info) => {
+    const mobile = info.project.name === 'mobile-chromium';
+    const record = solutions.find(r => r.level === 27 && r.seed === 28), upTo = record?.witnesses.crumble ?? 0;
+    expect(upTo).toBeGreaterThan(0);
+    await page.goto('/?test=1#/dedale');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__DEDALE_TEST__))).toBe(true);
+    await page.evaluate(() => { window.__DEDALE_TEST__?.loadLevel(26, 28); });
+    await tap(page, '#resume', mobile);
+    await page.evaluate(() => { window.__DEDALE_TEST__?.advance(0); });
+    const start = await read(page), slab = start?.journey?.crumble?.[0] ?? -1;
+    expect(slab).toBeGreaterThan(0); expect(start?.maze[slab]).toBe(true);
+    expect(await page.evaluate(() => window.__DEDALE_TEST__?.hudText() ?? '')).toMatch(/Dalle fêlée/);
+    const keys = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' } as const, swipes = { up: [0, -40], down: [0, 40], left: [-40, 0], right: [40, 0] } as const;
+    for (const d of record?.inputs.slice(0, upTo) ?? []) {
+        if (mobile) await swipe(page, swipes[d][0], swipes[d][1]); else await page.keyboard.press(keys[d]);
+        await page.evaluate(() => { window.__DEDALE_TEST__?.advance(1000 / 6); });
+    }
+    const after = await read(page);
+    expect(after?.journey?.fallen).toEqual([slab]); expect(after?.maze[slab]).toBe(false);
+    await page.screenshot({ path: `test-results/screenshots/dedale-dalle-${info.project.name}.png` });
 });
