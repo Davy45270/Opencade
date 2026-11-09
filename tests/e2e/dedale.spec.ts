@@ -181,8 +181,9 @@ test('D-MEC-09 dalle fêlée : la vraie scène la fait céder derrière le compa
     expect(slab).toBeGreaterThan(0); expect(start?.maze[slab]).toBe(true);
     expect(await page.evaluate(() => window.__DEDALE_TEST__?.hudText() ?? '')).toMatch(/Dalle fêlée/);
     const keys = { up: 'ArrowUp', down: 'ArrowDown', left: 'ArrowLeft', right: 'ArrowRight' } as const, swipes = { up: [0, -40], down: [0, 40], left: [-40, 0], right: [40, 0] } as const;
-    for (const d of record?.inputs.slice(0, upTo) ?? []) {
-        if (mobile) await swipe(page, swipes[d][0], swipes[d][1]); else await page.keyboard.press(keys[d]);
+    // Sur téléphone, seuls les trois derniers pas (dont celui qui quitte la dalle) passent par le doigt : les balayages CDP coûtent ~0,4 s chacun.
+    for (const [i, d] of (record?.inputs.slice(0, upTo) ?? []).entries()) {
+        if (mobile && i >= upTo - 3) await swipe(page, swipes[d][0], swipes[d][1]); else await page.keyboard.press(keys[d]);
         await page.evaluate(() => { window.__DEDALE_TEST__?.advance(1000 / 6); });
     }
     const after = await read(page);
