@@ -387,6 +387,25 @@ button:active:not(:disabled), .joystick:active { transform: scale(.94); }
 #result .primary[hidden] { display: none; }
 #result .result-secondary { display: flex; justify-content: center; gap: 12px; margin-top: 4px; }
 #result .result-secondary .icon { width: 56px; height: 56px; padding: 0; font-size: 24px; background: #26405a; color: #e5f3ff; }
+/* Pistouille: an opaque end panel (the race does not show through), the podium of the race, three result tiles
+   and the ranking as a list. */
+body.derapage #result { background: #172d44; width: min(340px, 92%); padding: 10px 12px; }
+body.derapage #result h2 { margin: 4px 0 6px; }
+#result .pistouille-podium { display: block; width: min(250px, 100%); height: auto; aspect-ratio: 400 / 260; margin: 0 auto 6px; }
+#result-scores:has(.pistouille-stats) { margin: 0 0 4px; }
+.pistouille-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.pistouille-stat { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 2px; border-radius: 10px; background: #0f2236; border: 1px solid #2f4d69; }
+.pistouille-label { font-size: 11px; line-height: 1.1; color: #9fc2dc; text-align: center; }
+.pistouille-value { font-size: 16px; font-variant-numeric: tabular-nums; color: #ffffff; }
+.pistouille-new { font-size: 9.5px; font-weight: 700; white-space: nowrap; color: #10202a; background: #ffd15a; border-radius: 6px; padding: 1px 4px; }
+.pistouille-heading { display: block; margin: 8px 0 4px; font-size: 13px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: #9fc2dc; text-align: left; }
+.pistouille-ranking { display: flex; flex-direction: column; gap: 3px; }
+.pistouille-rank { display: flex; align-items: center; gap: 8px; padding: 3px 8px; border-radius: 8px; background: #0f2236; font-size: 15px; text-align: left; }
+.pistouille-rank.you { background: #1f4f4a; outline: 2px solid #64e4cc; }
+.pistouille-place { width: 1.6em; font-weight: 700; font-variant-numeric: tabular-nums; color: #ffd15a; }
+.pistouille-dot { width: 12px; height: 12px; border-radius: 50%; border: 2px solid #ffffffaa; flex: none; }
+.pistouille-name { flex: 1; color: #eaf6ff; }
+.pistouille-you { font-size: 11px; font-weight: 700; color: #10202a; background: #64e4cc; border-radius: 6px; padding: 1px 6px; }
 /* DOM HUD and level brief (pause page): touch play only (desktop keeps the canvas text). */
 #hud, #level-brief { display: none; }
 /* Counter badge of a power (Joker…), from data-count; inside the button (no overflow, no scroll). */

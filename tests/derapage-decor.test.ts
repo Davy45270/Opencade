@@ -2,7 +2,10 @@ import { expect, test } from 'vitest';
 import { readFileSync, readdirSync } from 'node:fs';
 import { DECOR_SPRITES, RAMP_SPRITES, barrierView, drawnDecor, signView } from '../src/games/derapage/decor-sprites';
 import { circuits } from '../src/engines/derapage/circuits';
-import { createTrack as buildTrack } from '../src/engines/derapage/track';
+import { createTrack as buildTrack, nearest } from '../src/engines/derapage/track';
+import { PARIS_SPRITES, isParis, parisPanel, parisTop } from '../src/games/derapage/paris-sprites';
+import { resultLines } from '../src/games/derapage/result-panel';
+import { scenerySprites } from '../src/games/derapage/scenery';
 
 /** Width and height of a WebP with alpha (VP8X header). */
 function webpSize(path: string): { w: number; h: number } {
@@ -63,4 +66,35 @@ test('Z47 the view follows the angle between the camera ray and the object', () 
     expect(signView(0, Math.PI, false)).toBe('panneau_arriere');
     expect(signView(0, Math.PI / 2, false)).toBe('panneau_cote');
     expect(signView(0, -Math.PI / 2, true)).toBe('panneau_cote_g');
+});
+
+test('Paris cup props: one WebP with alpha per sprite, the size of the table, 60 kB in all at most', () => {
+    let bytes = 0;
+    for (const [key, size] of Object.entries(PARIS_SPRITES)) {
+        const path = `src/games/derapage/paris/${key}.webp`;
+        expect(webpSize(path)).toEqual(size);
+        bytes += readFileSync(path).length;
+    }
+    expect(readdirSync('src/games/derapage/paris').sort()).toEqual(Object.keys(PARIS_SPRITES).map(key => `${key}.webp`).sort());
+    expect(bytes).toBeLessThan(60_000);
+});
+
+test('Paris cup props: the city slots of the first cup take the drawn building, lamp and column, off the road', () => {
+    const t = buildTrack(1);
+    const props = scenerySprites(t).filter(item => isParis(item.kind));
+    expect(new Set(props.map(item => parisPanel(item).key))).toEqual(new Set(['immeuble_face', 'immeuble2_face', 'lampadaire_face', 'colonne_face']));
+    for (const item of props) {
+        const top = parisTop(item), reach = Math.hypot(top.width, top.height) / 2;
+        const n = nearest(t, item);
+        // The corner of a roof may come no closer than 3 units to the kerb of its own road.
+        expect(n.distance - (t.widths[n.index] ?? 28) / 2).toBeGreaterThan(reach - 6);
+    }
+    // No other cup has them.
+    for (const level of [0, 5, 20]) expect(scenerySprites(buildTrack(level)).some(item => isParis(item.kind))).toBe(false);
+});
+
+test('end panel: three result tiles, then the ranking by mascot name with the player marked', () => {
+    const lines = resultLines({ total: '00:56.96', bestLap: '00:18.38', record: '00:17.33', newRecord: false, order: [0, 2, 4, 3, 1], drivers: ['dragon', 'panda', 'singe', 'licorne', 'pandaroux'] });
+    expect(lines.stats).toEqual([['Temps total', '00:56.96'], ['Meilleur tour', '00:18.38'], ['Record du circuit', '00:17.33']]);
+    expect(lines.ranking.map(l => `${String(l.place)}. ${l.name}${l.you ? ' (toi)' : ''}`)).toEqual(['1. Drakart (toi)', '2. Carrosse Tutu', '3. Chariot Feuille', '4. L’Étoilade', '5. Bolide Bambou']);
 });

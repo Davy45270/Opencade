@@ -5,3 +5,6 @@ export const sprites: Record<string, string> = Object.fromEntries(Object.entries
 /** His boost ramp, in the same chunk: the top view and its four quarters. */
 const rampFiles = import.meta.glob<string>('./ramp/*.webp', { eager: true, query: '?inline', import: 'default' });
 export const ramps: Record<string, string> = Object.fromEntries(Object.entries(rampFiles).map(([path, url]) => [path.slice(7, -5), url]));
+/** The drawn props of the Paris cup (building, street lamp, advertising column), in the same chunk. */
+const parisFiles = import.meta.glob<string>('./paris/*.webp', { eager: true, query: '?inline', import: 'default' });
+export const paris: Record<string, string> = Object.fromEntries(Object.entries(parisFiles).map(([path, url]) => [path.slice(8, -5), url]));

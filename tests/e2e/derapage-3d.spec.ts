@@ -95,7 +95,11 @@ test('Y07 arrivée pilotée et panneau commun aux deux vues',async({page})=>{
         await expect(page.locator('#replay-level')).toBeVisible();
         results.push({title:await page.locator('#result-title').textContent(),scores:await page.locator('#result-scores').innerText()});
     }
-    expect(results[1]).toEqual(results[0]);
+    // The first finish sets the circuit record, the second only equals it: the badge is the one difference.
+    expect(results[0]?.scores).toContain('Nouveau record !');
+    expect(results[1]?.scores).not.toContain('Nouveau record !');
+    const panel=(r: { title: string | null; scores: string } | undefined) => r && { ...r, scores: r.scores.replace(/\n?Nouveau record !/, '') };
+    expect(panel(results[1])).toEqual(panel(results[0]));
 });
 test('Y08 captures perspective et HUD réservé',async({page},info)=>{
     await open(page);

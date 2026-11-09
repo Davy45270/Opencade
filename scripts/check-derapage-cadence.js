@@ -785,7 +785,7 @@ if(process.argv.includes('--audit-mutations')) {
 const { mutationModule } = await import('./mutation-module.js');
 // Execute actual scene mutations: an inflated render and a return to smoothed time.
 for (const [name, before, after, check] of [
-    ['road redrawn each frame', 'this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady,decorReady);', 'this.road?.destroy(); this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady,decorReady);', renderBudget],
+    ['road redrawn each frame', 'this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady,decorReady,parisReady);', 'this.road?.destroy(); this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady,decorReady,parisReady);', renderBudget],
     ['smoothed simulation delta', 'this.tick(this.manual ? 0 : delta);', 'this.tick(this.manual ? 0 : Number(arguments[1]));', clockChecks],
     ['uncapped hidden interval', 'Math.min(250, elapsed)', 'elapsed', clockChecks],
 ]) {

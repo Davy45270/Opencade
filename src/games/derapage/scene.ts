@@ -1,5 +1,5 @@
 import { fingerProof } from './finger';
-import { sceneryKinds, sceneryDrawing, type SceneryKind } from './scenery';
+import { sceneryKinds, sceneryDrawing, scenerySprites, type SceneryKind } from './scenery';
 import { BEHIND, Cadence, draw3d, projectPoint, screenHeading, type RenderCost } from './view3d';
 import { beginThumb, moveThumb, thumbDirection, thumbIntensity, acceptsThumb, type Thumb } from './joystick';
 import { RoadLayer, inView } from './road';
@@ -7,13 +7,14 @@ import { kartLandscape, kartRoadArt, kartTree } from './kart-art';
 import { fingerReceipts } from '../finger-receipts';
 import { others } from '../../characters/selection';
 import { GameCharacter } from '../../characters/game';
-import { arcadeArt, bonusEmblem, emblems, liveries, vehicleDrawing, type Emblem } from '../../characters/arcade-art';
-import { ids, expressions } from '../../characters/model';
+import { bonusEmblem, emblems, liveries, vehicleDrawing, type Emblem } from '../../characters/arcade-art';
+import { ids, expressions, type CharacterId } from '../../characters/model';
 import { ArcadePaint } from '../../characters/arcade-phaser';
-import { renderCharacter } from '../../characters/canvas';
 import { bonusIcon, bonusTexture, pickupPanel, type BonusSpriteKey } from './bonus-sprites';
 import { HORIZON_WIDTH, SKY, horizonLeft, horizonOf, horizonTexture, type Horizon } from './horizon-sprites';
 import { DECOR_SPRITES, RAMP_GROUND, RAMP_SPRITES, decorPanel, decorTexture, decorTop, drawnDecor, isDecor, rampTexture, rampTiles, type DecorSpriteKey, type RampSpriteKey } from './decor-sprites';
+import { drawPodium, renderResult, resultLines, type RaceResult } from './result-panel';
+import { PARIS_SPRITES, isParis, parisPanel, parisTexture, parisTop, type ParisSpriteKey } from './paris-sprites';
 import { TREE_SPRITES, drawnTrees, treeCrown, treeEssence, treeHeight, treePanel, treeTexture, treeTop, type TreeSpriteKey } from './tree-sprites';
 import { KART_SPRITES, chaseView, kartSprite, kartTexture, kartView, type KartSpriteKey, type KartView } from './kart-sprites';
 import { required } from '../../engines/derapage/access';
@@ -49,7 +50,7 @@ export interface DerapageHook {
     art(): string[];
     overview(enabled: boolean): void;
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; bonusViews: string[]; treeViews: string[]; decorViews: string[]; rampViews: string[]; horizon: { key: string; x: number } | null; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: string[] };
+    read(): ReturnType<Engine['snapshot']> & { guide: number | null; miniPlayer: { x: number; y: number; size: number } | null; heldBonus: string | null; kartViews: string[]; bonusViews: string[]; treeViews: string[]; decorViews: string[]; parisViews: string[]; rampViews: string[]; horizon: { key: string; x: number } | null; fingerInput: { paused: boolean; thumb: { x: number; y: number; dx: number; dy: number } | null }; character: ReturnType<GameCharacter['snapshot']>; drivers: string[] };
     loadLevel(i: number, seed?: number): void;
     /** Places a kart (test only): position and heading, simulation frozen, one frame drawn. */
     pose(id: number, x: number, y: number, angle: number): void;
@@ -165,6 +166,17 @@ export class DerapageScene extends Phaser.Scene {
     private get drawnDecorReady(): boolean {
         return (Object.keys(DECOR_SPRITES) as DecorSpriteKey[]).every(key => this.textures.exists(decorTexture(key)));
     }
+    /** Sprite keys of the drawn Paris props (building, lamp, column) in the last frame, for tests. */
+    private parisViews: string[] = [];
+    /** Their own pool: the city circuits line both kerbs with them. */
+    private parisPaint?: ArcadePaint;
+    private get drawnParisReady(): boolean {
+        return (Object.keys(PARIS_SPRITES) as ParisSpriteKey[]).every(key => this.textures.exists(parisTexture(key)));
+    }
+    private drawnParis(key: ParisSpriteKey, x: number, y: number, width: number, height: number, rotation: number, depth: number): void {
+        this.parisPaint?.draw(parisTexture(key), x, y, width, rotation, 1, depth, height);
+        this.parisViews.push(key);
+    }
     /** Sprite keys of David's boost ramps in the last frame, for tests. */
     private rampViews: string[] = [];
     /** Their own pool: up to six ramps across the road, four quarters each in 3D, a few strips in sight. */
@@ -214,6 +226,7 @@ export class DerapageScene extends Phaser.Scene {
     }
     private emblemTextures = new Map<Emblem, string>();
     private resultArt?: HTMLCanvasElement;
+    private resultSignature = '';
     private hud?: HTMLElement;
     private held = new Set<string>();
     private pointer = 0;
@@ -247,21 +260,35 @@ export class DerapageScene extends Phaser.Scene {
     private panels(): void {
         renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.score, this.progress.total, this.selecting);
         if (this.engine.status !== 'playing') {
+            const s = this.engine.snapshot(), drivers = [this.hero.id, ...this.rivals.map(r => r.id)];
+            const result: RaceResult = { total: formatTime(s.timing.raceMs), bestLap: formatTime(s.timing.bestLapMs), record: formatTime(this.progress.save.circuitRecords?.[circuitKey(this.engine.level)] ?? null), newRecord: this.newRecord, order: s.order, drivers };
+            // The podium of the race with the drawn karts (the chunk is loaded by then), redrawn only when the result changes.
+            const front = (id: CharacterId): CanvasImageSource | undefined => {
+                const key = kartSprite(id, 'front');
+                return key && this.textures.exists(kartTexture(key)) ? this.textures.get(kartTexture(key)).getSourceImage() as HTMLImageElement : undefined;
+            };
+            const signature = JSON.stringify([result, this.engine.status, drivers.map(id => Boolean(front(id)))]);
             if (!this.resultArt) {
                 const canvas = document.createElement('canvas');
-                canvas.width = canvas.height = 400;
-                canvas.style.cssText = 'width:180px;height:180px;max-width:100%;display:block;margin:auto';
+                canvas.width = 400; canvas.height = 260;
+                canvas.className = 'pistouille-podium';
                 canvas.setAttribute('role', 'img');
-                canvas.setAttribute('aria-label', `${liveries[this.hero.id].name} en action`);
                 canvas.dataset.vehicleAction = this.hero.id;
-                const context = canvas.getContext('2d');
-                if (context) renderCharacter(context, arcadeArt[this.hero.id].vehicles.action, 0, 0, 400);
                 document.querySelector('#result-title')?.after(canvas);
                 this.resultArt = canvas;
             }
-            const scores = document.querySelector('#result-scores'), s = this.engine.snapshot();
-            if (scores) scores.textContent = `Temps total ${formatTime(s.timing.raceMs)} · Meilleur tour ${formatTime(s.timing.bestLapMs)} · Record du circuit ${formatTime(this.progress.save.circuitRecords?.[circuitKey(this.engine.level)] ?? null)} · Classement ${s.order.map((id, i) => `${String(i + 1)}. Kart ${String(id + 1)}`).join(' · ')}`;
-        }
+            // The shell writes its score line into the paragraph at every panel refresh: put the race result back.
+            const scores = document.querySelector<HTMLElement>('#result-scores');
+            if (scores && !scores.querySelector('.pistouille-stats')) renderResult(scores, result);
+            if (signature !== this.resultSignature) {
+                this.resultSignature = signature;
+                const { ranking } = resultLines(result);
+                this.resultArt.setAttribute('aria-label', `Podium : ${ranking.slice(0, 3).map(line => `${String(line.place)}. ${line.name}${line.you ? ' (toi)' : ''}`).join(', ')}`);
+                const context = this.resultArt.getContext('2d');
+                if (context) drawPodium(context, result, front);
+                if (scores) renderResult(scores, result);
+            }
+        } else this.resultSignature = '';
     }
     private start(i: number, seed?: number, fresh = false): void {
         this.recordedLaps = 0;
@@ -315,7 +342,7 @@ export class DerapageScene extends Phaser.Scene {
             });
             this.inputs.cleanup(() => { button.remove(); });
         }
-        const cleanup = (): void => { this.inputs.dispose(); this.road?.destroy(); this.paint?.destroy(); this.treePaint?.destroy(); this.decorPaint?.destroy(); this.rampPaint?.destroy(); for (const image of this.kartImages) image.destroy(); this.kartImages = []; for (const image of this.skyImages ?? []) image.destroy(); this.skyImages = undefined; this.kartImageCount = 0; for (const prop of this.props3d) prop.destroy(); this.props3d = []; this.propCount = 0; this.hud3d?.destroy(); this.hud3d = undefined; this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
+        const cleanup = (): void => { this.inputs.dispose(); this.road?.destroy(); this.paint?.destroy(); this.treePaint?.destroy(); this.decorPaint?.destroy(); this.parisPaint?.destroy(); this.rampPaint?.destroy(); for (const image of this.kartImages) image.destroy(); this.kartImages = []; for (const image of this.skyImages ?? []) image.destroy(); this.skyImages = undefined; this.kartImageCount = 0; for (const prop of this.props3d) prop.destroy(); this.props3d = []; this.propCount = 0; this.hud3d?.destroy(); this.hud3d = undefined; this.resultArt?.remove(); this.resultArt = undefined; document.body.classList.remove('derapage'); delete window.__DERAPAGE_TEST__; this.hud?.remove(); sound.stop(); };
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         this.background = this.add.graphics().setDepth(-1);
@@ -326,6 +353,7 @@ export class DerapageScene extends Phaser.Scene {
         this.paint = new ArcadePaint(this, 96);
         this.treePaint = new ArcadePaint(this, 128);
         this.decorPaint = new ArcadePaint(this, 64);
+        this.parisPaint = new ArcadePaint(this, 96);
         for (const id of ids) for (const expression of expressions) this.kartTextures.set(`${id}-${expression}`, this.paint.texture(`kart-${id}-${expression}`, vehicleDrawing(id, 'dessus', expression)));
         // The drawn karts arrive in their own chunk; until then the vector kart of each mascot is drawn.
         void import('./kart-atlas').then(({ sprites }) => {
@@ -349,9 +377,10 @@ export class DerapageScene extends Phaser.Scene {
             this.load.start();
         }).catch(() => undefined);
         // David's props (barrier, crate, direction sign), same pattern: the vector props until their chunk arrives.
-        void import('./decor-atlas').then(({ sprites, ramps }) => {
+        void import('./decor-atlas').then(({ sprites, ramps, paris }) => {
             if (!this.sys.isActive()) return;
             for (const [key, url] of Object.entries(sprites)) if (!this.textures.exists(decorTexture(key))) this.load.image(decorTexture(key), url);
+            for (const [key, url] of Object.entries(paris)) if (!this.textures.exists(parisTexture(key))) this.load.image(parisTexture(key), url);
             for (const [key, url] of Object.entries(ramps)) if (!this.textures.exists(rampTexture(key))) this.load.image(rampTexture(key), url);
             this.load.once('complete', () => { if (this.sys.isActive()) this.draw(); });
             this.load.start();
@@ -439,7 +468,7 @@ export class DerapageScene extends Phaser.Scene {
                 overview: enabled => { this.overviewMode = enabled; this.manual = true; this.draw(); },
                 performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.time }),
                 fingerReceipts: receipts,
-                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], bonusViews: [...this.bonusViews], treeViews: [...this.treeViews], decorViews: [...this.decorViews], rampViews: [...this.rampViews], horizon: this.horizonView && { ...this.horizonView }, fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id)] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
+                read: () => ({ guide: this.guide, miniPlayer: this.miniPlayer, heldBonus: this.heldBonus, kartViews: [...this.kartViews], bonusViews: [...this.bonusViews], treeViews: [...this.treeViews], decorViews: [...this.decorViews], parisViews: [...this.parisViews], rampViews: [...this.rampViews], horizon: this.horizonView && { ...this.horizonView }, fingerInput: { paused: this.session.paused, thumb: this.thumb ? { x: this.thumb.x, y: this.thumb.y, dx: this.thumb.dx, dy: this.thumb.dy } : null }, ...this.engine.snapshot(), character: this.hero.snapshot(), drivers: [this.hero.id, ...this.rivals.map(r => r.id)] }), loadLevel: (i, seed) => { this.start(i, seed, true); }, pose: (id, x, y, angle) => { const k = this.engine.karts[id]; if (!k) throw new RangeError('Kart inconnu'); Object.assign(k, { x, y, angle, vx: 0, vy: 0 }); this.manual = true; this.draw(); },
                 advance: ms => { if (!Number.isFinite(ms) || ms < 0)
                     throw new RangeError('Temps invalide'); this.manual = true; this.tick(ms); },
                 hudText: () => this.hud?.textContent ?? '', usefulArea: () => ({ x: 0, y: 96, width: 360, height: 544 }),
@@ -576,12 +605,12 @@ export class DerapageScene extends Phaser.Scene {
         g.clear();
         background.clear();
         this.road?.hide();
-        this.paint?.begin(); this.treePaint?.begin(); this.decorPaint?.begin(); this.rampPaint?.begin();
+        this.paint?.begin(); this.treePaint?.begin(); this.decorPaint?.begin(); this.parisPaint?.begin(); this.rampPaint?.begin();
         for (let i = 0; i < this.kartImageCount; i++) this.kartImages[i]?.setVisible(false);
-        this.kartImageCount = 0; this.kartViews = []; this.bonusViews = []; this.treeViews = []; this.decorViews = []; this.rampViews = [];
+        this.kartImageCount = 0; this.kartViews = []; this.bonusViews = []; this.treeViews = []; this.decorViews = []; this.parisViews = []; this.rampViews = [];
         for (const image of this.skyImages ?? []) image.setVisible(false);
         this.horizonView = null;
-        const treesReady = this.drawnTreesReady, decorReady = this.drawnDecorReady, rampReady = this.drawnRampReady;
+        const treesReady = this.drawnTreesReady, decorReady = this.drawnDecorReady, parisReady = this.drawnParisReady, rampReady = this.drawnRampReady;
         for (let i=0;i<this.propCount;i++) this.props3d[i]?.clear().setVisible(false);
         this.propCount = 0;
         this.hud3d?.clear();
@@ -608,6 +637,12 @@ export class DerapageScene extends Phaser.Scene {
                     const ray = Math.atan2(item.y - (p.y - Math.sin(p.angle) * BEHIND), item.x - (p.x - Math.cos(p.angle) * BEHIND));
                     const panel = decorPanel(item, ray), s = DECOR_SPRITES[panel.key], height = panel.height * a.scale;
                     this.drawnProp(panel.key, a.x, a.y - height / 2, height * s.w / s.h, height, 0, depth);
+                    return;
+                }
+                if (parisReady && isParis(item.kind)) {
+                    // The Paris props face the camera like the trees, anchored at their foot.
+                    const panel = parisPanel(item), s = PARIS_SPRITES[panel.key], height = panel.height * a.scale;
+                    this.drawnParis(panel.key, a.x, a.y - height / 2, height * s.w / s.h, height, 0, depth);
                     return;
                 }
                 const size=item.radius*2*a.scale;
@@ -664,7 +699,7 @@ export class DerapageScene extends Phaser.Scene {
         }
         const artTime = reduced ? 0 : this.sceneTime;
         kartLandscape(background,t,project,scale,artTime);
-        this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady,decorReady);
+        this.road?.draw(t,project,scale,this.overviewMode ? 0 : angle,treesReady,decorReady,parisReady);
         // David's trees seen from above, turning with the map; the road layer is then baked without its vector trees.
         if (treesReady) for (const tree of drawnTrees(t)) {
             const key = treeTop(tree.essence);
@@ -678,6 +713,13 @@ export class DerapageScene extends Phaser.Scene {
             const top = decorTop(item), a = project(item.x, item.y);
             if (!inView([a], top.width * scale)) continue;
             this.drawnProp(top.key, a.x, a.y, top.width * scale, top.height * scale, top.rotation + (this.overviewMode ? 0 : angle), 1);
+        }
+        // The Paris props seen from above: the roof along the road, the lamp and the column round.
+        if (parisReady) for (const item of scenerySprites(t)) {
+            if (!isParis(item.kind)) continue;
+            const top = parisTop(item), a = project(item.x, item.y);
+            if (!inView([a], top.width * scale)) continue;
+            this.drawnParis(top.key, a.x, a.y, top.width * scale, top.height * scale, top.rotation + (this.overviewMode ? 0 : angle), 1);
         }
         kartRoadArt(g,t,project,scale,artTime);
         for (const edge of t.bermEdges) line(project(edge.a.x,edge.a.y),project(edge.b.x,edge.b.y),2*scale,0xe4c99a);
@@ -942,7 +984,8 @@ MEILLEUR ${formatTime(timing.bestLapMs)} · BONUS ${(p.noticeMs ?? 0) > 0 ? 'Por
             this.game.canvas.setAttribute('aria-label', `Pistouille : course de karts, vue ${this.active3d ? '3D' : 'de dessus'}`);
             const box = this.game.canvas.getBoundingClientRect(), scale = box.width / 360;
             const content = `${text}|${crossing}|${String(delta)}|${String(box.x)},${String(box.y)},${String(box.width)}`;
-            this.hud.style.visibility = this.session.paused || this.selecting ? 'hidden' : 'visible';
+            // Hidden under the result panel too: the lap chronos must not show through it.
+            this.hud.style.visibility = this.session.paused || this.selecting || e.status !== 'playing' ? 'hidden' : 'visible';
             if (content !== this.hudContent) {
                 const layoutChanged = !this.hudContent.endsWith(`|${String(box.x)},${String(box.y)},${String(box.width)}`);
                 this.hudContent = content;
