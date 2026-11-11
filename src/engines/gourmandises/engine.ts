@@ -461,15 +461,16 @@ export class Engine {
             this.emit('obstacle', [i], multiplier);
         }
         this.emit('match', [...hit].filter(i => !protectedCells.has(i) && !this.state.cells[i]?.piece?.drop), multiplier);
-        this.fireBombs(bombs, multiplier);
+        this.fireBombs(bombs, multiplier, protectedCells);
         if (second.length) {
             this.gravity();
             this.clear(second, multiplier);
         }
     }
     /** A touched striped bomb leaves its cell and sweeps its whole row or column.
-     * The sweep is a new wave: it damages crates and may fire further bombs. */
-    private fireBombs(bombs: Set<number>, multiplier: number): void {
+     * The sweep is a new wave: it damages crates and may fire further bombs. It spares
+     * the specials its own match just made, as a striped sweet of that match does. */
+    private fireBombs(bombs: Set<number>, multiplier: number, protectedCells: Set<number>): void {
         const blast: number[] = [];
         for (const i of bombs) {
             const cell = required(this.state.cells[i]);
@@ -480,7 +481,7 @@ export class Engine {
             this.emit('special', [i], multiplier);
             blast.push(...this.line(i, direction === 'column'));
         }
-        if (blast.length) this.clear(blast, multiplier);
+        if (blast.length) this.clear(blast, multiplier, protectedCells);
     }
     /** Outlets consume objects immediately; objects are never cleared as sweets. */
     private deliverDrops(): void {
@@ -728,8 +729,13 @@ export class Engine {
     advance(ms: number): void {
         if (this.status === 'playing') this.state.idle += Math.max(0, ms);
     }
+    /** A strawberry push is hinted only downwards: sideways or upwards it gains nothing,
+     * and the next hint would push it back, so a child following hints would loop. */
     hint(): [number, number] | null {
-        return this.state.mode === 'discovery' && this.state.idle >= 5000 ? this.validMoves()[0] ?? null : null;
+        if (this.state.mode !== 'discovery' || this.state.idle < 5000) return null;
+        const moves = this.validMoves();
+        const forward = moves.find(([a, b]) => !this.pushes(a, b) || (b === a + this.state.width && !!this.state.cells[a]?.piece?.drop));
+        return forward ?? moves[0] ?? null;
     }
 }
 /** Immediate objective gain; cargo descent breaks ties before score and grid order.

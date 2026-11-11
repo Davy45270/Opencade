@@ -652,6 +652,33 @@ export const oracles: Record<string, (module?: Rules) => void> = {
     G29(module = rules) {
         equal(regressionFingerprint(module, [8], 120), 1490700344);
     },
+    G34(module = rules) {
+        // Discovery: a child who only follows hints wins the islands, never pushing a strawberry back.
+        for (let index = 200; index < 220; index++) {
+            const engine = new module.Engine('discovery');
+            engine.loadLevel(index, 7919);
+            for (let moves = 0; engine.status === 'playing' && moves < 400; moves++) {
+                engine.advance(5000);
+                const hint = engine.hint();
+                ok(hint, `Indice au niveau ${String(index + 1)}`);
+                const [a, b] = required(hint);
+                const sliding = !!engine.state.cells[a]?.piece?.drop !== !!engine.state.cells[b]?.piece?.drop;
+                ok(!sliding || (b === a + engine.state.width && engine.state.cells[a]?.piece?.drop), 'Fraise poussée vers le bas seulement');
+                ok(engine.swap(a, b));
+            }
+            equal(engine.status, 'won', `Indices seuls : niveau ${String(index + 1)} gagné`);
+        }
+    },
+    G35(module = rules) {
+        // A bomb fired by the match that makes a special spares it, as a striped sweet would.
+        const engine = fixture(module);
+        engine.state.cells[14] = { active: true, crate: 0, ice: 0, bomb: 'row', piece: null };
+        color(engine, [3, 9, 15, 21], 4);
+        engine.resolve(15, 9, false);
+        equal(required(engine.state.cells[14]).bomb, undefined, 'La bombe voisine a sauté');
+        equal(engine.events.filter(e => e.type === 'special' && e.cells[0] === 15).length, 1, 'Le spécial neuf n’est pas déclenché');
+        equal(engine.state.cells[21]?.piece?.special, 'column', 'Le spécial neuf reste au joueur');
+    },
     G33(module = rules) {
         // Captured on main before worlds 10–12: levels 1–180 keep states and events.
         equal(regressionFingerprint(module, [8], 180), 1726092062);

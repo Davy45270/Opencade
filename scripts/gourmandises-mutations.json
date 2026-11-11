@@ -607,5 +607,19 @@
     "before": "const later = { portal: 180, fruit: 200, bomb: 220 }",
     "after": "const later = { portal: 0, fruit: 200, bomb: 220 }",
     "oracle": "sceneListeners"
+  },
+  {
+    "name": "indice : poussée de fraise dans tous les sens",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "const forward = moves.find(([a, b]) => !this.pushes(a, b) || (b === a + this.state.width && !!this.state.cells[a]?.piece?.drop));",
+    "after": "const forward = moves[0];",
+    "oracle": "G34"
+  },
+  {
+    "name": "bombe : spécial neuf déclenché",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "        if (blast.length) this.clear(blast, multiplier, protectedCells);",
+    "after": "        if (blast.length) this.clear(blast, multiplier);",
+    "oracle": "G35"
   }
 ]

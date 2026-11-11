@@ -4596,14 +4596,19 @@ le vide ; chaque segment vertical d'au moins trois cases finit sur une sortie,
 mènent à une sortie, à tour de rôle selon le nombre de livraisons, jamais sur
 un spécial. Nouveauté : une fraise se glisse à la main, d'une case, sans
 alignement (un coup) ; posée sur une sortie, elle part aussitôt et la colonne
-retombe. Les gouttes du monde 4 gardent l'ancienne règle.
+retombe. Les gouttes du monde 4 gardent l'ancienne règle. En Découverte,
+l'indice ne propose une poussée que vers le bas : de côté ou vers le haut elle
+ne rapproche rien, et l'indice suivant la ramènerait (G34 : en suivant les
+seuls indices, les 20 niveaux sont gagnés).
 Objectif : des fraises livrées ; finale : fraises et étoiles.
 
 **Atelier de Tutu (221–240).** Une ligne de caisses traverse l'atelier ; une
 bombe rayée attend en son milieu. Une bombe est fixe, ne porte aucune pièce et
 arrête la gravité. Un alignement voisin, un spécial ou un outil l'allume : elle
 quitte sa case et balaie sa rangée (ou sa colonne) dans une nouvelle vague, qui
-abîme les caisses et peut allumer d'autres bombes. Dès le 228, une ligne
+abîme les caisses et peut allumer d'autres bombes. Comme le balayage d'un
+bonbon rayé, ce souffle épargne le spécial que l'alignement vient de créer
+(G35). Dès le 228, une ligne
 verticale croise la première ; sa bombe de colonne, posée à la croisée, saute
 quand le souffle de la rangée l'atteint (G32 le vérifie sur le niveau 228) ; dès le 235,
 deux bombes libres s'y ajoutent. Objectif : des cœurs ; finale : cœurs et
@@ -4612,14 +4617,19 @@ toutes les caisses.
 **Preuve.** L'empreinte des états et événements des niveaux 1–180 sur les cinq
 graines reste `840467013` (prise sur `main` avant l'ajout ; G33 vérifie
 `1726092062` sur la graine 8 dans Vitest). G30, G31 et G32 isolent portails,
-fraises et bombes ; G17 vérifie dimensions, budgets, graines et terrains des 60
+fraises et bombes, G34 et G35 l'indice et le souffle des bombes ; G17 vérifie dimensions, budgets, graines et terrains des 60
 niveaux, et 19 silhouettes littérales. Audit hors CI : **1200/1200 victoires**
 du glouton sur 240 niveaux × 5 graines, dont 300/300 pour les niveaux 181–240 ;
 médianes par monde 73,7 %, 73,2 % et 73,8 % du budget ; défaites du hasard en
 Arcade 73, 100 et 88 sur 100. Découverte, pour une enfant de 5 ans : un joueur
 au hasard, sans outil, gagne **300/300** parties (médiane 32 coups, maximum
 247), et chaque état stable garde un coup valide. 87 mutations tuées en mémoire
-(25 nouvelles).
+(27 nouvelles, 89 en tout).
+
+**Progression.** Le catalogue est passé de 180 à 240 niveaux : une sauvegarde
+écrite avant, plafonnée à 180, ouvre le niveau 181 au chargement. Gagner le
+dernier niveau note désormais la taille du catalogue fini (`cleared`), si bien
+qu'un catalogue plus long ouvre le niveau suivant pour tous les jeux.
 ### Circuits Kart du catalogue
 
 K01 **Bambou Express**, K02 **Feuilles Folles** et K03 **Volcan Turbo** occupent
