@@ -2,6 +2,11 @@
 # Node: the official node:24 image (.nvmrc says 24), through the Harbor Docker Hub proxy, pulled on every run
 # like setup-node resolving "24". The build step also prints the fingerprint of dist/: the publication script
 # rebuilds the same commit and refuses to publish a different tree.
+# On tank01 (4 CPU per step, like the 4-vCPU GitHub runners): on the 2-CPU Contabo agent, four Vitest
+# tests went past their 2-5 s timeouts (204 s instead of 32 s).
+labels:
+  host: tank01
+
 when:
   - event: push
     branch: main
