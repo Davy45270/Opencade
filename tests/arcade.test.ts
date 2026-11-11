@@ -28,8 +28,31 @@ test('A03 progression générique à trois niveaux', () => {
     expect(p.total).toBe(20); expect(p.save.unlocked).toBe(2);
     p.retry(); p.finish('won', 30); p.next(); p.finish('won', 40);
     expect(p.total).toBe(90); expect(p.state).toBe('complete');
-    expect(p.save).toEqual({ unlocked: 3, best: 90 });
+    expect(p.save).toEqual({ unlocked: 3, best: 90, cleared: 3 });
     expect(() => { p.start(3); }).toThrow();
+});
+test('A05 catalogue agrandi : le niveau suivant le dernier fini s’ouvre', () => {
+    const port = (raw: string) => ({ getItem: () => raw, setItem: () => undefined });
+    // Sauvegarde écrite avant la correction : 180 niveaux, le 180e gagné, plafond à 180.
+    const legacy = readSave(port('{"unlocked":180,"best":5000}'), 'gourmandises', 240);
+    const grown = new Progression(legacy, 240, 180);
+    expect(grown.save.unlocked).toBe(181);
+    expect(() => { grown.start(180); }).not.toThrow();
+    // Après la migration, une sauvegarde arrêtée au 180 sans l’avoir fini ne gagne rien.
+    const halfway = new Progression(readSave(port('{"unlocked":180,"best":5000,"cleared":0}'), 'gourmandises', 240), 240, 180);
+    expect(halfway.save.unlocked).toBe(180);
+    // Nouveau format : finir le dernier niveau le note, et un catalogue plus long l’ouvre.
+    const done = new Progression(undefined, 180);
+    done.start(179); done.finish('won', 10);
+    expect(done.save).toEqual({ unlocked: 180, best: 10, cleared: 180 });
+    const stored = new Map<string, string>();
+    const storage = { getItem: (key: string) => stored.get(key) ?? null, setItem: (key: string, value: string) => { stored.set(key, value); } };
+    writeSave(storage, done.save, 'grown');
+    const later = new Progression(readSave(storage, 'grown', 240), 240);
+    expect(later.save.unlocked).toBe(181);
+    // Sans catalogue agrandi, rien ne bouge ; une valeur invalide est ignorée.
+    expect(new Progression(readSave(storage, 'grown', 180), 180).save.unlocked).toBe(180);
+    expect(readSave(port('{"unlocked":3,"best":1,"cleared":-2}'), 'x', 10)).toEqual({ unlocked: 3, best: 1 });
 });
 test('A04 effets nommés, déverrouillage et coupure', async () => {
     let contexts = 0, starts = 0;

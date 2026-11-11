@@ -26,6 +26,8 @@ export const gourmandisesButtons: readonly TouchButton[] = [
 ];
 const MODE_KEY = 'arcade-lab:gourmandises:mode:v1';
 const RUN_KEY = 'arcade-lab:gourmandises:run:v1';
+/** Catalogue size before worlds 10-12: an older save capped there opens level 181. */
+const PREVIOUS_LEVEL_COUNT = 180;
 export interface GourmandisesHook {
     fingerReceipts: ReturnType<typeof fingerReceipts>;
     read(): State & {
@@ -56,7 +58,7 @@ interface TransportFrame {
 export class GourmandisesScene extends Phaser.Scene {
     private hero = new GameCharacter(selectedCharacter());
     private engine = new Engine(readValue(browserStorage(), MODE_KEY) === 'arcade' ? 'arcade' : 'discovery', this.hero.id);
-    private progress = new Progression(readSave(browserStorage(), 'gourmandises', LEVELS.length), LEVELS.length);
+    private progress = new Progression(readSave(browserStorage(), 'gourmandises', LEVELS.length), LEVELS.length, PREVIOUS_LEVEL_COUNT);
     private inputs = new Inputs();
     private manual = false;
     private selecting = false;
@@ -287,6 +289,7 @@ export class GourmandisesScene extends Phaser.Scene {
     }
     create(): void {
         document.body.classList.add('gourmandises');
+        writeSave(browserStorage(), this.progress.save, 'gourmandises'); // keeps the menu in step with a migrated save
         this.reducedMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
         const saved = readValue(browserStorage(), RUN_KEY);
         if (saved) {
