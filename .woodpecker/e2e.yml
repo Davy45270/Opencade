@@ -31,6 +31,12 @@ steps:
           manual) BASE="$${E2E_BASE:-}" ;;
           *) BASE="" ;;
         esac
+        # A restarted pipeline keeps its commit: CI_PREV_COMMIT_SHA is then HEAD itself and the
+        # selection would be N0 (green without any E2E). Refuse instead of lying.
+        if [ -n "$$BASE" ] && [ "$(git rev-parse "$$BASE" 2>/dev/null)" = "$(git rev-parse HEAD)" ]; then
+          echo "base = tête ($$BASE) : relance d'un pipeline ? Lancer un pipeline manuel avec E2E_BASE=<commit avant le push>."
+          exit 1
+        fi
         echo "évènement $${CI_PIPELINE_EVENT}, base '$${BASE:-aucune}', tête $(git rev-parse --short HEAD), part ${PART}"
         GITHUB_OUTPUT=.e2e-select.out node scripts/e2e-impact.js --base "$$BASE" --head HEAD --specs "$${E2E_SPECS:-}" --github
 
