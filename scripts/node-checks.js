@@ -16,6 +16,7 @@ export const nodeChecks = [
     ['check-derapage-cadence.js'],
     ['check-level-catalogue-kart.js'],
     ['validate-marmaille.js'],
+    ['validate-sudoku.js', '--checks-only'],
     ['validate-bombercade.js'],
     ['validate-petits-pompiers.js'],
     ['petits-pompiers-scene-oracle.js'],

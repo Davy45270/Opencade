@@ -52,6 +52,7 @@ export const GAME_SPECS = {
     'pepites': ['pepites', 'pepites-finger'],
     'petits-pompiers': ['petits-pompiers', 'petits-pompiers-finger', 'petits-pompiers-touch', 'site-pompiers'],
     'serpentin': ['serpentin'],
+    'sudoku': ['sudoku'],
     'traverse': ['traverse'],
 };
 /** Games held out of the public catalogue (absent from the registry) until they return; their specs stay owned here. */
@@ -93,6 +94,7 @@ export const SMOKE_TESTS = {
     'orbite': ['orbite', 'V12 crochet inerte sans test et nettoyage à la sortie', 5.5],
     'pepites': ['pepites', 'P13 mise en page : mine entière visible, boutons de 56 px sous le canevas, HUD lisible', 14.4],
     'petits-pompiers': ['petits-pompiers', 'Petits Pompiers : défi choisi par deux gros boutons, crochet réservé aux tests', 12.7],
+    'sudoku': ['sudoku', 'S-E2E-01 crochet absent sans paramètre test', 2.0],
     'serpentin': ['serpentin', 'N14 écluses : ouverte, clignotante la dernière demi-seconde, puis fermée', 5.9],
     'traverse': ['traverse', 'R01 glisser tactile unique, pause et crochet de production absent', 3.5],
 };
@@ -105,7 +107,7 @@ export const SPEC_SECONDS = {
     'essaim': 269, 'ferraille-levels': 245, 'ferraille': 342, 'game': 23, 'gourmandises-finger': 17, 'gourmandises': 32, 'habillage-action': 221,
     'habillage': 19, 'levels': 18, 'marmaille': 19, 'mobile-layout': 721, 'mobile': 3, 'offline': 6, 'orbite': 143, 'pepites-finger': 107,
     'pepites': 34, 'perf-fps': 86, 'petits-pompiers-finger': 62, 'petits-pompiers-touch': 9, 'petits-pompiers': 118, 'pwa-update': 36,
-    'serpentin': 73, 'site-pompiers': 30, 'sound': 9, 'thumbnails': 44, 'touch-edges': 27, 'traverse': 21,
+    'serpentin': 73, 'site-pompiers': 30, 'sudoku': 60, 'sound': 9, 'thumbnails': 44, 'touch-edges': 27, 'traverse': 21,
     // Touch-shell specs: provisional estimates until a measured run replaces them.
     'bombercade-touch': 15, 'bubble-touch': 15, 'derapage-touch': 15, 'essaim-touch': 15, 'gourmandises-touch': 15, 'pause-page': 30,
     'level-list-scroll': 40, 'bubble-levels': 40,

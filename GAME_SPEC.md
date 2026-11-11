@@ -5591,3 +5591,101 @@ recommencer.
 - `tests/e2e/devisso.spec.ts` : ouverture depuis l’accueil, niveau 1 démonté au
   doigt jusqu’à la victoire, impasse et reprise par un cœur, mise en page 320,
   390 et 1280 px avec DejaVu Sans, sans erreur JS.
+
+## Sudoku
+
+Grille de chiffres : chaque ligne, colonne et bloc contient une fois chaque chiffre de 1 à N. Moteur pur et déterministe
+(`src/engines/sudoku/`), scène Phaser en plein écran (`src/games/sudoku/`), dessins et chiffres tracés en code (aucune
+police pour la grille, aucun fichier image). Référence fonctionnelle : le dossier de conception Sudoku v1.0 reçu le
+2026-11-11 ; les conventions du dépôt l'emportent en cas d'écart (liste en fin de section).
+
+- Tailles : 4 × 4 (blocs 2 × 2), 6 × 6 (blocs 2 × 3), 9 × 9 (blocs 3 × 3). Un niveau est un enregistrement JSON strict
+  (`validateLevel` : clés fermées, énumérations, `size²` données, `boxRows × boxCols = size`, données sans conflit,
+  4096 caractères au plus) ; un niveau mal formé est refusé, jamais interprété.
+- Actions (`applyAction(puzzle, state, action)` → `{accepted, state, events}` ou `{accepted: false, state, reason}`, état
+  rendu inchangé en cas de refus) : SET_VALUE, CLEAR_VALUE, TOGGLE_NOTE, SELECT_CELL, UNDO, REQUEST_HINT, TICK. Une donnée
+  ne se modifie pas. Poser un chiffre efface cette note chez ses voisins. Une **erreur** est une saisie qui crée un
+  conflit visible (ligne, colonne ou bloc) ; une valeur fausse sans conflit n'est pas comptée, l'indice la signale.
+  Annuler est illimité et restaure valeurs et notes ; une erreur annulée reste comptée.
+- Conflits : hachures et badge « ! » en plus de la couleur. Sélection : ligne, colonne, bloc et même chiffre surlignés.
+- Victoire : toutes les cases remplies sans conflit (la solution est unique, donc c'est la solution).
+- Étoiles : 3 sans erreur ni indice, 2 jusqu'à deux au total, 1 au-delà. Score : `(100 + 20 × cases vides) × (1 − 0,1 ×
+  erreurs − 0,15 × indices)`, au moins 10. Le chrono est affiché et sauvegardé mais n'entre ni dans la validité ni dans
+  le score. Il suit le temps réel entre deux images (plafonné à 1 s, pour ne pas compter une page cachée).
+- Indice (ampoule, H) : d'abord un conflit, puis une valeur fausse, sinon la prochaine déduction **logique** expliquée
+  (case, unité, technique, chaîne d'éliminations nécessaires), la case et l'unité surlignées ; le compagnon en donne la
+  phrase et la valeur. Il ne pose jamais le chiffre. Techniques, par rang : place unique (1), candidat unique (2),
+  alignement (3), paire (4), croix (5). Le révélé brut n'existe qu'en dernier recours, jamais atteint sur les grilles
+  publiées.
+- Solveur : propagation puis retour arrière MRV, comptage plafonné à 2, limites de nœuds et de durée ; il rend `solved`
+  (1 ou ≥ 2 solutions), `unsolvable` ou `unknown` (jamais « unique » sur limite).
+- Difficulté mesurée : `rang taille × 1000 + rang technique × 100 + min(60, 4 × nombre d'usages difficiles) + cases
+  vides / 4`. Une grille n'est jamais plus facile que celle cinq rangs avant.
+- Grilles écrites : 30, cherchées hors ligne par `scripts/record-sudoku.js` (graine, symétrie, technique visée) puis
+  figées dans `levels.ts`. Grille du jour (graine = date locale) et grille infinie (graine `7919 × n`) : profils facile,
+  moyen, difficile ; une grille générée n'est gardée que si son unicité est prouvée (sinon nouvelle tentative).
+- Contrôles : toucher une case puis un chiffre du pavé (touches ≥ 56 px), gomme, crayon (mode notes), ↶, ampoule.
+  Clavier : flèches, 1–9, Maj+chiffre (note), N, Suppr/Retour arrière/0, Ctrl+Z ou U, H ou ?, Échap.
+- Sauvegarde : progression `arcade-lab:sudoku:v1` (niveaux débloqués, scores) ; partie en cours
+  `arcade-lab:sudoku:run:v1` (mode, niveau, graine, état complet), écrite à chaque action, toutes les 5 s et à la
+  fermeture de la page ; une sauvegarde invalide est ignorée.
+
+| Niveau | Titre (FR / EN) | Taille | Données | Technique la plus dure | Score |
+| --- | --- | --- | --- | --- | --- |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Premiers pas / First steps | 4×4 | 12 | hidden-single | 101 |
+| 2 | Le miroir / The mirror | 4×4 | 10 | hidden-single | 102 |
+| 3 | La diagonale / The diagonal | 4×4 | 8 | hidden-single | 102 |
+| 4 | Quatre coins / Four corners | 4×4 | 6 | hidden-single | 103 |
+| 5 | Presque vide / Almost empty | 4×4 | 4 | hidden-single | 103 |
+| 6 | Six par six / Six by six | 6×6 | 22 | hidden-single | 1104 |
+| 7 | Les deux rives / Two shores | 6×6 | 18 | hidden-single | 1105 |
+| 8 | Pente douce / Gentle slope | 6×6 | 15 | hidden-single | 1105 |
+| 9 | Un seul choix / Only choice | 6×6 | 14 | naked-single | 1206 |
+| 10 | Clairière / Clearing | 6×6 | 11 | naked-single | 1206 |
+| 11 | Alignés / In line | 6×6 | 12 | locked-candidates | 1310 |
+| 12 | Grand format / Full size | 9×9 | 40 | hidden-single | 2110 |
+| 13 | Symétrie / Symmetry | 9×9 | 36 | hidden-single | 2111 |
+| 14 | Fil de soie / Silk thread | 9×9 | 32 | hidden-single | 2112 |
+| 15 | Blocs déserts / Empty blocks | 9×9 | 28 | hidden-single | 2113 |
+| 16 | Candidat unique / Lone candidate | 9×9 | 30 | naked-single | 2213 |
+| 17 | Reflets / Reflections | 9×9 | 28 | naked-single | 2213 |
+| 18 | Sans motif / No pattern | 9×9 | 26 | naked-single | 2214 |
+| 19 | Biais / Slant | 9×9 | 26 | naked-single | 2214 |
+| 20 | Pointer du doigt / Pointing | 9×9 | 29 | locked-candidates | 2317 |
+| 21 | Les colonnes / Columns | 9×9 | 28 | locked-candidates | 2325 |
+| 22 | Étoile filante / Shooting star | 9×9 | 25 | locked-candidates | 2326 |
+| 23 | Désordre / Disorder | 9×9 | 24 | locked-candidates | 2326 |
+| 24 | Ricochet / Ricochet | 9×9 | 27 | locked-candidates | 2330 |
+| 25 | Les jumeaux / The twins | 9×9 | 28 | pair | 2421 |
+| 26 | Double serrure / Double lock | 9×9 | 28 | pair | 2433 |
+| 27 | Duo caché / Hidden duo | 9×9 | 26 | pair | 2434 |
+| 28 | Le pont / The bridge | 9×9 | 26 | pair | 2438 |
+| 29 | La croix / The cross | 9×9 | 26 | x-wing | 2542 |
+| 30 | Grand final / Grand finale | 9×9 | 28 | x-wing | 2545 |
+
+Preuves :
+- Vitest (`tests/sudoku.test.ts`) : AC01 à AC12 nommés comme dans le dossier ; S-LVL-01 (schéma, unicité prouvée,
+  technique annoncée), S-LVL-02 (difficulté non décroissante sur cinq rangs), S-LVL-03 (diversité, aucun clone),
+  S-LVL-04 (refus des niveaux mal formés) ; S-PROP-01 à S-PROP-05, 1000 cas seedés chacun (grilles générées uniques,
+  refus sans mutation, annulation exacte, solutions valides, indices justes) ; S-GAME-01 à S-GAME-03 ; régression de
+  graine par instantané (AC10).
+- Node : `validate-sudoku.js` reprouve les 30 grilles (solveur, technique, résolution complète par les seuls indices),
+  la diversité, et rejette 3 mutations (donnée modifiable, comptage du solveur, porte d'unicité du générateur).
+  `sudoku-diversity.js` mesure tailles, symétries, techniques, placements des données.
+- E2E (`tests/e2e/sudoku.spec.ts`) : S-E2E-01 crochet absent sans `?test=1` ; S-E2E-02 ouverture depuis l'accueil ;
+  S-E2E-03 parcours au doigt (mobile) et à la souris et au clavier (bureau) : notes, erreur, annuler, indice, reprise
+  après rechargement, victoire 4 × 4 ; S-E2E-04 aucun débordement à 320, 390, 768 et 1280 px avec DejaVu Sans forcée ;
+  S-E2E-05 le chrono suit le temps réel à une image toutes les 750 ms (horloge Playwright), là où le delta lissé de
+  Phaser ne comptait que 0,5 s pour 6 s.
+
+Écarts assumés avec le dossier :
+- 30 niveaux écrits au lieu de 20 (convention du dépôt), dans un seul parcours qui va du 4 × 4 au 9 × 9.
+- Le mode Enfant (aides illimitées, sans pénalité) n'est pas livré ici : il viendra avec le lot OpencadKid. Les
+  tutoriels 4 × 4 et 6 × 6 en tiennent lieu dans le parcours classique.
+- Sur 9 × 9 en téléphone, les cases font moins de 44 px CSS (39 px à 390 px de large, 31 px à 320 px) : la grille ne tient pas
+  autrement ; la saisie passe par le pavé, dont les touches font 56 px.
+- Les contrôles sont dessinés dans le canevas (pas de focus clavier DOM par case) ; le clavier agit sur la case
+  sélectionnée, visible par un anneau.
+- E2E sur Chromium seulement (comme tout le dépôt), largeurs 320/390/768/1280 au lieu de 390/768/1440.
+- Rendu 2D, pas de 2.5D ; pas de classement local.

@@ -105,6 +105,7 @@ partie en pause.
 | **Dévisso** | Démonter trente assemblages tenus par des vis : une vis libre file dans la boîte de sa couleur ou dans une réserve de cinq places, une plaque vide tombe ; cadenas, caisses, chaînes, arc-en-ciel, or, TNT, engrenages, téléporteurs et glace. | Toucher une vis libre ; bonus sous le plateau (annuler, indice, marteau, explosion, perçage) ; Entrée : vis proposée ; 1 à 5 : bonus ; Z : annuler ; H : indice ; R : recommencer. |
 | **Traverse** | Rejoindre les abris entre trafic routier, rondins mobiles et flotteurs plongeants. | Flèches ou ZQSD : un pas ; clic souris ou tap : monter ; glisser ou croix : un pas. |
 | **Pistouille** (anciennement Dérapage) | Piloter un kart, charger les dérapages et viser le podium en sept coupes originales. | Flèches : direction absolue et diagonales ; Espace/Maj : dérapage ; X/Ctrl : bonus ; toucher : poser le joystick 360° partout sur la vue de piste (zone morte 10 px), pointer où aller, relâcher pour garder le cap ; Dérapage 88 px et Bonus 56 px ; caméra tournante et braquage relatif disponibles dans ☰. |
+| **Sudoku** | Placer chaque chiffre une fois par ligne, colonne et bloc : 30 grilles écrites du 4 × 4 au 9 × 9, puis une grille du jour et une série infinie. | Toucher une case puis un chiffre du pavé ; crayon : notes ; ↶ : annuler ; ampoule : indice expliqué ; flèches, 1–9, Maj+chiffre : note, N, Suppr/0, Ctrl+Z, H. |
 
 Pistouille propose 30 tracés dessinés à la main, des thèmes par coupe, un damier sur toute la largeur et une preuve de diversité géométrique.
 
@@ -278,3 +279,5 @@ rentre : un cœur reprend les trois derniers coups. Chaque mécanique arrive seu
 puis se combine. Chaque niveau est gagné par le solveur sans bonus ; sa ligne
 enregistrée et une vraie impasse sont rejouées par le moteur :
 `npm run test:node -- --only=validate-devisso.js`. Dessins et sons en code.
+
+**Sudoku** (`sudoku`) : 30 grilles originales, du tutoriel 4 × 4 aux croix du 9 × 9, chacune prouvée unique par le solveur et résolue par les seuls indices expliqués ; la difficulté est mesurée par la technique la plus dure nécessaire et ne recule jamais sur cinq niveaux. Les grilles du jour et infinies sont générées depuis une graine et gardées seulement si leur unicité est prouvée. Notes, annulation illimitée, conflits hachurés avec un badge « ! », et un compagnon qui explique la déduction suivante. Le chrono est affiché mais ne compte pas ; les étoiles dépendent des erreurs et des indices. Validation Node : `npm run test:node -- --only=validate-sudoku.js`.

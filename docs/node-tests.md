@@ -6,6 +6,9 @@ Catégories : **V** validateur rapide (objectif < 30 s par entrée), **G** campa
 
 | Script dans `scripts/` | Classe | Exécution / rôle |
 | --- | --- | --- |
+| `validate-sudoku.js` | V | 30 grilles Sudoku : schéma strict, unicité prouvée, technique annoncée, résolution complète par les indices expliqués, diversité et trois mutations (case donnée, comptage du solveur, porte d'unicité du générateur). |
+| `record-sudoku.js` | G | Recherche hors ligne des 30 grilles (graine, symétrie, indices, technique) ; les titres sont écrits à la main. |
+| `sudoku-diversity.js` | M | Descripteurs de diversité des grilles Sudoku, importés par Vitest et `validate-sudoku.js`. |
 | `validate-petits-pompiers.js` | V | 30 oracles PP, 150 victoires enregistrées et six mutations ; `PP_RECORD=1` régénère les bandes hors CI. |
 | `audit-derapage-mutations.js` | G | `npm run audit:derapage` : 42 preuves de rejet explicites, hors CI. |
 | `check-derapage-3d.js` | V | Projections, rendu et courses de vraie scène ; Y02 sans scène appartient à Vitest. |
