@@ -10,6 +10,7 @@ const forbidden = [
     ['arka', 'noid'], ['break', 'out'], ['space', ' invaders'], ['pac', '-man'],
     ['tet', 'ris'], ['soko', 'ban'], ['frog', 'ger'], ['screw', ' jam'], ['mine', 'sweeper'],
     ['20', '48 game'], ['jeu ', '2048'],
+    ['bus', ' madness'], ['bus', ' jam'], ['rush', ' hour'],
 ].map(parts => parts.join(''));
 const pattern = new RegExp(`\\b(?:${forbidden.join('|')}|HL-?[0-9]{3})\\b`, 'i');
 

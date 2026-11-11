@@ -6021,3 +6021,152 @@ couche du plateau n’est redessinée que si quelque chose a changé.
   annuler, indice, reprise après rechargement, victoire du défi 3, défaite et
   « Rejouer », AC13 mise en page 320, 390, 768 et 1280 px avec DejaVu Sans, sans
   erreur JS.
+
+## Bus en folie
+
+Casse-tête de parking au tour par tour (identifiant `busfolie`, sauvegarde
+`arcade-lab:busfolie:v1`, partie en cours `arcade-lab:busfolie:run:v1`), d’après
+le dossier de spécifications de David (v1.0 : règles, contrats, solveur,
+générateur, critères AC-01–AC-13, planche artistique). Nom anglais : *Bus
+Frenzy*. Tout est dessiné par le code (`src/games/busfolie/art.ts`) dans le
+style de la planche ; la planche n’est pas embarquée. Moteur pur dans
+`src/engines/busfolie/` (règles, solveur, générateur, format, niveaux figés),
+scène Phaser à part (`src/games/busfolie/scene.ts`).
+
+### Règles retenues
+
+- **Cour** de 6 × 6 à 8 × 8 ; **bus** de 2 ou 3 cases (le car de 3 cases), qui
+  ne glissent que sur leur axe ; **voitures grises** garées (capacité 0, elles
+  bougent mais ne partent jamais) ; **plots** fixes ; **sorties** sur le
+  bord, neutres ou de couleur (seul un bus de cette couleur y passe).
+- **File de passagers** déterministe et visible : des groupes colorés dans un
+  ordre figé. Un bus qui atteint une sortie ne part que si le groupe en tête est
+  de sa couleur et tient dans ses places ; les groupes suivants de la même
+  couleur montent tant qu’ils tiennent. Tous les bus de passagers doivent
+  partir ; la victoire, c’est la file vide et la cour vidée de ses bus.
+- **Sens unique** (barre rouge sur le toit) : ce bus n’avance que vers l’avant.
+- **Coup** = un déplacement validé, quelle que soit la distance ; un départ est
+  un coup. `applyAction` rend `{accepted, state, events}` ou
+  `{accepted: false, reason}` sans aucune mutation ni événement (raisons de la
+  spec plus WRONG_EXIT, WRONG_COLOR, OVER_CAPACITY, QUEUE_EMPTY). Événements pour
+  le rendu : BUS_MOVED, PASSENGERS_BOARDED, BUS_DEPARTED, LEVEL_WON,
+  LEVEL_BLOCKED, UNDONE, RESTARTED, HINT_REQUESTED.
+- **Annuler** (historique illimité dans l’état), **recommencer**, **indice
+  expliqué** (le prochain coup d’une solution la plus courte, avec sa raison :
+  « libère la route du bus rouge », « peut partir » ; compté comme aide).
+- **Blocage** : après chaque coup irréversible (un départ, un coup de sens
+  unique), le solveur cherche une suite gagnante (120 000 nœuds, 4 s) ; la
+  partie n’est déclarée « Bloqué ! » que sur une preuve (`unsolvable`), jamais
+  sur une limite. Le message propose d’annuler ou de recommencer.
+- **Étoiles** : 3 au par sans aide ; 2 jusqu’à par + par/2 avec un indice au plus ; 1 sinon.
+
+**Écartés** : la déclinaison Enfant (prévue dans Opencadkid) ; les modes Chrono,
+Défi et Infini et les boosts de la planche ; les obstacles mobiles, caisses et
+barrières, et les véhicules spéciaux (post-MVP dans le dossier) ; `fast-check`
+(remplacé par des boucles seedées maison, sans dépendance nouvelle). Le
+générateur sert hors ligne seulement : ses niveaux sont cherchés, vérifiés puis
+figés dans `data.ts`, le jeu ne génère rien à l’exécution.
+
+### Solveur
+
+Recherche en largeur sur une clé canonique (un caractère par véhicule : sa
+coordonnée mobile, ou « parti » ; plus la tête de file), successeurs = un coup
+par distance atteignable et par sens, plus le départ. `solve` rend `solved`
+(une ligne la plus courte), `unsolvable` (espace épuisé) ou `unknown` (limite
+de nœuds ou de temps) ; `unknown` n’est jamais pris pour une impasse.
+`analyse` explore tout l’espace atteignable (60 000 états au plus), remonte des
+victoires pour la distance de chaque état, compte les impasses et trouve les
+**pièges** le long de la ligne optimale : un coup ordinaire qui mène à un état
+d’où aucune victoire n’est atteignable. **Difficulté** mesurée =
+`par + choix/6 + 4·part de pièges + log2(états)/6`.
+
+### Niveaux
+
+Trente niveaux figés, chacun cherché par `scripts/search-busfolie.js` (graines
+puis montée locale sur la difficulté visée `6,5 + 0,65·i`), titres FR/EN dans
+`slots.ts`. Du niveau 1 au niveau 19, chaque mécanique arrive seule : groupes
+(3), voiture garée (4), plots (5), car de 3 cases (6), sorties de couleur (7),
+7 × 7 (10), sens unique (11), deux sens uniques (14), sorties mêlées (16), 8 × 8
+et trois cars (18) ; couleurs nouvelles aux niveaux 3, 8, 12 et 19. **Du niveau
+20 au niveau 30, aucune mécanique nouvelle** : la progression se fait par montée
+en charge — plus de voitures, plus de bus, une cour plus pleine, des lignes plus
+longues (par de 14 à 21). Le validateur mesure ces paliers de charge par des
+seuils de comptage (cinq voitures au niveau 22, plus de bus que de cases de
+large au 23, neuf bus au 26, quatre cars et trois sens uniques au 30) pour que
+deux plateaux voisins ne se ressemblent pas ; ce ne sont pas des nouveautés de
+jeu. Avec ces seuils, le plus long palier sans changement mesuré fait 3 niveaux
+(le validateur échoue au-delà de 5). Tous les niveaux ont un piège, dès le
+niveau 1 (29 sur 30 sont des départs trop tôt).
+
+
+| Niveau | Taille | Bus | Voitures | Plots | Couleurs | Groupes | Coups | États | Impasses | Piège | Difficulté |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 Premier départ | 6×6 | 3 | 0 | 0 | 2 | 3 | 4 | 146 | 30 | 0 + BB f4 | 6.5 |
+| 2 Petit bus, grand groupe | 6×6 | 3 | 0 | 0 | 2 | 3 | 4 | 146 | 26 | 0 + BC f6 | 7 |
+| 3 Chacun son tour | 6×6 | 4 | 0 | 0 | 3 | 5 | 5 | 528 | 27 | 2 + BB f3 | 8.2 |
+| 4 La voiture garée | 6×6 | 4 | 2 | 0 | 3 | 6 | 5 | 3084 | 640 | 0 + BB f2 | 8.8 |
+| 5 Les plots | 6×6 | 4 | 2 | 3 | 3 | 7 | 6 | 1247 | 102 | 2 + BD f2 | 9.2 |
+| 6 Le grand car | 6×6 | 5 | 2 | 2 | 3 | 9 | 7 | 1597 | 827 | 0 + BE f2 | 10.1 |
+| 7 Sorties de couleur | 6×6 | 5 | 2 | 2 | 3 | 9 | 7 | 1360 | 345 | 2 + BA f4 | 10.7 |
+| 8 Quatre lignes | 6×6 | 5 | 3 | 2 | 4 | 6 | 7 | 9394 | 1320 | 1 + BA f3 | 11 |
+| 9 Heure de pointe | 6×6 | 6 | 3 | 1 | 4 | 9 | 9 | 300 | 46 | 1 + BF f3 | 11.6 |
+| 10 La grande place | 7×7 | 6 | 3 | 8 | 4 | 9 | 9 | 997 | 40 | 0 + BB f6 | 12.5 |
+| 11 Sens unique | 6×6 | 5 | 3 | 2 | 4 | 7 | 9 | 6596 | 910 | 4 + BB f3 | 13.3 |
+| 12 Les violets | 6×6 | 6 | 3 | 2 | 5 | 6 | 9 | 49960 | 19717 | 0 + BC f2 | 14 |
+| 13 Le dépôt | 7×7 | 6 | 4 | 8 | 5 | 8 | 12 | 582 | 152 | 0 + BB f3 | 14.7 |
+| 14 Double sens | 6×6 | 6 | 3 | 1 | 4 | 7 | 11 | 5109 | 1352 | 0 + BF f2 | 15.2 |
+| 15 Les jumeaux | 7×7 | 7 | 4 | 8 | 5 | 13 | 11 | 12930 | 246 | 0 + BA f1 | 15.4 |
+| 16 Le marché | 6×6 | 6 | 4 | 1 | 5 | 10 | 12 | 19228 | 684 | 0 + BB f3 | 16.2 |
+| 17 La gare routière | 7×7 | 7 | 4 | 9 | 5 | 9 | 12 | 16972 | 1344 | 9 + BB f3 | 16.7 |
+| 18 Le grand dépôt | 8×8 | 8 | 4 | 16 | 5 | 15 | 13 | 32986 | 2032 | 5 + BF f2 | 17.9 |
+| 19 Les oranges | 7×7 | 7 | 4 | 8 | 6 | 12 | 13 | 48871 | 5799 | 9 + BG f3 | 18.2 |
+| 20 Embouteillage | 6×6 | 6 | 4 | 2 | 5 | 10 | 14 | 24101 | 468 | 0 + BE f4 | 18.6 |
+| 21 Le carrefour | 8×8 | 8 | 4 | 16 | 6 | 14 | 14 | 48044 | 15313 | 0 + BA f7 | 19.1 |
+| 22 La rue étroite | 7×7 | 7 | 5 | 8 | 6 | 10 | 14 | 58230 | 4200 | 1 + BF f6 | 19.8 |
+| 23 Le parking | 6×6 | 7 | 4 | 1 | 5 | 10 | 16 | 57184 | 47630 | 4 + BF f2 | 20.6 |
+| 24 Le terminus | 8×8 | 8 | 5 | 15 | 6 | 11 | 16 | 53513 | 580 | 13 + BE b5 | 21.4 |
+| 25 La sortie d’école | 7×7 | 8 | 4 | 6 | 6 | 13 | 17 | 47509 | 16997 | 1 + BD f4 | 22.3 |
+| 26 Le grand marché | 8×8 | 9 | 4 | 14 | 6 | 12 | 19 | 5725 | 748 | 5 + BB f4 | 22.7 |
+| 27 La place du village | 7×7 | 8 | 5 | 6 | 6 | 12 | 19 | 51304 | 17970 | 1 + BF f4 | 23.7 |
+| 28 Le centre-ville | 8×8 | 9 | 5 | 13 | 6 | 15 | 19 | 27484 | 9476 | 7 + BE f2 | 23.9 |
+| 29 La grande gare | 6×6 | 7 | 5 | 1 | 6 | 10 | 20 | 25507 | 13601 | 17 + BB f4 | 24.5 |
+| 30 Bus en folie | 8×8 | 9 | 5 | 12 | 6 | 14 | 21 | 17190 | 5922 | 9 + BA f3 | 25.5 |
+
+### Présentation et contrôles
+
+Monde 360 × 640 : bandeau (titre du niveau, coups), **quai** couvert où le groupe
+de tête est dessiné passager par passager avec son nombre, les quatre suivants
+en vignettes « ×n » ; **cour** au centre (au moins 60 % de la hauteur utile en
+portrait, cases de 44 px CSS environ en 8 × 8 à 390 px) ; bulle du compagnon
+(contrat Characters, sous la cour, jamais dessus) ; boutons Annuler, Indice,
+Recommencer de 56 px. Chaque couleur a son symbole (rouge rond, bleu carré,
+jaune triangle, vert losange, violet étoile, orange croix), sur le bus, la
+sortie et le passager. Au départ, le groupe marche du quai au bus, les places
+se remplissent, puis le bus sort de la cour.
+
+- **Doigt** : glisser un bus le long de son axe (il suit, borné par ce qui le
+  bloque ; au-delà du bord d’une demi-case, il part si le départ est permis) ;
+  ou toucher un bus puis une case libre de sa voie.
+- **Clavier** : Tab/N bus suivant, flèches le long de l’axe (au bord : départ),
+  flèches en travers : bus voisin, Z/Retour arrière annuler, H indice,
+  R recommencer, Échap désélectionner.
+
+### Preuves
+
+- `tests/busfolie.test.ts` : AC-01…AC-12 nommés par critère, propriétés P1–P8
+  sur 1 000 cas seedés par famille (aucun chevauchement, passagers conservés
+  entre file et bus, refus sans mutation, transitions déterministes et coups
+  légaux tous acceptés, solveur vérifié par rejeu), BF01–BF06 (titres,
+  difficulté, pièges, arrivées, indice, démo).
+- `scripts/validate-busfolie.js` (`npm run test:node -- --only=validate-busfolie.js`) :
+  pour chaque niveau, validité, espace exploré et résolu, par et difficulté
+  recalculés, ligne du solveur rejouée par le vrai moteur jusqu’à la victoire,
+  ligne figée gagnée en par avec 3 étoiles, piège prouvé `unsolvable` puis
+  affiché « Bloqué » et levé par Annuler ; aucun niveau plus facile que celui
+  cinq rangs avant ; arrivées ; diversité (aucun clone, palier sans changement mesuré ≤ 5) ;
+  générateur déterministe (AC-09).
+- `tests/e2e/busfolie.spec.ts` (BF-E01…BF-E08) : accueil → jeu et niveau 1 gagné
+  par de vrais glissers tactiles (CDP), embarquement visible, blocage puis
+  annuler, indice, reprise après rechargement, toucher puis case et clavier,
+  mise en page 320/390/768/1280 avec DejaVu Sans (rien ne déborde, cibles
+  ≥ 44 px, cour ≥ 60 %).

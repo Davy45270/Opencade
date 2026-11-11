@@ -1,0 +1,57 @@
+/* Bus en folie: Undo, Hint and Restart stay under the thumbs on every screen. */
+body.busfolie #touch-controls {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+}
+body.busfolie #touch-controls .touch-slot:empty {
+    display: none;
+}
+body.busfolie #touch-controls .touch-slot.center {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 14px;
+}
+body.busfolie #touch-controls button {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border: 3px solid #d9e6ff;
+    border-radius: 16px;
+    background: linear-gradient(#5d8ee8, #2f56b8);
+    box-shadow: 0 4px 0 #1d356f;
+    font-size: 16px;
+}
+body.busfolie #touch-controls button canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+body.busfolie #touch-controls #busfolie-hint {
+    background: linear-gradient(#ffd85a, #e4a313);
+    border-color: #fff2c2;
+    box-shadow: 0 4px 0 #8a5f06;
+}
+body.busfolie #touch-controls button:disabled {
+    filter: grayscale(1);
+    opacity: 0.5;
+}
+/* Blocked: Undo and Restart call for the thumb. */
+body.busfolie #touch-controls button.busfolie-urge {
+    box-shadow: 0 4px 0 #1d356f, 0 0 0 4px #ff6b5e;
+}
+body.busfolie #touch-controls button:focus-visible {
+    outline: 3px solid #fff1a5;
+    outline-offset: 2px;
+}
+/* The end panel sits low: the empty yard stays visible above it. */
+body.busfolie #result {
+    top: auto;
+    bottom: 6px;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+}
+body.busfolie #result .primary {
+    margin: 6px auto;
+}

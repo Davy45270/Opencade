@@ -14,6 +14,7 @@ export const nodeChecks = [
     ['validate-devisso.js'],
     ['validate-demineur.js'],
     ['validate-fusio.js'],
+    ['validate-busfolie.js'],
     ['check-derapage-3d.js'],
     ['check-derapage-cadence.js'],
     ['check-level-catalogue-kart.js'],
