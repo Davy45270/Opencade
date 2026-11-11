@@ -1,6 +1,6 @@
 {
   "name": "opencade",
-  "version": "0.5.1",
+  "version": "0.6.0",
   "private": true,
   "description": "Twelve original HTML5 arcade games (Phaser 3, TypeScript), playable by touch, mouse and keyboard.",
   "license": "MIT",
