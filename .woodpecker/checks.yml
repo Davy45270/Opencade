@@ -1,0 +1,42 @@
+# Local CI (Woodpecker, HL-523): the "checks" job of .github/workflows/ci.yml, same commands, same order.
+# Node: the official node:24 image (.nvmrc says 24), through the Harbor Docker Hub proxy, pulled on every run
+# like setup-node resolving "24". The build step also prints the fingerprint of dist/: the publication script
+# (homelab-diag arcade-lab/publier-opencade.py) rebuilds the same commit and refuses to publish a different tree.
+when:
+  - event: push
+    branch: main
+  - event: [pull_request, manual]
+
+steps:
+  - name: npm ci
+    image: &node harbor.pingfr.duckdns.org/dockerhub/library/node:24
+    pull: true
+    commands:
+      - node --version
+      - npm ci
+  - name: lint
+    image: *node
+    commands:
+      - npm run lint
+  - name: typecheck
+    image: *node
+    commands:
+      - npm run typecheck
+  - name: test
+    image: *node
+    commands:
+      - npm test
+  - name: test:node
+    image: *node
+    commands:
+      - npm run test:node
+  - name: test:pwa
+    image: *node
+    commands:
+      - npm run test:pwa
+  - name: build
+    image: *node
+    commands:
+      - npm run build
+      - sha256sum dist/index.html
+      - echo "empreinte dist $(cd dist && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -c1-64)"

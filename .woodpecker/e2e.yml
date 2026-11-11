@@ -1,0 +1,88 @@
+# Local CI (Woodpecker, HL-523): the "select" and "e2e" jobs of .github/workflows/ci.yml.
+# Never the whole suite: scripts/e2e-impact.js picks the specs and splits them into at most 4 parts (MAX_SHARDS);
+# each matrix workflow computes the same selection and runs its own part, or nothing.
+# Base of the diff: push -> the commit of the previous pipeline on this branch (CI_PREV_COMMIT_SHA, the local
+# equivalent of github.event.before); manual -> the E2E_BASE variable (optional); otherwise none -> N3 smoke.
+# Manual run on a list of specs: variable E2E_SPECS (the workflow_dispatch input "specs").
+matrix:
+  PART: [1, 2, 3, 4]
+
+when:
+  - event: push
+    branch: main
+  - event: [pull_request, manual]
+
+clone:
+  - name: clone
+    image: woodpeckerci/plugin-git:2.11.0
+    settings:
+      # Full history: git diff --name-only against the base.
+      depth: 0
+      partial: false
+
+steps:
+  - name: select
+    image: harbor.pingfr.duckdns.org/dockerhub/library/node:24
+    pull: true
+    commands:
+      - |
+        case "$${CI_PIPELINE_EVENT}" in
+          push) BASE="$${CI_PREV_COMMIT_SHA:-}" ;;
+          manual) BASE="$${E2E_BASE:-}" ;;
+          *) BASE="" ;;
+        esac
+        echo "évènement $${CI_PIPELINE_EVENT}, base '$${BASE:-aucune}', tête $(git rev-parse --short HEAD), part ${PART}"
+        GITHUB_OUTPUT=.e2e-select.out node scripts/e2e-impact.js --base "$$BASE" --head HEAD --specs "$${E2E_SPECS:-}" --github
+
+  - name: e2e
+    image: &playwright mcr.microsoft.com/playwright:v1.64.1-noble
+    environment:
+      PW_IMAGE: *playwright
+      PART: ${PART}
+    commands:
+      - |
+        LEVEL=$(sed -n 's/^level=//p' .e2e-select.out)
+        COUNT=$(sed -n 's/^count=//p' .e2e-select.out)
+        TOTAL=$(sed -n 's/^total=//p' .e2e-select.out)
+        if [ "$$COUNT" = 0 ]; then echo "Niveau $$LEVEL : aucun E2E à lancer, pas de navigateur."; exit 0; fi
+        if [ "$$PART" -gt "$$TOTAL" ]; then echo "Niveau $$LEVEL : $$TOTAL part(s), rien à lancer dans la part $$PART."; exit 0; fi
+        echo "Niveau $$LEVEL, part $$PART/$$TOTAL"
+        # DejaVu fonts: the image has none (sans-serif = WenQuanYi), the GitHub runners have them.
+        # npm package checked against its registry integrity, no apt.
+        npm pack --silent --pack-destination /tmp dejavu-fonts-ttf@2.37.3 >/dev/null
+        node -e '
+          const f = require("fs").readFileSync("/tmp/dejavu-fonts-ttf-2.37.3.tgz");
+          const got = "sha512-" + require("crypto").createHash("sha512").update(f).digest("base64");
+          const want = "sha512-f1hd7jJbeQa1VWcw+K2KrTXS50zTMaHpVC4XIKJpNcDeYR5ajMtj/iLlQDYNvLOKamUB3ARVVCf79lNwNVztSQ==";
+          if (got !== want) { console.error("dejavu-fonts-ttf : intégrité inattendue " + got); process.exit(1); }
+          console.log("dejavu-fonts-ttf 2.37.3 : intégrité vérifiée");'
+        mkdir -p /usr/local/share/fonts/dejavu
+        tar xzf /tmp/dejavu-fonts-ttf-2.37.3.tgz -C /usr/local/share/fonts/dejavu --strip-components=1 package/LICENSE
+        tar xzf /tmp/dejavu-fonts-ttf-2.37.3.tgz -C /usr/local/share/fonts/dejavu --strip-components=2 --wildcards 'package/ttf/*.ttf'
+        fc-cache -f >/dev/null
+        for f in sans-serif "DejaVu Sans"; do
+          got=$(fc-match -f '%{family[0]}' "$$f")
+          echo "fc-match $$f -> $$got"
+          [ "$$got" = "DejaVu Sans" ] || { echo "police inattendue pour $$f : $$got"; exit 1; }
+        done
+        npm ci
+        # The browsers come with the image: its Playwright version must be the one of package-lock.
+        WANT=$(echo "$$PW_IMAGE" | sed -n 's/.*:v\([0-9.]*\)-.*/\1/p')
+        GOT=$(node -p "require('@playwright/test/package.json').version")
+        echo "Playwright : image $$WANT, dépôt $$GOT"
+        [ -n "$$WANT" ] && [ "$$WANT" = "$$GOT" ] || { echo "versions divergentes : changer l'image de .woodpecker/e2e.yml"; exit 1; }
+        npm run build
+        SPECS=$(sed -n 's/^specs=//p' .e2e-select.out)
+        PARTS=$(sed -n 's/^parts=//p' .e2e-select.out)
+        [ -n "$$SPECS" ] || { echo "sélection vide inattendue : refus de lancer la suite complète"; exit 1; }
+        PART_SPECS=$(PARTS="$$PARTS" node -p 'JSON.parse(process.env.PARTS)[Number(process.env.PART) - 1].specs.join(" ")')
+        PART_GREP=$(PARTS="$$PARTS" node -p 'JSON.parse(process.env.PARTS)[Number(process.env.PART) - 1].grepInvert')
+        echo "specs :"
+        printf '  %s\n' $$PART_SPECS
+        [ -n "$$PART_SPECS" ] || { echo "part vide inattendue : refus de lancer la suite complète"; exit 1; }
+        if [ -n "$$PART_GREP" ]; then
+          echo "  --grep-invert $$PART_GREP"
+          npm run test:e2e -- $$PART_SPECS --grep-invert "$$PART_GREP"
+        else
+          npm run test:e2e -- $$PART_SPECS
+        fi
