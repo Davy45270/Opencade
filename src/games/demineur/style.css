@@ -1,0 +1,89 @@
+/* Démineur: the Dig/Flag switch, the hint and the magnifier stay under the thumbs on every screen. */
+body.demineur #touch-controls {
+    display: flex;
+    justify-content: center;
+    gap: 4px;
+}
+body.demineur #touch-controls .touch-slot:empty {
+    display: none;
+}
+body.demineur #touch-controls .touch-slot.center {
+    flex: 0 0 auto;
+    flex-direction: row;
+    gap: 10px;
+}
+body.demineur #touch-controls button {
+    position: relative;
+    width: 56px;
+    height: 56px;
+    padding: 0;
+    border: 3px solid #d9e6ff;
+    border-radius: 16px;
+    background: linear-gradient(#5d8ee8, #2f56b8);
+    box-shadow: 0 4px 0 #1d356f;
+    font-size: 16px;
+}
+body.demineur #touch-controls button canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+/* The switch says which tool a touch uses, in words and colour: blue Dig, red Flag. */
+body.demineur #touch-controls #demineur-tool {
+    width: 148px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 0 8px;
+    color: #ffffff;
+    font: bold 16px/1 system-ui, sans-serif;
+}
+body.demineur #touch-controls #demineur-tool canvas {
+    width: 32px;
+    height: 32px;
+    flex: 0 0 auto;
+}
+body.demineur #touch-controls #demineur-tool[data-tool="flag"] {
+    background: linear-gradient(#f2675f, #c4262a);
+    border-color: #ffe0dc;
+    box-shadow: 0 4px 0 #7d1517, 0 0 14px #ff9d92;
+}
+body.demineur #touch-controls button:disabled {
+    filter: grayscale(1);
+    opacity: 0.5;
+}
+body.demineur #touch-controls button:focus-visible {
+    outline: 3px solid #fff1a5;
+    outline-offset: 2px;
+}
+/* The end panel sits low: the unveiled board stays visible above it. */
+body.demineur #result {
+    top: auto;
+    bottom: 6px;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+}
+body.demineur #result .primary {
+    margin: 6px auto;
+}
+#demineur-modes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin: 0 0 10px;
+}
+#demineur-modes p {
+    grid-column: 1 / -1;
+    margin: 0;
+    font-size: 13px;
+}
+#demineur-modes button {
+    margin: 0;
+    min-height: 44px;
+    font-size: 13px;
+}
+/* Side columns (wide touch screens): every control is at most 64 px wide; the switch keeps its icon and colour. */
+body.playing.side-controls.demineur #play #touch-controls #demineur-tool span {
+    display: none;
+}

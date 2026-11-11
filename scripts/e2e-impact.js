@@ -41,6 +41,7 @@ export const GAME_SPECS = {
     'caisses': ['caisses'],
     'collier': ['collier', 'collier-finger'],
     'dedale': ['dedale'],
+    'demineur': ['demineur'],
     'devisso': ['devisso'],
     'derapage': ['derapage', 'derapage-3d', 'derapage-bonus', 'derapage-catalogue', 'derapage-touch', 'derapage-trees', 'derapage-horizon', 'derapage-decor'],
     'empilo': ['empilo'],
@@ -83,6 +84,7 @@ export const SMOKE_TESTS = {
     'bubble': ['bubble-snap-finger', 'B-SNAP-04 doigt bruité : la case fantôme est la case remplie', 23.3],
     'caisses': ['caisses', 'C12 crochet absent sans paramètre test', 0.7],
     'collier': ['collier', 'C16 Collier : le choix réel de chacun des cinq compagnons conserve les règles', 17.0],
+    'demineur': ['demineur', 'DM-E03 défaite : la mine explose, le plateau se dévoile, « Rejouer »', 5.0],
     'devisso': ['devisso', 'DV-E02 impasse : « Aucun coup possible ! », puis un cœur reprend trois coups', 4.0],
     'dedale': ['dedale', 'D12 crochet inerte et nettoyage lors du retour à l’accueil', 5.0],
     'derapage': ['derapage', 'Z30 Z34 porte et saut en vue de jeu', 2.9],
@@ -103,7 +105,7 @@ export const SPEC_SECONDS = {
     'alunir-levels': 70, 'alunir': 68, 'arcade': 120, 'artificiers-finger': 87, 'artificiers': 32, 'autres-jeux': 6, 'bombercade-finger': 8,
     'bombercade': 14, 'briqueterie': 141, 'bubble-catalogue': 422, 'bubble-snap-finger': 23, 'caisses': 21, 'character-finger-2': 323,
     'character-finger-3': 208, 'character-finger-4': 1041, 'character-finger': 407, 'character-pixels': 23, 'characters': 19, 'collier-finger': 48,
-    'collier': 42, 'dedale': 61, 'devisso': 30, 'derapage-3d': 116, 'derapage-bonus': 18, 'derapage-catalogue': 58, 'derapage-decor': 20, 'derapage-horizon': 15, 'derapage-trees': 15, 'derapage': 63, 'device': 56, 'empilo': 56, 'essaim-signature': 57,
+    'collier': 42, 'dedale': 61, 'demineur': 40, 'devisso': 30, 'derapage-3d': 116, 'derapage-bonus': 18, 'derapage-catalogue': 58, 'derapage-decor': 20, 'derapage-horizon': 15, 'derapage-trees': 15, 'derapage': 63, 'device': 56, 'empilo': 56, 'essaim-signature': 57,
     'essaim': 269, 'ferraille-levels': 245, 'ferraille': 342, 'game': 23, 'gourmandises-finger': 17, 'gourmandises': 32, 'habillage-action': 221,
     'habillage': 19, 'levels': 18, 'marmaille': 19, 'mobile-layout': 721, 'mobile': 3, 'offline': 6, 'orbite': 143, 'pepites-finger': 107,
     'pepites': 34, 'perf-fps': 86, 'petits-pompiers-finger': 62, 'petits-pompiers-touch': 9, 'petits-pompiers': 118, 'pwa-update': 36,
@@ -121,7 +123,7 @@ export const SPLIT_SPECS = {
     'mobile-layout': {
         'ferraille': 38.0, 'alunir': 33.9, 'briqueterie': 33.9, 'petits-pompiers': 24.7, 'pepites': 24.5, 'essaim': 22.8, 'collier': 22.5,
         'derapage': 18.1, 'bombercade': 17.6, 'gourmandises': 16.7, 'orbite': 16.4, 'marmaille': 15.0, 'dedale': 14.2, 'serpentin': 13.8,
-        'traverse': 13.7, 'bubble': 13.3, 'devisso': 13.0, 'caisses': 12.7, 'empilo': 11.7, '': 5.1,
+        'traverse': 13.7, 'bubble': 13.3, 'demineur': 13.0, 'devisso': 13.0, 'caisses': 12.7, 'empilo': 11.7, '': 5.1,
     },
 };
 /** N2 shell zones: the specs that exercise that part of the shell, added to the N2 selection. */

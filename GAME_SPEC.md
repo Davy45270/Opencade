@@ -5689,3 +5689,177 @@ Preuves :
   sélectionnée, visible par un anneau.
 - E2E sur Chromium seulement (comme tout le dépôt), largeurs 320/390/768/1280 au lieu de 390/768/1440.
 - Rendu 2D, pas de 2.5D ; pas de classement local.
+
+## Démineur
+
+Jeu de déduction au tour par tour (identifiant `demineur`, sauvegarde
+`arcade-lab:demineur:v1`, partie en cours `arcade-lab:demineur:run:v1`, records
+`arcade-lab:demineur:records:v1`), d’après le dossier de spécifications de David
+(OpenCade Démineur v1.0 : règles, contrats, critères AC01–AC14, planche
+artistique). Tout est dessiné par le code (`src/games/demineur/art.ts`) ; la
+planche n’est pas embarquée. Moteur pur dans `src/engines/demineur/` (règles,
+générateur, solveur, niveaux), scène Phaser à part.
+
+### Règles retenues
+
+- **Contrats de la spec** (`rules.ts`) : `LevelDefinition`, `GameState`,
+  `applyAction` → `{accepted, state, events}` ou `{accepted: false, reason}` sans
+  aucune mutation ni événement (OUT_OF_BOUNDS, ALREADY_REVEALED, FLAGGED,
+  INVALID_CHORD, GAME_FINISHED). Voisinage 8, chiffres = mines voisines.
+- **Première case toujours sûre** : placement différé au premier clic, la case
+  et ses voisines exclues quand il y a la place (sinon la case seule) ; graine,
+  premier clic et version du générateur (`1.0.0`) mêlés en une graine du `Random`
+  partagé : même triplet, même plateau. Jamais plus de mines que de cases
+  admissibles (validation sémantique `validateLevel`).
+- **Cascade** en largeur depuis un zéro ; un drapeau l’arrête et reste en place,
+  un « ? » ne bloque rien (ni la révélation directe, ni la cascade, ni l’accord).
+- **Marques** : couverte → drapeau → (« ? » si la grille l’autorise) → couverte.
+  Classique : « ? » actif ; progression : drapeau seul.
+- **Accord** : toucher un chiffre révélé dont les drapeaux voisins égalent le
+  chiffre ouvre ses autres voisines ; un faux drapeau peut faire perdre.
+- **Victoire** : toutes les cases sans mine révélées, drapeaux ou non.
+- **Chrono** hors moteur (`Engine.advance`), lancé à la première révélation du
+  joueur, arrêté à la fin ; il suit le temps réel entre images (borné à 1 s).
+- **Grilles de la progression** : disposition écrite (`'.'`, `'*'`, `'#'` pour une
+  mine du dessin) et une **ouverture** (case zéro) dévoilée avant le premier
+  toucher : c’est leur premier clic, le joueur ne commence jamais à l’aveugle.
+
+**Écartés** : protection consommable (« 1 erreur autorisée ») et modes Infini /
+Chrono / sans drapeau de la planche (le défi du jour et les records locaux les
+remplacent dans cette version) ; probabilités affichées (la spec les laisse
+optionnelles ; l’indice ne donne que des certitudes) ; la déclinaison Enfant
+(prévue dans Opencadkid).
+
+### Solveur
+
+Contraintes de frontière : pour chaque chiffre révélé, somme des voisines
+cachées non prouvées = chiffre − mines prouvées autour. Les drapeaux du joueur
+ne sont jamais une preuve. Techniques, de la moins chère à la plus chère :
+**simple** (une contrainte : 0 ou toutes), **paire** (deux contraintes qui se
+chevauchent : chaque groupe dont toutes les répartitions possibles valent 0 ou
+plein est décidé), **énumération** (la contrainte et ses voisines, 22 variables
+et 40 000 nœuds au plus ; au-delà la recherche est coupée et le résultat est
+`unknown`/`node_limit`), **compte global** (toutes les mines prouvées, ou autant
+de mines que de cases cachées). `proveBoard` dévoile ce qui est prouvé sûr
+(cascade comprise) jusqu’à la fin : `solvable` seulement si toutes les cases
+sûres sont ouvertes par preuve ; sinon `unknown` (`ambiguous` ou `node_limit`).
+Une déduction contredite par la vraie grille lève une erreur (jamais un
+résultat). **Indice** : la première déduction qui apprend quelque chose — une
+case cachée sûre (y compris sous un faux drapeau, signalé), sinon une mine non
+marquée ; les mines déjà marquées et prouvées servent ensuite de prémisses.
+Le texte explique la technique (« ces 2 cases autour du 3 sont forcément des
+mines »). S’il n’y a rien de certain : « Aucune déduction certaine ici : il
+faudrait deviner. » Un indice donné compte comme aide (étoiles, records).
+
+### Trente grilles
+
+`scripts/search-demineur.js` (hors CI, graines fixes) remplit les trente cases
+de `slots.ts` (taille portrait, mines, titre FR/EN, thème, dessin éventuel,
+techniques exigées ou interdites) avec des grilles prouvées sans devinette,
+une ouverture qui laisse au moins 45 % des cases sûres à trouver, puis retient
+celle dont la difficulté est la plus proche d’une cible croissante (2 + 0,8 par
+grille). Difficulté = 0,35 × tours simples + 3 × tours de paire + 7 × tours
+d’énumération + 4 × tours de compte + cases / 60. Les grilles sont figées dans
+`grids.ts`. Six thèmes de la planche : classique (1–5), nature (6–10), plage
+(11–15), espace (16–20), arcade néon (21–25), sombre (26–30). Une technique à la
+fois : paire à la grille 3, énumération à la 14, compte global à la 19. Quinze
+grilles cachent un dessin de mines (flèche, escalier, champignon, rivière,
+poisson, château, fusée, comète, planète, cœur, étoile, chat, sapin, lune,
+bombe), loin des bords pour ne fermer aucune poche de cases sûres ; il apparaît
+en doré à la victoire.
+
+Mesures de `validate-demineur.js` (preuve, difficulté figée recalculée, victoire
+du vrai moteur guidé par ses seuls indices) : écart de rang maximal 3 (échec à
+5), diversité 8,6, aucun clone, écart sans nouveauté 1.
+
+| Grille | Taille | Mines | Dessin | Ouverture | Simple | Paire | Énum. | Compte | Difficulté |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 Premiers pas | 6×6 | 4 | — | 17 | 4 | 0 | 0 | 0 | 2 |
+| 2 Les deux voisins | 6×7 | 5 | — | 20 | 6 | 0 | 0 | 0 | 2,8 |
+| 3 La flèche | 7×7 | 6 | chevron | 21 | 7 | 1 | 0 | 0 | 6,3 |
+| 4 L’escalier | 7×8 | 9 | escalier | 20 | 5 | 1 | 0 | 0 | 5,7 |
+| 5 Le damier | 8×8 | 10 | — | 28 | 11 | 0 | 0 | 0 | 4,9 |
+| 6 La clairière | 8×9 | 10 | — | 30 | 5 | 1 | 0 | 0 | 6 |
+| 7 Le champignon | 8×10 | 12 | champignon | 16 | 7 | 1 | 0 | 0 | 6,8 |
+| 8 Le trèfle | 9×10 | 13 | — | 30 | 9 | 1 | 0 | 0 | 7,7 |
+| 9 La rivière | 9×11 | 15 | rivière | 19 | 11 | 1 | 0 | 0 | 8,5 |
+| 10 La forêt | 10×11 | 17 | — | 48 | 12 | 1 | 0 | 0 | 9 |
+| 11 Les coquillages | 10×12 | 19 | — | 44 | 14 | 1 | 0 | 0 | 9,9 |
+| 12 Le poisson | 10×13 | 21 | poisson | 43 | 17 | 1 | 0 | 0 | 11,1 |
+| 13 Le château de sable | 11×13 | 23 | château | 65 | 18 | 1 | 0 | 0 | 11,7 |
+| 14 Les vagues | 11×14 | 25 | — | 9 | 11 | 0 | 1 | 0 | 13,4 |
+| 15 La marée | 12×14 | 28 | — | 44 | 21 | 1 | 0 | 0 | 13,2 |
+| 16 La fusée | 12×15 | 30 | fusée | 20 | 23 | 1 | 0 | 0 | 14,1 |
+| 17 Les astéroïdes | 12×16 | 33 | — | 50 | 25 | 1 | 0 | 0 | 15 |
+| 18 La comète | 13×16 | 35 | comète | 80 | 25 | 1 | 0 | 0 | 15,2 |
+| 19 La constellation | 13×16 | 37 | — | 18 | 17 | 1 | 0 | 1 | 16,4 |
+| 20 La planète | 14×16 | 39 | planète | 76 | 21 | 2 | 0 | 0 | 17,1 |
+| 21 Le cœur | 14×16 | 41 | cœur | 86 | 22 | 2 | 0 | 0 | 17,4 |
+| 22 L’étoile | 15×16 | 43 | étoile | 35 | 25 | 2 | 0 | 0 | 18,8 |
+| 23 Le labyrinthe | 15×16 | 45 | — | 21 | 28 | 2 | 0 | 0 | 19,8 |
+| 24 Le chat | 16×16 | 46 | chat | 12 | 12 | 3 | 0 | 0 | 17,5 |
+| 25 Néon | 16×16 | 48 | — | 31 | 31 | 2 | 0 | 0 | 21,1 |
+| 26 La chouette | 16×16 | 50 | — | 65 | 33 | 2 | 0 | 0 | 21,8 |
+| 27 Le sapin | 16×16 | 51 | sapin | 85 | 18 | 4 | 0 | 0 | 22,6 |
+| 28 La nuit | 16×16 | 52 | — | 15 | 29 | 3 | 0 | 0 | 23,4 |
+| 29 La lune | 16×16 | 53 | lune | 42 | 32 | 3 | 0 | 0 | 24,5 |
+| 30 La grande mine | 16×16 | 54 | bombe | 18 | 26 | 4 | 0 | 0 | 25,4 |
+
+### Modes
+
+- **Progression** : les trente grilles, débloquées une à une (Progression du
+  socle) ; étoiles : 3 sans indice, 2 avec un ou deux, 1 au-delà ; score = 10 par
+  mine + 100 par étoile.
+- **Classique** (sélecteur de niveaux) : Débutant 9 × 9 / 10 (l’exemple
+  DEM-CLASSIC-001 de la spec), Intermédiaire 16 × 16 / 40, Expert 30 × 16 / 99,
+  placement différé, nouvelle graine à chaque partie ; la ligne sous le HUD dit
+  « il faudra peut-être deviner ».
+- **Défi du jour** : 12 × 16 / 36, même grille pour tous un jour donné (clé
+  AAAAMMJJ locale), générée par graine et publiée seulement si `proveBoard` la
+  prouve depuis son ouverture centrale.
+- **Records** : meilleur temps par mode chronométré ; une partie aidée (indice)
+  et la progression n’y entrent jamais (AC14).
+
+### Présentation et contrôles
+
+Portrait 360 × 640 : HUD (nom de la grille, mines restantes, chrono, étoiles,
+ligne « sans devinette » ou « classique »), plateau encadré au thème, puis la
+boîte du compagnon (contrat Characters : il saute à une grande cascade, à
+l’indice et à la victoire, sursaute à l’explosion) avec la consigne de la grille
+ou l’explication de l’indice ; il ne recouvre jamais le plateau. Chiffres
+dessinés en traits épais, distincts par la forme et par la couleur.
+
+- **Bascule Creuser/Drapeau** : bouton DOM de 136 × 56 px, texte et couleur de
+  l’outil (bleu Creuser, rouge Drapeau). Le jeu ne dépend jamais de l’appui long,
+  qui reste un raccourci (450 ms : l’autre outil). Clic droit : drapeau ; clavier :
+  flèches, Espace/Entrée creuser ou accorder, F drapeau, T outil, H indice,
+  Z loupe, R recommencer ; curseur visible.
+- **Grandes grilles** : une case de moins de 28 px est trop petite pour un doigt.
+  Sur écran tactile, la grille s’ouvre zoomée à 38 px par case ; on la déplace en
+  glissant (au-delà de 10 px, un glisser ne joue jamais), la loupe montre la vue
+  d’ensemble, où un toucher zoome à cet endroit sans jouer. À la souris, la vue
+  d’ensemble se joue directement. **Expert** (30 × 16) est affiché pivoté en
+  16 × 30 dans le canevas portrait : vue d’ensemble à 15,7 px par case au lieu de
+  11,5 px, et moins de défilement horizontal (choix : zoom + glisser plutôt qu’un
+  défilement seul, pour garder des cibles de 38 px et une vue globale).
+- **Défaite** : la mine explose (anneau sobre, secousse de 300 ms), les mines se
+  dévoilent depuis l’explosion, les faux drapeaux sont barrés ; le panneau de fin
+  arrive 1,3 s après, en bas d’écran, avec « Rejouer ».
+- **Reprise** : la partie en cours est enregistrée à chaque action et à la sortie
+  (versions, graine, premier clic, taille, cases ouvertes, marques, temps,
+  indices ; jamais la carte des mines) ; une autre version ou une sauvegarde
+  incohérente est ignorée.
+
+### Preuves
+
+- `tests/demineur.test.ts` (Vitest) : AC01–AC11, AC13, AC14 nommés ;
+  propriétés P01–P04 (conservation des mines, cascade sans mine, idempotence,
+  chiffres de référence, aucune déduction fausse) et AC01/AC02/AC07/AC08/AC09 à
+  1000 cas seedés chacun ; DM01–DM06 (grilles, difficulté avec test d’échec sur
+  une permutation, techniques, diversité, modes, moteur, indice honnête).
+- `scripts/validate-demineur.js` (test:node) : voir ci-dessus, plus sept défis du
+  jour prouvés et 900 premiers clics classiques sûrs.
+- `tests/e2e/demineur.spec.ts` : accueil → grille 1 gagnée au doigt avec la
+  bascule, indice expliqué, défaite et « Rejouer », reprise après rechargement,
+  Expert sur téléphone (pivot, glisser, loupe), clavier et clic droit, AC12 mise
+  en page 320, 390, 768, 1280 et 1440 px avec DejaVu Sans, sans erreur JS.

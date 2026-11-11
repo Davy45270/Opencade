@@ -1,6 +1,6 @@
 import { test, expect, goHome } from './fixture';
 
-const ids = ['petits-pompiers', 'bombercade', 'marmaille', 'gourmandises', 'pepites', 'collier', 'derapage', 'traverse', 'caisses', 'alunir', 'ferraille', 'dedale', 'essaim', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin', 'devisso'];
+const ids = ['petits-pompiers', 'bombercade', 'marmaille', 'gourmandises', 'pepites', 'collier', 'derapage', 'traverse', 'caisses', 'alunir', 'ferraille', 'dedale', 'essaim', 'orbite', 'empilo', 'briqueterie', 'bubble', 'serpentin', 'devisso', 'demineur'];
 const windows = [{ width: 390, height: 844 }, { width: 360, height: 640 }, { width: 390, height: 600 }];
 for (const viewport of windows) for (const id of ids) {
     test(`M01 M02 M02b M03 M04 ${id} ${String(viewport.width)}x${String(viewport.height)}`, async ({ page }, testInfo) => {
@@ -8,7 +8,7 @@ for (const viewport of windows) for (const id of ids) {
         await page.goto(`/?test=1#/${id}`);
         await expect.poll(() => page.evaluate(id => Boolean(window.__ARCADE_TEST__?.games[id]), id)).toBe(true);
         if (id === 'petits-pompiers') { await page.locator('#level-list button').first().tap(); await page.locator('#pompiers-detente').tap(); }
-        if (id !== 'bubble' && id !== 'caisses' && id !== 'devisso') await page.locator('#resume').tap();
+        if (id !== 'bubble' && id !== 'caisses' && id !== 'devisso' && id !== 'demineur') await page.locator('#resume').tap();
         await expect.poll(() => page.evaluate(id => window.__ARCADE_TEST__?.games[id]?.hudText(), id)).toMatch(/SCORE|pts/);
         const measure = () => page.evaluate(id => {
             const box = (element: Element) => { const r = element.getBoundingClientRect(); return { x: r.x, y: r.y, width: r.width, height: r.height }; };
@@ -87,7 +87,7 @@ for (const viewport of windows) for (const id of ids) {
         await page.goto(`/?test=1#/${id}`);
         await expect.poll(() => page.evaluate(id => Boolean(window.__ARCADE_TEST__?.games[id]), id)).toBe(true);
         if (id === 'petits-pompiers') { await page.locator('#level-list button').first().tap(); await page.locator('#pompiers-detente').tap(); }
-        if (id !== 'bubble' && id !== 'caisses' && id !== 'devisso') await page.locator('#resume').tap();
+        if (id !== 'bubble' && id !== 'caisses' && id !== 'devisso' && id !== 'demineur') await page.locator('#resume').tap();
         await page.locator('#pause').tap();
         const gameState = (id: string) => page.evaluate(id => window.__ARCADE_TEST__?.games[id]?.read(), id);
         const before = await gameState(id);

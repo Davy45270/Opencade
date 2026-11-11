@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "1.0.0",
+  "id": "DEM-CLASSIC-001",
+  "mode": "classic",
+  "width": 9,
+  "height": 9,
+  "mineCount": 10,
+  "generation": {
+    "type": "deferred_seeded",
+    "generatorVersion": "1.0.0",
+    "seed": 45270,
+    "noGuess": false
+  },
+  "rules": {
+    "firstClickSafe": true,
+    "firstClickZeroPreferred": true,
+    "chordEnabled": true,
+    "questionMarks": true
+  }
+}

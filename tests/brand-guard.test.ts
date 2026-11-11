@@ -8,7 +8,7 @@ const forbidden = [
     ['metal', ' slug'], ['gala', 'ga'], ['wor', 'ms'], ['lemm', 'ings'],
     ['puzzle', ' bobble'], ['bust', '-a-move'], ['zu', 'ma'], ['bomber', 'man'],
     ['arka', 'noid'], ['break', 'out'], ['space', ' invaders'], ['pac', '-man'],
-    ['tet', 'ris'], ['soko', 'ban'], ['frog', 'ger'], ['screw', ' jam'],
+    ['tet', 'ris'], ['soko', 'ban'], ['frog', 'ger'], ['screw', ' jam'], ['mine', 'sweeper'],
 ].map(parts => parts.join(''));
 const pattern = new RegExp(`\\b(?:${forbidden.join('|')}|HL-?[0-9]{3})\\b`, 'i');
 
