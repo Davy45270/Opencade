@@ -41,7 +41,7 @@ steps:
         GITHUB_OUTPUT=.e2e-select.out node scripts/e2e-impact.js --base "$$BASE" --head HEAD --specs "$${E2E_SPECS:-}" --github
 
   - name: e2e
-    image: &playwright mcr.microsoft.com/playwright:v1.64.1-noble
+    image: &playwright mcr.microsoft.com/playwright:v1.65.0-noble
     environment:
       PW_IMAGE: *playwright
       PART: ${PART}
