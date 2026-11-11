@@ -40,7 +40,7 @@ export function presentationChecks(module) {
     }
     const drawings = [];
     const scenery = [];
-    for (let world = 0; world < 9; world++) {
+    for (let world = 0; world < 12; world++) {
         const commands = [];
         const context = new Proxy({}, { get(target, key) {
             if (key === 'createLinearGradient') return () => ({ addColorStop: (...args) => commands.push(args) });
@@ -50,7 +50,11 @@ export function presentationChecks(module) {
         scenery.push(commands);
         drawings.push(JSON.stringify(commands));
     }
-    assert.equal(new Set(drawings).size, 9, 'Neuf décors distincts');
+    assert.equal(new Set(drawings).size, 12, 'Douze décors distincts');
+    assert.equal(new Set(scenery.map(commands => JSON.stringify(commands[0]))).size, 12, 'Douze ciels distincts');
+    assert.equal(scenery[9].filter(c => c[0] === 'arc' && c[4] === Math.PI && c[5] === Math.PI * 2).length, 12, 'Deux arcs-en-ciel de six bandes');
+    assert.ok(scenery[10].filter(c => c[0] === 'closePath').length >= 4, 'Îles suspendues');
+    assert.ok(scenery[11].filter(c => c[0] === 'roundRect').length >= 18, 'Étagères de l’atelier');
     assert.equal(scenery[3].filter(c => c[0] === 'quadraticCurveTo' && c[2] === 210).length, 7, 'Sept filets de cascade');
     assert.equal(scenery[3].filter(c => c[0] === 'arc' && c[3] === 9).length, 24, 'Galets de rayon visible');
     assert.equal(scenery[4].filter(c => c[0] === 'moveTo' && [420, 450, 480, 510].includes(c[2])).length, 16, 'Quatre étages pour chaque sapin');
@@ -91,7 +95,7 @@ export function presentationChecks(module) {
     };
     assert.notDeepEqual(belt(0), belt(.5), 'Flèches réellement déplacées');
     // Exercise every objective renderer, including kinds absent in the current HUD.
-    for (const icon of [0, 1, 2, 3, 4, 5, 6, 'score', 'crate', 'ice', 'drop', 'flower', 'chocolate']) {
+    for (const icon of [0, 1, 2, 3, 4, 5, 6, 'score', 'crate', 'ice', 'drop', 'flower', 'chocolate', 'fruit']) {
         const commands = [];
         const context = new Proxy({}, { get: (target, key) => key === 'createLinearGradient' ? () => ({ addColorStop() {} }) : target[key] ?? ((...args) => commands.push([key, ...args])) });
         module.drawObjective(context, icon, 100, 51);
@@ -104,7 +108,7 @@ export function presentationChecks(module) {
             .map(v => v <= .04045 ? v / 12.92 : ((v + .055) / 1.055) ** 2.4);
         return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
     };
-    for (let world = 0; world < 9; world++) {
+    for (let world = 0; world < 12; world++) {
         const commands = [];
         const context = new Proxy({}, { get: (target, key) => key === 'createLinearGradient' ? () => ({ addColorStop() {} }) : target[key] ?? ((...args) => commands.push([key, ...args, target.fillStyle])) });
         module.drawWorldRibbon(context, world);
@@ -136,6 +140,29 @@ export function presentationChecks(module) {
         assert.ok(commands.filter(c => c[0] === 'stroke').every(c => c.at(-1) === '#ffe59b99'), 'Chevrons translucides');
     }
     assert.equal(module.WORLDS.length, 15);
+    // Portals, bombs and island strawberries: distinct, paired and oriented drawings.
+    const record = draw => {
+        const commands = [];
+        const context = new Proxy({}, { get: (target, key) => key === 'createLinearGradient' ? () => ({ addColorStop: (...args) => commands.push(['colorStop', ...args]) })
+            : target[key] ?? ((...args) => commands.push([key, ...args, target.strokeStyle, target.fillStyle])) });
+        draw(context);
+        return commands;
+    };
+    const entry = record(c => module.drawPortal(c, 0, 0, 40, 3, 'in'));
+    const exit = record(c => module.drawPortal(c, 0, 0, 40, 3, 'out'));
+    const ring = commands => commands.find(c => c[0] === 'ellipse');
+    assert.equal(ring(entry)[2], 40 * .84, 'Anneau d’entrée en bas de la case');
+    assert.equal(ring(exit)[2], 40 * .16, 'Anneau de sortie en haut de la case');
+    assert.equal(entry.find(c => c[0] === 'stroke').at(-2), module.PORTAL_COLORS[3], 'Couleur de la paire');
+    assert.equal(exit.find(c => c[0] === 'stroke').at(-2), module.PORTAL_COLORS[3]);
+    assert.notEqual(record(c => module.drawPortal(c, 0, 0, 40, 4, 'in')).find(c => c[0] === 'stroke').at(-2), module.PORTAL_COLORS[3], 'Paires voisines distinctes');
+    const stripes = direction => record(c => module.drawBomb(c, 0, 0, 40, direction)).filter(c => c[0] === 'fillRect' && c.at(-1) === '#ffd35a');
+    assert.equal(stripes('row').length, 2, 'Deux rayures');
+    assert.ok(stripes('row').every(c => c[3] > c[4]), 'Bombe de rangée : rayures horizontales');
+    assert.ok(stripes('column').every(c => c[3] < c[4]), 'Bombe de colonne : rayures verticales');
+    const cargo = record(c => module.drawFruitCargo(c, 20, 20, 12));
+    assert.ok(cargo.some(c => c[0] === 'fill' && c.at(-1) === '#eaa827'), 'Anneau doré des objets');
+    assert.ok(cargo.some(c => c[0] === 'colorStop' && c[2] === '#f85a79'), 'Fraise reconnaissable');
 }
 
 /** Minimal event ports; create() installs the production listeners and tool renderer. */
@@ -226,7 +253,7 @@ export function sceneListeners(module) {
         hook.loadLevel(119, 8);
         assert.equal(hook.read().objectives.length, 2);
         assert.ok(hook.read().cells.some(cell => cell.ice === 2));
-        for (const scenario of ['drop', 'belt']) for (const gesture of ['drag', 'two taps']) {
+        for (const scenario of ['drop', 'belt', 'portal', 'fruit', 'bomb']) for (const gesture of ['drag', 'two taps']) {
             const pair = hook.scenario(scenario);
             assert.ok(pair, 'Sortie atteignable par permutations ordinaires');
             const before = hook.read();
@@ -244,8 +271,14 @@ export function sceneListeners(module) {
                     up(point(index));
                 }
             }
-            if (scenario === 'drop') assert.ok(hook.read().dropped > (before.dropped ?? 0), gesture);
-            else {
+            if (scenario === 'drop' || scenario === 'fruit') assert.ok(hook.read().dropped > (before.dropped ?? 0), gesture);
+            else if (scenario === 'portal') {
+                assert.ok(scene.engine.events.some(e => (e.type === 'fall' || e.type === 'fill') && before.cells[e.to]?.gate !== undefined),
+                    'Une pièce sort d’un portail');
+            } else if (scenario === 'bomb') {
+                assert.ok(hook.read().cells.filter(c => c.bomb).length < before.cells.filter(c => c.bomb).length, 'Bombe allumée par le geste');
+                assert.ok(scene.engine.events.some(e => e.type === 'special' && before.cells[e.cells[0]]?.bomb));
+            } else {
                 assert.deepEqual(hook.read().cells.map(c => c.belt), before.cells.map(c => c.belt));
                 const transport = hook.transport();
                 assert.ok(transport.length > 0, 'Le geste déclenche le tapis');
@@ -257,7 +290,8 @@ export function sceneListeners(module) {
                 }
             }
             assert.equal(hook.read().moves, before.moves + 1);
-            assert.ok(scene.engine.events.some(event => event.type === scenario));
+            if (['drop', 'belt'].includes(scenario)) assert.ok(scene.engine.events.some(event => event.type === scenario));
+            if (scenario === 'fruit') assert.ok(scene.engine.events.some(event => event.type === 'drop'));
         }
     } finally {
         scene?.inputs.dispose();

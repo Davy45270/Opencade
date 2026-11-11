@@ -17,6 +17,7 @@ import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { drawPiece } from './thumbnail';
+import { drawBomb, drawFruitCargo, drawPortal } from './presentation';
 import { drawChocolate, drawHedge, drawBelt, drawDrop, drawIce, boardLayout, presentation, drawScenery, drawTool, card, drawObjective, drawWorldRibbon, drawScoreGauge, WORLD_RIBBON } from './presentation';
 export const gourmandisesButtons: readonly TouchButton[] = [
     { id: 'gourmandises-hammer', label: '', ariaLabel: 'Marteau : une case', size: 56, placement: 'center', mode: 'tap' },
@@ -42,7 +43,7 @@ export interface GourmandisesHook {
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
     loadLevel(index: number, seed?: number): void;
-    scenario(name: 'finish' | 'loss' | 'drop' | 'belt'): [number, number] | null;
+    scenario(name: 'finish' | 'loss' | 'drop' | 'belt' | 'portal' | 'fruit' | 'bomb'): [number, number] | null;
     bestMove(): [number, number] | null;
     board(): { x: number; y: number; unit: number; width: number; height: number };
 }
@@ -440,7 +441,9 @@ export class GourmandisesScene extends Phaser.Scene {
                 this.ready = false;
                 if (pausePanel) pausePanel.hidden = true;
                 this.setMode('arcade');
-                this.start(name === 'belt' ? 160 : name === 'drop' ? 60 : name === 'finish' ? 0 : 59, name === 'drop' ? 8 : 6, true);
+                const later = { portal: 180, fruit: 200, bomb: 220 } as Partial<Record<typeof name, number>>;
+                this.start(later[name] ?? (name === 'belt' ? 160 : name === 'drop' ? 60 : name === 'finish' ? 0 : 59),
+                    name === 'drop' ? 8 : 6, true);
                 const policy = new Random(65);
                 let final: [number, number] | null = null;
                 // Reach a near terminal state through ordinary, legal permutations only.
@@ -450,8 +453,13 @@ export class GourmandisesScene extends Phaser.Scene {
                     if (!move) break;
                     const probe = this.engine.clone();
                     probe.swap(...move);
-                    if (name === 'belt' ? probe.events.some(e => e.type === 'belt')
-                        : name === 'drop' ? probe.events.some(e => e.type === 'drop') : probe.status !== 'playing') {
+                    // A portal move lands a piece on an exit ring; a bomb move uncovers its cell.
+                    const reached = name === 'portal' ? probe.events.some(e => (e.type === 'fall' || e.type === 'fill')
+                        && e.to !== undefined && this.engine.state.cells[e.to]?.gate !== undefined)
+                        : name === 'bomb' ? probe.state.cells.some((cell, i) => !cell.bomb && this.engine.state.cells[i]?.bomb)
+                            : name === 'fruit' ? probe.events.some(e => e.type === 'drop') : undefined;
+                    if (reached ?? (name === 'belt' ? probe.events.some(e => e.type === 'belt')
+                        : name === 'drop' ? probe.events.some(e => e.type === 'drop') : probe.status !== 'playing')) {
                         final = move;
                         break;
                     }
@@ -593,6 +601,7 @@ export class GourmandisesScene extends Phaser.Scene {
             const y = b.y + Math.floor(i / s.width) * b.unit;
             if (cell.belt) drawBelt(c, x, y, b.unit, cell.belt.direction, this.reducedMotion ? 0 : this.beltClock / 1200);
             if (cell.chocolate) drawChocolate(c, x, y, b.unit);
+            if (cell.bomb) drawBomb(c, x, y, b.unit, cell.bomb);
             if (cell.crate) {
                 c.fillStyle = cell.crate > 1 ? '#ad7547' : '#dba363';
                 c.fillRect(x + 3, y + 3, b.unit - 6, b.unit - 6);
@@ -627,11 +636,14 @@ export class GourmandisesScene extends Phaser.Scene {
             if (cell.piece && !transported) {
                 const distance = falls.get(i) ?? 0;
                 const offset = animation > 0 && !this.reducedMotion ? -Math.pow(animation / 280, 2) * b.unit * distance : 0;
-                if (cell.piece.drop) drawDrop(c, x + b.unit / 2, y + b.unit / 2 + offset, b.unit * 0.34);
+                if (cell.piece.drop && cell.piece.color === 0) drawFruitCargo(c, x + b.unit / 2, y + b.unit / 2 + offset, b.unit * 0.34);
+                else if (cell.piece.drop) drawDrop(c, x + b.unit / 2, y + b.unit / 2 + offset, b.unit * 0.34);
                 else drawPiece(c, x + b.unit / 2, y + b.unit / 2 + offset, b.unit * 0.37, cell.piece.color, cell.piece.special);
             }
             if (cell.hedge) drawHedge(c, x, y, b.unit);
             if (cell.ice) drawIce(c, x, y, b.unit, cell.ice);
+            if (cell.portal !== undefined) drawPortal(c, x, y, b.unit, i % s.width, 'in');
+            if (cell.gate !== undefined) drawPortal(c, x, y, b.unit, cell.gate % s.width, 'out');
             if (cell.exit) {
                 c.strokeStyle = '#fff0a0';
                 c.lineWidth = 4;
@@ -688,11 +700,13 @@ export class GourmandisesScene extends Phaser.Scene {
         // separately so a refill at the same destination cannot replace it.
         if (animation > 0 && !this.reducedMotion) {
             const remaining = Math.pow(animation / 280, 2);
+            const fruit = s.objectives.some(o => o.kind === 'fruit');
             for (const delivery of this.deliveries) {
                 const x = b.x + (delivery.to % s.width + 0.5) * b.unit;
                 const y = b.y + (Math.floor(delivery.to / s.width) + 0.5
                     - (delivery.to - delivery.from) / s.width * remaining) * b.unit;
-                drawDrop(c, x, y, b.unit * 0.34);
+                if (fruit) drawFruitCargo(c, x, y, b.unit * 0.34);
+                else drawDrop(c, x, y, b.unit * 0.34);
             }
         }
         c.restore();
@@ -723,7 +737,7 @@ export class GourmandisesScene extends Phaser.Scene {
         const pieceNames = ['fraises', 'étoiles', 'gouttes', 'feuilles', 'fleurs', 'cœurs', 'oranges'];
         const targets = s.objectives.map(o => {
             const label = o.kind === 'collect' ? pieceNames[o.color] ?? 'pièces'
-                : o.kind === 'drop' ? 'gouttes sorties'
+                : o.kind === 'drop' ? 'gouttes sorties' : o.kind === 'fruit' ? 'fraises livrées'
                     : o.kind === 'flower' ? 'fleurs libérées' : o.kind === 'chocolate' ? 'chocolats cassés' : o.kind;
             return `${label} ${String(this.engine.progress(o))}/${String(o.target)}`;
         }).join(' · ');

@@ -4176,8 +4176,8 @@ gagne les mines 1 et 3 en Node à 150 ms de latence et dans `pepites-finger.spec
 ## Gourmandises
 
 Le nom affiché vient uniquement de `GAME_NAME` dans `levels.ts`. Le registre
-expose 180 niveaux ; quinze mondes et 300 emplacements sont prévus, seuls les
-neuf premiers mondes sont jouables. Les tailles, collectes et budgets suivent
+expose 240 niveaux ; quinze mondes et 300 emplacements sont prévus, seuls les
+douze premiers mondes sont jouables. Les tailles, collectes et budgets suivent
 les fiches pour les dimensions et les budgets ; les collectes sont rééquilibrées
 par mesure. Les plateaux sont générés, jamais importés.
 
@@ -4215,8 +4215,8 @@ Le premier monde introduit les alignements, le deuxième les rayés dans des
 couloirs, le troisième les îlots de caisses puis leurs deux couches. Les finales
 20/40/60 commencent avec une bombe couleur. La glace simple apparaît en fin
 de monde. La descente d’objets et la glace double occupent les mondes 4 à 6.
-Les types liane, chocolat, tapis, portail, miel, cadenas et clé restent des
-points d’extension pour les campagnes suivantes. `difficulty` compte exclusivement les paramètres réels :
+Les types liane, miel, cadenas et clé restent des points d’extension pour les
+campagnes suivantes ; chocolat, tapis, portail et bombe rayée sont jouables. `difficulty` compte exclusivement les paramètres réels :
 somme des objectifs / budget, couleurs, couches de bois et glace, cases absentes,
 nombre d'objectifs. G17 vérifie leur correspondance au terrain et leur monotonie
 dans les trois premiers mondes. Les passages 20→21 et 40→41 réinitialisent la cible, le
@@ -4574,6 +4574,52 @@ et événements des niveaux 1–60 reste `101807812` sur ces cinq graines.
 Les 39 mutations (26 conservées et 13 ajoutées) sont tuées en mémoire : les huit
 cas de la relecture, le trajet livré, la pondération de la politique, le canvas
 et la pastille débordants, ainsi que les deux cases gênantes remplies.
+
+### Mondes 10 à 12 (niveaux 181–240)
+
+Dimensions, budgets et graines suivent les fiches (8×8, puis 8 rangées de 9,
+puis 9×9 ; 25 à 16 coups ; graine 7919 × numéro). Les collectes et les poids
+de couleur sont mesurés sur les cinq graines de campagne, comme avant.
+
+**Portes arc-en-ciel (181–200).** Une rangée vide coupe le plateau en deux.
+Chaque case du bas du plateau supérieur est une entrée de portail reliée à la
+case du haut de la colonne miroir (x → largeur − 1 − x) du plateau inférieur.
+La gravité enchaîne les segments : une colonne du haut se prolonge, à travers
+son portail, dans la colonne d'en bas ; les nouvelles pièces n'arrivent qu'en
+tête de chaîne. Un lien qui remonterait est ignoré. Les alignements ne
+traversent pas le vide. Entrée et sortie portent un anneau de la même couleur.
+Objectif : des étoiles ; finale : étoiles et fleurs.
+
+**Îles suspendues (201–220).** Deux îles (trois à partir du 208) séparées par
+le vide ; chaque segment vertical d'au moins trois cases finit sur une sortie,
+à deux hauteurs. Des fraises cerclées d'or arrivent en tête des segments qui
+mènent à une sortie, à tour de rôle selon le nombre de livraisons, jamais sur
+un spécial. Nouveauté : une fraise se glisse à la main, d'une case, sans
+alignement (un coup) ; posée sur une sortie, elle part aussitôt et la colonne
+retombe. Les gouttes du monde 4 gardent l'ancienne règle.
+Objectif : des fraises livrées ; finale : fraises et étoiles.
+
+**Atelier de Tutu (221–240).** Une ligne de caisses traverse l'atelier ; une
+bombe rayée attend en son milieu. Une bombe est fixe, ne porte aucune pièce et
+arrête la gravité. Un alignement voisin, un spécial ou un outil l'allume : elle
+quitte sa case et balaie sa rangée (ou sa colonne) dans une nouvelle vague, qui
+abîme les caisses et peut allumer d'autres bombes. Dès le 228, une ligne
+verticale croise la première ; sa bombe de colonne, posée à la croisée, saute
+quand le souffle de la rangée l'atteint (G32 le vérifie sur le niveau 228) ; dès le 235,
+deux bombes libres s'y ajoutent. Objectif : des cœurs ; finale : cœurs et
+toutes les caisses.
+
+**Preuve.** L'empreinte des états et événements des niveaux 1–180 sur les cinq
+graines reste `840467013` (prise sur `main` avant l'ajout ; G33 vérifie
+`1726092062` sur la graine 8 dans Vitest). G30, G31 et G32 isolent portails,
+fraises et bombes ; G17 vérifie dimensions, budgets, graines et terrains des 60
+niveaux, et 19 silhouettes littérales. Audit hors CI : **1200/1200 victoires**
+du glouton sur 240 niveaux × 5 graines, dont 300/300 pour les niveaux 181–240 ;
+médianes par monde 73,7 %, 73,2 % et 73,8 % du budget ; défaites du hasard en
+Arcade 73, 100 et 88 sur 100. Découverte, pour une enfant de 5 ans : un joueur
+au hasard, sans outil, gagne **300/300** parties (médiane 32 coups, maximum
+247), et chaque état stable garde un coup valide. 87 mutations tuées en mémoire
+(25 nouvelles).
 ### Circuits Kart du catalogue
 
 K01 **Bambou Express**, K02 **Feuilles Folles** et K03 **Volcan Turbo** occupent

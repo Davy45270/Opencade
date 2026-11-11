@@ -44,7 +44,8 @@ export function card(c: CanvasRenderingContext2D, x: number, y: number, w: numbe
 /** Cached scenery: no animation, randomness or image resources. */
 export function drawScenery(c: CanvasRenderingContext2D, world: number): void {
     const sky = c.createLinearGradient(0, 0, 0, 640);
-    sky.addColorStop(0, ['#67d9ff', '#8776cd', '#55bba2', '#45cce8', '#6fa6d9', '#8784d1', '#e8af88', '#7cdef1', '#edb26e'][world % 9] ?? '#67d9ff');
+    sky.addColorStop(0, ['#67d9ff', '#8776cd', '#55bba2', '#45cce8', '#6fa6d9', '#8784d1', '#e8af88', '#7cdef1', '#edb26e',
+        '#9fd8ff', '#7ec3f5', '#d7a6e8'][world] ?? '#67d9ff');
     sky.addColorStop(1, '#eff7a0');
     c.fillStyle = sky;
     c.fillRect(0, 0, 360, 640);
@@ -116,6 +117,65 @@ export function drawScenery(c: CanvasRenderingContext2D, world: number): void {
                 c.stroke();
             }
         }
+    } else if (world === 9) {
+        // Rainbow arches stand behind the two boards, between soft clouds.
+        for (const [cx, base, scale] of [[70, 330, 1], [300, 300, .8]] as const) {
+            for (let i = 0; i < 6; i++) {
+                c.strokeStyle = RAINBOW[i] ?? '#fff';
+                c.lineWidth = 9 * scale;
+                c.beginPath();
+                c.arc(cx, base, (120 - i * 9) * scale, Math.PI, Math.PI * 2);
+                c.stroke();
+            }
+        }
+        for (const [x, y] of [[40, 330], [110, 336], [250, 300], [330, 304], [180, 600], [60, 610], [300, 615]] as const) {
+            for (const dx of [-18, 0, 18]) disc(c, x + dx, y - (dx ? 0 : 8), 18, '#ffffff');
+        }
+    } else if (world === 10) {
+        // Floating islands: grassy tops, rocky undersides, a waterfall into the void.
+        for (const [x, y, w] of [[-10, 250, 90], [290, 210, 95], [20, 560, 80], [300, 590, 85]] as const) {
+            c.fillStyle = '#9b6b45';
+            c.beginPath();
+            c.moveTo(x, y);
+            c.lineTo(x + w, y);
+            c.lineTo(x + w * .55, y + w * .7);
+            c.closePath();
+            c.fill();
+            card(c, x - 4, y - 12, w + 8, 18, '#59b85a');
+            c.strokeStyle = '#bff1ff';
+            c.lineWidth = 4;
+            c.beginPath();
+            c.moveTo(x + w * .7, y + 4);
+            c.lineTo(x + w * .72, y + 90);
+            c.stroke();
+        }
+        for (const [x, y] of [[180, 150], [60, 420], [320, 430]] as const) {
+            for (const dx of [-14, 0, 14]) disc(c, x + dx, y - (dx ? 0 : 6), 14, '#f4fbff');
+        }
+    } else if (world === 11) {
+        // A toy workshop: plank wall, shelves of boxes and a hanging lamp.
+        c.fillStyle = '#c9915e';
+        c.fillRect(0, 150, 360, 490);
+        c.strokeStyle = '#a8713f';
+        c.lineWidth = 3;
+        for (let x = 0; x < 360; x += 40) {
+            c.beginPath();
+            c.moveTo(x, 150);
+            c.lineTo(x, 640);
+            c.stroke();
+        }
+        for (const y of [250, 420, 590]) {
+            card(c, -6, y, 70, 10, '#7a4a2a');
+            card(c, 296, y, 70, 10, '#7a4a2a');
+            for (const x of [4, 32, 304, 332]) card(c, x, y - 22, 22, 22, TOYS[(x + y) % 4] ?? '#ff8ab0');
+        }
+        c.strokeStyle = '#5b3a24';
+        c.lineWidth = 2;
+        c.beginPath();
+        c.moveTo(180, 0);
+        c.lineTo(180, 40);
+        c.stroke();
+        disc(c, 180, 48, 14, '#ffe38a');
     } else if (world === 3) {
         // A winding river, pale pebbles and a bright waterfall.
         c.strokeStyle = '#218fcc';
@@ -231,6 +291,8 @@ export function drawScenery(c: CanvasRenderingContext2D, world: number): void {
         disc(c, x, y, 2, '#ffc64f');
     }
 }
+const RAINBOW = ['#ff638a', '#ffc44a', '#d9ed56', '#62da8d', '#57c8ff', '#b087fa'] as const;
+const TOYS = ['#ff8ab0', '#7cc8ff', '#ffd35a', '#8be08f'] as const;
 export function drawTool(c: CanvasRenderingContext2D, tool: Tool): void {
     c.clearRect(0, 0, 56, 56);
     if (tool === 'hammer') {
@@ -254,7 +316,7 @@ export function drawTool(c: CanvasRenderingContext2D, tool: Tool): void {
         disc(c, 31, 19, 7, '#a3f2ff');
     } else {
         for (let i = 0; i < 6; i++) {
-            c.strokeStyle = ['#ff638a', '#ffc44a', '#d9ed56', '#62da8d', '#57c8ff', '#b087fa'][i] ?? '#fff';
+            c.strokeStyle = RAINBOW[i] ?? '#fff';
             c.lineWidth = 5;
             c.beginPath();
             c.arc(28, 32, 23 - i * 3, Math.PI, Math.PI * 2);
@@ -310,6 +372,59 @@ export function drawIce(c: CanvasRenderingContext2D, x: number, y: number, unit:
         c.lineTo(x + unit - 4, y + unit * 0.3);
     }
     c.stroke();
+}
+
+/** A paired portal mouth: same colour at both ends. The entry arrow points into
+ * the ring at the bottom of its cell, the exit arrow out of the ring at the top. */
+export const PORTAL_COLORS = ['#ff638a', '#ffb347', '#f2d43c', '#62da8d', '#57c8ff', '#7f8cff', '#b087fa', '#ff8ad8', '#3fcfc0'] as const;
+export function drawPortal(c: CanvasRenderingContext2D, x: number, y: number, unit: number, hue: number, role: 'in' | 'out'): void {
+    const cy = y + unit * (role === 'in' ? .84 : .16);
+    c.save();
+    c.strokeStyle = PORTAL_COLORS[hue % PORTAL_COLORS.length] ?? '#ff638a';
+    c.lineWidth = Math.max(3, unit * .11);
+    c.beginPath();
+    c.ellipse(x + unit / 2, cy, unit * .4, unit * .12, 0, 0, Math.PI * 2);
+    c.stroke();
+    c.strokeStyle = '#ffffff';
+    c.lineWidth = 2;
+    c.beginPath();
+    c.moveTo(x + unit * .4, cy - unit * .05);
+    c.lineTo(x + unit * .5, cy + unit * .05);
+    c.lineTo(x + unit * .6, cy - unit * .05);
+    c.stroke();
+    c.restore();
+}
+/** Workshop bomb: a plum ball whose two yellow stripes show the swept line. */
+export function drawBomb(c: CanvasRenderingContext2D, x: number, y: number, unit: number, direction: 'row' | 'column'): void {
+    const cx = x + unit / 2;
+    const cy = y + unit / 2 + unit * .04;
+    const r = unit * .32;
+    card(c, x + 3, y + 3, unit - 6, unit - 6, '#e9d2ad');
+    disc(c, cx, cy, r, '#6a3f8f');
+    c.save();
+    c.beginPath();
+    c.arc(cx, cy, r, 0, Math.PI * 2);
+    c.clip('nonzero');
+    c.fillStyle = '#ffd35a';
+    for (const k of [-1, 1]) {
+        if (direction === 'row') c.fillRect(cx - r, cy + k * r * .42 - r * .12, r * 2, r * .24);
+        else c.fillRect(cx + k * r * .42 - r * .12, cy - r, r * .24, r * 2);
+    }
+    c.restore();
+    disc(c, cx - r * .35, cy - r * .4, r * .18, '#ffffffaa');
+    c.strokeStyle = '#8a5a2b';
+    c.lineWidth = 2;
+    c.beginPath();
+    c.moveTo(cx + r * .45, cy - r * .85);
+    c.quadraticCurveTo(cx + r * .9, cy - r * 1.3, cx + r * 1.1, cy - r * 1.05);
+    c.stroke();
+    disc(c, cx + r * 1.1, cy - r * 1.05, unit * .07, '#ff9c36');
+}
+/** Island strawberry: the gold ring of carried objects around an ordinary strawberry. */
+export function drawFruitCargo(c: CanvasRenderingContext2D, x: number, y: number, radius: number): void {
+    disc(c, x, y, radius * 1.2, '#eaa827');
+    disc(c, x, y, radius * 1.02, '#fff2a4');
+    drawPiece(c, x, y, radius * .9, 0);
 }
 
 /** The square divisions distinguish solid chocolate from the wooden crates. */
@@ -385,6 +500,7 @@ export function drawObjective(c: CanvasRenderingContext2D, icon: number | Exclud
         card(c, x - 12, y - 12, 24, 24, '#78cbea');
         drawIce(c, x - 13, y - 13, 26, 2);
     } else if (icon === 'drop') drawDrop(c, x, y, 12);
+    else if (icon === 'fruit') drawFruitCargo(c, x, y, 11);
     else if (icon === 'flower') drawHedge(c, x - 13, y - 13, 26);
     else if (icon === 'chocolate') drawChocolate(c, x - 12, y - 12, 24);
     else {

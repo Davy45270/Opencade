@@ -303,20 +303,51 @@ export const oracles: Record<string, (module?: Rules) => void> = {
     },
     G17() {
         geometryChecks();
-        equal(LEVELS.length, 180);
-        equal(WORLDS.filter(world => world.playable).length, 9);
-        for (let i = 0; i < 180; i++) {
+        equal(LEVELS.length, 240);
+        equal(WORLDS.filter(world => world.playable).length, 12);
+        for (let i = 0; i < 240; i++) {
             const level = required(LEVELS[i]);
             const cells = terrain(level);
             const actual = difficulty(i);
             equal(actual, {
                 pressure: level.objectives.reduce((sum, o) => sum + o.target, 0) / level.moves,
                 colors: level.colors,
-                obstacles: cells.reduce((sum, c) => sum + c.crate + c.ice + (c.chocolate ? 1 : 0) + (c.hedge ? 1 : 0), 0),
+                obstacles: cells.reduce((sum, c) => sum + c.crate + c.ice + (c.chocolate ? 1 : 0) + (c.hedge ? 1 : 0)
+                    + (c.bomb ? 1 : 0), 0),
                 absent: cells.filter(c => !c.active).length,
                 objectives: level.objectives.length,
             });
-            if (i >= 60) {
+            if (i >= 180) {
+                // Design cards: 8×8, then 8 rows of 9, then 9×9.
+                equal(level.width, level.layout < 7 ? 8 : 9);
+                equal(level.height, level.layout < 14 ? 8 : 9);
+                ok(level.moves === 25 - Math.floor(level.layout / 2), 'Budget des fiches');
+                equal(level.seed, 7919 * (i + 1));
+                if (level.world === 10) {
+                    ok(level.objectives[0]?.kind === 'collect', 'Étoiles à collecter');
+                    const entries = cells.flatMap((c, j) => c.portal === undefined ? [] : [j]);
+                    ok(entries.length >= 2, 'Portails reliés');
+                    for (const j of entries) {
+                        const exit = required(required(cells[j]).portal);
+                        equal(required(cells[exit]).gate, j);
+                        ok(Math.floor(exit / level.width) > Math.floor(j / level.width), 'Sortie plus basse');
+                        ok(required(cells[exit]).active && required(cells[j]).active);
+                    }
+                    ok(cells.every((c, j) => c.gate === undefined || required(cells[c.gate]).portal === j));
+                } else if (level.world === 11) {
+                    ok(level.objectives.some(o => o.kind === 'fruit'), 'Fraises à livrer');
+                    const rows = new Set(cells.flatMap((c, j) => c.exit ? [Math.floor(j / level.width)] : []));
+                    ok(rows.size >= 2, 'Sorties à plusieurs hauteurs');
+                    ok(cells.every(c => !c.exit || c.active));
+                } else {
+                    ok(level.objectives[0]?.kind === 'collect' && level.colors >= 6, 'Cœurs à collecter');
+                    ok(cells.some(c => c.bomb === 'row'), 'Bombe rayée sur la ligne');
+                    const line = cells.slice(Math.floor(level.height / 2) * level.width, (Math.floor(level.height / 2) + 1) * level.width);
+                    ok(line.every(c => !c.active || c.crate || c.bomb) && line.filter(c => c.crate).length >= 2, 'Ligne de bois à ouvrir');
+                    ok(cells.every(c => !c.bomb || (c.active && !c.crate)));
+                }
+                if (level.finale) equal(level.objectives.length, 2);
+            } else if (i >= 60) {
                 equal(level.width, level.world >= 7 ? (level.layout < 14 ? 8 : 9) : level.layout < 7 ? 7 : 8);
                 equal(level.height, level.world >= 7 ? (level.layout < 7 ? 7 : 8) : level.layout < 14 ? 7 : 8);
                 if (level.world === 4) {
@@ -348,14 +379,17 @@ export const oracles: Record<string, (module?: Rules) => void> = {
                     ok(actual[key] >= previous[key], `Niveau ${String(i + 1)} : ${key}`);
                 }
             }
+            // Worlds 10 and 11 empty their middle row: the bridge goes with it.
+            const split = level.world === 10 || level.world === 11;
             if (level.layout === 11) {
                 const x = Math.floor(level.width / 2);
                 const y = Math.floor(level.height / 2);
                 for (let row = 0; row < level.height; row++) {
-                    equal(required(cells[row * level.width + x]).active, row === y);
+                    equal(required(cells[row * level.width + x]).active, row === y && !split);
                 }
-                ok(required(cells[y * level.width + x - 1]).active);
-                ok(required(cells[y * level.width + x + 1]).active);
+                const side = split ? y - 1 : y;
+                ok(required(cells[side * level.width + x - 1]).active);
+                ok(required(cells[side * level.width + x + 1]).active);
             }
             if (level.layout === 2) {
                 ok(!required(cells[level.width * 2]).active, 'Colonne étroite');
@@ -363,7 +397,7 @@ export const oracles: Record<string, (module?: Rules) => void> = {
             }
             if (level.layout === 3) {
                 ok(!required(cells[0]).active, 'Croix : coins absents');
-                ok(required(cells[Math.floor(level.height / 2) * level.width + Math.floor(level.width / 2)]).active);
+                ok(required(cells[(Math.floor(level.height / 2) - (split ? 1 : 0)) * level.width + Math.floor(level.width / 2)]).active);
             }
         }
         ok(required(LEVELS[19]).finale && required(LEVELS[39]).finale && required(LEVELS[59]).finale);
@@ -618,6 +652,180 @@ export const oracles: Record<string, (module?: Rules) => void> = {
     G29(module = rules) {
         equal(regressionFingerprint(module, [8], 120), 1490700344);
     },
+    G33(module = rules) {
+        // Captured on main before worlds 10–12: levels 1–180 keep states and events.
+        equal(regressionFingerprint(module, [8], 180), 1726092062);
+    },
+    G30(module = rules) {
+        // Two boards of a literal fixture: row 3 is empty, row 2 pours into row 4, mirrored.
+        const portals = (): rules.Engine => {
+            const engine = fixture(module);
+            for (let x = 0; x < 6; x++) {
+                engine.state.cells[18 + x] = { active: false, crate: 0, ice: 0, piece: null };
+                required(engine.state.cells[12 + x]).portal = 29 - x;
+                required(engine.state.cells[29 - x]).gate = 12 + x;
+            }
+            return engine;
+        };
+        const engine = portals();
+        const before = engine.state.cells.map(c => c.piece);
+        required(engine.state.cells[35]).piece = null;
+        const copy = engine.clone();
+        engine.gravity();
+        copy.gravity();
+        equal(engine.snapshot(), copy.snapshot());
+        // Column 0 above continues into column 5 below.
+        equal(engine.state.cells[35]?.piece, before[29]);
+        equal(engine.state.cells[29]?.piece, before[12], 'La pièce traverse le portail');
+        equal(engine.state.cells[12]?.piece, before[6]);
+        equal(engine.state.cells[6]?.piece, before[0]);
+        equal(engine.events.filter(e => e.type === 'fill').map(e => e.to), [0], 'Une seule arrivée, en tête de chaîne');
+        for (let x = 1; x < 6; x++) equal(engine.state.cells[x]?.piece, before[x], 'Autres colonnes immobiles');
+        ok(engine.events.filter(e => e.type === 'fall').every(e => (e.from ?? -1) % 6 === (e.to ?? -2) % 6 && (e.from ?? 99) < (e.to ?? 0)),
+            'Chute dessinée dans la colonne d’arrivée');
+        equal(engine.events.find(e => e.to === 29)?.from, 23, 'Sortie : une case au-dessus de l’anneau');
+        // A hole on the lower board drags the mirrored upper column through its portal.
+        const lower = portals();
+        const upper = lower.state.cells.map(c => c.piece);
+        for (const i of [30, 31, 32]) required(lower.state.cells[i]).piece = null;
+        lower.gravity();
+        ok(lower.state.cells.every(c => !c.active || c.piece), 'Plateau rempli');
+        equal(lower.state.cells[30]?.piece, upper[24]);
+        equal(lower.state.cells[24]?.piece, upper[17], 'Colonne 5 du haut vers colonne 0 du bas');
+        equal(lower.state.cells[25]?.piece, upper[16]);
+        equal(lower.events.filter(e => e.type === 'fill').map(e => e.to ?? -1).sort((a, b) => a - b), [3, 4, 5]);
+        // A portal pointing upwards is ignored: that run fills itself.
+        const reversed = portals();
+        required(reversed.state.cells[12]).portal = 2;
+        required(reversed.state.cells[29]).piece = null;
+        required(reversed.state.cells[8]).piece = null;
+        const kept = reversed.state.cells[12]?.piece;
+        reversed.gravity();
+        equal(reversed.state.cells[12]?.piece, kept, 'Aucun lien remontant');
+        equal(reversed.events.filter(e => e.type === 'fill').map(e => e.to ?? -1).sort((x, y) => x - y), [2, 29]);
+        equal(JSON.parse(JSON.stringify(engine.snapshot())), engine.snapshot());
+    },
+    G31(module = rules) {
+        // Island strawberries slide by hand; golden drops do not.
+        const engine = fixture(module);
+        engine.state.objectives = [{ kind: 'fruit', target: 2 }];
+        required(engine.state.cells[7]).piece = { color: 0, drop: true };
+        required(engine.state.cells[19]).exit = true;
+        ok(engine.validMoves().some(([a, b]) => a === 7 && b === 13), 'Glisser la fraise est un coup');
+        ok(engine.swap(7, 13), 'Sans alignement');
+        equal(engine.state.moves, 1);
+        ok(engine.state.cells[13]?.piece?.drop);
+        ok(engine.swap(13, 19));
+        equal(engine.state.dropped, 1);
+        ok(engine.state.cells.every(c => c.piece), 'La sortie se remplit après une poussée');
+        ok(engine.events.some(e => e.type === 'fill') && engine.events.some(e => e.type === 'fall' && e.to === 19));
+        equal(engine.progress({ kind: 'fruit', target: 2 }), 1);
+        ok(engine.events.some(e => e.type === 'drop' && e.cells[0] === 19));
+        equal(engine.status, 'playing');
+        const gold = fixture(module);
+        gold.state.objectives = [{ kind: 'drop', target: 2 }];
+        required(gold.state.cells[7]).piece = { color: 2, drop: true };
+        const golden = gold.snapshot();
+        ok(!gold.swap(7, 13), 'Les gouttes du monde 4 gardent la règle');
+        equal(gold.snapshot(), golden);
+        ok(!gold.validMoves().some(([a, b]) => a === 7 && b === 13));
+        // Supply: every run ending on an outlet is fed in turn, never over a special.
+        const supply = (dropped: number, special = -1): number[] => {
+            const islands = fixture(module);
+            islands.state.objectives = [{ kind: 'fruit', target: 20 }];
+            for (let x = 0; x < 6; x++) required(islands.state.cells[30 + x]).exit = true;
+            islands.state.dropped = dropped;
+            if (special >= 0) required(required(islands.state.cells[special]).piece).special = 'row';
+            islands.gravity();
+            ok(islands.state.cells.every(c => !c.piece?.drop || c.piece.color === 0), 'Des fraises, pas des gouttes');
+            return islands.state.cells.flatMap((c, i) => c.piece?.drop ? [i] : []);
+        };
+        equal(supply(0), [0, 1, 2]);
+        equal(supply(4), [0, 4, 5], 'Rotation par livraisons');
+        equal(supply(0, 0), [1, 2, 3], 'Un spécial en tête n’est pas écrasé');
+        const pick = fixture(module);
+        pick.state.objectives = [{ kind: 'fruit', target: 1 }];
+        required(pick.state.cells[28]).piece = { color: 0, drop: true };
+        required(pick.state.cells[34]).exit = true;
+        const choice = module.greedyMove(pick);
+        ok(choice && choice.includes(28) && choice.includes(34), 'Le pilote pousse vers la sortie');
+        const state = engine.snapshot();
+        required(state.cells[0]).piece = { color: 0, drop: true };
+        engine.restore(state);
+        required(state.cells[0]).piece = { color: 1, drop: true };
+        let refused = false;
+        try { engine.restore(state); } catch { refused = true; }
+        ok(refused, 'Objet d’une autre couleur refusé');
+    },
+    G32(module = rules) {
+        const bombs = (): rules.Engine => {
+            const engine = fixture(module);
+            engine.state.cells[14] = { active: true, crate: 0, ice: 0, bomb: 'row', piece: null };
+            engine.state.cells[17] = { active: true, crate: 1, ice: 0, piece: null };
+            return engine;
+        };
+        const engine = bombs();
+        ok(!engine.validMoves().some(move => move.includes(14)), 'Bombe fixe');
+        color(engine, [6, 7, 8], 4);
+        engine.resolve();
+        equal(engine.state.cells[14]?.bomb, undefined, 'Un alignement voisin allume la bombe');
+        equal(engine.state.cells[17]?.crate, 0, 'La ligne de bois s’ouvre');
+        equal(engine.state.broken.crate, 1);
+        ok(engine.events.some(e => e.type === 'special' && e.cells[0] === 14));
+        const waves = engine.events.filter(e => e.type === 'match');
+        ok(waves.some(e => [12, 13, 15, 16].every(i => e.cells.includes(i))), 'Toute la rangée balayée');
+        ok(!waves.some(e => e.cells.includes(2) && e.cells.includes(32) && !e.cells.includes(12)), 'Pas de colonne pour une bombe de rangée');
+        ok(engine.state.cells.every(c => !c.active || c.crate || c.piece), 'Case de la bombe remplie ensuite');
+        // A row blast reaches a column bomb: the reaction continues.
+        const chain = bombs();
+        chain.state.cells[15] = { active: true, crate: 0, ice: 0, bomb: 'column', piece: null };
+        color(chain, [6, 7, 8], 4);
+        chain.resolve();
+        equal(chain.state.cells.filter(c => c.bomb).length, 0, 'Les deux bombes ont sauté');
+        ok(chain.events.some(e => e.type === 'match' && [3, 9, 21, 27, 33].every(i => e.cells.includes(i))), 'Réaction en chaîne');
+        // Gravity stops at a bomb; the run below refills from its own top.
+        const blocked = bombs();
+        const above = blocked.state.cells[8]?.piece;
+        required(blocked.state.cells[20]).piece = null;
+        blocked.gravity();
+        equal(blocked.state.cells[8]?.piece, above);
+        equal(blocked.state.cells[14]?.piece, null, 'Aucune pièce dans la bombe');
+        equal(blocked.events.find(e => e.to === 20)?.from, 14);
+        const shuffled = bombs();
+        for (let i = 0; i < 36; i++) if (i !== 14 && i !== 17) required(shuffled.state.cells[i]).piece = { color: (i % 6 + Math.floor(i / 6)) % 5 };
+        shuffled.resolve();
+        ok(shuffled.events.some(e => e.type === 'shuffle'));
+        equal(shuffled.state.cells[14]?.piece, null, 'Rebattage autour de la bombe');
+        ok(shuffled.state.cells[14]?.bomb);
+        // An empty board (a level being loaded) is generated around the bomb.
+        const empty = bombs();
+        for (const cell of empty.state.cells) cell.piece = null;
+        empty.shuffle(true);
+        equal(empty.state.cells[14]?.piece, null, 'Génération autour de la bombe');
+        ok(empty.state.cells.every((c, i) => i === 14 || c.crate || c.piece));
+        const inventory = bombs();
+        const other = inventory.clone();
+        inventory.shuffle();
+        other.shuffle();
+        equal(inventory.snapshot(), other.snapshot());
+        equal(inventory.state.cells[14]?.piece, null);
+        // Real workshop board: the row blast crosses the column bomb and fires it.
+        const workshop = new module.Engine('discovery');
+        workshop.loadLevel(227, 8);
+        const row = workshop.state.cells.findIndex(c => c.bomb === 'row');
+        ok(workshop.state.cells[row - 1]?.bomb === 'column', 'Bombes à la croisée des lignes');
+        ok(workshop.useTool('hammer', row));
+        equal(workshop.state.cells.filter(c => c.bomb).length, 0, 'Réaction en chaîne au niveau 228');
+        ok(workshop.events.filter(e => e.type === 'special').length >= 2);
+        const hammer = bombs();
+        ok(hammer.useTool('hammer', 14), 'Le marteau allume la bombe');
+        equal(hammer.state.cells[17]?.crate, 0);
+        const state = bombs().snapshot();
+        required(state.cells[14]).piece = { color: 1 };
+        let refused = false;
+        try { engine.restore(state); } catch { refused = true; }
+        ok(refused, 'Une bombe ne porte pas de pièce');
+    },
     G25(module = rules) {
         // Literal cargo position: a spectacular score competes with a delivery.
         // Level 63 supplies color weight 3; all geometry and objectives are explicit.
@@ -785,6 +993,26 @@ export function geometryChecks(module: { LEVELS: typeof LEVELS; terrain: typeof 
         [178, '.########/#########/#########/#########/>>>>>>>>>/<<<<<<<<</#########/#########'],
         [179, '..#####../#########/#########/#########/>>>>>>>>>/<<<<<<<<</#########/#########'],
         [180, '#########/#########/#########/#########/>>>>>>>>>/<<<<<<<<</#########/#########'],
+        // P/G: portal entry and exit; E: island outlet; X: crate; = and |: striped bombs.
+        [181, '########/########/########/PPPPPPPP/......../GGGGGGGG/########/########'],
+        [183, '########/...###../...###../...PP#../......../...GG#../...###../########'],
+        [184, '...###../...###../...###../PPPPPPPP/......../GGGGGGGG/...###../...###..'],
+        [187, '########/########/########/PPPPPPPP/......../GGGGGGGG/########/########'],
+        [192, '####.####/####.####/####.####/PPPP.PPPP/........./GGGG.GGGG/####.####/####.####'],
+        [198, '.########/#########/#########/PPPPPPPPP/........./GGGGGGGGG/#########/#########/#########'],
+        [200, '#########/#########/#########/PPPPPPPPP/........./GGGGGGGGG/#########/#########/#########'],
+        [201, '#######./#######./#######./EEEEEEE./......../.#######/.#######/.EEEEEEE'],
+        [203, '#######./...###../...###../...EEE../......../...###../...###../.##EEE##'],
+        [204, '...###../...###../...###../###EEE#./......../.#######/...###../...EEE..'],
+        [208, '.###.###./####.###./####.###./EEEE.EEE./........./.########/.########/.EEEEEEEE'],
+        [212, '####.###./####.###./####.###./EEEE.EEE./........./.###.####/.###.####/.EEE.EEEE'],
+        [220, '####.###./####.###./####.###./EEEE.EEE./........./.########/.########/.########/.EEEEEEEE'],
+        [221, '########/########/########/########/XXXX=XXX/########/########/########'],
+        [223, '########/...###../...###../...###../...X=X../...###../...###../########'],
+        [224, '...###../...###../...###../########/XXXX=XXX/########/...###../...###..'],
+        [228, '.##X#####/###X#####/###X#####/###X#####/XXX|=XXXX/###X#####/###X#####/###X#####'],
+        [232, '###X.####/###X.####/###X.####/###X.####/XXX|=XXXX/###X.####/###X.####/###X.####'],
+        [240, '###X#####/###X###|#/###X#####/###X#####/XXX|=XXXX/###X#####/###X#####/###X###=#/###X#####'],
     ];
     for (const [number, silhouette] of silhouettes) {
         const level = required(module.LEVELS[number - 1]);
@@ -792,7 +1020,17 @@ export function geometryChecks(module: { LEVELS: typeof LEVELS; terrain: typeof 
         const rows = Array.from({ length: level.height }, (_, y) => cells
             .slice(y * level.width, (y + 1) * level.width)
             .map(c => !c.active ? '.' : c.ice ? String(c.ice) : c.chocolate ? 'C' : c.hedge ? 'F'
-                : c.belt ? ({ right: '>', left: '<', down: 'v', up: '^' }[c.belt.direction]) : '#').join(''));
+                : c.belt ? ({ right: '>', left: '<', down: 'v', up: '^' }[c.belt.direction])
+                    : c.bomb ? (c.bomb === 'row' ? '=' : '|') : c.portal !== undefined ? 'P' : c.gate !== undefined ? 'G'
+                        : c.crate ? 'X' : c.exit && level.world >= 10 ? 'E' : '#').join(''));
         equal(rows.join('/'), silhouette);
+    }
+    // Rainbow portals cross over: column x above pours into column w − 1 − x below.
+    for (const number of [181, 192, 200]) {
+        const level = required(module.LEVELS[number - 1]);
+        const w = level.width;
+        module.terrain(level).forEach((c, i) => {
+            if (c.portal !== undefined) equal(c.portal, (Math.floor(i / w) + 2) * w + w - 1 - i % w, `Portail croisé ${String(number)}`);
+        });
     }
 }

@@ -6,13 +6,14 @@ import { validateCampaign } from './gourmandises-validation.js';
 // One interior level per world, every finale, and the three tutorial levels.
 // Worlds 1–3: specials/combinations (also exercised by the unchanged oracles),
 // missing cells, crates and simple ice; 4: drops/exits; 5–6: simple/double ice;
-// 7: chocolate; 8: hedges/flowers; 9: conveyor belts.
+// 7: chocolate; 8: hedges/flowers; 9: conveyor belts; 10: portals; 11: island
+// strawberries; 12: striped bombs. Worlds 10–12 draw after 1–9: earlier samples stay.
 const SAMPLING_SEED = 318;
 const random = new Random(SAMPLING_SEED);
 // Keep an introduction in worlds 6 and 7 as well as their interior/finale:
 // these strata prevent a two-level median from reversing world progression.
 const levels = new Set([1, 2, 3, 101, 121]);
-for (let world = 0; world < 9; world++) {
+for (let world = 0; world < 12; world++) {
     levels.add(world * 20 + 1 + Math.floor(random.next() * 19));
     levels.add(world * 20 + 20);
 }

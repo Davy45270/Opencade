@@ -24,6 +24,8 @@ export async function validateCampaign(indices, { audit = false } = {}) {
         console.log(`${id} OK`);
     }
     assert.equal(regressionFingerprint(undefined, [8, 19, 37, 65, 101], 120), 1440552771, 'Snapshots et événements 1–120 inchangés');
+    // Captured on main before worlds 10–12 (five seeds, six permutations each).
+    assert.equal(regressionFingerprint(undefined, [8, 19, 37, 65, 101], 180), 840467013, 'Snapshots et événements 1–180 inchangés');
     // Load the real scene constructor with only the rendering base replaced.
     // No canvas, rendering loop or browser is created.
     registerHooks({
@@ -54,7 +56,7 @@ export async function validateCampaign(indices, { audit = false } = {}) {
     await checkFingerReplay(sceneModule);
     sceneListeners(sceneModule);
     presentationChecks(await import('../src/games/gourmandises/presentation.ts'));
-    console.log('Entrées réelles 1/2/3/Échap, 180 géométries, décors, objectifs, outils et alerte des coups OK');
+    console.log('Entrées réelles 1/2/3/Échap, 240 géométries, décors, objectifs, outils et alerte des coups OK');
     const mutations = JSON.parse(readFileSync(new URL('./gourmandises-mutations.json', import.meta.url), 'utf8'));
     for (const mutation of mutations) {
         const sourceURL = new URL(`../${mutation.file}`, import.meta.url);
@@ -83,6 +85,7 @@ export async function validateCampaign(indices, { audit = false } = {}) {
     selectCharacter('panda');
     const rows = [];
     let permutations = 0;
+    const childMoves = [];
     for (const index of indices) {
         const level = LEVELS[index];
         const result = measureLevel(index);
@@ -103,6 +106,22 @@ export async function validateCampaign(indices, { audit = false } = {}) {
             assert.ok(endurance.swap(...moves[Math.floor(random.next() * moves.length)]), 'Permutation jouée');
             permutations++;
         }
+        // Discovery for a young child (worlds 10–12): random legal moves, no tool,
+        // no budget. Every seed must end in a victory, never in a dead end.
+        if (index >= 180) for (const seed of [8, 19, 37, 65, 101]) {
+            const child = new Engine('discovery');
+            child.loadLevel(index, seed);
+            const hand = new Random(seed * 7 + index + 1);
+            let played = 0;
+            while (child.status === 'playing' && played < 3000) {
+                const moves = child.validMoves();
+                assert.ok(moves.length > 0, `Découverte sans impasse ${index + 1}/${seed}`);
+                child.swap(...moves[Math.floor(hand.next() * moves.length)]);
+                played++;
+            }
+            assert.equal(child.status, 'won', `Découverte gagnée au hasard ${index + 1}/${seed}`);
+            childMoves.push(played);
+        }
     }
     console.table(rows);
     const sample = (start, end) => rows.filter(r => r.level > start && r.level <= end);
@@ -119,9 +138,15 @@ export async function validateCampaign(indices, { audit = false } = {}) {
     assert.ok(lossRate(100, 120) >= .5, '101–120 : au moins 50 % de défaites aléatoires');
     const gardenWorlds = [120, 140, 160].map(start => median(sample(start, start + 20).map(r => r.median)));
     assert.ok(gardenWorlds[0] <= gardenWorlds[1] && gardenWorlds[1] <= gardenWorlds[2], 'Pression non décroissante des mondes 7–9');
-    console.log(JSON.stringify({ levels: rows.map(row => row.level), seeds: [8, 19, 37, 65, 101], rows, worlds, laterWorlds, gardenWorlds,
+    // Worlds 10–12: every level is already bounded by checkBalance; the choice must matter.
+    const skyWorlds = [180, 200, 220].map(start => median(sample(start, start + 20).map(r => r.median)));
+    for (const pressure of skyWorlds) assert.ok(pressure >= .6 && pressure <= .88, 'Mondes 10–12 : pression 60–88 %');
+    assert.ok(lossRate(180, 240) >= .5, '181–240 : au moins 50 % de défaites aléatoires');
+    console.log(JSON.stringify({ levels: rows.map(row => row.level), seeds: [8, 19, 37, 65, 101], rows, worlds, laterWorlds, gardenWorlds, skyWorlds,
         randomLosses: [losses(0, 10), losses(20, 40), losses(40, 60)], mutations: mutations.length }));
     console.log(`${rows.length * 5} victoires gloutonnes, ${permutations} permutations stables, ${mutations.length} mutations tuées en mémoire.`);
+    if (childMoves.length) console.log(`Découverte au hasard (mondes 10–12) : ${childMoves.length} victoires sur ${childMoves.length}, `
+        + `médiane ${median(childMoves)} coups, maximum ${Math.max(...childMoves)}.`);
 
     const duration = performance.now() - campaignStarted;
     // Shared CPU: elapsed wall time is diagnostic, never a correctness oracle.

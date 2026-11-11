@@ -1,11 +1,11 @@
-/** Compact authored campaign; nine worlds playable, later worlds reserved.
+/** Compact authored campaign; twelve worlds playable, later worlds reserved.
  * Targets and target-colour weights are measured on five seeds, without tools.
  * Every other colour has weight 1. The same bag fills both modes and all heroes.
  */
 export const GAME_NAME = 'Gourmandises';
 export type ObstacleKind = 'crate' | 'ice' | 'vine' | 'chocolate' | 'drop' | 'belt' | 'portal' | 'honey' | 'lock' | 'key';
 export type Objective = { kind: 'collect'; color: number; target: number }
-    | { kind: 'crate' | 'ice' | 'score' | 'drop' | 'chocolate' | 'flower'; target: number };
+    | { kind: 'crate' | 'ice' | 'score' | 'drop' | 'chocolate' | 'flower' | 'fruit'; target: number };
 export interface Level {
     name: string;
     width: number;
@@ -85,7 +85,7 @@ export const WORLDS = Array.from({ length: 15 }, (_, index) => ({
     id: index + 1,
     first: index * 20 + 1,
     last: index * 20 + 20,
-    playable: index < 9,
+    playable: index < 12,
 }));
 const firstLevels: readonly Level[] = rows.map(([name, width, height, target, moves, seed, targetWeight], index) => ({
     name,
@@ -116,7 +116,8 @@ export function difficulty(index: number) {
     return {
         pressure: level.objectives.reduce((sum, o) => sum + o.target, 0) / level.moves,
         colors: level.colors,
-        obstacles: cells.reduce((sum, c) => sum + c.crate + c.ice + (c.chocolate ? 1 : 0) + (c.hedge ? 1 : 0), 0),
+        obstacles: cells.reduce((sum, c) => sum + c.crate + c.ice + (c.chocolate ? 1 : 0) + (c.hedge ? 1 : 0)
+            + (c.bomb ? 1 : 0), 0),
         absent: cells.filter(c => !c.active).length,
         objectives: level.objectives.length,
     };
@@ -129,8 +130,15 @@ export interface Terrain {
     chocolate?: boolean;
     hedge?: boolean;
     belt?: { band: number; direction: 'right' | 'left' | 'down' | 'up' };
+    /** Entry of a portal: index of the linked exit, always on a lower row. */
+    portal?: number;
+    /** Exit of a portal: index of its entry, for the paired drawing. */
+    gate?: number;
+    /** Fixed striped bomb: holds no piece and fires along its row or column. */
+    bomb?: 'row' | 'column';
 }
 export function terrain(level: Level): Terrain[] {
+    if (level.world >= 10) return skyTerrain(level);
     if (level.world >= 7) return gardenTerrain(level);
     if (level.world >= 4) return extendedTerrain(level);
     const { width: w, height: h, world, layout } = level;
@@ -337,8 +345,86 @@ const gardenLevels: Level[] = gardenRows.map(([name, width, height, target, move
     return level;
 });
 
+/** Worlds 10–12: budgets and seeds from the design cards; targets measured on five seeds. */
+const skyRows: readonly (readonly [string, number, number, number, number, number, number])[] = [
+    ["Découverte", 8, 8, 48, 25, 1433339, 2],
+    ["Première collecte", 8, 8, 50, 25, 1441258, 2],
+    ["Virage", 8, 8, 33, 24, 1449177, 2],
+    ["Croisement", 8, 8, 18, 24, 1457096, 1.5],
+    ["Duo", 8, 8, 48, 23, 1465015, 2],
+    ["Raccourci", 8, 8, 45, 23, 1472934, 2],
+    ["Blocage", 8, 8, 30, 22, 1480853, 1.5],
+    ["Cascade", 9, 8, 42, 22, 1488772, 2],
+    ["Détour", 9, 8, 39, 21, 1496691, 2],
+    ["Palier", 9, 8, 34, 21, 1504610, 1.5],
+    ["Symétrie", 9, 8, 25, 20, 1512529, 1.5],
+    ["Séparation", 9, 8, 29, 20, 1520448, 2],
+    ["Ouverture", 9, 8, 37, 19, 1528367, 2],
+    ["Chaîne", 9, 8, 36, 19, 1536286, 2],
+    ["Choix", 9, 9, 40, 18, 1544205, 1.5],
+    ["Pression douce", 9, 9, 52, 18, 1552124, 2.5],
+    ["Récompense", 9, 9, 37, 17, 1560043, 1.5],
+    ["Maîtrise", 9, 9, 30, 17, 1567962, 1.5],
+    ["Avant-finale", 9, 9, 36, 16, 1575881, 2],
+    ["Finale", 9, 9, 34, 16, 1583800, 1.5],
+    ["Découverte", 8, 8, 10, 25, 1591719, 2],
+    ["Première collecte", 8, 8, 10, 25, 1599638, 2],
+    ["Virage", 8, 8, 7, 24, 1607557, 2],
+    ["Croisement", 8, 8, 7, 24, 1615476, 1.5],
+    ["Duo", 8, 8, 9, 23, 1623395, 2],
+    ["Raccourci", 8, 8, 9, 23, 1631314, 2],
+    ["Blocage", 8, 8, 9, 22, 1639233, 2],
+    ["Cascade", 9, 8, 8, 22, 1647152, 2],
+    ["Détour", 9, 8, 7, 21, 1655071, 2],
+    ["Palier", 9, 8, 7, 21, 1662990, 2],
+    ["Symétrie", 9, 8, 6, 20, 1670909, 2],
+    ["Séparation", 9, 8, 6, 20, 1678828, 2],
+    ["Ouverture", 9, 8, 7, 19, 1686747, 2],
+    ["Chaîne", 9, 8, 6, 19, 1694666, 1],
+    ["Choix", 9, 9, 7, 18, 1702585, 2],
+    ["Pression douce", 9, 9, 5, 18, 1710504, 1.5],
+    ["Récompense", 9, 9, 5, 17, 1718423, 1.5],
+    ["Maîtrise", 9, 9, 6, 17, 1726342, 1.5],
+    ["Avant-finale", 9, 9, 4, 16, 1734261, 2.5],
+    ["Finale", 9, 9, 5, 16, 1742180, 1.5],
+    ["Découverte", 8, 8, 80, 25, 1750099, 2],
+    ["Première collecte", 8, 8, 118, 25, 1758018, 2.5],
+    ["Virage", 8, 8, 34, 24, 1765937, 2],
+    ["Croisement", 8, 8, 37, 24, 1773856, 2],
+    ["Duo", 8, 8, 79, 23, 1781775, 2],
+    ["Raccourci", 8, 8, 74, 23, 1789694, 2],
+    ["Blocage", 8, 8, 61, 22, 1797613, 2],
+    ["Cascade", 9, 8, 76, 22, 1805532, 2],
+    ["Détour", 9, 8, 61, 21, 1813451, 2],
+    ["Palier", 9, 8, 100, 21, 1821370, 2.5],
+    ["Symétrie", 9, 8, 61, 20, 1829289, 2],
+    ["Séparation", 9, 8, 41, 20, 1837208, 2],
+    ["Ouverture", 9, 8, 63, 19, 1845127, 2],
+    ["Chaîne", 9, 8, 58, 19, 1853046, 2],
+    ["Choix", 9, 9, 59, 18, 1860965, 1.5],
+    ["Pression douce", 9, 9, 77, 18, 1868884, 2],
+    ["Récompense", 9, 9, 59, 17, 1876803, 1.5],
+    ["Maîtrise", 9, 9, 66, 17, 1884722, 2],
+    ["Avant-finale", 9, 9, 51, 16, 1892641, 1.5],
+    ["Finale", 9, 9, 85, 16, 1900560, 2],
+];
+const skyLevels: Level[] = skyRows.map(([name, width, height, target, moves, seed, targetWeight], index) => {
+    const world = 10 + Math.floor(index / 20);
+    const layout = index % 20;
+    const level: Level = {
+        name, width, height, moves, seed, world, layout, targetWeight, colors: world === 11 ? 5 : 6, finale: layout === 19,
+        // Stars cross the portals, strawberries leave the islands, hearts fill the workshop.
+        objectives: world === 11 ? [{ kind: 'fruit', target }]
+            : [{ kind: 'collect', color: world === 10 ? 1 : 5, target }],
+    };
+    if (level.finale) level.objectives.push(world === 12
+        ? { kind: 'crate', target: terrain(level).reduce((sum, cell) => sum + cell.crate, 0) }
+        : { kind: 'collect', color: world === 10 ? 4 : 1, target: 24 });
+    return level;
+});
+
 // Appending cannot change the original level objects or their random streams.
-export const LEVELS: readonly Level[] = [...firstLevels, ...laterLevels, ...gardenLevels];
+export const LEVELS: readonly Level[] = [...firstLevels, ...laterLevels, ...gardenLevels, ...skyLevels];
 
 function extendedTerrain(level: Level): Terrain[] {
     const { width: w, height: h, world, layout } = level;
@@ -407,4 +493,92 @@ function gardenTerrain(level: Level): Terrain[] {
         }
         return cell;
     });
+}
+
+/** Shared silhouettes of the later worlds, before each world's own features. */
+function silhouette(level: Level, x: number, y: number): boolean {
+    const { width: w, height: h, layout } = level;
+    const mx = Math.floor(w / 2);
+    const my = Math.floor(h / 2);
+    if (layout === 2) return Math.abs(x - mx) <= 1 || y === 0 || y === h - 1;
+    if (layout === 3) return Math.abs(x - mx) <= 1 || Math.abs(y - my) <= 1;
+    if (layout === 11) return x !== mx || y === my;
+    if (layout === 6 && y === my && (x === 1 || x === w - 2)) return false;
+    if (layout % 5 === 2 && x === 0 && y === 0) return false;
+    return !(layout % 5 === 3 && y === 0 && (x < 2 || x >= w - 2));
+}
+
+function skyTerrain(level: Level): Terrain[] {
+    const { width: w, height: h, world, layout } = level;
+    const mx = Math.floor(w / 2);
+    // Worlds 10 and 11 are split by an empty row: two boards, or two islands.
+    const gap = Math.floor(h / 2);
+    const cells = Array.from({ length: w * h }, (_, i): Terrain => {
+        const x = i % w;
+        const y = Math.floor(i / w);
+        let active = silhouette(level, x, y);
+        if (world === 10 && y === gap) active = false;
+        if (world === 11) {
+            // Islands float apart: the upper one leans left, the lower one right;
+            // from the seventh level a cleft splits the upper island in two.
+            if (y === gap || (y < gap && x === w - 1) || (y > gap && x === 0)) active = false;
+            if (layout >= 7 && y < gap && x === mx) active = false;
+        }
+        return { active, crate: 0, ice: 0 };
+    });
+    const at = (x: number, y: number): Terrain | undefined => x >= 0 && x < w && y >= 0 && y < h ? cells[y * w + x] : undefined;
+    if (world === 10) {
+        // Each lower column of the upper board pours into the mirrored column below.
+        for (let x = 0; x < w; x++) {
+            const entry = at(x, gap - 1);
+            const exit = at(w - 1 - x, gap + 1);
+            if (!entry?.active || !exit?.active) continue;
+            entry.portal = (gap + 1) * w + w - 1 - x;
+            exit.gate = (gap - 1) * w + x;
+        }
+    }
+    if (world === 11) {
+        // Every vertical run of three or more island cells ends on its own outlet.
+        cells.forEach((cell, i) => {
+            const x = i % w;
+            const y = Math.floor(i / w);
+            const run = [0, 1, 2].every(k => at(x, y - k)?.active);
+            if (cell.active && !at(x, y + 1)?.active && run) cell.exit = true;
+        });
+    }
+    if (world === 12) {
+        // A wooden line crosses the workshop; a striped bomb waits in its middle.
+        const row = Math.floor(h / 2);
+        for (let x = 0; x < w; x++) {
+            const cell = at(x, row);
+            if (cell?.active) cell.crate = 1;
+        }
+        const bomb = at(mx, row) ?? at(mx, row - 1);
+        if (bomb?.active) {
+            bomb.crate = 0;
+            bomb.bomb = 'row';
+        }
+        if (layout >= 7) {
+            // A second, vertical line with its own bomb: two blasts can chain.
+            const column = mx - 1;
+            for (let y = 0; y < h; y++) {
+                const cell = at(column, y);
+                if (cell?.active && y !== row) cell.crate = 1;
+            }
+            // It sits where the two lines cross: the row blast fires it.
+            const second = at(column, row);
+            if (second?.active) {
+                second.crate = 0;
+                second.bomb = 'column';
+            }
+        }
+        if (layout >= 14) {
+            // Mastery: two free bombs near the right edge feed the chain.
+            for (const [x, y] of [[w - 2, 1], [w - 2, h - 2]] as const) {
+                const cell = at(x, y);
+                if (cell?.active && !cell.crate) cell.bomb = y === 1 ? 'column' : 'row';
+            }
+        }
+    }
+    return cells;
 }

@@ -76,7 +76,7 @@ export class Engine {
             const piece = this.state.cells[middle]?.piece;
             if (piece) piece.special = level.finale ? 'color' : 'row';
         }
-        if (level.world === 4) {
+        if (level.world === 4 || level.world === 11) {
             this.state.dropped = 0;
             this.supplyDrops();
             if (!this.validMoves(true).length) this.shuffle();
@@ -111,7 +111,10 @@ export class Engine {
                 || ![0, 1, 2].includes(c.ice) || ((!c.active || c.crate > 0 || c.chocolate) && c.piece !== null)
                 || (c.piece !== null && (!Number.isInteger(c.piece.color) || c.piece.color < 0
                     || c.piece.color >= state.colors || (c.piece.drop !== undefined
-                        && (!c.piece.drop || c.piece.color !== 2 || c.piece.special !== undefined)))))) {
+                        && (!c.piece.drop || (c.piece.color !== 2 && c.piece.color !== 0) || c.piece.special !== undefined)))))
+            // A striped bomb is a fixed device: it never holds a piece.
+            || state.cells.some(c => (c.bomb !== undefined && (!['row', 'column'].includes(c.bomb) || c.piece !== null))
+                || (c.portal !== undefined && !Number.isInteger(c.portal)))) {
             throw new Error('État invalide');
         }
         this.state = structuredClone(state);
@@ -161,6 +164,13 @@ export class Engine {
         if (draw < weight) return target.color;
         const other = Math.floor(draw - weight);
         return other >= target.color ? other + 1 : other;
+    }
+    /** Island strawberries can be slid by hand: a swap with one of them never
+     * needs an alignment. Golden drops (world 4) keep the ordinary rule. */
+    private pushes(a: number, b: number): boolean {
+        const first = this.state.cells[a]?.piece;
+        const second = this.state.cells[b]?.piece;
+        return !!first?.drop !== !!second?.drop && this.state.objectives.some(o => o.kind === 'fruit');
     }
     private movable(i: number): boolean {
         const c = this.state.cells[i];
@@ -232,7 +242,7 @@ export class Engine {
                 if (!this.adjacent(a, b) || !this.movable(b)) continue;
                 const ca = required(this.state.cells[a]);
                 const cb = required(this.state.cells[b]);
-                if (ca.piece?.special || cb.piece?.special) {
+                if (ca.piece?.special || cb.piece?.special || this.pushes(a, b)) {
                     moves.push([a, b]);
                     if (firstOnly) return moves;
                     continue;
@@ -260,7 +270,8 @@ export class Engine {
                 this.emit('obstacle', [i]);
             });
         }
-        const slots = this.state.cells.flatMap((c, i) => c.active && !c.crate && !c.chocolate && !c.piece?.drop ? [i] : []);
+        const slots = this.state.cells.flatMap((c, i) => c.active && !c.crate && !c.chocolate && !c.piece?.drop ? [i] : [])
+            .filter(i => !this.state.cells[i]?.bomb);
         const inventory = slots.flatMap(i => {
             const piece = this.state.cells[i]?.piece;
             return piece ? [{ ...piece }] : [];
@@ -286,7 +297,7 @@ export class Engine {
             for (let i = 0; i < this.state.cells.length; i++) {
                 const c = required(this.state.cells[i]);
                 if (c.piece?.drop) continue;
-                if (!c.active || c.crate || c.chocolate) {
+                if (!c.active || c.crate || c.chocolate || c.bomb) {
                     c.piece = null;
                     continue;
                 }
@@ -316,16 +327,24 @@ export class Engine {
         const cb = required(this.state.cells[b]);
         [ca.piece, cb.piece] = [cb.piece, ca.piece];
         const groups = this.matches();
-        if (!ca.piece?.special && !cb.piece?.special && !groups.some(g => g.cells.includes(a) || g.cells.includes(b))) {
+        if (!ca.piece?.special && !cb.piece?.special && !this.pushes(a, b)
+            && !groups.some(g => g.cells.includes(a) || g.cells.includes(b))) {
             [ca.piece, cb.piece] = [cb.piece, ca.piece];
             this.emit('refused', [a, b]);
             return false;
         }
+        const pushed = this.pushes(a, b);
         const chocolateBefore = this.state.broken.chocolate ?? 0;
         this.state.moves++;
         this.state.idle = 0;
         this.emit('swap', [a, b]);
         if (ca.piece?.special || cb.piece?.special) this.combine(a, b);
+        if (pushed) {
+            // A strawberry slid onto its outlet leaves at once; the column then falls.
+            const delivered = this.state.dropped ?? 0;
+            this.deliverDrops();
+            if ((this.state.dropped ?? 0) > delivered) this.gravity();
+        }
         const movingTerrain = this.state.cells.some(cell => cell.chocolate || cell.belt);
         if (!movingTerrain) {
             this.resolve(b, a);
@@ -396,10 +415,12 @@ export class Engine {
         }
         const crates = new Set<number>();
         const chocolates = new Set<number>();
+        const bombs = new Set<number>();
         for (const i of hit) {
             const cell = this.state.cells[i];
             if (!cell?.active) continue;
             if (cell.chocolate) chocolates.add(i);
+            if (cell.bomb) bombs.add(i);
             if (cell.hedge) {
                 cell.hedge = false;
                 this.state.released = (this.state.released ?? 0) + 1;
@@ -413,6 +434,7 @@ export class Engine {
             // A protected new special still belongs to the adjacent match.
             if (cell.piece && !cell.piece.drop) {
                 for (const j of this.neighbors(i)) {
+                    if (this.state.cells[j]?.bomb) bombs.add(j);
                     if (this.state.cells[j]?.chocolate) chocolates.add(j);
                     if (!protectedCells.has(i) && this.state.cells[j]?.crate) crates.add(j);
                 }
@@ -439,10 +461,26 @@ export class Engine {
             this.emit('obstacle', [i], multiplier);
         }
         this.emit('match', [...hit].filter(i => !protectedCells.has(i) && !this.state.cells[i]?.piece?.drop), multiplier);
+        this.fireBombs(bombs, multiplier);
         if (second.length) {
             this.gravity();
             this.clear(second, multiplier);
         }
+    }
+    /** A touched striped bomb leaves its cell and sweeps its whole row or column.
+     * The sweep is a new wave: it damages crates and may fire further bombs. */
+    private fireBombs(bombs: Set<number>, multiplier: number): void {
+        const blast: number[] = [];
+        for (const i of bombs) {
+            const cell = required(this.state.cells[i]);
+            const direction = cell.bomb;
+            if (!direction) continue;
+            delete cell.bomb;
+            this.emit('obstacle', [i], multiplier);
+            this.emit('special', [i], multiplier);
+            blast.push(...this.line(i, direction === 'column'));
+        }
+        if (blast.length) this.clear(blast, multiplier);
     }
     /** Outlets consume objects immediately; objects are never cleared as sweets. */
     private deliverDrops(): void {
@@ -455,13 +493,17 @@ export class Engine {
         }
     }
     private supplyDrops(): void {
-        const goal = this.state.objectives.find(o => o.kind === 'drop');
+        const goal = this.state.objectives.find(o => o.kind === 'drop' || o.kind === 'fruit');
         if (!goal) return;
         const remaining = goal.target - (this.state.dropped ?? 0);
         const aboard = this.state.cells.filter(c => c.piece?.drop).length;
         const capacity = levelAt(this.state.level).layout === 2 ? 2 : 3;
         const needed = Math.min(capacity, remaining) - aboard;
         if (needed <= 0) return;
+        if (goal.kind === 'fruit') {
+            this.supplyFruit(needed);
+            return;
+        }
         const { width: w, height: h, cells } = this.state;
         const entries: number[] = [];
         for (let x = 0; x < w; x++) {
@@ -477,7 +519,87 @@ export class Engine {
             this.emit('fill', [i], 1, { to: i, from: i - w, piece: { color: 2, drop: true } });
         }
     }
+    /** Islands: every run of three or more cells ending on an outlet is fed in turn. */
+    private supplyFruit(needed: number): void {
+        const { width: w, height: h, cells } = this.state;
+        const entries: number[] = [];
+        for (let x = 0; x < w; x++) {
+            let run: number[] = [];
+            for (let y = 0; y <= h; y++) {
+                const c = y < h ? cells[y * w + x] : undefined;
+                if (c?.active && !c.crate && !c.chocolate && !c.bomb) {
+                    run.push(y * w + x);
+                    continue;
+                }
+                const top = run[0];
+                // A special at the head is kept: the strawberry waits for the next fall.
+                if (top !== undefined && run.length > 2 && cells[required(run.at(-1))]?.exit
+                    && !cells[top]?.piece?.special && !run.some(i => cells[i]?.piece?.drop)) entries.push(top);
+                run = [];
+            }
+        }
+        // Columns alternate between the upper and lower islands; rotate by deliveries.
+        const start = entries.length ? (this.state.dropped ?? 0) % entries.length : 0;
+        for (const i of [...entries.slice(start), ...entries.slice(0, start)].slice(0, needed)) {
+            required(cells[i]).piece = { color: 0, drop: true };
+            this.emit('fill', [i], 1, { to: i, from: i - w, piece: { color: 0, drop: true } });
+        }
+    }
+    /** Portals chain column runs: a run ending on an entry continues below its exit.
+     * Fills enter at the head of each chain; animation sources stay in the
+     * destination column, as if the piece came out of the portal. */
+    private portalGravity(): void {
+        const { cells, width: w, height: h } = this.state;
+        const runs: number[][] = [];
+        for (let x = 0; x < w; x++) {
+            let run: number[] = [];
+            for (let y = 0; y <= h; y++) {
+                const c = y < h ? cells[y * w + x] : undefined;
+                if (c?.active && !c.crate && !c.chocolate && !c.bomb) run.push(y * w + x);
+                else {
+                    if (run.length) runs.push(run);
+                    run = [];
+                }
+            }
+        }
+        const byHead = new Map(runs.map(run => [required(run[0]), run]));
+        const next = new Map<number[], number[]>();
+        const fed = new Set<number[]>();
+        for (const run of runs) {
+            const exit = cells[required(run.at(-1))]?.portal;
+            const target = exit === undefined ? undefined : byHead.get(exit);
+            if (!target || fed.has(target) || exit === undefined || exit <= required(run.at(-1))) continue;
+            next.set(run, target);
+            fed.add(target);
+        }
+        for (const head of runs) {
+            if (fed.has(head)) continue;
+            const chain: number[] = [];
+            const local: number[] = [];
+            for (let run: number[] | undefined = head; run; run = next.get(run)) {
+                chain.push(...run);
+                local.push(...run.map((_, k) => k));
+            }
+            const sources = chain.flatMap((i, position) => {
+                const piece = required(cells[i]).piece;
+                return piece ? [{ piece, position }] : [];
+            });
+            for (let j = chain.length - 1; j >= 0; j--) {
+                const i = required(chain[j]);
+                const source = sources.length ? sources.splice(sources.length - 1, 1)[0] : undefined;
+                const filled = source?.piece ?? { color: this.nextColor() };
+                required(cells[i]).piece = filled;
+                const distance = Math.min(source ? j - source.position : Infinity, required(local[j]) + 1);
+                if (distance > 0) this.emit(source ? 'fall' : 'fill', [i], 1, { from: i - distance * w, to: i, piece: { ...filled } });
+            }
+        }
+    }
     gravity(): void {
+        if (this.state.cells.some(cell => cell.portal !== undefined)) {
+            this.portalGravity();
+            this.supplyDrops();
+            return;
+        }
         const { cells, width: w, height: h } = this.state;
         for (let x = 0; x < w; x++) {
             let segment: number[] = [];
@@ -503,7 +625,8 @@ export class Engine {
             };
             for (let y = 0; y < h; y++) {
                 const i = y * w + x;
-                if (!required(cells[i]).active || required(cells[i]).crate || required(cells[i]).chocolate) flush();
+                if (!required(cells[i]).active || required(cells[i]).crate || required(cells[i]).chocolate
+                    || required(cells[i]).bomb) flush();
                 else segment.push(i);
             }
             flush();
@@ -572,6 +695,7 @@ export class Engine {
     progress(objective: Objective): number {
         if (objective.kind === 'collect') return this.state.collected[objective.color] ?? 0;
         if (objective.kind === 'drop') return this.state.dropped ?? 0;
+        if (objective.kind === 'fruit') return this.state.dropped ?? 0;
         if (objective.kind === 'flower') return this.state.released ?? 0;
         if (objective.kind === 'chocolate') return this.state.broken.chocolate ?? 0;
         if (objective.kind === 'score') return this.state.score;
@@ -621,7 +745,7 @@ export function greedyMove(engine: Engine): [number, number] | null {
         const descent = (state: State): number => state.cells.reduce((sum, cell, i) => sum
             + (cell.piece?.drop ? Math.floor(i / state.width) : 0), 0)
             + (state.dropped ?? 0) * state.height;
-        const dropGain = engine.state.objectives.some(o => o.kind === 'drop')
+        const dropGain = engine.state.objectives.some(o => o.kind === 'drop' || o.kind === 'fruit')
             ? descent(copy.state) - descent(engine.state) : 0;
         const rank = [gain, dropGain, copy.state.score - engine.state.score];
         const firstDifference = rank.findIndex((part, i) => part !== value[i]);

@@ -145,3 +145,35 @@ test('canyon des flèches, boucle et permutation réelle sur le tapis', async ({
     await page.screenshot({ path: `${captures}/gourmandises-belt-after.png` });
     expect(errors).toEqual([]);
 });
+
+// Worlds 10–12 through the real board: one ordinary gesture per new mechanic.
+test('portes, îles et atelier : portail, fraise et bombe au doigt', async ({ page, isMobile }) => {
+    const captures = `test-results/screenshots/${isMobile ? 'mobile' : 'desktop'}`;
+    const errors: string[] = [];
+    page.on('pageerror', error => errors.push(error.message));
+    page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+    await page.goto('/?test=1#/gourmandises');
+    await ready(page, isMobile);
+    for (const [scenario, level] of [['portal', 180], ['fruit', 200], ['bomb', 220]] as const) {
+        await page.evaluate(level => window.__GOURMANDISES_TEST__?.loadLevel(level, 6), level);
+        await expect.poll(() => page.evaluate(() => window.__GOURMANDISES_TEST__?.read().level)).toBe(level);
+        await page.screenshot({ path: `${captures}/gourmandises-level${String(level + 1)}.png` });
+        const pair = await page.evaluate(name => window.__GOURMANDISES_TEST__?.scenario(name) ?? null, scenario);
+        if (!pair) throw new Error(`Permutation ${scenario} absente`);
+        const before = await page.evaluate(() => window.__GOURMANDISES_TEST__?.read());
+        if (!before) throw new Error('État absent');
+        await swap(page, pair, isMobile);
+        await expect.poll(() => page.evaluate(() => window.__GOURMANDISES_TEST__?.read().moves)).toBe(before.moves + 1);
+        const after = await page.evaluate(() => window.__GOURMANDISES_TEST__?.read());
+        if (scenario === 'portal') {
+            expect(before.cells.some(cell => cell.portal !== undefined)).toBe(true);
+            expect(after?.cells.map(cell => cell.gate)).toEqual(before.cells.map(cell => cell.gate));
+        } else if (scenario === 'fruit') {
+            expect(after?.dropped ?? 0).toBeGreaterThan(before.dropped ?? 0);
+        } else {
+            expect(after?.cells.filter(cell => cell.bomb).length).toBeLessThan(before.cells.filter(cell => cell.bomb).length);
+        }
+        await page.screenshot({ path: `${captures}/gourmandises-${scenario}-after.png` });
+    }
+    expect(errors).toEqual([]);
+});

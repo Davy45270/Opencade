@@ -65,7 +65,7 @@ Phone portrait captures taken during play (`node scripts/screenshots.js` regener
 </tr>
 <tr>
 <td align="center" width="33%"><img src="docs/screenshots/game-pepites.webp" alt="Pépites" width="240"><br><b>Pépites</b><br>Dig through the mine, dodge falling boulders and gather every nugget.</td>
-<td align="center" width="33%"><img src="docs/screenshots/game-gourmandises.webp" alt="Gourmandises" width="240"><br><b>Gourmandises</b><br>Swap treats to line up three, across 180 levels and nine worlds.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-gourmandises.webp" alt="Gourmandises" width="240"><br><b>Gourmandises</b><br>Swap treats to line up three, across 240 levels and twelve worlds.</td>
 <td align="center" width="33%"><img src="docs/screenshots/game-collier.webp" alt="Le Collier du Singe" width="240"><br><b>Le Collier du Singe</b><br>Shoot beads into the necklace before it reaches the basket.</td>
 </tr>
 <tr>
@@ -262,7 +262,7 @@ Le choix du personnage affiche son nom, son sous-titre et sa devise.
 
 **Pépites** (`pepites`): 30 original turn-based mines; dig soil, dodge falling and rolling boulders, push them aside, gather nuggets and reach the exit; directions on both thumbs, Étai freezes the rocks for twelve turns. Node validation: `npm run test:node -- --only=validate-pepites.js`.
 
-Gourmandises adds 180 seeded match-three levels, two modes, cascading specials, golden cargo, double ice, spreading chocolate, trapped flowers and looping conveyors; five-seed balance, unchanged states for levels 1–120 and 45 in-memory mutation checks.
+Gourmandises adds 240 seeded match-three levels, two modes, cascading specials, golden cargo, double ice, spreading chocolate, trapped flowers, looping conveyors, rainbow portals between two boards, strawberries carried off floating islands and striped workshop bombs; five-seed balance, unchanged states for levels 1–180 and 87 in-memory mutation checks.
 
 **Les Artificiers** (`artificiers`): thirty original turn-based terrain duels,
 training targets and survival/structure missions across a green archipelago,

@@ -67,7 +67,7 @@ Captures en portrait sur téléphone, prises en cours de partie (`node scripts/s
 </tr>
 <tr>
 <td align="center" width="33%"><img src="docs/screenshots/game-pepites.webp" alt="Pépites" width="240"><br><b>Pépites</b><br>Creuser la mine, esquiver les rochers qui tombent et ramasser chaque pépite.</td>
-<td align="center" width="33%"><img src="docs/screenshots/game-gourmandises.webp" alt="Gourmandises" width="240"><br><b>Gourmandises</b><br>Échanger les friandises pour en aligner trois, sur 180 niveaux et neuf mondes.</td>
+<td align="center" width="33%"><img src="docs/screenshots/game-gourmandises.webp" alt="Gourmandises" width="240"><br><b>Gourmandises</b><br>Échanger les friandises pour en aligner trois, sur 240 niveaux et douze mondes.</td>
 <td align="center" width="33%"><img src="docs/screenshots/game-collier.webp" alt="Le Collier du Singe" width="240"><br><b>Le Collier du Singe</b><br>Tirer des perles dans le collier avant qu’il n’atteigne le panier.</td>
 </tr>
 <tr>
@@ -263,7 +263,7 @@ Le choix du personnage affiche son nom, son sous-titre et sa devise.
 
 **Le Collier du Singe** (`collier`) : 30 niveaux de perles en chaîne ; viser partout et relâcher pour tirer, tap sur le tireur ou ⇄/X pour échanger. Validation Node : `npm run test:node -- --only=validate-collier.js`.
 
-Gourmandises ajoute 180 niveaux à graine, deux modes, des spéciaux, des objets dorés, de la glace double, du chocolat qui s’étend, des fleurs prisonnières et des tapis bouclés ; équilibre sur cinq graines, états inchangés des niveaux 1–120 et 45 mutations en mémoire.
+Gourmandises ajoute 240 niveaux à graine, deux modes, des spéciaux, des objets dorés, de la glace double, du chocolat qui s’étend, des fleurs prisonnières, des tapis bouclés, des portails arc-en-ciel entre deux plateaux, des fraises à descendre des îles suspendues et des bombes rayées d’atelier ; équilibre sur cinq graines, états inchangés des niveaux 1–180 et 87 mutations en mémoire.
 
 **Les Artificiers** (`artificiers`) : trente duels au tour par tour, cibles
 d’entraînement et missions de survie ou de démolition, dans un archipel vert,

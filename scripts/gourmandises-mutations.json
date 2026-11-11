@@ -432,5 +432,180 @@
     "before": "    c.clip();",
     "after": "    // Clip removed.",
     "oracle": "presentationChecks"
+  },
+  {
+    "name": "portail sans lien",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "next.set(run, target);",
+    "after": "// Link removed.",
+    "oracle": "G30"
+  },
+  {
+    "name": "portail remontant accepté",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "exit <= required(run.at(-1))",
+    "after": "exit < 0",
+    "oracle": "G30"
+  },
+  {
+    "name": "gouttes du monde 4 poussées à la main",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "this.state.objectives.some(o => o.kind === 'fruit')",
+    "after": "true",
+    "oracle": "G31"
+  },
+  {
+    "name": "fraise posée sur un spécial",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "!cells[top]?.piece?.special && ",
+    "after": "",
+    "oracle": "G31"
+  },
+  {
+    "name": "îles toujours servies dans le même ordre",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "(this.state.dropped ?? 0) % entries.length",
+    "after": "0",
+    "oracle": "G31"
+  },
+  {
+    "name": "fraise d’île devenue goutte",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "required(cells[i]).piece = { color: 0, drop: true };",
+    "after": "required(cells[i]).piece = { color: 2, drop: true };",
+    "oracle": "G31"
+  },
+  {
+    "name": "fraises livrées non comptées",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "if (objective.kind === 'fruit') return this.state.dropped ?? 0;",
+    "after": "",
+    "oracle": "G31"
+  },
+  {
+    "name": "bombe sourde aux alignements voisins",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "if (this.state.cells[j]?.bomb) bombs.add(j);",
+    "after": "",
+    "oracle": "G32"
+  },
+  {
+    "name": "bombe insensible aux coups directs",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "if (cell.bomb) bombs.add(i);",
+    "after": "",
+    "oracle": "G32"
+  },
+  {
+    "name": "bombe balayant le mauvais axe",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "blast.push(...this.line(i, direction === 'column'));",
+    "after": "blast.push(...this.line(i, direction === 'row'));",
+    "oracle": "G32"
+  },
+  {
+    "name": "gravité traversant la bombe",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "|| required(cells[i]).bomb) flush();",
+    "after": ") flush();",
+    "oracle": "G32"
+  },
+  {
+    "name": "rebattage dans la bombe",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "if (!c.active || c.crate || c.chocolate || c.bomb) {",
+    "after": "if (!c.active || c.crate || c.chocolate) {",
+    "oracle": "G32"
+  },
+  {
+    "name": "bombe chargée d’une pièce acceptée",
+    "file": "src/engines/gourmandises/engine.ts",
+    "before": "(c.bomb !== undefined && (!['row', 'column'].includes(c.bomb) || c.piece !== null))",
+    "after": "false",
+    "oracle": "G32"
+  },
+  {
+    "name": "portails non croisés",
+    "file": "src/engines/gourmandises/levels.ts",
+    "before": "entry.portal = (gap + 1) * w + w - 1 - x;",
+    "after": "entry.portal = (gap + 1) * w + x;",
+    "oracle": "geometryChecks"
+  },
+  {
+    "name": "bombe de rangée posée en colonne",
+    "file": "src/engines/gourmandises/levels.ts",
+    "before": "bomb.bomb = 'row';",
+    "after": "bomb.bomb = 'column';",
+    "oracle": "geometryChecks"
+  },
+  {
+    "name": "sorties sur des cases isolées",
+    "file": "src/engines/gourmandises/levels.ts",
+    "before": "const run = [0, 1, 2].every(k => at(x, y - k)?.active);",
+    "after": "const run = true;",
+    "oracle": "geometryChecks"
+  },
+  {
+    "name": "rayures de bombe inversées",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "if (direction === 'row') c.fillRect(",
+    "after": "if (direction !== 'row') c.fillRect(",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "anneaux de portail inversés",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "const cy = y + unit * (role === 'in' ? .84 : .16);",
+    "after": "const cy = y + unit * (role === 'in' ? .16 : .84);",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "fraise d’île en goutte",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "drawPiece(c, x, y, radius * .9, 0);",
+    "after": "drawPiece(c, x, y, radius * .9, 2);",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "trois ciels identiques",
+    "file": "src/games/gourmandises/presentation.ts",
+    "before": "'#9fd8ff', '#7ec3f5', '#d7a6e8'][world]",
+    "after": "'#9fd8ff', '#9fd8ff', '#9fd8ff'][world]",
+    "oracle": "presentationChecks"
+  },
+  {
+    "name": "bombe invisible",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "if (cell.bomb) drawBomb(c, x, y, b.unit, cell.bomb);",
+    "after": "",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "sortie de portail invisible",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "if (cell.gate !== undefined) drawPortal(c, x, y, b.unit, cell.gate % s.width, 'out');",
+    "after": "",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "fraise d’île dessinée en goutte",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "if (cell.piece.drop && cell.piece.color === 0) drawFruitCargo",
+    "after": "if (cell.piece.drop && cell.piece.color === 9) drawFruitCargo",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "livraison de fraise en goutte",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "if (fruit) drawFruitCargo(c, x, y, b.unit * 0.34);",
+    "after": "if (!fruit) drawFruitCargo(c, x, y, b.unit * 0.34);",
+    "oracle": "sceneFeedback"
+  },
+  {
+    "name": "scénario portail hors des portes",
+    "file": "src/games/gourmandises/scene.ts",
+    "before": "const later = { portal: 180, fruit: 200, bomb: 220 }",
+    "after": "const later = { portal: 0, fruit: 200, bomb: 220 }",
+    "oracle": "sceneListeners"
   }
 ]

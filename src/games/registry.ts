@@ -90,7 +90,7 @@ export const games: readonly GameDefinition[] = [
         demo: gourmandisesDemo,
         id: 'gourmandises',
         name: GAME_NAME,
-        levelCount: 180,
+        levelCount: 240,
         realtime: false,
         keyboardHelp: 'Flèches : curseur · Espace : choisir puis flèche : permuter · 1/2/3 : outils · P/Échap : pause',
         touchHelp: 'Glisser vers une voisine ou toucher deux pièces · Outil puis case · Indice après 5 s en Découverte',

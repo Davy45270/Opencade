@@ -146,6 +146,46 @@ export function sceneFeedback(module) {
         assert.equal(scene.beltClock, 100, 'Horloge fixe en mouvement réduit');
         scene.reducedMotion = false;
 
+        // Worlds 10–12: portal rings in pair colours, workshop bombs and island strawberries.
+        scene.engine = fixture();
+        scene.engine.state.cells[12].portal = 29;
+        scene.engine.state.cells[29].gate = 12;
+        scene.engine.state.cells[16] = { active: true, crate: 0, ice: 0, bomb: 'column', piece: null };
+        scene.engine.state.cells[33].piece = { color: 0, drop: true };
+        scene.falls.clear();
+        scene.deliveries = [];
+        scene.animation = 0;
+        commands.length = 0;
+        scene.draw();
+        const rings = commands.filter(c => c.op === 'ellipse' && c.args[3] === b.unit * .12);
+        assert.deepEqual(rings.map(c => c.args[1]), [b.y + 2 * b.unit + b.unit * .84, b.y + 4 * b.unit + b.unit * .16], 'Entrée et sortie dessinées');
+        const ringStrokes = commands.filter(c => c.op === 'stroke' && c.stroke === '#ff638a');
+        assert.ok(ringStrokes.length >= 2, 'Même couleur aux deux bouts');
+        assert.ok(commands.some(c => c.op === 'fill' && c.fill === '#6a3f8f'), 'Bombe dessinée');
+        assert.equal(commands.filter(c => c.op === 'fillRect' && c.fill === '#ffd35a' && c.args[3] > c.args[2]).length, 2, 'Bombe de colonne : rayures verticales');
+        const cargoAt = commands.findIndex(c => c.op === 'fill' && c.fill === '#eaa827');
+        assert.ok(cargoAt >= 0, 'Fraise d’île dessinée');
+        assert.ok(!commands.some(c => c.op === 'fill' && c.fill === '#eaa827'
+            && commands[commands.indexOf(c) - 1]?.op === 'bezierCurveTo'), 'Pas une goutte dorée');
+        // A delivered island strawberry keeps its own drawing during its path.
+        scene.engine = fixture();
+        scene.engine.state.objectives = [{ kind: 'fruit', target: 3 }];
+        scene.engine.state.cells[7].piece = { color: 0, drop: true };
+        scene.engine.state.cells[13].exit = true;
+        scene.engine.state.cells[13].piece = { color: 3 };
+        scene.motionOrigin = scene.engine.state.cells.map(cell => cell.piece);
+        assert.ok(scene.engine.swap(7, 13));
+        assert.equal(scene.engine.state.dropped, 1);
+        scene.feedback();
+        scene.animation = 140;
+        commands.length = 0;
+        scene.draw();
+        const delivered = commands.filter(c => c.op === 'fill' && c.fill === '#eaa827');
+        assert.equal(delivered.length, 1, 'Fraise livrée animée');
+        assert.ok(!commands.some(c => c.op === 'bezierCurveTo' && c.fill === '#eaa827'), 'Livraison dessinée en fraise');
+        assert.ok(scene.engine.state.objectives.some(o => o.kind === 'fruit'));
+        scene.animation = 0;
+
         // Four literal bands cover both axes, both signs and the two wrap copies.
         for (const direction of ['right', 'left', 'down', 'up']) {
             scene.engine = fixture();
