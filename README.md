@@ -99,6 +99,7 @@ while pausing play.
 | **Ferraille** | Run, jump and shoot through workshops, facing a multi-phase guardian every five levels. | Left/Right or A/D: run; Up/W and Down/S: aim or crouch; Space/Z: jump; X/J: fire; touch: joystick, hold Jump and Fire. |
 | **Alunir** | Land a lunar module gently while managing rotation, thrust and fuel over rough terrain and gusts. | Up/W: thrust; Left/Right or A/D: rotate; touch: hold the rotation and Thrust buttons. |
 | **Caisses** | Push one to six crates onto targets, with unlimited undo and solver-proven records to beat. | Arrows or Q/S/D and Shift+Z: move; Z/Backspace: undo; R: restart; touch: swipe or direction pad, Undo button. |
+| **Dévisso** | Take thirty screw-held assemblies apart: free screws go to the box of their colour or to a five-slot buffer, plates fall when empty; locks, crates, chains, rainbow, gold, TNT, gears, teleporters and ice. | Tap a free screw; boosts under the board (undo, hint, hammer, blast, drill); Enter: suggested screw; 1–5: boosts; Z: undo; H: hint; R: restart. |
 | **Traverse** | Reach shelters across traffic, moving logs and diving floats. | Arrows or ZQSD: step; mouse click or touch tap: up; swipe or direction pad: step. |
 | **Pistouille** (formerly Dérapage) | Steer a kart, charge drifts and race for the podium across seven original cups. | Arrows: absolute direction, including diagonals; Space/Shift: drift; X/Ctrl: bonus; touch: place a 360° joystick anywhere on the road view (10 px dead zone), point where to go, release to hold heading; Drift 88 px and Bonus 56 px; rotating camera and relative steering remain in ☰. |
 
@@ -266,3 +267,5 @@ release to fire. Short walks, jumps, a grappling line, six limited-ammunition
 weapons, visible wind and rising water; solo against three AI skills or two
 players sharing one phone. Node validation replays thirty recorded victories
 and noisy touch victories on levels 1 and 10. All visuals and sounds are code.
+
+**Dévisso** (`devisso`): thirty hand-drawn assemblies (car, rocket, owl, castle, snowman…) on up to three layers of plates, across six themes. A screw comes out only when no plate above covers it; it flies into the open box of its colour, otherwise into the buffer (five slots, a sixth opened by a gold screw). "Aucun coup possible !" when nothing fits: a heart takes the last three moves back. Each mechanism is introduced alone, then combined. Every level is won by the solver without boost, its recorded line and a real dead end are replayed by the engine: `npm run test:node -- --only=validate-devisso.js`. Drawings and sounds in code.

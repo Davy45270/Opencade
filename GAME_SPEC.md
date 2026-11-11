@@ -5449,3 +5449,145 @@ Les contrôles lint, typecheck, build et test Node ciblé utilisent le verrou
 commun avec `nice -n 19 ionice -c3`. Aucun navigateur, aucune exécution Vitest
 ou Playwright, aucun ajout de dépendance, de scène, de registre ou de vignette ;
 aucun commit ni mise en index.
+
+## Dévisso
+
+Jeu de démontage au tour par tour (identifiant `devisso`, sauvegarde
+`arcade-lab:devisso:v1`), d’après trois planches de David : vis de huit
+couleurs, plaques de formes variées, boîtes à trois logements, réserve, bonus,
+vis spéciales et thèmes. Tout est dessiné par le code (`src/games/devisso/art.ts`) ;
+aucune image des planches n’est embarquée. Moteur pur dans `src/engines/devisso/`
+(règles, formes, solveur, niveaux), scène Phaser à part.
+
+### Règles retenues
+
+- **Plateau** : 8 × 9 trous (x 0–7, y 0–8), plaques sur trois couches au plus
+  (0 dessous, 2 dessus). Une vis ne se dévisse que si **aucune plaque d’une couche
+  supérieure ni aucune caisse** ne la recouvre ; les vis libres sont dessinées
+  au-dessus de tout, les vis recouvertes dans leur couche, assombries.
+- **Boîtes** : une file de boîtes de trois logements, écrite dans le niveau. **Une
+  seule boîte ouverte à la fois** (mesure ci-dessous). Une vis va dans la boîte
+  ouverte de sa couleur, sinon dans la **réserve de cinq places** ; une boîte
+  pleine part, la suivante arrive et reprend aussitôt dans la réserve les vis de
+  sa couleur (les plus anciennes d’abord) : flux automatique réserve → boîte.
+- **Plaque** : sans vis, elle tombe et découvre ce qu’elle cachait.
+- **Impasse** : plus aucune vis libre ne rentre (réserve pleine, rien pour la
+  boîte) → bandeau rouge **« Aucun coup possible ! »**. Ce n’est pas encore une
+  défaite : un **cœur** (5 par tentative) reprend les **3 derniers coups**, ou un
+  bonus débloque. Sans cœur ni annulation, marteau, explosion ou perçage restant,
+  la tentative est perdue.
+- **Pièces** : 10 par vis, 25 par boîte, 50 par vis dorée, + 100 × étoiles à la
+  victoire. C’est le score de niveau du socle (Progression, score cumulé) : pas de
+  seconde économie, rien ne s’achète.
+- **Étoiles** : 3 sans aide, 2 avec deux aides au plus (bonus ou cœurs), 1 sinon.
+- **Bonus** (comptés dans le niveau `boosts`) : Annuler (un coup), Indice (la vis
+  d’une ligne gagnante, recherche bornée à 20 000 positions ; non consommé s’il
+  n’y en a pas), Marteau (brise la plaque du dessus ou une caisse ; ses vis
+  restent), Explosion (rayon 1,6 : caisses, glace et chaînes, plaques au-dessus
+  des vis), Perçage (n’importe quelle vis, si boîte ou réserve la prend).
+- **Vis spéciales** : cadenas + clé (la vis à clé ouvre tous les cadenas), TNT
+  (souffle caisses, glace et chaînes à 2,2), arc-en-ciel (complète la boîte de la
+  couleur à laquelle il manque une vis ; ailleurs, elle patiente dans la réserve), dorée (pièces, ouvre la 6ᵉ place pointillée de la
+  réserve), glace (fond d’un cran par coup joué), engrenage (sa vis ôtée fait
+  glisser une plaque), téléporteur (deux vis jumelles partent ensemble), chaîne
+  (la vis enchaînée attend que l’autre parte).
+- **Obstacles** : caisse (un à trois coups : chaque vis dévissée à 1,6 au plus la
+  fissure), plaque renforcée (métal, plus de vis), chaîne, cadenas à clé, engrenage.
+
+**Écartés** : *Mélanger* (rebattre les couleurs des vis) — il rendrait le niveau
+non déterministe ou, déterministe, ne ferait que déplacer l’impasse sans la
+résoudre ; l’arc-en-ciel « dans n’importe quelle boîte » — rejoué par le
+solveur, il pouvait vider le plateau sans gagner (une boîte restée à 2/3, une
+vis en trop dans la réserve), d’où la règle ci-dessus ; deux boîtes ouvertes côte à côte (mesure ci-dessous) ; la vis
+« mécanisme » distincte de l’engrenage (même effet).
+
+### Une boîte ouverte, pas deux (mesure)
+
+Sur les seize premiers assemblages, colorations tirées au hasard (pression de
+réserve 0,55), même ordre de démontage : avec **une** boîte ouverte, 44 % des
+colorations cachent une impasse, le joueur glouton gagne 81 % et le joueur au
+hasard 87 % ; avec **deux** boîtes, 6 % d’impasses, 96 % et 94 %. À pression
+0,3 : 36 % / 75 % / 83 % contre 14 % / 89 % / 87 %. Deux boîtes rendent presque
+tout gagnable sans réfléchir : une seule est retenue (`ACTIVE = 1`).
+
+### Trente assemblages
+
+Écrits à la main (`levels.ts`), chacun dessine un objet, six thèmes : atelier
+(1–5), usine (6–10), jouets (11–15), nature (16–20), espace (21–25), glace
+(26–30). Une nouveauté à la fois, montrée seule, puis combinée : trois couches
+(3), plaques renforcées (6), cadenas (7), caisse (8), chaîne (9), arc-en-ciel
+(11), or (12), TNT (14, avec les caisses déjà connues), engrenage (16),
+téléporteur (18), glace (26). La couleur des vis et la file des boîtes viennent
+d’une recherche hors ligne (`scripts/search-devisso.js`, graines fixes) qui tire
+des ordres de démontage valides, colore le long de l’ordre avec une pression de
+réserve croissante, et ne garde qu’une coloration **gagnée par le solveur sans
+bonus**, **cachant une vraie impasse**, aux couleurs équilibrées, en préférant
+à partir du niveau 9 celles où le joueur glouton perd. Les champs `moves` (coups de la ligne
+gagnante) et `trap` (coups de l’impasse enregistrée) sont figés dans le niveau.
+
+Mesures de `validate-devisso.js` (solveur sans bonus, ligne et impasse rejouées
+par le moteur ; « glouton » : vis qui entre dans la boîte si possible, sinon la
+première libre). Diversité 18,1 (≤ 22), aucun clone, écart sans nouveauté 4 ;
+le glouton perd 22 niveaux sur 30.
+
+| Niveau | Vis | Plaques | Couches | Couleurs | Coups | Solveur (positions) | Impasse (coups) | Glouton |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 1 La voiture | 12 | 4 | 2 | 3 | 12 | 19 | 7 | perd |
+| 2 La maison | 18 | 5 | 2 | 4 | 18 | 21 | 15 | gagne |
+| 3 Le bateau | 21 | 6 | 3 | 4 | 21 | 21 | 16 | gagne |
+| 4 La fusée | 18 | 6 | 3 | 4 | 18 | 18 | 10 | perd |
+| 5 Le hibou | 30 | 8 | 3 | 4 | 30 | 30 | 25 | gagne |
+| 6 Le robot | 30 | 9 | 2 | 4 | 30 | 30 | 25 | gagne |
+| 7 Le train | 27 | 11 | 2 | 4 | 27 | 27 | 22 | perd |
+| 8 La grue | 27 | 6 | 2 | 5 | 27 | 27 | 22 | gagne |
+| 9 Le camion | 27 | 9 | 3 | 6 | 27 | 27 | 25 | perd |
+| 10 L'avion | 21 | 9 | 3 | 4 | 21 | 21 | 16 | perd |
+| 11 L'ourson | 30 | 12 | 2 | 7 | 30 | 30 | 22 | gagne |
+| 12 La toupie | 21 | 8 | 3 | 6 | 21 | 21 | 16 | gagne |
+| 13 Le château | 27 | 7 | 3 | 7 | 27 | 27 | 14 | perd |
+| 14 Le dinosaure | 27 | 11 | 3 | 7 | 27 | 27 | 19 | perd |
+| 15 Le canard | 30 | 11 | 2 | 8 | 30 | 30 | 13 | perd |
+| 16 Le papillon | 27 | 9 | 3 | 6 | 27 | 27 | 16 | perd |
+| 17 L'arbre | 30 | 9 | 3 | 7 | 30 | 36 | 13 | perd |
+| 18 La tortue | 27 | 13 | 3 | 6 | 26 | 26 | 7 | perd |
+| 19 La fleur | 30 | 11 | 3 | 7 | 29 | 29 | 13 | gagne |
+| 20 L'escargot | 30 | 13 | 3 | 7 | 29 | 29 | 18 | perd |
+| 21 Le satellite | 27 | 11 | 3 | 7 | 26 | 26 | 18 | perd |
+| 22 L'astronaute | 30 | 10 | 3 | 7 | 30 | 42 | 22 | perd |
+| 23 La soucoupe | 30 | 11 | 2 | 7 | 29 | 29 | 21 | perd |
+| 24 La planète | 27 | 6 | 3 | 8 | 27 | 27 | 19 | perd |
+| 25 La station | 30 | 9 | 3 | 7 | 29 | 29 | 21 | perd |
+| 26 Le pingouin | 30 | 10 | 2 | 7 | 30 | 30 | 19 | perd |
+| 27 L'igloo | 30 | 11 | 3 | 7 | 30 | 30 | 22 | perd |
+| 28 Le bonhomme de neige | 36 | 10 | 3 | 9 | 35 | 35 | 22 | perd |
+| 29 L'ours polaire | 36 | 11 | 3 | 8 | 36 | 78 | 19 | perd |
+| 30 Le château de glace | 42 | 10 | 3 | 9 | 41 | 41 | 25 | perd |
+
+### Présentation
+
+Portrait 360 × 640 : en haut niveau, étoiles et barre de progression, pièces,
+cœurs ; la boîte ouverte et les cinq suivantes ; la réserve (cinq places + une
+pointillée) ; le plateau encadré au thème ; en bas le compagnon (contrat
+Characters, il saute à chaque boîte fermée et se réjouit à la victoire) et la
+consigne de la nouveauté du niveau. Les cinq bonus sont des boutons DOM de 56 px
+sous le canevas (icônes dessinées par `boostIcon`, compteur), visibles aussi sur
+ordinateur. Animations : vis qui tourne puis vole vers sa boîte ou la réserve,
+plaque qui tombe en fondu, poussière, étincelles de boîte fermée, secousse d’une
+vis refusée. Sons synthétisés (`sound.ts`). Clavier : Entrée dévisse la vis de
+l’indice ou la première vis libre, 1–5 les bonus, Z annuler, H indice, R
+recommencer.
+
+### Preuves
+
+- `tests/devisso.test.ts` (Vitest) : règles (DV01–DV05), moteur (DV06–DV08),
+  campagne lisible et comptes exacts (DV09), nouveautés seules et diversité
+  (DV10 : score ≤ 22, aucun clone, écart sans nouveauté ≤ 5).
+- `scripts/validate-devisso.js` (test:node) : par niveau, lisibilité
+  (`check.ts`), victoire du solveur sans bonus, ligne gagnante rejouée par le
+  moteur en exactement `moves` coups (3 étoiles), impasse rejouée jusqu’à
+  « Aucun coup possible ! » en `trap` coups ; le glouton perd au moins 15 niveaux.
+  Lignes enregistrées par `scripts/record-devisso.js` dans
+  `tests/fixtures/devisso-campaign.json`.
+- `tests/e2e/devisso.spec.ts` : ouverture depuis l’accueil, niveau 1 démonté au
+  doigt jusqu’à la victoire, impasse et reprise par un cœur, mise en page 320,
+  390 et 1280 px avec DejaVu Sans, sans erreur JS.

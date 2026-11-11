@@ -32,6 +32,9 @@ Catégories : **V** validateur rapide (objectif < 30 s par entrée), **G** campa
 | `derapage-human.js` | G | Générateur / pilote de campagne, hors commande CI ; ses rejeux et assertions sont exécutés par les validateurs correspondants. |
 | `diversity-metrics.js` | M | Module auxiliaire importé par les validateurs (chargeur, adaptateur, métriques ou harnais) ; aucune vérification autonome au lancement. |
 | `diversity-report.js` | M | Module auxiliaire importé par les validateurs (chargeur, adaptateur, métriques ou harnais) ; aucune vérification autonome au lancement. |
+| `devisso-diversity.js` | M | Module auxiliaire importé par les validateurs (chargeur, adaptateur, métriques ou harnais) ; aucune vérification autonome au lancement. |
+| `search-devisso.js` | G | Coloration hors ligne des assemblages Dévisso (vis, file de boîtes, coups, impasse), hors commande CI ; ses résultats sont figés dans `levels.ts`. |
+| `record-devisso.js` | G | Enregistre la ligne gagnante et l’impasse de chaque assemblage Dévisso dans `tests/fixtures/devisso-campaign.json`, hors commande CI. |
 | `essaim-campaigns.js` | G | Générateur / pilote de campagne, hors commande CI ; ses rejeux et assertions sont exécutés par les validateurs correspondants. |
 | `essaim-diversity.js` | M | Module auxiliaire importé par les validateurs (chargeur, adaptateur, métriques ou harnais) ; aucune vérification autonome au lancement. |
 | `ferraille-diversity.js` | M | Module auxiliaire importé par les validateurs (chargeur, adaptateur, métriques ou harnais) ; aucune vérification autonome au lancement. |
@@ -73,6 +76,7 @@ Catégories : **V** validateur rapide (objectif < 30 s par entrée), **G** campa
 | `validate-character-snake-policy.js` | V | Appelé par test:node avec `--checks-only`. |
 | `validate-characters.js` | V | Appelé par test:node avec `--checks-only`. |
 | `validate-dedale.js` | V / G | `--checks-only` rejoue les 60 campagnes du rapport versionné (graines 28 et 459), vérifie victoire, vies, forme et témoins ; le mode complet recalcule les routes BFS. Connectivité, mécaniques, diversité et mutations restent actives. |
+| `validate-devisso.js` | V | Appelé par test:node : lisibilité des 30 assemblages, victoire sans bonus du solveur, ligne gagnante et impasse « Aucun coup possible ! » rejouées par le moteur depuis `tests/fixtures/devisso-campaign.json`, diversité. |
 | `validate-derapage-historical.js` | V | Appelé par `validate-derapage.js` dans test:node (pas de double exécution). |
 | `validate-derapage.js` | V / G | Mode CI `--checks-only` : géométrie, contrôles ciblés et rejeux historiques ; mutations dans `npm run audit:derapage`. En CI, les campagnes historiques intermédiaires sont bornées à 1 200 pas, avec leurs empreintes cumulatives existantes tous les 600 pas ; les niveaux 1/10/30 et les quatre bandes tactiles restent complets. Hors CI, les 30 campagnes historiques sont complètes. Les bandes joystick sont rejouées et leurs mesures/états finaux vérifiés sans recalcul du pilote ; la mesure sans assistance reste hors CI. La campagne de mesure pilote/IA des 30 circuits reste dans le mode complet ; ses règles Z13/Z24 sont déjà couvertes par `tests/derapage.test.ts`. |
 | `validate-essaim.js` | V / G | Mode CI `--checks-only` : rejeu vérifié des 60 bandes, observations réutilisées seulement après validation du rejeu, mêmes assertions de diversité et de mécaniques ; hors CI : recalcul des campagnes. |

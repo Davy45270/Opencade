@@ -1,0 +1,27 @@
+import type { SoundEffects } from '../../shell/sound';
+/** Synthesised: a click per screw, a rising chime per box, a thud per falling plate. */
+export const devissoEffects: SoundEffects = {
+    box: () => ({ frequency: 660, duration: 0.05, type: 'triangle' }),
+    buffer: () => ({ frequency: 420, duration: 0.05, type: 'square' }),
+    complete: () => ({ frequency: 990, duration: 0.18, type: 'triangle' }),
+    pull: () => ({ frequency: 760, duration: 0.05, type: 'sine' }),
+    fall: () => ({ frequency: 110, duration: 0.22, type: 'triangle' }),
+    refused: () => ({ frequency: 150, duration: 0.08, type: 'sawtooth' }),
+    portal: () => ({ frequency: 1240, duration: 0.14, type: 'sine' }),
+    thaw: () => ({ frequency: 1500, duration: 0.06, type: 'sine' }),
+    crack: () => ({ frequency: 180, duration: 0.1, type: 'sawtooth' }),
+    crate: () => ({ frequency: 130, duration: 0.2, type: 'sawtooth' }),
+    unlock: () => ({ frequency: 880, duration: 0.12, type: 'square' }),
+    slot: () => ({ frequency: 1180, duration: 0.2, type: 'triangle' }),
+    gold: () => ({ frequency: 1320, duration: 0.2, type: 'triangle' }),
+    tnt: () => ({ frequency: 70, duration: 0.35, type: 'sawtooth' }),
+    gear: () => ({ frequency: 240, duration: 0.15, type: 'square' }),
+    undo: () => ({ frequency: 450, duration: 0.06, type: 'sine' }),
+    hint: () => ({ frequency: 1100, duration: 0.1, type: 'sine' }),
+    hammer: () => ({ frequency: 160, duration: 0.12, type: 'square' }),
+    bomb: () => ({ frequency: 80, duration: 0.3, type: 'sawtooth' }),
+    drill: () => ({ frequency: 520, duration: 0.25, type: 'sawtooth' }),
+    rescue: () => ({ frequency: 700, duration: 0.2, type: 'triangle' }),
+    won: () => ({ frequency: 990, duration: 0.4, type: 'triangle' }),
+    lost: () => ({ frequency: 120, duration: 0.35, type: 'sawtooth' }),
+};

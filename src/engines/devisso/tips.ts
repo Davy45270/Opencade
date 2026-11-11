@@ -1,0 +1,36 @@
+/** The line under the board: the newest mechanism of the level, said once, then the advice that goes with it. */
+const TIPS: Readonly<Record<number, string>> = {
+    0: 'Touchez une vis libre : elle file dans la boîte de sa couleur.',
+    1: 'Pas de boîte pour elle ? La vis attend dans la réserve.',
+    2: 'Une plaque sans vis tombe et découvre ce qu’elle cachait.',
+    3: 'Trois couches : seules les vis du dessus se dévissent.',
+    4: 'Regardez la file des boîtes avant de remplir la réserve.',
+    5: 'Plaques renforcées : plus de vis à ôter avant la chute.',
+    6: 'Cadenas : la vis à clé ouvre toutes les vis verrouillées.',
+    7: 'Caisse : chaque vis dévissée tout près la fissure.',
+    8: 'Chaîne : la vis au bout de la chaîne part d’abord.',
+    9: 'Clé, caisse et chaîne dans la même machine.',
+    10: 'Arc-en-ciel : elle complète la boîte à qui il manque une vis.',
+    11: 'Vis dorée : des pièces et une 6ᵉ place de réserve.',
+    12: 'Arc-en-ciel et or : gardez-les pour un coup serré.',
+    13: 'TNT : elle souffle caisses, glace et chaînes autour d’elle.',
+    14: 'Tout ensemble : TNT, clé, or et arc-en-ciel.',
+    15: 'Engrenage : sa vis ôtée fait glisser une plaque.',
+    16: 'La clé, la caisse et la chaîne reviennent au jardin.',
+    17: 'Téléporteur : les deux vis jumelles partent ensemble.',
+    18: 'Téléporteur, arc-en-ciel et or : comptez les places.',
+    19: 'Engrenage et téléporteur se répondent.',
+    20: 'Le téléporteur emmène une vis cachée sous la caisse.',
+    21: 'Clé, TNT et chaîne : dans quel ordre ?',
+    22: 'L’engrenage décale la soucoupe : regardez où elle va.',
+    23: 'Une chaîne retient la vis du sommet.',
+    24: 'Station complète : téléporteur, clé et TNT.',
+    25: 'Glace : elle fond d’un cran à chaque coup joué.',
+    26: 'Glace et chaîne : patientez, la réserve compte.',
+    27: 'Glace, téléporteur et TNT : la neige cache tout.',
+    28: 'Engrenage, glace et clé : l’ours se déplace.',
+    29: 'Le château final réunit toutes les vis spéciales.',
+};
+export function workshopTip(level: number): string { return TIPS[level] ?? ''; }
+/** Level where each mechanism appears for the first time (one at a time; combinations come after). */
+export const NOVELTY: Readonly<Record<string, number>> = { reinforced: 5, lock: 6, crate: 7, chain: 8, rainbow: 10, gold: 11, tnt: 13, gear: 15, portal: 17, ice: 25 };

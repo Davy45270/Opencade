@@ -95,9 +95,14 @@ export const games: readonly GameDefinition[] = [
         touchControls: gourmandisesButtons,
     },
     { thumbnail: marmailleThumbnail, demo: marmailleDemo, id: 'marmaille', name: MARMAILLE_NAME, levelCount: MARMAILLE_LEVELS.length, realtime: true, keyboardHelp: '1 2 3 : choisir un rôle · clic sur un enfant : le lui donner · V : accélérer · P/Échap : pause', touchHelp: 'Toucher un rôle, puis un enfant · » : accélérer', createScene: session => new MarmailleScene(session), effects: marmailleEffects, testHook: () => window.__MARMAILLE_TEST__, touchControls: marmailleButtons },
+    { thumbnail: devissoThumbnail, demo: devissoDemo, id: 'devisso', name: DEVISSO_NAME, levelCount: DEVISSO_LEVELS.length, realtime: false, keyboardHelp: 'Entrée : dévisser la vis proposée · 1 à 5 : bonus · Z : annuler · H : indice · R : recommencer · P/Échap : pause', touchHelp: 'Toucher une vis libre : elle file dans sa boîte ou la réserve · Bonus en bas · Reprendre ♥ quand plus rien ne rentre', createScene: session => new DevissoScene(session), effects: devissoEffects, testHook: () => window.__DEVISSO_TEST__, touchControls: devissoButtons },
     { thumbnail: artificiersThumbnail, demo: artificiersDemo, id: 'artificiers', name: 'Les Artificiers', levelCount: 30, realtime: true, keyboardHelp: '← → : marcher · ↑ ↓ : angle · W/S : puissance · Espace : tir · J : saut · G : grappin · X : arme · P/Échap : pause', touchHelp: 'Glisser du héros et relâcher · Marche, Saut, Arme, Corde · 1 / 2 : solo ou duel local', createScene: session => new ArtificiersScene(session), effects: artificiersEffects, testHook: () => window.__ARTIFICIERS_TEST__, touchControls: artificiersButtons },
 ];
 
+import { DevissoScene, devissoButtons } from './devisso/scene';
+import { devissoEffects } from './devisso/sound';
+import { createThumbnail as devissoThumbnail, createDemo as devissoDemo } from './devisso/thumbnail';
+import { GAME_NAME as DEVISSO_NAME, LEVELS as DEVISSO_LEVELS } from '../engines/devisso/levels';
 import { ArtificiersScene, artificiersButtons } from './artificiers/scene';
 import { artificiersEffects } from './artificiers/sound';
 import { createThumbnail as artificiersThumbnail, createDemo as artificiersDemo } from './artificiers/thumbnail';

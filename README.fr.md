@@ -102,6 +102,7 @@ partie en pause.
 | **Ferraille** | Traverser des ateliers en courant, sautant et tirant, avec un gardien à phases tous les cinq niveaux. | Gauche/Droite ou A/D : courir ; Haut/W et Bas/S : viser ou s’accroupir ; Espace/Z : saut ; X/J : tir ; toucher : joystick, Saut et Tir maintenus. |
 | **Alunir** | Poser doucement un module lunaire en dosant rotation, poussée et carburant, entre relief et rafales. | Haut/W : poussée ; Gauche/Droite ou A/D : rotation ; toucher : maintenir les boutons de rotation et Poussée. |
 | **Caisses** | Pousser une à six caisses sur leurs cibles, avec annulation illimitée et records prouvés par solveur. | Flèches ou Q/S/D et Maj+Z : déplacer ; Z/Retour arrière : annuler ; R : recommencer ; toucher : glisser ou croix, bouton Annuler. |
+| **Dévisso** | Démonter trente assemblages tenus par des vis : une vis libre file dans la boîte de sa couleur ou dans une réserve de cinq places, une plaque vide tombe ; cadenas, caisses, chaînes, arc-en-ciel, or, TNT, engrenages, téléporteurs et glace. | Toucher une vis libre ; bonus sous le plateau (annuler, indice, marteau, explosion, perçage) ; Entrée : vis proposée ; 1 à 5 : bonus ; Z : annuler ; H : indice ; R : recommencer. |
 | **Traverse** | Rejoindre les abris entre trafic routier, rondins mobiles et flotteurs plongeants. | Flèches ou ZQSD : un pas ; clic souris ou tap : monter ; glisser ou croix : un pas. |
 | **Pistouille** (anciennement Dérapage) | Piloter un kart, charger les dérapages et viser le podium en sept coupes originales. | Flèches : direction absolue et diagonales ; Espace/Maj : dérapage ; X/Ctrl : bonus ; toucher : poser le joystick 360° partout sur la vue de piste (zone morte 10 px), pointer où aller, relâcher pour garder le cap ; Dérapage 88 px et Bonus 56 px ; caméra tournante et braquage relatif disponibles dans ☰. |
 
@@ -267,3 +268,13 @@ actif, relâcher pour tirer. Marche courte, saut, grappin, six armes à munition
 limitées, vent visible et eau montante ; solo contre trois degrés d’IA ou deux
 joueurs sur le même téléphone. Node rejoue trente victoires enregistrées et
 les victoires tactiles bruitées des niveaux 1 et 10. Dessins et sons en code.
+
+**Dévisso** (`devisso`) : trente assemblages dessinés à la main (voiture, fusée,
+hibou, château, bonhomme de neige…) sur trois couches de plaques au plus, en six
+thèmes. Une vis ne sort que si aucune plaque du dessus ne la recouvre ; elle file
+dans la boîte ouverte de sa couleur, sinon dans la réserve (cinq places, une
+sixième ouverte par une vis dorée). « Aucun coup possible ! » quand plus rien ne
+rentre : un cœur reprend les trois derniers coups. Chaque mécanique arrive seule,
+puis se combine. Chaque niveau est gagné par le solveur sans bonus ; sa ligne
+enregistrée et une vraie impasse sont rejouées par le moteur :
+`npm run test:node -- --only=validate-devisso.js`. Dessins et sons en code.
