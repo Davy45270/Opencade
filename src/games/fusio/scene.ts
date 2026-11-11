@@ -333,7 +333,8 @@ export class FusioScene extends Phaser.Scene {
         const e = this.engine, l = this.l, theme = e.theme;
         g.clear();
         // HUD: title, then Score / Record (or moves left) / Objectif pills.
-        t.title.setText(title); fit(t.title, l.hud.w - 60, 26, [18, 17, 16, 15, 14, 13]);
+        // The title starts 4 px in, so it fits in the remaining width up to the hint button (l.hud.w - 60).
+        t.title.setText(title); fit(t.title, l.hud.w - 64, 26, [18, 17, 16, 15, 14, 13]);
         t.title.setPosition(l.hud.x + 4, l.hud.y + 13 - t.title.displayHeight / 2);
         if (e.kind === 'challenge') for (let k = 0; k < 3; k++) starIcon(g, l.hud.x + l.hud.w - 48 + k * 18, l.hud.y + 13, 7, k < e.stars);
         const left = e.movesLeft;
