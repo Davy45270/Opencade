@@ -8,6 +8,7 @@ registerHooks({
         return next(specifier, context);
     },
     load(url, context, next) {
+        if (url.endsWith('.css')) return { format: 'module', source: '', shortCircuit: true };
         if (url.endsWith('.ts')) return { format: 'module', source: transpile(readFileSync(new URL(url), 'utf8')), shortCircuit: true };
         return next(url, context);
     },
