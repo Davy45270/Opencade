@@ -5599,7 +5599,9 @@ Grille de chiffres : chaque ligne, colonne et bloc contient une fois chaque chif
 police pour la grille, aucun fichier image). Référence fonctionnelle : le dossier de conception Sudoku v1.0 reçu le
 2026-11-11 ; les conventions du dépôt l'emportent en cas d'écart (liste en fin de section).
 
-- Tailles : 4 × 4 (blocs 2 × 2), 6 × 6 (blocs 2 × 3), 9 × 9 (blocs 3 × 3). Un niveau est un enregistrement JSON strict
+- Taille : 9 × 9 classique (blocs 3 × 3) pour toute la progression adulte, grille du jour et grille infinie comprises ;
+  il n'y a pas de choix de taille. Le moteur gère aussi 4 × 4 (blocs 2 × 2) et 6 × 6 (blocs 2 × 3), gardés pour la
+  version OpencadKid et couverts par les tests de propriétés. Un niveau est un enregistrement JSON strict
   (`validateLevel` : clés fermées, énumérations, `size²` données, `boxRows × boxCols = size`, données sans conflit,
   4096 caractères au plus) ; un niveau mal formé est refusé, jamais interprété.
 - Actions (`applyAction(puzzle, state, action)` → `{accepted, state, events}` ou `{accepted: false, state, reason}`, état
@@ -5620,53 +5622,58 @@ police pour la grille, aucun fichier image). Référence fonctionnelle : le doss
 - Solveur : propagation puis retour arrière MRV, comptage plafonné à 2, limites de nœuds et de durée ; il rend `solved`
   (1 ou ≥ 2 solutions), `unsolvable` ou `unknown` (jamais « unique » sur limite).
 - Difficulté mesurée : `rang taille × 1000 + rang technique × 100 + min(60, 4 × nombre d'usages difficiles) + cases
-  vides / 4`. Une grille n'est jamais plus facile que celle cinq rangs avant.
-- Grilles écrites : 30, cherchées hors ligne par `scripts/record-sudoku.js` (graine, symétrie, technique visée) puis
-  figées dans `levels.ts`. Grille du jour (graine = date locale) et grille infinie (graine `7919 × n`) : profils facile,
+  vides / 4`. Une grille n'est jamais plus facile que celle trois rangs avant, et la technique la plus dure ne recule jamais.
+- Grilles écrites : 30, cherchées hors ligne par `scripts/record-sudoku.js` (graine, symétrie, nombre de données,
+  technique visée) puis figées dans `levels.ts`. Niveaux 1 à 8 : place unique seule, de 46 à 30 données ; 9 à 14 :
+  candidat unique ; 15 à 20 : alignement ; 21 à 26 : paire ; 27 à 30 : croix. La première grille de chaque technique
+  ne l'emploie qu'une fois (deux au plus pour le candidat unique). Grille du jour (graine = date locale) et grille infinie (graine `7919 × n`) : profils facile,
   moyen, difficile ; une grille générée n'est gardée que si son unicité est prouvée (sinon nouvelle tentative).
 - Contrôles : toucher une case puis un chiffre du pavé (touches ≥ 56 px), gomme, crayon (mode notes), ↶, ampoule.
   Clavier : flèches, 1–9, Maj+chiffre (note), N, Suppr/Retour arrière/0, Ctrl+Z ou U, H ou ?, Échap.
 - Sauvegarde : progression `arcade-lab:sudoku:v1` (niveaux débloqués, scores) ; partie en cours
-  `arcade-lab:sudoku:run:v1` (mode, niveau, graine, état complet), écrite à chaque action, toutes les 5 s et à la
-  fermeture de la page ; une sauvegarde invalide est ignorée.
+  `arcade-lab:sudoku:run:v1` (version 2, mode, niveau, graine, état complet), écrite à chaque action, toutes les 5 s et
+  à la fermeture de la page ; une sauvegarde invalide est ignorée. Passage au 9 × 9 : la progression d'avant (niveaux
+  débloqués, meilleur score) est gardée telle quelle, au même rang, sur les nouvelles grilles ; une partie en cours
+  de version 1 est abandonnée et le jeu ouvre le dernier niveau débloqué (S-E2E-06).
 
 | Niveau | Titre (FR / EN) | Taille | Données | Technique la plus dure | Score |
 | --- | --- | --- | --- | --- | --- |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Premiers pas / First steps | 4×4 | 12 | hidden-single | 101 |
-| 2 | Le miroir / The mirror | 4×4 | 10 | hidden-single | 102 |
-| 3 | La diagonale / The diagonal | 4×4 | 8 | hidden-single | 102 |
-| 4 | Quatre coins / Four corners | 4×4 | 6 | hidden-single | 103 |
-| 5 | Presque vide / Almost empty | 4×4 | 4 | hidden-single | 103 |
-| 6 | Six par six / Six by six | 6×6 | 22 | hidden-single | 1104 |
-| 7 | Les deux rives / Two shores | 6×6 | 18 | hidden-single | 1105 |
-| 8 | Pente douce / Gentle slope | 6×6 | 15 | hidden-single | 1105 |
-| 9 | Un seul choix / Only choice | 6×6 | 14 | naked-single | 1206 |
-| 10 | Clairière / Clearing | 6×6 | 11 | naked-single | 1206 |
-| 11 | Alignés / In line | 6×6 | 12 | locked-candidates | 1310 |
-| 12 | Grand format / Full size | 9×9 | 40 | hidden-single | 2110 |
-| 13 | Symétrie / Symmetry | 9×9 | 36 | hidden-single | 2111 |
-| 14 | Fil de soie / Silk thread | 9×9 | 32 | hidden-single | 2112 |
-| 15 | Blocs déserts / Empty blocks | 9×9 | 28 | hidden-single | 2113 |
-| 16 | Candidat unique / Lone candidate | 9×9 | 30 | naked-single | 2213 |
-| 17 | Reflets / Reflections | 9×9 | 28 | naked-single | 2213 |
-| 18 | Sans motif / No pattern | 9×9 | 26 | naked-single | 2214 |
-| 19 | Biais / Slant | 9×9 | 26 | naked-single | 2214 |
-| 20 | Pointer du doigt / Pointing | 9×9 | 29 | locked-candidates | 2317 |
-| 21 | Les colonnes / Columns | 9×9 | 28 | locked-candidates | 2325 |
-| 22 | Étoile filante / Shooting star | 9×9 | 25 | locked-candidates | 2326 |
-| 23 | Désordre / Disorder | 9×9 | 24 | locked-candidates | 2326 |
-| 24 | Ricochet / Ricochet | 9×9 | 27 | locked-candidates | 2330 |
-| 25 | Les jumeaux / The twins | 9×9 | 28 | pair | 2421 |
-| 26 | Double serrure / Double lock | 9×9 | 28 | pair | 2433 |
-| 27 | Duo caché / Hidden duo | 9×9 | 26 | pair | 2434 |
-| 28 | Le pont / The bridge | 9×9 | 26 | pair | 2438 |
-| 29 | La croix / The cross | 9×9 | 26 | x-wing | 2542 |
-| 30 | Grand final / Grand finale | 9×9 | 28 | x-wing | 2545 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Premiers pas / First steps | 9×9 | 46 | hidden-single | 2109 |
+| 2 | Le miroir / The mirror | 9×9 | 44 | hidden-single | 2109 |
+| 3 | La diagonale / The diagonal | 9×9 | 42 | hidden-single | 2110 |
+| 4 | Quatre coins / Four corners | 9×9 | 40 | hidden-single | 2110 |
+| 5 | Sans motif / No pattern | 9×9 | 38 | hidden-single | 2111 |
+| 6 | Les deux rives / Two shores | 9×9 | 36 | hidden-single | 2111 |
+| 7 | Pente douce / Gentle slope | 9×9 | 33 | hidden-single | 2112 |
+| 8 | Blocs déserts / Empty blocks | 9×9 | 30 | hidden-single | 2113 |
+| 9 | Un seul choix / Only choice | 9×9 | 34 | naked-single | 2212 |
+| 10 | Reflets / Reflections | 9×9 | 32 | naked-single | 2212 |
+| 11 | Clairière / Clearing | 9×9 | 30 | naked-single | 2213 |
+| 12 | Biais / Slant | 9×9 | 28 | naked-single | 2213 |
+| 13 | Candidat unique / Lone candidate | 9×9 | 28 | naked-single | 2213 |
+| 14 | Fil de soie / Silk thread | 9×9 | 26 | naked-single | 2214 |
+| 15 | Alignés / In line | 9×9 | 31 | locked-candidates | 2317 |
+| 16 | Les colonnes / Columns | 9×9 | 28 | locked-candidates | 2321 |
+| 17 | Désordre / Disorder | 9×9 | 25 | locked-candidates | 2322 |
+| 18 | Étoile filante / Shooting star | 9×9 | 26 | locked-candidates | 2326 |
+| 19 | Ricochet / Ricochet | 9×9 | 26 | locked-candidates | 2326 |
+| 20 | Pointer du doigt / Pointing | 9×9 | 25 | locked-candidates | 2334 |
+| 21 | Les jumeaux / The twins | 9×9 | 28 | pair | 2425 |
+| 22 | Double serrure / Double lock | 9×9 | 27 | pair | 2426 |
+| 23 | Duo caché / Hidden duo | 9×9 | 26 | pair | 2434 |
+| 24 | Le pont / The bridge | 9×9 | 26 | pair | 2434 |
+| 25 | Symétrie / Symmetry | 9×9 | 26 | pair | 2438 |
+| 26 | Labyrinthe / Labyrinth | 9×9 | 24 | pair | 2454 |
+| 27 | La croix / The cross | 9×9 | 28 | x-wing | 2521 |
+| 28 | Croisée / Crossing | 9×9 | 26 | x-wing | 2526 |
+| 29 | Vertige / Vertigo | 9×9 | 27 | x-wing | 2534 |
+| 30 | Grand final / Grand finale | 9×9 | 28 | x-wing | 2549 |
 
 Preuves :
 - Vitest (`tests/sudoku.test.ts`) : AC01 à AC12 nommés comme dans le dossier ; S-LVL-01 (schéma, unicité prouvée,
-  technique annoncée), S-LVL-02 (difficulté non décroissante sur cinq rangs), S-LVL-03 (diversité, aucun clone),
+  technique annoncée), S-LVL-02 (difficulté jamais sous celle de trois rangs avant, techniques dans l'ordre et introduites seules), S-LVL-03 (diversité, aucun clone),
   S-LVL-04 (refus des niveaux mal formés) ; S-PROP-01 à S-PROP-05, 1000 cas seedés chacun (grilles générées uniques,
   refus sans mutation, annulation exacte, solutions valides, indices justes) ; S-GAME-01 à S-GAME-03 ; régression de
   graine par instantané (AC10).
@@ -5675,14 +5682,14 @@ Preuves :
   `sudoku-diversity.js` mesure tailles, symétries, techniques, placements des données.
 - E2E (`tests/e2e/sudoku.spec.ts`) : S-E2E-01 crochet absent sans `?test=1` ; S-E2E-02 ouverture depuis l'accueil ;
   S-E2E-03 parcours au doigt (mobile) et à la souris et au clavier (bureau) : notes, erreur, annuler, indice, reprise
-  après rechargement, victoire 4 × 4 ; S-E2E-04 aucun débordement à 320, 390, 768 et 1280 px avec DejaVu Sans forcée ;
+  après rechargement, victoire 9 × 9 ; S-E2E-04 aucun débordement à 320, 390, 768 et 1280 px avec DejaVu Sans forcée ;
   S-E2E-05 le chrono suit le temps réel à une image toutes les 750 ms (horloge Playwright), là où le delta lissé de
-  Phaser ne comptait que 0,5 s pour 6 s.
+  Phaser ne comptait que 0,5 s pour 6 s ; S-E2E-06 une sauvegarde de l'ancienne progression ne casse rien.
 
 Écarts assumés avec le dossier :
-- 30 niveaux écrits au lieu de 20 (convention du dépôt), dans un seul parcours qui va du 4 × 4 au 9 × 9.
-- Le mode Enfant (aides illimitées, sans pénalité) n'est pas livré ici : il viendra avec le lot OpencadKid. Les
-  tutoriels 4 × 4 et 6 × 6 en tiennent lieu dans le parcours classique.
+- 30 niveaux écrits au lieu de 20 (convention du dépôt), tous en 9 × 9 classique.
+- Le mode Enfant (4 × 4 et 6 × 6, aides illimitées, sans pénalité) n'est pas livré ici : il viendra avec le lot
+  OpencadKid. Opencade (adultes) commence directement en 9 × 9 par des grilles riches en données.
 - Sur 9 × 9 en téléphone, les cases font moins de 44 px CSS (39 px à 390 px de large, 31 px à 320 px) : la grille ne tient pas
   autrement ; la saisie passe par le pavé, dont les touches font 56 px.
 - Les contrôles sont dessinés dans le canevas (pas de focus clavier DOM par case) ; le clavier agit sur la case

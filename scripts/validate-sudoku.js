@@ -1,13 +1,14 @@
 /* global console, performance, process */
 // node --import ./scripts/ts-loader.js scripts/validate-sudoku.js [--checks-only]
-// The thirty written grids re-proved without Vitest: strict record, unique solution (solver), announced technique,
+// The thirty written 9 × 9 grids re-proved without Vitest: strict record, unique solution (solver), announced technique,
+// difficulty never below the grid three ranks before,
 // solved to the end by the game's own explained hints; diversity; three in-memory mutations must be caught.
 import assert from 'node:assert/strict';
 import * as levels from '../src/engines/sudoku/levels.ts';
 import { GRIDS, levelRecord } from '../src/engines/sudoku/levels.ts';
 import { applyAction, createState, hintFor, prepare } from '../src/engines/sudoku/engine.ts';
 import { geometry, validateLevel } from '../src/engines/sudoku/grid.ts';
-import { rate } from '../src/engines/sudoku/logic.ts';
+import { rate, tierOf } from '../src/engines/sudoku/logic.ts';
 import { solve } from '../src/engines/sudoku/solver.ts';
 import { generate } from '../src/engines/sudoku/generator.ts';
 import { sudokuDiversity } from './sudoku-diversity.js';
@@ -23,7 +24,9 @@ for (const [i, grid] of GRIDS.entries()) {
     assert.equal(proof.status, 'solved', `S-LVL-01 ${i + 1}`); assert.equal(proof.solutionCount, 1, `S-LVL-01 unicité ${i + 1}`);
     const r = rate(record, record.givens);
     assert.ok(r.solved, `S-LVL-01 logique ${i + 1}`); assert.equal(r.hardest, grid.technique, `S-LVL-01 technique ${i + 1}`);
-    if (i >= 5) assert.ok(r.score >= previous[i - 5], `S-LVL-02 ${i + 1}`);
+    assert.equal(record.size, 9, `S-LVL-01 9 × 9 ${i + 1}`);
+    if (i >= 3) assert.ok(r.score >= previous[i - 3], `S-LVL-02 ${i + 1}`);
+    if (i >= 1) assert.ok(tierOf(grid.technique) >= tierOf(GRIDS[i - 1].technique), `S-LVL-02 technique ${i + 1}`);
     previous.push(r.score);
     const p = prepare(record);
     let s = createState(p), hints = 0;

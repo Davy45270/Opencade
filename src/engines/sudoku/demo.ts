@@ -1,5 +1,5 @@
 import { SudokuGame } from './game';
-/** Catalogue card: level 3 (4 × 4) solved by the game's own hints, one ordinary action every third image; restarts after the win. */
+/** Catalogue card: level 3 (9 × 9, rich in clues) solved by the game's own hints, one ordinary action every third image; restarts after the win. */
 export function createDemo(seed = 28) {
     const engine = new SudokuGame(); engine.loadLevel(2, seed);
     let frame = 0, restarts = 0;

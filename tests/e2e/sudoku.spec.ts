@@ -29,8 +29,6 @@ async function dejaVu(page: Page) {
         await route.fulfill({ response, body: body.replace('</head>', '<style>body, body * { font-family: "DejaVu Sans" !important; }</style></head>') });
     });
 }
-// Level 1 (4 × 4): '4321/1.4./.1.4/3412', empty cells 5, 7, 8 and 10.
-const EMPTY = [5, 7, 8, 10];
 
 test('S-E2E-01 crochet absent sans paramètre test', async ({ page }) => {
     await page.goto('/#/sudoku');
@@ -49,32 +47,42 @@ test('S-E2E-02 ouverture depuis l’accueil par la carte du jeu', async ({ page 
     await expect.poll(async () => page.evaluate(() => window.__SUDOKU_TEST__?.hudText())).toMatch(/SUDOKU · 1\/30/);
 });
 
-test('S-E2E-03 AC02 AC03 AC05 AC07 AC11 AC12 saisie, notes, erreur, annuler, indice, reprise et victoire 4×4', async ({ page }, info) => {
+test('S-E2E-03 AC02 AC03 AC05 AC07 AC11 AC12 saisie, notes, erreur, annuler, indice, reprise et victoire 9×9', async ({ page }, info) => {
+    test.setTimeout(120_000);
     const mobile = info.project.name === 'mobile-chromium';
     await page.goto('/?test=1#/sudoku');
     await hooked(page);
-    expect((await read(page)).level).toBe(0);
+    let s = await read(page);
+    expect(s.level).toBe(0); expect(s.size).toBe(9);
+    const solution = await page.evaluate(() => window.__SUDOKU_TEST__?.solution() ?? []);
+    // The first empty cell whose row holds a given: typing that given's digit there is a mistake.
+    const cell = s.givens.findIndex((v, i) => !v && s.givens.slice(i - i % 9, i - i % 9 + 9).some(Boolean));
+    const row = cell - cell % 9, clashAt = s.givens.findIndex((v, i) => i >= row && i < row + 9 && v > 0), clash = s.givens[clashAt] ?? 0;
+    const right = solution[cell] ?? 0, other = right === 9 ? 8 : right + 1, notes = [right, other].sort((x, y) => x - y);
     // Real inputs only from here: taps (mobile) or mouse and keyboard (desktop).
-    await press(page, mobile, 'cell', 5);
-    expect((await read(page)).selectedIndex).toBe(5);
+    await press(page, mobile, 'cell', cell);
+    expect((await read(page)).selectedIndex).toBe(cell);
     if (mobile) await press(page, true, 'action', 'notes'); else await page.keyboard.press('n');
     expect((await read(page)).notesMode).toBe(true);
-    if (mobile) { await press(page, true, 'pad', 2); await press(page, true, 'pad', 3); } else { await page.keyboard.press('2'); await page.keyboard.press('3'); }
-    expect((await read(page)).notes[5]).toEqual([2, 3]);
+    for (const d of notes) if (mobile) await press(page, true, 'pad', d); else await page.keyboard.press(String(d));
+    expect((await read(page)).notes[cell]).toEqual(notes);
     if (mobile) await press(page, true, 'action', 'notes'); else await page.keyboard.press('n');
-    // A 3 in cell 5: column 2 already has the given 3 above it.
-    if (mobile) await press(page, true, 'pad', 3); else await page.keyboard.press('3');
-    let s = await read(page);
-    expect(s.values[5]).toBe(3); expect(s.conflicts).toEqual([1, 5]); expect(s.mistakes).toBe(1); expect(s.tone).toBe('error');
-    await page.screenshot({ path: info.outputPath('sudoku-conflit.png') });
+    if (mobile) await press(page, true, 'pad', clash); else await page.keyboard.press(String(clash));
+    s = await read(page);
+    expect(s.values[cell]).toBe(clash); expect(s.conflicts).toContain(cell); expect(s.conflicts).toContain(clashAt);
+    expect(s.mistakes).toBe(1); expect(s.tone).toBe('error');
     if (mobile) await press(page, true, 'action', 'undo'); else await page.keyboard.press('Control+z');
     s = await read(page);
-    expect(s.values[5]).toBe(0); expect(s.notes[5]).toEqual([2, 3]); expect(s.conflicts).toEqual([]); expect(s.mistakes).toBe(1);
+    expect(s.values[cell]).toBe(0); expect(s.notes[cell]).toEqual(notes); expect(s.conflicts).toEqual([]); expect(s.mistakes).toBe(1);
+    if (!mobile) {
+        // The arrows move the cursor (wrapping at the edge).
+        await page.keyboard.press('ArrowRight');
+        expect((await read(page)).selectedIndex).toBe(cell % 9 === 8 ? cell - 8 : cell + 1);
+    }
     if (mobile) await press(page, true, 'action', 'hint'); else await page.keyboard.press('h');
     s = await read(page);
     expect(s.hint?.kind).toBe('logic'); expect(s.hintsUsed).toBe(1); expect(s.selectedIndex).toBe(s.hint?.index);
     expect(s.message).toMatch(/ne peut aller|seul le/);
-    const solution = await page.evaluate(() => window.__SUDOKU_TEST__?.solution() ?? []);
     expect(s.hint?.value).toBe(solution[s.hint?.index ?? -1]);
     const first = s.hint?.index ?? 0;
     if (mobile) await press(page, true, 'pad', solution[first] ?? 0); else await page.keyboard.press(String(solution[first]));
@@ -85,10 +93,15 @@ test('S-E2E-03 AC02 AC03 AC05 AC07 AC11 AC12 saisie, notes, erreur, annuler, ind
     const after = await read(page);
     for (const key of ['level', 'values', 'notes', 'mistakes', 'hintsUsed', 'moves'] as const) expect(after[key], key).toEqual(before[key]);
     expect(after.elapsedMs).toBeGreaterThanOrEqual(5000);
-    // Finish the grid; the arrow keys reach the cells on desktop.
-    for (const i of EMPTY.filter(i => !after.values[i])) {
-        if (mobile) { await press(page, true, 'cell', i); await press(page, true, 'pad', solution[i] ?? 0); }
-        else { await press(page, false, 'cell', 0); for (let k = 0; k < i % 4; k++) await page.keyboard.press('ArrowRight'); for (let k = 0; k < Math.floor(i / 4); k++) await page.keyboard.press('ArrowDown'); await page.keyboard.press(String(solution[i])); }
+    // Finish the grid: tap (or click) each empty cell, then its digit on the pad (or the keyboard). The screen points are
+    // read once (the layout does not move): about seventy real inputs.
+    const empty = after.givens.flatMap((v, i) => v || after.values[i] ? [] : [i]);
+    const cells = await Promise.all(empty.map(i => point(page, 'cell', i)));
+    const keys = await Promise.all(Array.from({ length: 10 }, (_, d) => point(page, 'pad', d)));
+    for (const [k, i] of empty.entries()) {
+        const c = cells[k], key = keys[solution[i] ?? 0]; if (!c || !key) throw new Error('Cible absente');
+        if (mobile) { await page.touchscreen.tap(c.x, c.y); await page.touchscreen.tap(key.x, key.y); }
+        else { await page.mouse.click(c.x, c.y); await page.keyboard.press(String(solution[i])); }
     }
     s = await read(page);
     expect(s.status).toBe('won'); expect(s.progression).toBe('won'); expect(s.unlocked).toBe(2); expect(s.stars).toBe(2);
@@ -145,4 +158,19 @@ test('S-E2E-05 le chrono suit le temps réel en jeu, même à faible cadence d�
     const s = await read(page);
     expect(s.elapsedMs - start).toBeGreaterThanOrEqual(5000);
     await expect.poll(() => page.evaluate(() => window.__SUDOKU_TEST__?.hudText())).toMatch(/⏱ 00:(0[5-9]|1[0-9])/);
+});
+
+test('S-E2E-06 une sauvegarde de l’ancienne progression (4×4 en cours) ne casse rien : niveaux débloqués gardés, partie abandonnée', async ({ page }) => {
+    await page.goto('/?test=1#/');
+    await page.evaluate(() => {
+        localStorage.setItem('arcade-lab:sudoku:v1', JSON.stringify({ unlocked: 12, best: 640 }));
+        // A version 1 run: level 1 was the 4 × 4 « Premiers pas ».
+        const values = [4, 3, 2, 1, 1, 0, 4, 0, 0, 1, 0, 4, 3, 4, 1, 2];
+        localStorage.setItem('arcade-lab:sudoku:run:v1', JSON.stringify({ version: 1, mode: 'classic', level: 0, seed: 0, endless: 1,
+            state: { levelId: 'SDK-CL-01', values, notes: values.map(() => []), selectedIndex: 5, moves: 3, mistakes: 1, hintsUsed: 0, elapsedMs: 4000, status: 'playing', history: [], hint: null } }));
+    });
+    await page.goto('/?test=1#/sudoku'); await hooked(page);
+    const s = await read(page);
+    expect(s.size).toBe(9); expect(s.unlocked).toBe(12); expect(s.level).toBe(11);
+    expect(s.moves).toBe(0); expect(s.mistakes).toBe(0); expect(s.values.filter(Boolean).length).toBe(s.givens.filter(Boolean).length);
 });

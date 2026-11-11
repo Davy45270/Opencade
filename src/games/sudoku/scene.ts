@@ -18,6 +18,8 @@ import { keyAction } from './controls';
 /** Everything is played on the canvas (board, pad, Notes/Undo/Hint): no button under the thumbs. */
 export const sudokuButtons: readonly TouchButton[] = [];
 export const RUN_KEY = 'arcade-lab:sudoku:run:v1';
+/** 2 since the classic 9 × 9 progression; the progression save (unlocked levels, best) is kept as it is. */
+export const RUN_VERSION = 2;
 const COUNT = GRIDS.length;
 type Tone = 'tip' | 'hint' | 'error' | 'win';
 export interface SudokuHook {
@@ -84,12 +86,13 @@ export class SudokuScene extends Phaser.Scene {
         this.engine.loadGenerated(mode, mode === 'endless' ? 7919 * seed : seed); this.fresh();
     }
     private persist(): void {
-        writeValue(this.storage(), RUN_KEY, JSON.stringify({ version: 1, mode: this.engine.mode, level: this.engine.level, seed: this.engine.seed, endless: this.endless, state: this.engine.state }));
+        writeValue(this.storage(), RUN_KEY, JSON.stringify({ version: RUN_VERSION, mode: this.engine.mode, level: this.engine.level, seed: this.engine.seed, endless: this.endless, state: this.engine.state }));
     }
     private resumeRun(): boolean {
         try {
             const run = JSON.parse(readValue(this.storage(), RUN_KEY) ?? 'null') as { mode?: unknown; level?: unknown; seed?: unknown; endless?: unknown; state?: unknown } | null;
-            if (!run) return false;
+            // A run saved before the 9 × 9 progression (version 1) is dropped: the grids it played no longer exist.
+            if (!run || (run as { version?: unknown }).version !== RUN_VERSION) return false;
             if (typeof run.endless === 'number' && Number.isSafeInteger(run.endless) && run.endless >= 1) this.endless = run.endless;
             if (run.mode === 'classic' && typeof run.level === 'number' && Number.isInteger(run.level) && run.level >= 0 && run.level < Math.min(COUNT, this.progress.save.unlocked)) {
                 this.engine.loadLevel(run.level); this.progress.start(run.level, true);

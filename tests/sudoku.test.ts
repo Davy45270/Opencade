@@ -246,12 +246,12 @@ describe('critères d’acceptation du dossier', () => {
 });
 
 describe('les trente grilles écrites', () => {
-    test('S-LVL-01 schéma strict, unicité prouvée, technique annoncée, progression de 4×4 à 9×9', () => {
+    test('S-LVL-01 schéma strict, unicité prouvée, technique annoncée, trente grilles classiques 9×9', () => {
         expect(GRIDS).toHaveLength(30);
-        const sizes = GRIDS.map((_, i) => levelRecord(i).size);
-        expect(sizes.slice(0, 5)).toEqual([4, 4, 4, 4, 4]);
-        expect(sizes.slice(5, 11)).toEqual([6, 6, 6, 6, 6, 6]);
-        expect(sizes.slice(11).every(s => s === 9)).toBe(true);
+        // Opencade (adults): 9 × 9 only; the 4 × 4 and 6 × 6 engine is kept for the kid edition (S-PROP-01, S-PROP-02).
+        expect(GRIDS.every((_, i) => levelRecord(i).size === 9)).toBe(true);
+        // The first grids are rich in clues and need hidden singles only.
+        expect(GRIDS.slice(0, 4).every(g => g.technique === 'hidden-single' && g.grid.replace(/[./]/g, '').length >= 40)).toBe(true);
         const ids = new Set<string>(), texts = new Set<string>();
         for (let i = 0; i < GRIDS.length; i++) {
             const record = levelRecord(i), data = GRIDS[i];
@@ -267,14 +267,20 @@ describe('les trente grilles écrites', () => {
         }
         expect(ids.size).toBe(30); expect(texts.size).toBe(30);
     });
-    test('S-LVL-02 difficulté mesurée : une grille n’est jamais plus facile que celle cinq rangs avant', () => {
+    test('S-LVL-02 difficulté mesurée : une grille n’est jamais plus facile que celle trois rangs avant, techniques introduites seules', () => {
         // Score = size first, then the hardest technique (tier), then fine steps and empty cells (logic.ts rate()).
-        const scores = GRIDS.map((_, i) => { const r = levelRecord(i); return rate(r, r.givens).score; });
-        for (let i = 5; i < scores.length; i++) expect(scores[i], `niveau ${String(i + 1)}`).toBeGreaterThanOrEqual(scores[i - 5] ?? 0);
-        // Techniques never go back within the 9 × 9 part, and the last grids need the X-wing.
+        const ratings = GRIDS.map((_, i) => { const r = levelRecord(i); return rate(r, r.givens); }), scores = ratings.map(r => r.score);
+        for (let i = 3; i < scores.length; i++) expect(scores[i], `niveau ${String(i + 1)}`).toBeGreaterThanOrEqual(scores[i - 3] ?? 0);
+        // Techniques never go back, arrive in the order naked single, locked candidates, pair, X-wing, and the last grids need the X-wing.
         const tiers = GRIDS.map(g => tierOf(g.technique));
-        for (let i = 12; i < 30; i++) expect(tiers[i] ?? 0).toBeGreaterThanOrEqual(tiers[i - 1] ?? 0);
+        for (let i = 1; i < 30; i++) expect(tiers[i] ?? 0).toBeGreaterThanOrEqual(tiers[i - 1] ?? 0);
+        expect([...new Set(GRIDS.map(g => g.technique))]).toEqual(['hidden-single', 'naked-single', 'locked-candidates', 'pair', 'x-wing']);
         expect(GRIDS.slice(-2).every(g => g.technique === 'x-wing')).toBe(true);
+        // Introduced alone: the first grid of a technique uses it once (twice at most for the naked single).
+        for (const t of ['naked-single', 'locked-candidates', 'pair', 'x-wing'] as const) {
+            const first = GRIDS.findIndex(g => g.technique === t);
+            expect(ratings[first]?.uses[t], t).toBeLessThanOrEqual(t === 'naked-single' ? 2 : 1);
+        }
     });
     test('S-LVL-03 diversité mesurée et témoin de clones', () => {
         const r = sudokuDiversity({ ...levels, rate });
@@ -287,9 +293,10 @@ describe('les trente grilles écrites', () => {
     test('S-LVL-04 validation stricte : refus des niveaux mal formés', () => {
         const good = JSON.parse(JSON.stringify(levelRecord(0))) as Record<string, unknown>;
         const bad: Record<string, unknown>[] = [
-            { ...good, extra: 1 }, { ...good, schemaVersion: '2.0.0' }, { ...good, size: 5 }, { ...good, boxRows: 3 }, { ...good, givens: [1, 2] },
-            { ...good, givens: Array<number>(16).fill(9) }, { ...good, difficulty: 'easyish' }, { ...good, mode: 'arcade' }, { ...good, id: '' },
-            { ...good, givens: [1, 1, ...Array<number>(14).fill(0)] }, { ...good, givens: Array<string>(16).fill('1') }, { ...good, seed: 1.5 },
+            { ...good, extra: 1 }, { ...good, schemaVersion: '2.0.0' }, { ...good, size: 5 }, { ...good, boxRows: 2 }, { ...good, givens: [1, 2] },
+            { ...good, givens: Array<number>(81).fill(9) }, { ...good, difficulty: 'easyish' }, { ...good, mode: 'arcade' }, { ...good, id: '' },
+            { ...good, givens: [1, 1, ...Array<number>(79).fill(0)] }, { ...good, givens: Array<string>(81).fill('1') }, { ...good, seed: 1.5 },
+            { ...good, givens: Array<number>(81).fill(10) },
         ];
         const noId = { ...good }; Reflect.deleteProperty(noId, 'id');
         for (const b of [...bad, noId, null, [], 'x', { ...good, id: 'x'.repeat(5000) }]) expect(() => validateLevel(b)).toThrow(RangeError);
@@ -312,10 +319,12 @@ describe('propriétés sur cas seedés', () => {
     });
     test(`S-PROP-02 ${String(CASES)} actions refusées ne modifient rien (états gelés)`, () => {
         const random = new Random(5);
-        const puzzles = [level(0), level(7), level(20)];
+        // Written 9 × 9 grids, plus a 4 × 4 and a 6 × 6 of the kid edition's engine.
+        const small = (size: Size): Prepared => prepare(generate({ size, minTier: 1, maxTier: 6, minGivens: 4, difficulty: 'easy' }, 3, `K${String(size)}`, 1).level);
+        const puzzles = [level(0), small(4), small(6), level(20)];
         let refused = 0;
         for (let k = 0; k < CASES; k++) {
-            const p = puzzles[k % 3] ?? level(0), n = p.size * p.size;
+            const p = puzzles[k % 4] ?? level(0), n = p.size * p.size;
             let s = createState(p);
             for (let m = Math.floor(random.next() * 6); m > 0; m--) {
                 const i = p.givens.indexOf(0, Math.floor(random.next() * n)); if (i < 0) continue;
