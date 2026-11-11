@@ -42,6 +42,8 @@ steps:
   - name: build
     image: *node
     commands:
+      # Build date = commit time (vite.config.ts): the publication rebuilds this commit and must get the same tree.
+      - export SOURCE_DATE_EPOCH=$(git log -1 --format=%ct)
       - npm run build
       - sha256sum dist/index.html
       - echo "empreinte dist $(cd dist && find . -type f -print0 | LC_ALL=C sort -z | xargs -0 sha256sum | sha256sum | cut -c1-64)"
