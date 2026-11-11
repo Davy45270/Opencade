@@ -6,6 +6,11 @@ const read = (page: Page) => page.evaluate(() => {
     const hook = window.__FUSIO_TEST__; if (!hook) throw new Error('Crochet Fusio absent');
     return hook.read();
 });
+/** Only what the move loops check: the full read() carries the whole history, which grows with every move and is slow to send back on a CI Chromium. */
+const brief = (page: Page) => page.evaluate(() => {
+    const s = window.__FUSIO_TEST__?.read(); if (!s) throw new Error('Crochet Fusio absent');
+    return { status: s.status, moves: s.moves, events: s.events };
+});
 const hooked = (page: Page) => expect.poll(() => page.evaluate(() => Boolean(window.__FUSIO_TEST__))).toBe(true);
 /** Screen point of a logical point of the canvas (RESIZE: 1 unit = 1 CSS px, offset by the canvas box). */
 async function screen(page: Page, x: number, y: number) {
@@ -33,17 +38,17 @@ async function swipe(page: Page, direction: Direction, mobile: boolean) {
 const KEY: Record<Direction, string> = { left: 'ArrowLeft', right: 'ArrowRight', up: 'ArrowUp', down: 'ArrowDown' };
 async function tap(page: Page, selector: string, mobile: boolean) { if (mobile) await page.locator(selector).tap(); else await page.locator(selector).click(); }
 /** Plays the agent's moves with real inputs (cycling swipe, button, key), until the end or `limit` moves. */
-async function playAgent(page: Page, mobile: boolean, limit: number, until: (s: Awaited<ReturnType<typeof read>>) => boolean = () => false) {
+async function playAgent(page: Page, mobile: boolean, limit: number, until: (s: Awaited<ReturnType<typeof brief>>) => boolean = () => false) {
     for (let n = 0; n < limit; n++) {
-        const s = await read(page);
-        if (s.status !== 'playing' || until(s)) return s;
+        const s = await brief(page);
+        if (s.status !== 'playing' || until(s)) return read(page);
         const d = await page.evaluate(() => window.__FUSIO_TEST__?.nextMove() ?? null);
         if (!d) throw new Error('aucun coup');
         const way = n % 3;
         if (way === 0) await swipe(page, d, mobile);
         else if (way === 1 && mobile) await tap(page, `#fusio-${d}`, true);
         else await page.keyboard.press(KEY[d]);
-        expect((await read(page)).moves, `coup ${String(n)} (${['glisser', 'bouton', 'clavier'][way] ?? ''})`).toBe(s.moves + 1);
+        expect((await brief(page)).moves, `coup ${String(n)} (${['glisser', 'bouton', 'clavier'][way] ?? ''})`).toBe(s.moves + 1);
     }
     return read(page);
 }
@@ -99,7 +104,8 @@ test('FU-E03 AC11 glisser au doigt, clavier et boutons ; fusion visible, annuler
 });
 
 test('FU-E04 victoire sur un défi court (défi 3), au doigt et au clavier, panneau « Défi suivant »', async ({ page }, info) => {
-    test.setTimeout(150_000);
+    // Up to 200 real inputs: about 70 s on a full desktop, two to three times that on a 2- to 4-CPU CI agent.
+    test.setTimeout(300_000);
     const mobile = info.project.name === 'mobile-chromium';
     await page.goto('/?test=1#/fusio'); await hooked(page);
     await page.evaluate(() => { window.__FUSIO_TEST__?.loadLevel(2); window.__FUSIO_TEST__?.advance(0); });
@@ -116,13 +122,14 @@ test('FU-E04 victoire sur un défi court (défi 3), au doigt et au clavier, pann
 });
 
 test('FU-E05 défaite : plateau bloqué, « Rejouer » relance une partie', async ({ page }, info) => {
+    test.setTimeout(180_000);
     const mobile = info.project.name === 'mobile-chromium';
     await page.goto('/?test=1#/fusio'); await hooked(page);
     await page.evaluate(() => { window.__FUSIO_TEST__?.loadClassic(7); window.__FUSIO_TEST__?.advance(0); });
     // A careless player: left and right, then up and down when nothing moves.
-    for (let n = 0; n < 600 && (await read(page)).status === 'playing'; n++) {
-        const moves = (await read(page)).moves;
-        for (const key of [n % 2 ? 'ArrowLeft' : 'ArrowRight', 'ArrowUp', 'ArrowDown', n % 2 ? 'ArrowRight' : 'ArrowLeft']) { await page.keyboard.press(key); if ((await read(page)).moves > moves || (await read(page)).status !== 'playing') break; }
+    for (let n = 0; n < 600 && (await brief(page)).status === 'playing'; n++) {
+        const moves = (await brief(page)).moves;
+        for (const key of [n % 2 ? 'ArrowLeft' : 'ArrowRight', 'ArrowUp', 'ArrowDown', n % 2 ? 'ArrowRight' : 'ArrowLeft']) { await page.keyboard.press(key); const now = await brief(page); if (now.moves > moves || now.status !== 'playing') break; }
     }
     const lost = await read(page);
     expect(lost.status).toBe('lost'); expect(lost.lostBy).toBe('blocked'); expect(lost.panel).toBe(false);
