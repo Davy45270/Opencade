@@ -5870,3 +5870,154 @@ dessinés en traits épais, distincts par la forme et par la couleur.
   bascule, indice expliqué, défaite et « Rejouer », reprise après rechargement,
   Expert sur téléphone (pivot, glisser, loupe), clavier et clic droit, AC12 mise
   en page 320, 390, 768, 1280 et 1440 px avec DejaVu Sans, sans erreur JS.
+
+## Fusio
+
+Jeu de fusion de tuiles au tour par tour (identifiant `fusio`, sauvegarde
+`arcade-lab:fusio:v1`, partie en cours `arcade-lab:fusio:run:v1`, meilleur score
+classique `arcade-lab:fusio:best:v1`), d’après le dossier de spécifications de
+David (OpenCade, jeu de fusion v1.0 : règles, contrats, schémas, critères
+AC01–AC15, planche). Le nom du dossier d’origine n’est jamais le nom du jeu.
+Tout est dessiné par le code (`src/games/fusio/art.ts`) ; la planche n’est pas
+embarquée. Moteur pur dans `src/engines/fusio/` (règles, solveur, défis), scène
+Phaser à part.
+
+### Règles retenues
+
+- **Contrats de la spec** (`rules.ts`) : `GameConfig` (schéma du dossier, clés
+  fermées, `validateConfig`), `GameState`, `applyAction` →
+  `{accepted, state, events}` ou `{accepted: false, reason}` sans aucune mutation
+  (NO_CHANGE, INVALID_ACTION, GAME_OVER, UNDO_UNAVAILABLE). Événements
+  TILE_MOVED, TILE_MERGED, TILE_SPAWNED, SCORE_CHANGED, WON, LOST, UNDONE,
+  CONTINUED, RESTARTED.
+- **Glissement** : toutes les tuiles vont au bout dans la direction ; deux tuiles
+  égales fusionnent, **une seule fusion par tuile et par coup**, priorité au bord
+  d’arrivée (`[2,2,2,2]` → `[4,4,0,0]`) ; score += valeur créée.
+- **Apparition** : 2 (90 %) ou 4 (10 %) sur une case vide tirée au `Random`
+  partagé, seulement si le plateau a changé ; la graine est mêlée à la version du
+  moteur (`mixSeed`). Même graine et mêmes coups : même partie (instantanés
+  figés).
+- **Fin** : gagné quand la cible apparaît ; perdu quand aucun coup ne change le
+  plateau, ou à la limite de coups d’un défi. Le classique peut **continuer**
+  après la victoire (CONTINUE), sans nouvelle victoire.
+- **Annulation** : restaure plateau, score, coups, statut **et l’état du
+  générateur** (la même tuile reviendra) ; 50 coups au plus ; désactivable par
+  défi (`undoEnabled: false`, défis 21 à 30).
+- **Extensions du schéma** (propres aux défis) : `moveLimit`, `walls` (cases
+  pierre, infranchissables, qui coupent les lignes en segments), `start` (plateau
+  de départ écrit), `continueAfterWin`.
+
+**Écartés** : 3 × 3 et cibles sous 128 (AC15 n’accepte que 4/5/6) ; mode chrono
+et mode Enfant (OpencadKid est un dépôt à part) ; rendu 2,5D (plateau 2D, relief
+par ombres) ; une palette de tuiles par thème (une seule échelle de couleurs
+de tuiles, les six thèmes changent le plateau et le fond) ; fast-check (boucles
+seedées de 1000 cas, comme les autres jeux).
+
+### Solveur
+
+`solver.ts` : expectimax sur les lignes (cases vides, fusions possibles,
+monotonie, somme en puissance) avec rescoring incrémental et lignes mises en
+cache ; profondeur 1, ou 2 plis quand il reste au plus 8 cases vides. `hint()`
+propose le coup et l’explique en une phrase (« Un seul coup possible », « les
+deux 64 fusionnent en 128 », « la grande tuile garde son coin », « libère de la
+place », « garde les tuiles en ordre »). Il ne prétend jamais qu’un défi est
+gagnable : la difficulté est **mesurée**, pas prouvée.
+
+**Mesure** (`measure`) : l’agent joue 40 parties à chacun de trois niveaux de
+bruit (25 %, 10 %, 3 % de coups au hasard, générateur à part), soit 120 parties
+par défi ; difficulté = part de parties perdues, en pourcentage. Les valeurs sont
+figées dans `challenges.ts` par `scripts/measure-fusio.js --freeze` (hors CI) et
+recalculées à l’identique par `validate-fusio.js`.
+
+### Trente défis
+
+Une seule règle varie d’un défi au précédent ; graines fixes ; cinq défis par
+thème (classique, pastel, nature, néon, espace, arcade).
+
+| # | Défi | Plateau | Cible | Règle | Difficulté |
+|---|---|---|---|---|---|
+| 1 | Premier 128 | 4 × 4 | 128 | — | 1,7 |
+| 2 | Grand plateau | 5 × 5 | 512 | — | 5,8 |
+| 3 | Pluie de 4 | 4 × 4 | 128 | 2 à 50 % | 10 |
+| 4 | Le rocher | 4 × 4 | 128 | une pierre | 10 |
+| 5 | Coins condamnés | 5 × 5 | 512 | deux coins en pierre | 12,5 |
+| 6 | Compte à rebours | 4 × 4 | 128 | 110 coups | 15 |
+| 7 | Quatre piliers | 6 × 6 | 512 | quatre pierres | 18,3 |
+| 8 | Mille vingt-quatre | 5 × 5 | 1024 | — | 20 |
+| 9 | Deux coins pris | 4 × 4 | 128 | deux coins en pierre | 24,2 |
+| 10 | Course au 512 | 5 × 5 | 512 | 380 coups | 25 |
+| 11 | Que des 2 | 4 × 4 | 256 | que des 2 | 28,3 |
+| 12 | Petit damier | 4 × 4 | 256 | départ écrit | 28,3 |
+| 13 | Le damier | 5 × 5 | 1024 | départ écrit | 29,2 |
+| 14 | Cap sur 256 | 4 × 4 | 256 | — | 33,3 |
+| 15 | Pierre au milieu | 4 × 4 | 128 | une pierre centrale | 35,8 |
+| 16 | Deux cents coups | 4 × 4 | 256 | 200 coups | 44,2 |
+| 17 | Averse de 4 | 5 × 5 | 1024 | 2 à 50 % | 44,2 |
+| 18 | Le puits | 5 × 5 | 512 | pierre au centre | 45 |
+| 19 | Le coin perdu | 4 × 4 | 256 | un coin en pierre | 47,5 |
+| 20 | Marathon | 5 × 5 | 1024 | 700 coups | 52,5 |
+| 21 | Quatre-vingt-dix coups | 4 × 4 | 128 | 90 coups, sans annuler | 56,7 |
+| 22 | L’îlot | 6 × 6 | 512 | îlot central, 420 coups | 59,2 |
+| 23 | Départ en désordre | 4 × 4 | 256 | départ écrit | 62,5 |
+| 24 | Au plus juste | 4 × 4 | 256 | 160 coups | 67,5 |
+| 25 | Sprint | 5 × 5 | 512 | 310 coups | 72,5 |
+| 26 | Le dernier rocher | 4 × 4 | 256 | une pierre | 78,3 |
+| 27 | L’escalier | 4 × 4 | 512 | départ écrit | 80 |
+| 28 | Le mur | 4 × 4 | 128 | deux pierres côte à côte | 84,2 |
+| 29 | Cap sur 512 | 4 × 4 | 512 | — | 83,3 |
+| 30 | Les deux bornes | 5 × 5 | 512 | deux pierres | 84,2 |
+
+Les défis 21 à 30 interdisent l’annulation. Courbe : aucun défi n’est plus facile
+de plus de 10 points qu’un défi cinq rangs avant (le test sait échouer sur une
+permutation). Chaque défi a été gagné et perdu au moins une fois par l’agent
+bruité (sauf les trois premiers, jamais perdus à faible bruit). Diversité
+(`scripts/fusio-diversity.js`) : score 18,1, aucun clone, au plus 4 défis de
+suite sans nouveauté.
+
+### Modes
+
+- **Classique** (entrée du jeu) : 4 × 4, objectif 2048, nouvelle graine à chaque
+  partie, meilleur score local ; après la victoire, « Continuer » ou ↻
+  (nouvelle partie).
+- **Défis** : les trente, débloqués un à un (Progression du socle) ; étoiles :
+  3 sans aide, 2 avec une ou deux (indice ou annulation), 1 au-delà.
+
+### Présentation et contrôles
+
+Plein écran (`fill`, comme Sudoku) : HUD (titre, score, meilleur ou coups
+restants), trois pastilles, bulle du compagnon (contrat Characters : il saute quand
+une fusion crée une nouvelle plus grande tuile (64 et plus) et à l’indice,
+sursaute à un coup refusé et à la défaite)
+avec une aide courte au premier lancement, puis le plateau carré au thème.
+Chaque rang de tuile a sa couleur **et** son emblème géométrique,
+chiffres vectoriels ; pierres hachurées. Animations : glissement 110 ms, pop de
+fusion 150 ms avec étincelles ; « réduire les animations » les supprime. La
+couche du plateau n’est redessinée que si quelque chose a changé.
+
+- **Contrôles** : glisser au doigt (24 px, rapport 1,4), flèches et WASD,
+  boutons DOM (annuler, quatre directions, indice) de 44 à 56 px ; U, Retour
+  arrière ou Ctrl+Z annuler, H indice, R recommencer. Le bouton de la direction
+  conseillée s’allume avec l’indice.
+- **Limite** : le plateau carré est borné par la largeur ; sur 390 × 844 il
+  occupe environ 374 px des 736 px utiles (la consigne « 60 % de la hauteur » est
+  impossible pour un carré en portrait étroit) ; le reste est réparti entre HUD,
+  bulle et boutons.
+- **Reprise** : partie enregistrée à chaque coup (versions, graine, état complet
+  avec historique et générateur) ; une autre version ou un état incohérent est
+  ignoré (AC12).
+
+### Preuves
+
+- `tests/fusio.test.ts` (Vitest) : AC01–AC12, AC14, AC15 nommés ; propriétés
+  P01–P05 à 1000 cas seedés chacune (conservation, une fusion par tuile, aucune
+  apparition sans changement, annulation exacte, refus sans mutation) ; FU01–FU07
+  (défis, courbe avec test d’échec, diversité, instantanés figés, indice, agent
+  gagnant, moteur).
+- `scripts/validate-fusio.js` (test:node) : configurations, difficulté recalculée
+  égale à la valeur figée, chaque défi gagné et perdu, courbe, agent sans bruit
+  gagnant les défis 1 et 3, rejouabilité, diversité.
+- `tests/e2e/fusio.spec.ts` : crochet absent sans paramètre test, accueil →
+  classique avec aide, glisser réel, bouton et clavier jusqu’à une fusion (AC11),
+  annuler, indice, reprise après rechargement, victoire du défi 3, défaite et
+  « Rejouer », AC13 mise en page 320, 390, 768 et 1280 px avec DejaVu Sans, sans
+  erreur JS.
