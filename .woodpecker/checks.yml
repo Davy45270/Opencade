@@ -1,7 +1,7 @@
-# Local CI (Woodpecker, HL-523): the "checks" job of .github/workflows/ci.yml, same commands, same order.
+# Local CI (Woodpecker): the "checks" job of .github/workflows/ci.yml, same commands, same order.
 # Node: the official node:24 image (.nvmrc says 24), through the Harbor Docker Hub proxy, pulled on every run
 # like setup-node resolving "24". The build step also prints the fingerprint of dist/: the publication script
-# (homelab-diag arcade-lab/publier-opencade.py) rebuilds the same commit and refuses to publish a different tree.
+# rebuilds the same commit and refuses to publish a different tree.
 when:
   - event: push
     branch: main

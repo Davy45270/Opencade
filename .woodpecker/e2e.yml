@@ -1,4 +1,4 @@
-# Local CI (Woodpecker, HL-523): the "select" and "e2e" jobs of .github/workflows/ci.yml.
+# Local CI (Woodpecker): the "select" and "e2e" jobs of .github/workflows/ci.yml.
 # Never the whole suite: scripts/e2e-impact.js picks the specs and splits them into at most 4 parts (MAX_SHARDS);
 # each matrix workflow computes the same selection and runs its own part, or nothing.
 # Base of the diff: push -> the commit of the previous pipeline on this branch (CI_PREV_COMMIT_SHA, the local
