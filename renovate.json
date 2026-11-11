@@ -1,0 +1,75 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": [
+    "Renovate sur la copie Forgejo d'un jeu, en complément de Dependabot (GitHub) — chacun ce qu'il fait le mieux.",
+    "Dependabot : dépendances npm (groupe outillage), actions GitHub, alertes de sécurité ; il ignore @playwright/test et @types/node (.github/dependabot.yml).",
+    "Renovate : images de .woodpecker/, et les deux COUPLES qui doivent bouger ensemble : @playwright/test + image mcr.microsoft.com/playwright, @types/node + image node de la CI."
+  ],
+  "timezone": "Europe/Paris",
+  "schedule": [
+    "* 0-5 * * *"
+  ],
+  "dependencyDashboard": true,
+  "ignoreUnstable": true,
+  "respectLatest": true,
+  "labels": [
+    "renovate"
+  ],
+  "enabledManagers": [
+    "npm",
+    "woodpecker"
+  ],
+  "packageRules": [
+    {
+      "description": "npm : tout est à Dependabot, sauf les deux couples.",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchPackageNames": [
+        "!@playwright/test",
+        "!@types/node"
+      ],
+      "enabled": false
+    },
+    {
+      "description": "Image Playwright : vX.Y.Z-noble ; le suffixe de distribution doit rester le même.",
+      "matchDatasources": [
+        "docker"
+      ],
+      "matchPackageNames": [
+        "mcr.microsoft.com/playwright"
+      ],
+      "versioning": "regex:^v(?<major>\\d+)\\.(?<minor>\\d+)\\.(?<patch>\\d+)-(?<compatibility>[a-z]+)$"
+    },
+    {
+      "description": "Couple Playwright : npm @playwright/test et image CI dans UNE seule PR, toutes montées confondues.",
+      "matchPackageNames": [
+        "@playwright/test",
+        "mcr.microsoft.com/playwright"
+      ],
+      "groupName": "playwright (npm + image CI)",
+      "groupSlug": "playwright",
+      "separateMajorMinor": false,
+      "separateMinorPatch": false
+    },
+    {
+      "description": "Couple Node : @types/node suit la majeure de l'image node de la CI, dans UNE seule PR.",
+      "matchPackageNames": [
+        "@types/node",
+        "/(^|/)library/node$/"
+      ],
+      "groupName": "node (image CI + @types/node)",
+      "groupSlug": "node",
+      "separateMajorMinor": false,
+      "separateMinorPatch": false
+    },
+    {
+      "description": "Pas de PR de digest ni d'épinglage (même règle que homelab-compose).",
+      "matchUpdateTypes": [
+        "digest",
+        "pinDigest"
+      ],
+      "enabled": false
+    }
+  ]
+}
