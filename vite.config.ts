@@ -11,7 +11,9 @@ const siteName = process.env.OPENCADE_SITE;
 const site = siteName ? SITES[siteName] : undefined;
 if (siteName && !site) throw new Error(`OPENCADE_SITE inconnu : ${siteName}`);
 const version = process.env.PWA_FIXTURE_VERSION ?? pkg.version;
-const builtAt = new Date().toISOString();
+// Reproducible builds: the publication rebuilds a commit and compares it with the CI build, so the date comes
+// from SOURCE_DATE_EPOCH (the commit time) when it is set.
+const builtAt = process.env.SOURCE_DATE_EPOCH ? new Date(Number(process.env.SOURCE_DATE_EPOCH) * 1000).toISOString() : new Date().toISOString();
 const path = (relative: string): string => fileURLToPath(new URL(relative, import.meta.url));
 const sites = Object.keys(SITES);
 /** A site page is the catalogue's index.html with its own title, icons and entry module. */
