@@ -36,6 +36,22 @@ test('DV-E01 ouvert depuis l’accueil, le niveau 1 se démonte au doigt jusqu�
     expect(end.status).toBe('won'); expect(end.stars).toBe(3); expect(end.helps).toBe(0);
     expect(await page.evaluate(() => window.__DEVISSO_TEST__?.hudText())).toContain('SCORE');
     await expect(page.locator('#next-level')).toBeVisible();
+    // One coin figure: the HUD pill says what the result panel says.
+    await page.evaluate(() => { window.__DEVISSO_TEST__?.advance(500); });
+    const panelText = await page.locator('#result-scores').textContent() ?? '';
+    const panelCoins = /Pièces : (\d+)/u.exec(panelText)?.[1];
+    expect(panelCoins).toBe(String(end.score));
+    expect(await page.evaluate(() => window.__DEVISSO_TEST__?.hudCoins())).toBe(panelCoins);
+    // One ending: the shell's result panel, and no canvas banner on top of the game.
+    await expect(page.locator('#result')).toBeVisible();
+    expect(await page.evaluate(() => window.__DEVISSO_TEST__?.banners() ?? [])).toEqual([]);
+    // The canvas only says it in the tip row, which stays clear of the panel.
+    const panel = await page.locator('#result').boundingBox(); if (!panel) throw new Error('Panneau absent');
+    const row = await page.evaluate(() => window.__DEVISSO_TEST__?.tipRow()); if (!row) throw new Error('Ligne absente');
+    expect(row.text).toContain('Niveau terminé !');
+    const a = await screen(page, row.x, row.y), z = await screen(page, row.x + row.width, row.y + row.height);
+    const overlap = Math.min(z.x, panel.x + panel.width) > Math.max(a.x, panel.x) && Math.min(z.y, panel.y + panel.height) > Math.max(a.y, panel.y);
+    expect(overlap, `ligne ${JSON.stringify({ a, z })} sous le panneau ${JSON.stringify(panel)}`).toBe(false);
 });
 test('DV-E02 impasse : « Aucun coup possible ! », puis un cœur reprend trois coups', async ({ page }, info) => {
     const mobile = info.project.name === 'mobile-chromium';
@@ -44,6 +60,8 @@ test('DV-E02 impasse : « Aucun coup possible ! », puis un cœur reprend trois 
     await page.evaluate(() => { window.__DEVISSO_TEST__?.loadLevel(1); window.__DEVISSO_TEST__?.scenario('stuck'); window.__DEVISSO_TEST__?.advance(0); });
     const stuck = await read(page);
     expect(stuck.stuck).toBe(true); expect(stuck.status).toBe('playing'); expect(stuck.hearts).toBe(5);
+    // The banner hook reports what is drawn: the red dead-end banner is there.
+    expect(await page.evaluate(() => window.__DEVISSO_TEST__?.banners().length)).toBe(1);
     // The "Reprendre" button of the red banner (world 70–290 × 392–444).
     await touch(page, 180, 418, mobile);
     const after = await read(page);

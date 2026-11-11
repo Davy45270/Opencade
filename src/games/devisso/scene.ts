@@ -44,6 +44,12 @@ export interface DevissoHook {
     read(): ReturnType<Engine['snapshot']> & { armed: Boost | null; animating: boolean; progression: string; cumulativeScore: number; character: ReturnType<GameCharacter['snapshot']>; fingerInput: { paused: boolean; armed: Boost | null } };
     advance(ms: number): void;
     hudText(): string;
+    /** The coin figure drawn in the HUD pill. */
+    hudCoins(): string;
+    /** Canvas banners drawn over the board (world rects): the dead end only; a win leaves the ending to the shell panel. */
+    banners(): { x: number; y: number; width: number; height: number }[];
+    /** The tip row under the board (world rect) and its text. */
+    tipRow(): { x: number; y: number; width: number; height: number; text: string };
     usefulArea(): { x: number; y: number; width: number; height: number };
     loadLevel(index: number, seed?: number): void;
     /** World point of screw `i` (centre), for finger tests. */
@@ -65,6 +71,8 @@ export class DevissoScene extends Phaser.Scene {
     private flights: Flight[] = [];
     private falls: Fall[] = [];
     private sparks: Spark[] = [];
+    /** World rect of the canvas banner drawn last frame, or null. */
+    private banner: { x: number; y: number; width: number; height: number } | null = null;
     private turning = new Map<number, number>();
     private shake = { screw: -1, t: 0 };
     private boxDone = 0;
@@ -214,6 +222,9 @@ export class DevissoScene extends Phaser.Scene {
                 if (ms === 0) this.tick(0);
             },
             hudText: () => this.hud?.text ?? '',
+            hudCoins: () => this.texts?.coins.text ?? '',
+            banners: () => this.banner ? [{ ...this.banner }] : [],
+            tipRow: () => ({ x: 4, y: ROWS.tip, width: 352, height: 44, text: this.texts?.tip.text ?? '' }),
             usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             screwPoint: i => { const [x, y] = toWorld(...this.engine.position(i)); return { x, y }; },
@@ -287,7 +298,7 @@ export class DevissoScene extends Phaser.Scene {
         const removed = s.present.filter(p => !p).length;
         g.fillStyle(0x000000, 0.3); g.fillRoundedRect(118, 36, 106, 9, 4.5);
         g.fillStyle(UI.green); g.fillRoundedRect(118, 36, Math.max(9, 106 * removed / b.screws.length), 9, 4.5);
-        pill(g, 232, 10, 68, 34, 0xffe27a); coinIcon(g, 246, 27, 9); t.coins.setText(String(s.coins));
+        pill(g, 232, 10, 68, 34, 0xffe27a); coinIcon(g, 246, 27, 9); t.coins.setText(String(e.purse));
         pill(g, 304, 10, 50, 34, 0xd8324a); heartIcon(g, 318, 26, 9, 0xffffff); t.hearts.setText(String(e.hearts));
         // Boxes: the open one, then the queue.
         const active = s.slots[0] ?? null;
@@ -346,30 +357,29 @@ export class DevissoScene extends Phaser.Scene {
         this.hero.draw(g, 6, ROWS.tip - 6, 50);
         const tip = this.armed ? AIM_TEXT[this.armed] ?? '' : e.hint >= 0 ? 'Indice : la vis qui brille garde la partie gagnable.' : e.events.includes('nohint') ? 'Pas d’indice d’ici : annulez un coup.' : workshopTip(e.level);
         t.tip.setText(tip);
-        // Banners: dead end (red), level done (green).
-        // An armed boost lifts the dead-end banner: the board must show where to aim.
-        const banner = e.status === 'won' ? 'won' : e.stuck && !this.armed ? 'stuck' : null;
-        t.tip.setVisible(banner !== 'won'); t.title.setVisible(banner !== null); t.sub.setVisible(banner !== null); t.button.setVisible(banner === 'stuck' && e.hearts > 0);
+        // Dead-end banner (red). A won level has one ending only: the shell's result panel (stars, coins, next level);
+        // the canvas then just dims the board and says so in the tip row, clear of that panel.
+        const banner = e.stuck && !this.armed && e.status === 'playing';
+        t.tip.setVisible(true); t.title.setVisible(banner); t.sub.setVisible(banner); t.button.setVisible(banner && e.hearts > 0);
+        this.banner = null;
+        if (e.status === 'won') {
+            g.fillStyle(0x000000, 0.45); g.fillRect(0, BOARD.y, 360, BOARD.h);
+            t.tip.setText(`Niveau terminé ! ${level?.name ?? ''}`);
+        }
         if (banner) {
-            const color = banner === 'won' ? UI.green : UI.red;
-            // The shell's result panel sits mid-screen after a win: the green banner goes under it, over the tip row.
-            const top = banner === 'won' ? 500 : 298, height = banner === 'won' ? 136 : 156;
+            const top = 298, height = 156;
+            this.banner = { x: 30, y: top, width: 300, height };
             g.fillStyle(0x000000, 0.45); g.fillRect(0, BOARD.y, 360, BOARD.h);
             g.fillStyle(0x000000, 0.3); g.fillRoundedRect(34, top + 6, 300, height, 20);
-            g.fillStyle(color); g.fillRoundedRect(30, top, 300, height, 20);
+            g.fillStyle(UI.red); g.fillRoundedRect(30, top, 300, height, 20);
             g.fillStyle(0xffffff, 0.18); g.fillRoundedRect(38, top + 6, 284, 30, 12);
             t.title.setY(top + 20); t.sub.setY(top + 58);
-            if (banner === 'won') {
-                t.title.setText('Niveau terminé !'); t.sub.setText(`${String(e.score)} pièces · ${level?.name ?? ''}`);
-                for (let k = 0; k < 3; k++) starIcon(g, 140 + k * 40, top + 106, 15, k < e.stars);
-            } else {
-                t.title.setText('Aucun coup possible !');
-                const left = e.hearts > 0 ? `Un cœur reprend les ${String(RESCUE_STEPS)} derniers coups.` : 'Plus de cœur : un bonus, ou recommencer.';
-                t.sub.setText(`Réserve pleine, aucune vis ne rentre.\n${left}`);
-                if (e.hearts > 0) { pill(g, RESCUE.x, RESCUE.y, RESCUE.w, RESCUE.h, 0xffffff); heartIcon(g, RESCUE.x + 30, RESCUE.y + 25, 11); t.button.setText('Reprendre').setColor('#c8283a'); }
-            }
+            t.title.setText('Aucun coup possible !');
+            const left = e.hearts > 0 ? `Un cœur reprend les ${String(RESCUE_STEPS)} derniers coups.` : 'Plus de cœur : un bonus, ou recommencer.';
+            t.sub.setText(`Réserve pleine, aucune vis ne rentre.\n${left}`);
+            if (e.hearts > 0) { pill(g, RESCUE.x, RESCUE.y, RESCUE.w, RESCUE.h, 0xffffff); heartIcon(g, RESCUE.x + 30, RESCUE.y + 25, 11); t.button.setText('Reprendre').setColor('#c8283a'); }
         }
-        const text = `DÉVISSO · ${String(e.level + 1)}/${String(LEVELS.length)} · ${level?.name ?? ''} · SCORE ${String(s.coins)}\nVIS ${String(removed)}/${String(b.screws.length)} · BOÎTES ${String(s.boxes)}/${String(total)} · RÉSERVE ${String(s.buffer.length)}/${String(s.cap)} · CŒURS ${String(e.hearts)}\n${tip}`;
+        const text = `DÉVISSO · ${String(e.level + 1)}/${String(LEVELS.length)} · ${level?.name ?? ''} · SCORE ${String(e.purse)}\nVIS ${String(removed)}/${String(b.screws.length)} · BOÎTES ${String(s.boxes)}/${String(total)} · RÉSERVE ${String(s.buffer.length)}/${String(s.cap)} · CŒURS ${String(e.hearts)}\n${tip}`;
         this.hud?.setText(text);
         const status = document.querySelector('#status'); if (status) status.textContent = text;
     }

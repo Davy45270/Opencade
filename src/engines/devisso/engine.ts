@@ -42,6 +42,8 @@ export class Engine {
     }
     get stuck(): boolean { return this.status === 'playing' && stuck(this.board, this.state); }
     get stars(): number { return stars(this.helps); }
+    /** The one coin figure the player sees: coins so far, then the level score (with the star bonus) once won. */
+    get purse(): number { return this.status === 'won' ? this.score : this.state.coins; }
     blocker(i: number) { return blocker(this.board, this.state, i); }
     position(i: number): [number, number] { return screwXY(this.board, this.state, i); }
     /** The screw a finger at board point (x, y) means: the nearest present, uncovered one within 0.5. */
@@ -136,7 +138,7 @@ export class Engine {
     snapshot() {
         const s = this.state;
         return {
-            level: this.level, seed: this.seed, status: this.status, stuck: this.stuck, hearts: this.hearts, helps: this.helps, stars: this.stars, score: this.score,
+            level: this.level, seed: this.seed, status: this.status, stuck: this.stuck, hearts: this.hearts, helps: this.helps, stars: this.stars, score: this.score, purse: this.purse,
             boosts: { ...this.boosts }, events: [...this.events], hint: this.hint, moves: s.moves, coins: s.coins, boxes: s.boxes, gold: s.gold,
             present: [...s.present], plates: [...s.plates], slots: s.slots.map(b => b ? { ...b } : null), next: s.next, buffer: [...s.buffer], cap: s.cap,
             ice: [...s.ice], unlocked: s.unlocked, crates: [...s.crates], shift: s.shift.map(([x, y]) => [x, y]),

@@ -96,6 +96,16 @@ describe('Dévisso : moteur', () => {
         e.tap(7);
         expect(e.status).toBe('lost');
     });
+    test('DV07b une seule somme de pièces : en jeu les pièces gagnées, à la victoire le score du niveau (bonus d’étoiles compris)', () => {
+        const e = new Engine(); e.loadLevel(0);
+        for (const i of [11, 9, 10, 0, 1, 7, 8, 2, 3, 4, 5, 6]) {
+            expect(e.purse).toBe(e.state.coins);
+            expect(e.tap(i)).toBe(true);
+        }
+        expect(e.status).toBe('won');
+        expect(e.purse).toBe(e.score); expect(e.score).toBe(e.state.coins + 100 * e.stars);
+        expect(e.snapshot().purse).toBe(e.score);
+    });
     test('DV08 marteau, explosion et perçage passent outre ce qui bloque', () => {
         const e = new Engine(); e.loadLevel(0);
         const covered = e.board.screws.findIndex((_, i) => e.blocker(i) === 'covered');
