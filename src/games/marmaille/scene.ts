@@ -181,7 +181,7 @@ export class MarmailleScene extends Phaser.Scene {
         const box = fresh ? { x0: 0, y0: 0, x1: COLS - 1, y1: ROWS - 1 } : repaintBox(this.painted, e.tiles);
         if (fresh) { this.ensureBackdrop(world); this.paintedLevel = e.level; }
         if (!box) { this.repaints = 0; return; }
-        // One clear only (a dynamic texture ignores further clears until it is drawn again), then every cell of the box.
+        // One clear, then every cell of the box.
         if (fresh) rt.clear();
         else (rt.texture as Phaser.Textures.DynamicTexture).clear(box.x0 * CELL, FIELD_Y + box.y0 * CELL, (box.x1 - box.x0 + 1) * CELL, (box.y1 - box.y0 + 1) * CELL);
         const cells: [number, number][] = [];
@@ -193,7 +193,8 @@ export class MarmailleScene extends Phaser.Scene {
             paintCell(g, world, t, { up: y > 0 ? e.tile(x, y - 1) : ' ', left: e.tile(x - 1, y), right: e.tile(x + 1, y) }, built, x, y, CELL, FIELD_Y);
         }
         portals(g, def.spawn, def.exit, def.dir ?? 1, CELL, FIELD_Y);
-        rt.draw(g);
+        // Phaser 4 buffers clear/draw commands: render() runs them now, while the scratch graphics still hold this box.
+        rt.draw(g).render();
         this.painted = e.tiles.map(r => r.join(''));
     }
     private draw(): void {
