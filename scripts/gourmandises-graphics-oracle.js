@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import { GameCharacter } from '../src/characters/game.ts';
 import { ids } from '../src/characters/model.ts';
 
@@ -11,7 +12,8 @@ import { ids } from '../src/characters/model.ts';
 function retainedGraphics() {
     const source = readFileSync(new URL('../node_modules/phaser/src/gameobjects/graphics/Graphics.js', import.meta.url), 'utf8');
     const require = createRequire(import.meta.url);
-    const Commands = require('phaser/src/gameobjects/graphics/Commands.js');
+    // Phaser 4 exports only its bundles: the source module is required by file path.
+    const Commands = require(fileURLToPath(new URL('../node_modules/phaser/src/gameobjects/graphics/Commands.js', import.meta.url)));
     const graphics = { defaultFillColor: -1, defaultStrokeColor: -1, commandBuffer: [] };
     for (const name of ['lineStyle', 'fillStyle', 'beginPath', 'closePath', 'fillPath', 'strokePath', 'moveTo', 'lineTo', 'fillPoints', 'strokePoints', 'clear']) {
         const start = source.indexOf('function', source.indexOf(`${name}: function`));

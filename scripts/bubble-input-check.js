@@ -2,9 +2,11 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
-const require=createRequire(import.meta.url);
-const pointerPath=require.resolve('phaser/src/input/Pointer');
+// Phaser 4 exports only its bundles: the sources are read by file path.
+const phaserSource=file=>fileURLToPath(new URL(`../node_modules/phaser/src/${file}.js`,import.meta.url));
+const pointerPath=phaserSource('input/Pointer');
 const pointerRequire=createRequire(pointerPath);
 const source=readFileSync(pointerPath,'utf8');
 const module={exports:{}};
@@ -12,14 +14,14 @@ const module={exports:{}};
 runInNewContext(source,{module,exports:module.exports,require:name=>name === '../device/OS'?{}:pointerRequire(name)});
 const Pointer=module.exports;
 function method(file,name) {
-    const source=readFileSync(require.resolve(file),'utf8');
+    const source=readFileSync(phaserSource(file),'utf8');
     const match=new RegExp(`${name}: (function \\([^]*?\\n    }),`).exec(source);
     assert.ok(match,`Missing input method ${name}`);
     return runInNewContext(`(${match[1]})`);
 }
-const transformPointer=method('phaser/src/input/InputManager','transformPointer');
-const transformX=method('phaser/src/scale/ScaleManager','transformX');
-const transformY=method('phaser/src/scale/ScaleManager','transformY');
+const transformPointer=method('input/InputManager','transformPointer');
+const transformX=method('scale/ScaleManager','transformX');
+const transformY=method('scale/ScaleManager','transformY');
 export function inputCoordinates() {
     for(const [left,top,width,height,scrollX,scrollY] of [[400,100,360,640,0,0],[17,93,270,480,0,160],[12,32,540,960,20,40]]) {
         const scaleManager={canvasBounds:{left:left+scrollX,top:top+scrollY},displayScale:{x:360/width,y:640/height},transformX,transformY};
