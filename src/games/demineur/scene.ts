@@ -95,8 +95,10 @@ export class DemineurScene extends Phaser.Scene {
         reserveHudRow();
         this.ui = this.add.graphics();
         this.board = this.add.graphics();
-        const mask = this.make.graphics({}, false); mask.fillRect(AREA.x, AREA.y, AREA.w, AREA.h);
-        this.board.setMask(mask.createGeometryMask());
+        // Phaser 4: geometry masks are Canvas-only; under WebGL a mask is a filter (world space, main camera, as before).
+        const mask = this.make.graphics({}, false); mask.fillStyle(0xffffff).fillRect(AREA.x, AREA.y, AREA.w, AREA.h);
+        if (this.renderer.type === Phaser.WEBGL) this.board.enableFilters().filters?.external.addMask(mask);
+        else this.board.setMask(mask.createGeometryMask());
         this.fx = this.add.graphics().setDepth(3);
         const text = (x: number, y: number, size: number, color = '#ffffff', bold = true): Phaser.GameObjects.Text =>
             this.add.text(x, y, '', { fontFamily: 'system-ui, sans-serif', fontSize: `${String(size)}px`, fontStyle: bold ? 'bold' : 'normal', color }).setDepth(4);
