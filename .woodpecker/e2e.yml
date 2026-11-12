@@ -22,7 +22,7 @@ clone:
 
 steps:
   - name: select
-    image: harbor.pingfr.duckdns.org/dockerhub/library/node:24
+    image: harbor.pingfr.duckdns.org/dockerhub/library/node:26
     pull: true
     commands:
       - |

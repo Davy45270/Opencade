@@ -14,7 +14,7 @@ when:
 
 steps:
   - name: npm ci
-    image: &node harbor.pingfr.duckdns.org/dockerhub/library/node:24
+    image: &node harbor.pingfr.duckdns.org/dockerhub/library/node:26
     pull: true
     commands:
       - node --version
