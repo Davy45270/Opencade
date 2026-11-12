@@ -30,7 +30,7 @@ Ferraille now spans 30 authored stages with six enemy behaviors, flame/ricochet/
 
 Original games, one browser arcade. Opencade runs on phones and desktops,
 with touch, mouse and keyboard controls and no account or backend. It is built
-with strict TypeScript, Phaser 3 and Vite. **The interface is in French.**
+with strict TypeScript, Phaser 4 and Vite. **The interface is in French.**
 
 **[Play the demo](https://davy45270.github.io/Opencade/)**
 

@@ -2,7 +2,7 @@
   "name": "opencade",
   "version": "0.6.0",
   "private": true,
-  "description": "Twelve original HTML5 arcade games (Phaser 3, TypeScript), playable by touch, mouse and keyboard.",
+  "description": "Twelve original HTML5 arcade games (Phaser 4, TypeScript), playable by touch, mouse and keyboard.",
   "license": "MIT",
   "author": "David Sevin",
   "homepage": "https://davy45270.github.io/Opencade/",
@@ -39,7 +39,7 @@
     "audit:derapage": "node scripts/audit-derapage-mutations.js"
   },
   "dependencies": {
-    "phaser": "3.90.0"
+    "phaser": "4.2.1"
   },
   "devDependencies": {
     "@playwright/test": "1.65.0",

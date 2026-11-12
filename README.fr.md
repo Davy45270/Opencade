@@ -30,7 +30,7 @@ Ferraille propose 30 étapes avec six comportements ennemis, flammes/ricochets/g
 
 Des jeux originaux réunis dans une arcade pour navigateur. Opencade se joue
 sur téléphone et ordinateur, au toucher, à la souris et au clavier, sans compte
-ni serveur applicatif. Le projet utilise TypeScript strict, Phaser 3 et Vite.
+ni serveur applicatif. Le projet utilise TypeScript strict, Phaser 4 et Vite.
 **L’interface est en français.**
 
 **[Jouer à la démo](https://davy45270.github.io/Opencade/)**
