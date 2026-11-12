@@ -46,6 +46,16 @@ steps:
         fi
         # A restarted pipeline keeps its commit: CI_PREV_COMMIT_SHA is then HEAD itself and the
         # selection would be N0 (green without any E2E). Refuse instead of lying.
+        # A PR integrated by fast-forward: the previous pipeline is that PR's, on this very commit.
+        # The PR pipeline already covered PR base..HEAD; on push, re-test the last commit (HEAD~1..HEAD)
+        # instead of failing. Any other event keeps the loud refusal.
+        if [ -n "$$BASE" ] && [ "$(git rev-parse "$$BASE" 2>/dev/null)" = "$(git rev-parse HEAD)" ] && [ "$${CI_PIPELINE_EVENT}" = "push" ]; then
+          git cat-file -e HEAD~1 2>/dev/null || git fetch -q --deepen=1 origin 2>/dev/null || true
+          if git cat-file -e HEAD~1 2>/dev/null; then
+            echo "base = tête ($$BASE) sur push : PR intégrée en fast-forward ? base ramenée au parent $(git rev-parse --short HEAD~1)"
+            BASE="$(git rev-parse HEAD~1)"
+          fi
+        fi
         if [ -n "$$BASE" ] && [ "$(git rev-parse "$$BASE" 2>/dev/null)" = "$(git rev-parse HEAD)" ]; then
           echo "base = tête ($$BASE) : relance d'un pipeline ? Lancer un pipeline manuel avec E2E_BASE=<commit avant le push>."
           exit 1
