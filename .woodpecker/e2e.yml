@@ -31,6 +31,19 @@ steps:
           manual) BASE="$${E2E_BASE:-}" ;;
           *) BASE="" ;;
         esac
+        # CI_PREV_COMMIT_SHA is the commit of the PREVIOUS pipeline, which can be a pull-request head
+        # (Renovate, Dependabot) that main took by cherry-pick: not an ancestor of HEAD, so the selection
+        # saw "no base" and fell back to a sample that skips the changed games. Use the common ancestor.
+        if [ -n "$$BASE" ] && ! git merge-base --is-ancestor "$$BASE" HEAD 2>/dev/null; then
+          git cat-file -e "$$BASE^{commit}" 2>/dev/null || git fetch -q origin "$$BASE" 2>/dev/null || git fetch -q origin '+refs/pull/*/head:refs/remotes/pr/*' 2>/dev/null || true
+          COMMUN="$(git merge-base "$$BASE" HEAD 2>/dev/null || true)"
+          if [ -z "$$COMMUN" ]; then
+            echo "base $$BASE introuvable ou sans ancêtre commun avec HEAD : lancer un pipeline manuel avec E2E_BASE=<commit avant le push>."
+            exit 1
+          fi
+          echo "base $$BASE hors de l'historique de HEAD (PR reprise par cherry-pick ?) : ancêtre commun $$COMMUN"
+          BASE="$$COMMUN"
+        fi
         # A restarted pipeline keeps its commit: CI_PREV_COMMIT_SHA is then HEAD itself and the
         # selection would be N0 (green without any E2E). Refuse instead of lying.
         if [ -n "$$BASE" ] && [ "$(git rev-parse "$$BASE" 2>/dev/null)" = "$(git rev-parse HEAD)" ]; then
