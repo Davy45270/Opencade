@@ -22,7 +22,7 @@ export interface PepitesHook {
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
     fingerReceipts: ReturnType<typeof fingerReceipts>;
-    read(): ReturnType<Engine['snapshot']> & { cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
+    read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
 }
 declare global { interface Window { __PEPITES_TEST__?: PepitesHook } }
@@ -88,7 +88,7 @@ export class PepitesScene extends Phaser.Scene {
             hudText: () => this.hud?.text ?? '',
             usefulArea: () => ({ x: 0, y: TOP, width: W * CELL, height: H * CELL }),
             fingerReceipts: receipts,
-            read: () => ({ ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
+            read: () => ({ fingerInput: { paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
         };
         this.scale.refresh(); this.panels(); this.draw();
