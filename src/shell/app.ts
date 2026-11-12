@@ -105,7 +105,7 @@ export function startApp({ games, links = [], order = games.map(entry => entry.i
             // A full-screen game draws at the play area's size; the others keep their 360×640 world scaled to fit.
             scale: definition.fill ? { mode: Phaser.Scale.RESIZE } : { mode: Phaser.Scale.FIT, autoCenter: Phaser.Scale.CENTER_BOTH },
             // Phaser 4.2.1 drops parts of sprites when one WebGL batch mixes several textures (Dérapage karts, Briqueterie
-            // flames: HL-524). One texture per batch is what Phaser already does on iOS and Android (autoMobileTextures).
+            // flames). One texture per batch is what Phaser already does on iOS and Android (autoMobileTextures).
             render: { antialias: true, maxTextures: 1 }, input: { activePointers: 2 },
         });
         const container = document.querySelector('#game');
