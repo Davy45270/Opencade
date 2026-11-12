@@ -38,7 +38,7 @@ return [
         const a=new Engine(0,28),b=new Engine(0,28);
         assert.equal(a.karts[0]?.lap,0);
         for(let frame=0;frame<12000 && a.status==='playing';frame++) {
-            const k=a.karts[0]; assert.ok(k);
+            const k: Engine["karts"][number] | undefined=a.karts[0]; assert.ok(k);
             const input=controller(k,a.track);
             a.input(input); b.input(input); a.step(1000/60); b.step(1000/60);
             // Render the normal start and regularly during all three laps.

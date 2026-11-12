@@ -37,8 +37,8 @@ export function dedaleMix(plan = encounters, create = createLabyrinth, hud = les
     assert.deepEqual(first, { key: 3, arrow: 4, portal: 8, switch: 12, moving: 15, ice: 18, dark: 21, crumble: 26, key2: 27 });
     assert.equal(hud(26), 'Dalle fêlée : un passage, puis un mur derrière vous');
     for (let l = 5; l < 30; l++) assert.notEqual(plan(l).join('+'), plan(l - 1).join('+'), `levels ${String(l)}/${String(l + 1)}`);
-    for (const m of ENCOUNTERS) for (let chapter = Math.floor(first[m] / 5) + 1; chapter < 6; chapter++)
-        assert.ok([0, 1, 2, 3, 4].some(k => plan(chapter * 5 + k).includes(m)), `${m} absent from chapter ${String(chapter + 1)}`);
+    for (const m of ENCOUNTERS) for (let chapter: number = Math.floor(first[m] / 5) + 1; chapter < 6; chapter++)
+        assert.ok([0, 1, 2, 3, 4].some((k): boolean => plan(chapter * 5 + k).includes(m)), `${m} absent from chapter ${String(chapter + 1)}`);
     // The generated board holds exactly its plan (no cumulative leftovers).
     for (let l = 0; l < 30; l++) {
         const j = create(l, 28).journey, p = plan(l);

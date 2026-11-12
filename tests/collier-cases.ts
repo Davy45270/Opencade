@@ -63,7 +63,7 @@ export function C01(): void {
         forms.add(signature(new Path(path.controls)));
         let length = 0;
         for (let n = 1; n < path.samples.length; n++) {
-            const a = path.samples[n - 1], b = path.samples[n];
+            const a: Path["samples"][number] | undefined = path.samples[n - 1], b: Path["samples"][number] | undefined = path.samples[n];
             if (a && b) {
                 assert.ok(b.s - a.s <= 1.000001);
                 length += Math.hypot(a.x - b.x, a.y - b.y);
