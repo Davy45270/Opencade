@@ -43,7 +43,7 @@ export const TIPS: readonly string[] = [
     'La place du village tourne autour de son centre.',
     'Centre-ville : l’indice montre le coup le plus court, et pourquoi.',
     'La grande gare : tous les bus, toutes les couleurs.',
-    'Le dernier dépôt. Bonne route !',
+    'Le dernier dépôt de la première ville. Bonne route !',
     'Nouveau quartier, petites rues : chaque case libre compte.',
     'Avant de bouger, cherchez quel bus part en premier.',
     'Un plot au milieu : il faudra tourner autour.',
