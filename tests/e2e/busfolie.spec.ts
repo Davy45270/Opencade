@@ -189,3 +189,22 @@ for (const [width, height] of [[320, 640], [390, 844], [768, 1024], [1280, 900]]
     // A bus cell stays a finger target on a phone.
     if (width === 390) expect((await page.evaluate(() => window.__BUSFOLIE_TEST__?.cell() ?? 0)) * (layout.canvas?.w ?? 0) / 360).toBeGreaterThanOrEqual(40);
 });
+test('BF-E09 campagne 2 : une sauvegarde de la première campagne ouvre le niveau 31, et le niveau 60 se gagne au doigt', async ({ page }) => {
+    test.setTimeout(150_000); // 24 finger drags of the last level
+    await page.addInitScript(() => { localStorage.setItem('arcade-lab:busfolie:v1', JSON.stringify({ unlocked: 30, best: 4000 })); });
+    await page.goto('/?test=1#/busfolie');
+    await hookReady(page);
+    await page.locator('#pause').tap(); await page.locator('#levels').tap();
+    const buttons = page.locator('#level-list button');
+    await expect(buttons).toHaveCount(60);
+    await expect(buttons.nth(30)).toBeEnabled(); await expect(buttons.nth(31)).toBeDisabled();
+    await page.locator('#close-levels').tap();
+    if (await page.locator('#resume').isVisible()) await page.locator('#resume').tap();
+    await page.evaluate(() => { window.__BUSFOLIE_TEST__?.loadLevel(59); window.__BUSFOLIE_TEST__?.advance(0); });
+    expect(await read(page)).toMatchObject({ level: 59, status: 'playing', moves: 0 });
+    const cdp = await page.context().newCDPSession(page);
+    await playLine(page, cdp, await line(page, 59));
+    const end = await read(page);
+    expect(end.status).toBe('won'); expect(end.stars).toBe(3); expect(end.moves).toBe(end.par);
+    expect(await page.evaluate(() => window.__BUSFOLIE_TEST__?.hudText())).toContain('NIVEAU 60/60');
+});

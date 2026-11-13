@@ -1,0 +1,4785 @@
+{
+ "receiptVersion": 1,
+ "gameId": "busfolie",
+ "campaignId": "busfolie-c2",
+ "levels": "31-60",
+ "generatorVersion": "1.0.0",
+ "engineVersion": "1.0.0",
+ "schemaVersion": "1.0.0",
+ "maxStates": 60000,
+ "frozenBefore": {
+  "levels": 30,
+  "hash": "fb35f98d8589899f047ea395f2ebc7fe578eba3b33b80a7f4c5de61c20a68536"
+ },
+ "generation": {
+  "generated": 6508,
+  "valid": 189,
+  "validRate": 0.029,
+  "rejected": {
+   "generator": 4,
+   "hopeless": 3963,
+   "no_trap": 224,
+   "state_limit": 690,
+   "unsolvable": 1438
+  }
+ },
+ "receipts": [
+  {
+   "slot": 31,
+   "name": "Le quartier neuf",
+   "candidateId": "busfolie-031-31178-s",
+   "levelHash": "46e6c1892dd503fdb3ee2b1da427dc75dd99cdfddf77101596d4c949e387944f",
+   "board": {
+    "map": [
+     "FFB..K",
+     "..BIIK",
+     "......",
+     ".HDDJJ",
+     ".HCGEE",
+     "AACG.."
+    ],
+    "vehicles": [
+     "rouge 4 <",
+     "jaune 2 v",
+     "rouge 3 v",
+     "vert 3 <",
+     "bleu 3 >",
+     "jaune 2 >",
+     "bleu 2 ^",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 3",
+     "right 0",
+     "right 4",
+     "bottom 2",
+     "left 3",
+     "left 5"
+    ],
+    "queue": "jaune 1, jaune 1, bleu 1, rouge 1, rouge 1, jaune 1, bleu 1, bleu 2, rouge 4, vert 1, vert 1"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le quartier neuf",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 4,
+      "long": 0,
+      "obstacles": 0,
+      "colors": 4,
+      "twins": 3,
+      "coloured": false,
+      "oneWay": 0,
+      "groupsMax": 2
+     }
+    },
+    "seed": 31178,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 245489,
+     "iterations": 240,
+     "accepted": 139,
+     "startHash": "99652fea6c100ffbcc51bd1a07648975d2fc45cca290c7dbc00896da182b502e"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 33189,
+    "line": [
+     "VH b2",
+     "BD f2",
+     "BC b2",
+     "BG f2",
+     "BE b4",
+     "BC f1",
+     "BB f1",
+     "BG b2",
+     "VJ b1",
+     "VK f4",
+     "BF f6",
+     "VI f1",
+     "VJ f1",
+     "BG f6",
+     "BC f3",
+     "BB f5",
+     "VJ b1",
+     "VK b2",
+     "BE f6",
+     "BA f2",
+     "BD f2"
+    ]
+   },
+   "metrics": {
+    "difficulty": 25.4,
+    "par": 21,
+    "target": 25.45,
+    "states": 44577,
+    "dead": 11092,
+    "trap": {
+     "at": 14,
+     "move": "BA f2"
+    },
+    "solution": [
+     "VH b2",
+     "BD f2",
+     "BC b2",
+     "BG f2",
+     "BE b4",
+     "BC f1",
+     "BB f1",
+     "BG b2",
+     "VJ b1",
+     "VK f4",
+     "BF f6",
+     "VI f1",
+     "VJ f1",
+     "BG f6",
+     "BC f3",
+     "BB f5",
+     "VJ b1",
+     "VK b2",
+     "BE f6",
+     "BA f2",
+     "BD f2"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "crowded",
+     "groups",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 32,
+   "name": "La boulangerie",
+   "candidateId": "busfolie-032-32009-s",
+   "levelHash": "915cb104063ecc740c3e3aa947194134bfc0324bd7ebb67e4d6f87ed790ed94e",
+   "board": {
+    "map": [
+     "...JJ.",
+     ".KBBHH",
+     ".KGG..",
+     "FFEE..",
+     "....DC",
+     "IIAADC"
+    ],
+    "vehicles": [
+     "rouge 4 >",
+     "bleu 4 <",
+     "bleu 3 ^",
+     "rouge 4 ^",
+     "jaune 3 <",
+     "vert 3 <",
+     "jaune 2 >",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 4",
+     "top 5",
+     "right 2",
+     "right 5",
+     "left 1",
+     "left 3"
+    ],
+    "queue": "jaune 2, rouge 4, bleu 1, bleu 1, vert 2, vert 1, bleu 2, bleu 2, rouge 3, jaune 1"
+   },
+   "provenance": {
+    "profile": {
+     "name": "La boulangerie",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 4,
+      "long": 0,
+      "obstacles": 0,
+      "colors": 4,
+      "twins": 3,
+      "coloured": false,
+      "oneWay": 0,
+      "groupsMax": 2
+     }
+    },
+    "seed": 32009,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 253408,
+     "iterations": 1500,
+     "accepted": 789,
+     "startHash": "cda5a6d2f1c29e4873ce2aee38cc9178edd015c11c58efb44e61c83d1ca0a66b"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 26330,
+    "line": [
+     "BC f1",
+     "BD f1",
+     "BG f4",
+     "BA f4",
+     "BC b1",
+     "BD b1",
+     "BE b2",
+     "BF b2",
+     "VI f2",
+     "VJ b1",
+     "VK f3",
+     "BB f2",
+     "BF f2",
+     "BE f2",
+     "VH b2",
+     "BC f6",
+     "BF f2",
+     "BB f2",
+     "BD f6",
+     "BE f4"
+    ]
+   },
+   "metrics": {
+    "difficulty": 25,
+    "par": 20,
+    "target": 25.55,
+    "states": 41082,
+    "dead": 27313,
+    "trap": {
+     "at": 11,
+     "move": "BB f4"
+    },
+    "solution": [
+     "BC f1",
+     "BD f1",
+     "BG f4",
+     "BA f4",
+     "BC b1",
+     "BD b1",
+     "BE b2",
+     "BF b2",
+     "VI f2",
+     "VJ b1",
+     "VK f3",
+     "BB f2",
+     "BF f2",
+     "BE f2",
+     "VH b2",
+     "BC f6",
+     "BF f2",
+     "BB f2",
+     "BD f6",
+     "BE f4"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "crowded",
+     "groups",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 33,
+   "name": "Le rond-point",
+   "candidateId": "busfolie-033-33073-s",
+   "levelHash": "a9a58d174fb1c30d122854217151d48d97d20ff3bbd765f044a32f97ba260b00",
+   "board": {
+    "map": [
+     "CC...I",
+     ".AB..I",
+     ".ABE.F",
+     "KK.E.F",
+     "DDGJJ.",
+     "#.G.HH"
+    ],
+    "vehicles": [
+     "vert 2 v",
+     "jaune 3 v",
+     "rouge 4 >",
+     "bleu 4 <",
+     "rouge 3 v",
+     "bleu 2 v",
+     "jaune 3 v",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "right 0",
+     "bottom 1",
+     "bottom 2",
+     "bottom 3",
+     "bottom 5",
+     "left 4"
+    ],
+    "queue": "vert 1, bleu 1, rouge 1, rouge 1, rouge 1, jaune 3, rouge 1, bleu 1, bleu 3, jaune 1, jaune 2"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le rond-point",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 4,
+      "long": 0,
+      "obstacles": 1,
+      "colors": 4,
+      "twins": 3,
+      "coloured": false,
+      "oneWay": 0,
+      "groupsMax": 2
+     }
+    },
+    "seed": 33073,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 261327,
+     "iterations": 165,
+     "accepted": 75,
+     "startHash": "40c24f2b965cdebfa3bbdc2d7491e14cee38417b1f2f1ba488c2e0658d9fbce6"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 36104,
+    "line": [
+     "BB b1",
+     "BE b1",
+     "VH b1",
+     "VJ f1",
+     "VK f3",
+     "BG b2",
+     "BD b2",
+     "BA f5",
+     "BD f2",
+     "VJ b1",
+     "BF f4",
+     "VH f1",
+     "VI f1",
+     "VJ f1",
+     "VK f1",
+     "BE f5",
+     "BG f4",
+     "BB f1",
+     "BC f6",
+     "BD f2",
+     "BB f5"
+    ]
+   },
+   "metrics": {
+    "difficulty": 25.8,
+    "par": 21,
+    "target": 25.65,
+    "states": 47051,
+    "dead": 19220,
+    "trap": {
+     "at": 8,
+     "move": "BD f4"
+    },
+    "solution": [
+     "BB b1",
+     "BE b1",
+     "VH b1",
+     "VJ f1",
+     "VK f3",
+     "BG b2",
+     "BD b2",
+     "BA f5",
+     "BD f2",
+     "VJ b1",
+     "BF f4",
+     "VH f1",
+     "VI f1",
+     "VJ f1",
+     "VK f1",
+     "BE f5",
+     "BG f4",
+     "BB f1",
+     "BC f6",
+     "BD f2",
+     "BB f5"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "cone",
+     "crowded",
+     "groups",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 34,
+   "name": "Le port",
+   "candidateId": "busfolie-034-34063-s",
+   "levelHash": "fccbf2a9faadb07ccf776b359f6e0239e4a7e2bdd92e0904c5505e1bd13c3be1",
+   "board": {
+    "map": [
+     ".JJKK.",
+     ".AAB..",
+     "FD.BI.",
+     "FD#.I.",
+     ".#GGHC",
+     ".EE.HC"
+    ],
+    "vehicles": [
+     "jaune 2 >",
+     "jaune 3 ^",
+     "rouge 4 ^",
+     "bleu 3 ^",
+     "vert 4 >",
+     "bleu 4 v",
+     "rouge 3 >",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 1",
+     "top 3",
+     "top 5",
+     "right 1",
+     "right 4",
+     "right 5",
+     "bottom 0"
+    ],
+    "queue": "jaune 3, vert 3, rouge 4, bleu 1, bleu 1, rouge 1, rouge 1, jaune 1, jaune 1, bleu 4"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le port",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 4,
+      "long": 0,
+      "obstacles": 2,
+      "colors": 4,
+      "twins": 3,
+      "coloured": false,
+      "oneWay": 0,
+      "groupsMax": 2
+     }
+    },
+    "seed": 34063,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 269246,
+     "iterations": 92,
+     "accepted": 36,
+     "startHash": "a4d5e7279f3354195362c1acf7387e093b26f4fbd590118e6710f88c0f63a4e3"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 22245,
+    "line": [
+     "BC f1",
+     "VI b1",
+     "VH b1",
+     "VK f1",
+     "BB f3",
+     "BA f1",
+     "BE f5",
+     "VK b1",
+     "BC f5",
+     "VK f1",
+     "VJ f1",
+     "BD f4",
+     "VJ b2",
+     "VK b2",
+     "VI b1",
+     "VH b1",
+     "BG f4",
+     "VH f2",
+     "VI f2",
+     "BA f4",
+     "BF f4"
+    ]
+   },
+   "metrics": {
+    "difficulty": 25.6,
+    "par": 21,
+    "target": 25.75,
+    "states": 22604,
+    "dead": 279,
+    "trap": {
+     "at": 9,
+     "move": "BF f4"
+    },
+    "solution": [
+     "BC f1",
+     "VI b1",
+     "VH b1",
+     "VK f1",
+     "BB f3",
+     "BA f1",
+     "BE f5",
+     "VK b1",
+     "BC f5",
+     "VK f1",
+     "VJ f1",
+     "BD f4",
+     "VJ b2",
+     "VK b2",
+     "VI b1",
+     "VH b1",
+     "BG f4",
+     "VH f2",
+     "VI f2",
+     "BA f4",
+     "BF f4"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "cone",
+     "crowded",
+     "groups",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 35,
+   "name": "La piscine",
+   "candidateId": "busfolie-035-35089-s",
+   "levelHash": "219d80c92f878a5dc8e844bd81d9a0c8031f250ae358d6218419fcc4493f5bfc",
+   "board": {
+    "map": [
+     "KKIIHH",
+     "DDEG..",
+     ".LEG.#",
+     ".LAABB",
+     "..CC..",
+     ".JJ.FF"
+    ],
+    "vehicles": [
+     "rouge 3 <",
+     "jaune 3 <",
+     "jaune 3 <",
+     "vert 3 <",
+     "rouge 3 v",
+     "bleu 4 >",
+     "bleu 2 v",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "right 5",
+     "bottom 2",
+     "bottom 3",
+     "left 1",
+     "left 3",
+     "left 4"
+    ],
+    "queue": "bleu 1, bleu 1, rouge 2, bleu 4, jaune 2, jaune 1, rouge 1, rouge 2, vert 1, vert 1, jaune 2, jaune 1"
+   },
+   "provenance": {
+    "profile": {
+     "name": "La piscine",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 0,
+      "obstacles": 1,
+      "colors": 4,
+      "twins": 3,
+      "coloured": false,
+      "oneWay": 0,
+      "groupsMax": 2
+     }
+    },
+    "seed": 35089,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 277165,
+     "iterations": 298,
+     "accepted": 132,
+     "startHash": "8506db048813a92f3bc472819c1cc6ec4ef444518a75a11c7d1938fd4ddff3ec"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 14077,
+    "line": [
+     "BC b2",
+     "VJ f1",
+     "VL f2",
+     "BA f2",
+     "BE f1",
+     "BG f1",
+     "BD b4",
+     "BE b1",
+     "BG b1",
+     "BA b2",
+     "VL b3",
+     "BA f1",
+     "VJ b2",
+     "BG f5",
+     "BA f3",
+     "BF f2",
+     "BB f6",
+     "BE f5",
+     "VL f1",
+     "BD f6",
+     "BC f6"
+    ]
+   },
+   "metrics": {
+    "difficulty": 25.6,
+    "par": 21,
+    "target": 25.85,
+    "states": 18273,
+    "dead": 6861,
+    "trap": {
+     "at": 0,
+     "move": "BF f2"
+    },
+    "solution": [
+     "BC b2",
+     "VJ f1",
+     "VL f2",
+     "BA f2",
+     "BE f1",
+     "BG f1",
+     "BD b4",
+     "BE b1",
+     "BG b1",
+     "BA b2",
+     "VL b3",
+     "BA f1",
+     "VJ b2",
+     "BG f5",
+     "BA f3",
+     "BF f2",
+     "BB f6",
+     "BE f5",
+     "VL f1",
+     "BD f6",
+     "BC f6"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "cone",
+     "crowded",
+     "groups",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 36,
+   "name": "Le pont-levis",
+   "candidateId": "busfolie-036-36112-s",
+   "levelHash": "10957eebdc78fba1095b9390e859b6a95242648ed835a4ca48850ec8413c9508",
+   "board": {
+    "map": [
+     ".JJ.II",
+     "LDH.BB",
+     "LDHE..",
+     "AAAEF.",
+     "CC#.FK",
+     "..GG.K"
+    ],
+    "vehicles": [
+     "rouge 5 <",
+     "rouge 3 <",
+     "jaune 3 <",
+     "jaune 3 ^",
+     "bleu 2 v",
+     "bleu 3 ^",
+     "vert 4 >",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 1",
+     "top 4",
+     "right 5",
+     "bottom 3",
+     "left 1",
+     "left 3",
+     "left 4"
+    ],
+    "queue": "bleu 1, vert 2, vert 1, rouge 2, jaune 1, jaune 2, bleu 1, bleu 1, rouge 1, rouge 3, jaune 1, jaune 2"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le pont-levis",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 1,
+      "obstacles": 1,
+      "colors": 4,
+      "twins": 3,
+      "coloured": false,
+      "oneWay": 0,
+      "groupsMax": 2
+     }
+    },
+    "seed": 36112,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 285084,
+     "iterations": 141,
+     "accepted": 59,
+     "startHash": "183d8bc67c12c34824d86b43d2d0bf284a5bfcb30cca2eb3082baff4549c76a4"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 42704,
+    "line": [
+     "BB f1",
+     "BG b1",
+     "BE f4",
+     "VJ f1",
+     "VK b3",
+     "BG f5",
+     "BF b1",
+     "BA b3",
+     "BD b1",
+     "VH f1",
+     "VL f1",
+     "BB f5",
+     "BD f4",
+     "VH b1",
+     "BA f2",
+     "VJ b2",
+     "VI b2",
+     "BF f6",
+     "VL b1",
+     "BA f4",
+     "BC f2"
+    ]
+   },
+   "metrics": {
+    "difficulty": 25.6,
+    "par": 21,
+    "target": 25.95,
+    "states": 47287,
+    "dead": 21233,
+    "trap": {
+     "at": 6,
+     "move": "BA f3"
+    },
+    "solution": [
+     "BB f1",
+     "BG b1",
+     "BE f4",
+     "VJ f1",
+     "VK b3",
+     "BG f5",
+     "BF b1",
+     "BA b3",
+     "BD b1",
+     "VH f1",
+     "VL f1",
+     "BB f5",
+     "BD f4",
+     "VH b1",
+     "BA f2",
+     "VJ b2",
+     "VI b2",
+     "BF f6",
+     "VL b1",
+     "BA f4",
+     "BC f2"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "cone",
+     "crowded",
+     "groups",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 37,
+   "name": "La fête foraine",
+   "candidateId": "busfolie-037-37058-s",
+   "levelHash": "009815a86e7d1e017bdb07d54044630de88f2b3129f4e99cc009b6268aa451ba",
+   "board": {
+    "map": [
+     "HGFF..",
+     "HG...A",
+     "EEBIIA",
+     ".#B..A",
+     "KCC...",
+     "K.DDJJ"
+    ],
+    "vehicles": [
+     "rouge 4 v",
+     "vert 2 ^",
+     "jaune 4 <",
+     "rouge 4 <",
+     "bleu 2 <",
+     "bleu 3 <",
+     "jaune 2 ^",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 1",
+     "top 2",
+     "bottom 5",
+     "left 0",
+     "left 2",
+     "left 4",
+     "left 5"
+    ],
+    "queue": "jaune 2, jaune 2, rouge 2, rouge 1, bleu 3, rouge 2, rouge 2, bleu 1, bleu 1, jaune 1, jaune 1, vert 1, vert 1"
+   },
+   "provenance": {
+    "profile": {
+     "name": "La fête foraine",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 4,
+      "long": 1,
+      "obstacles": 1,
+      "colors": 4,
+      "twins": 3,
+      "coloured": false,
+      "oneWay": 0,
+      "groupsMax": 2
+     }
+    },
+    "seed": 37058,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 293003,
+     "iterations": 49,
+     "accepted": 21,
+     "startHash": "bf15dbc8af64b7aabc6f0b0666b5c7c6fabbb9bd9cb65a20bc93e3cf91986e87"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 16602,
+    "line": [
+     "BD f1",
+     "BF b1",
+     "BB f2",
+     "BE b1",
+     "VJ b1",
+     "VK b2",
+     "BC f3",
+     "BA f5",
+     "VI f1",
+     "VK f1",
+     "BE f1",
+     "BB b3",
+     "BE b2",
+     "BG b1",
+     "VH f1",
+     "BF f5",
+     "BD f3",
+     "BG f1",
+     "VH b1",
+     "BE f4",
+     "BG f2",
+     "BB f5"
+    ]
+   },
+   "metrics": {
+    "difficulty": 26.3,
+    "par": 22,
+    "target": 26.05,
+    "states": 18885,
+    "dead": 9493,
+    "trap": {
+     "at": 0,
+     "move": "BG f2"
+    },
+    "solution": [
+     "BD f1",
+     "BF b1",
+     "BB f2",
+     "BE b1",
+     "VJ b1",
+     "VK b2",
+     "BC f3",
+     "BA f5",
+     "VI f1",
+     "VK f1",
+     "BE f1",
+     "BB b3",
+     "BE b2",
+     "BG b1",
+     "VH f1",
+     "BF f5",
+     "BD f3",
+     "BG f1",
+     "VH b1",
+     "BE f4",
+     "BG f2",
+     "BB f5"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "cone",
+     "crowded",
+     "groups",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 38,
+   "name": "Le jardin public",
+   "candidateId": "busfolie-038-38021-s",
+   "levelHash": "66b99232daf605e50718715b47112d749f9ace33362d0bb3a48381016ebfffe8",
+   "board": {
+    "map": [
+     ".JJ.LL",
+     "#..HHI",
+     "GGE..I",
+     "B.EAAA",
+     "B.D.FK",
+     "CCD.FK"
+    ],
+    "vehicles": [
+     "vert 4 <",
+     "jaune 4 v",
+     "rouge 4 >",
+     "bleu 4 v",
+     "rouge 2 ^",
+     "bleu 4 ^",
+     "jaune 3 <",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 2 rouge",
+     "top 4 bleu",
+     "right 5 rouge",
+     "bottom 0 jaune",
+     "bottom 2 bleu",
+     "left 2 jaune",
+     "left 3 vert"
+    ],
+    "queue": "bleu 4, rouge 3, jaune 2, jaune 1, bleu 3, vert 3, jaune 4, rouge 1, rouge 1"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le jardin public",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 1,
+      "obstacles": 1,
+      "colors": 4,
+      "twins": 3,
+      "coloured": true,
+      "oneWay": 0,
+      "groupsMax": 2
+     }
+    },
+    "seed": 38021,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 300922,
+     "iterations": 185,
+     "accepted": 88,
+     "startHash": "17a1f224744c7ac055448c08f1bb639105473f78fb8b7f207d93b0e8e5ba0cf7"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 35287,
+    "line": [
+     "BD f2",
+     "BE b2",
+     "BA f2",
+     "VH b1",
+     "BF f3",
+     "BA b2",
+     "BE f1",
+     "BC f3",
+     "BB f1",
+     "BE b1",
+     "BA f1",
+     "VJ b1",
+     "VK b1",
+     "BC f3",
+     "BG f2",
+     "VL b2",
+     "BF f3",
+     "BA f5",
+     "BB f2",
+     "VH f1",
+     "VL f1",
+     "BE f6"
+    ]
+   },
+   "metrics": {
+    "difficulty": 26.5,
+    "par": 22,
+    "target": 26.15,
+    "states": 37978,
+    "dead": 7044,
+    "trap": {
+     "at": 14,
+     "move": "BB f2"
+    },
+    "solution": [
+     "BD f2",
+     "BE b2",
+     "BA f2",
+     "VH b1",
+     "BF f3",
+     "BA b2",
+     "BE f1",
+     "BC f3",
+     "BB f1",
+     "BE b1",
+     "BA f1",
+     "VJ b1",
+     "VK b1",
+     "BC f3",
+     "BG f2",
+     "VL b2",
+     "BF f3",
+     "BA f5",
+     "BB f2",
+     "VH f1",
+     "VL f1",
+     "BE f6"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "coloured-exit",
+     "cone",
+     "crowded",
+     "groups",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 39,
+   "name": "La caserne",
+   "candidateId": "busfolie-039-39050-s",
+   "levelHash": "338de7204da537450ae27ee81ddb1c6f8621ab33ee4c1fc0448324fc7c704be5",
+   "board": {
+    "map": [
+     "..#.AI",
+     "K.CCAI",
+     "KDFFA.",
+     ".D.#..",
+     "GGJEEB",
+     "HHJ..B"
+    ],
+    "vehicles": [
+     "jaune 5 v",
+     "rouge 2 v",
+     "bleu 2 <",
+     "bleu 2 v",
+     "vert 2 >",
+     "rouge 3 >",
+     "jaune 3 >",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "right 2 rouge",
+     "right 4",
+     "bottom 1 bleu",
+     "bottom 4 jaune",
+     "bottom 5 rouge",
+     "left 1 bleu"
+    ],
+    "queue": "bleu 1, jaune 5, rouge 1, rouge 2, bleu 2, rouge 1, rouge 1, vert 1, jaune 1, jaune 1"
+   },
+   "provenance": {
+    "profile": {
+     "name": "La caserne",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 4,
+      "long": 1,
+      "obstacles": 2,
+      "colors": 4,
+      "twins": 3,
+      "coloured": true,
+      "oneWay": 0,
+      "groupsMax": 2
+     }
+    },
+    "seed": 39050,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 308841,
+     "iterations": 259,
+     "accepted": 96,
+     "startHash": "032ace26edc6f9457b67a05b353830c2e6f37e1ff7477131039e1d9fb2501608"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 21645,
+    "line": [
+     "VK f1",
+     "BC f4",
+     "BD b2",
+     "VK b2",
+     "BF b2",
+     "VJ b2",
+     "BE b1",
+     "BA f6",
+     "BE f1",
+     "VH f2",
+     "VJ f1",
+     "BF f6",
+     "BB b2",
+     "BE f1",
+     "VJ b1",
+     "BG f2",
+     "BD f6",
+     "BG b1",
+     "BE b1",
+     "BB f4",
+     "BE f3",
+     "BG f5"
+    ]
+   },
+   "metrics": {
+    "difficulty": 26.6,
+    "par": 22,
+    "target": 26.25,
+    "states": 24967,
+    "dead": 10714,
+    "trap": {
+     "at": 8,
+     "move": "BB f2"
+    },
+    "solution": [
+     "VK f1",
+     "BC f4",
+     "BD b2",
+     "VK b2",
+     "BF b2",
+     "VJ b2",
+     "BE b1",
+     "BA f6",
+     "BE f1",
+     "VH f2",
+     "VJ f1",
+     "BF f6",
+     "BB b2",
+     "BE f1",
+     "VJ b1",
+     "BG f2",
+     "BD f6",
+     "BG b1",
+     "BE b1",
+     "BB f4",
+     "BE f3",
+     "BG f5"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "coloured-exit",
+     "cone",
+     "crowded",
+     "groups",
+     "mixed-exits",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 40,
+   "name": "Le stade",
+   "candidateId": "busfolie-040-40058-s",
+   "levelHash": "f21f8352bd8642cb6ddb193cc623347460304db3871aaf02ddce77b609374195",
+   "board": {
+    "map": [
+     "DB..A.",
+     "DBGGAJ",
+     "#KK.AJ",
+     "LLF...",
+     "..FCCH",
+     "EEII.H"
+    ],
+    "vehicles": [
+     "violet 5 ^",
+     "bleu 2 v",
+     "vert 4 >",
+     "rouge 4 ^",
+     "rouge 4 <",
+     "bleu 4 ^",
+     "jaune 2 <",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 0",
+     "top 2",
+     "top 4",
+     "right 4",
+     "bottom 1",
+     "left 1",
+     "left 5"
+    ],
+    "queue": "rouge 3, vert 3, vert 1, jaune 1, jaune 1, bleu 4, rouge 1, rouge 1, bleu 1, violet 4"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le stade",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 1,
+      "obstacles": 1,
+      "colors": 5,
+      "twins": 2,
+      "coloured": false,
+      "oneWay": 0,
+      "groupsMax": 2
+     }
+    },
+    "seed": 40058,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 316760,
+     "iterations": 545,
+     "accepted": 208,
+     "startHash": "8d2ba69b83007fd4b5f3fe592af7cb5a0ec36d6be6eae616191ae4d23975fd80"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 12519,
+    "line": [
+     "BD f2",
+     "VI f1",
+     "BF b1",
+     "VJ b1",
+     "VH b2",
+     "BC f3",
+     "VK f1",
+     "VL f2",
+     "BB f2",
+     "BG f4",
+     "BB b1",
+     "VL b2",
+     "BF f1",
+     "VI b1",
+     "BA b3",
+     "VK f1",
+     "BF f5",
+     "BE f2",
+     "VK b1",
+     "VL f2",
+     "BB f5",
+     "BA f6"
+    ]
+   },
+   "metrics": {
+    "difficulty": 26,
+    "par": 22,
+    "target": 26.35,
+    "states": 17307,
+    "dead": 6246,
+    "trap": {
+     "at": 0,
+     "move": "BE f2"
+    },
+    "solution": [
+     "BD f2",
+     "VI f1",
+     "BF b1",
+     "VJ b1",
+     "VH b2",
+     "BC f3",
+     "VK f1",
+     "VL f2",
+     "BB f2",
+     "BG f4",
+     "BB b1",
+     "VL b2",
+     "BF f1",
+     "VI b1",
+     "BA b3",
+     "VK f1",
+     "BF f5",
+     "BE f2",
+     "VK b1",
+     "VL f2",
+     "BB f5",
+     "BA f6"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "cone",
+     "crowded",
+     "groups",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 41,
+   "name": "La bibliothèque",
+   "candidateId": "busfolie-041-41033-s",
+   "levelHash": "575bdbcc7408025cd5f50b99b50e8d97bee17a7a5babcd2550dc3501c53fa04d",
+   "board": {
+    "map": [
+     ".CCI.E",
+     "..JI#E",
+     "B.JAAA",
+     "BDK.HH",
+     ".DKFF.",
+     "GG.LL."
+    ],
+    "vehicles": [
+     "bleu 4 <!",
+     "violet 3 ^",
+     "vert 2 >",
+     "bleu 4 ^",
+     "rouge 3 v",
+     "jaune 2 <",
+     "rouge 4 <",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 0",
+     "top 1",
+     "right 0",
+     "bottom 5",
+     "left 2",
+     "left 4",
+     "left 5"
+    ],
+    "queue": "jaune 2, violet 2, rouge 1, rouge 2, bleu 2, rouge 4, bleu 2, vert 2"
+   },
+   "provenance": {
+    "profile": {
+     "name": "La bibliothèque",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 1,
+      "obstacles": 1,
+      "colors": 5,
+      "twins": 2,
+      "coloured": false,
+      "oneWay": 1,
+      "groupsMax": 2
+     }
+    },
+    "seed": 41033,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 324679,
+     "iterations": 8,
+     "accepted": 4,
+     "startHash": "57a91663c4750b5dc463098628e2210f44bbb85a8d3f16f898d7d0151c25a775"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 17976,
+    "line": [
+     "BC b1",
+     "BD f1",
+     "VH b1",
+     "VJ b1",
+     "VK b1",
+     "BF f5",
+     "BD b1",
+     "VK f1",
+     "VJ f1",
+     "BC f1",
+     "BB f4",
+     "BC b1",
+     "VJ b1",
+     "BA f1",
+     "BE f6",
+     "BA f5",
+     "BG f2",
+     "VI f1",
+     "VJ f1",
+     "BC f2",
+     "BD f5",
+     "BC f4"
+    ]
+   },
+   "metrics": {
+    "difficulty": 26.6,
+    "par": 22,
+    "target": 26.45,
+    "states": 31148,
+    "dead": 18622,
+    "trap": {
+     "at": 11,
+     "move": "BG f2"
+    },
+    "solution": [
+     "BC b1",
+     "BD f1",
+     "VH b1",
+     "VJ b1",
+     "VK b1",
+     "BF f5",
+     "BD b1",
+     "VK f1",
+     "VJ f1",
+     "BC f1",
+     "BB f4",
+     "BC b1",
+     "VJ b1",
+     "BA f1",
+     "BE f6",
+     "BA f5",
+     "BG f2",
+     "VI f1",
+     "VJ f1",
+     "BC f2",
+     "BD f5",
+     "BC f4"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "cone",
+     "crowded",
+     "groups",
+     "one-way",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 42,
+   "name": "Le zoo",
+   "candidateId": "busfolie-042-42113-s",
+   "levelHash": "ae737b9584e966fab1a8f6fe49eb70ba8374996bfd86bc805af5183bd307b4a7",
+   "board": {
+    "map": [
+     "K..EFF",
+     "K..EA#",
+     "JGIIAC",
+     "JG..AC",
+     "DD..BB",
+     "..HH.."
+    ],
+    "vehicles": [
+     "violet 5 v!",
+     "bleu 3 <",
+     "jaune 3 v",
+     "rouge 4 <",
+     "bleu 4 v",
+     "rouge 3 <",
+     "vert 4 v",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "bottom 1 vert",
+     "bottom 3 bleu",
+     "bottom 4 violet",
+     "bottom 5 jaune",
+     "left 0 rouge",
+     "left 4"
+    ],
+    "queue": "jaune 3, rouge 1, rouge 1, bleu 1, bleu 2, rouge 1, rouge 3, violet 5, bleu 1, bleu 2, vert 3, vert 1"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le zoo",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 4,
+      "long": 1,
+      "obstacles": 1,
+      "colors": 5,
+      "twins": 2,
+      "coloured": true,
+      "oneWay": 1,
+      "groupsMax": 2
+     }
+    },
+    "seed": 42113,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 332598,
+     "iterations": 76,
+     "accepted": 33,
+     "startHash": "7e1e3bb6294d6f8ddfce5f9cabc3c39696102dcd3a8c8e7f919fb8a4ddd8263c"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 40361,
+    "line": [
+     "BB f1",
+     "BC f4",
+     "BB b1",
+     "BD b1",
+     "BG b2",
+     "VH f2",
+     "VI b1",
+     "BE f3",
+     "VI f1",
+     "BG f1",
+     "VJ f1",
+     "VK f1",
+     "BF f6",
+     "BE f3",
+     "VH b2",
+     "VK b1",
+     "VJ b1",
+     "BD f3",
+     "BB f2",
+     "BA f5",
+     "BB f4",
+     "BG f5"
+    ]
+   },
+   "metrics": {
+    "difficulty": 26.8,
+    "par": 22,
+    "target": 26.55,
+    "states": 43563,
+    "dead": 31097,
+    "trap": {
+     "at": 2,
+     "move": "BD f2"
+    },
+    "solution": [
+     "BB f1",
+     "BC f4",
+     "BB b1",
+     "BD b1",
+     "BG b2",
+     "VH f2",
+     "VI b1",
+     "BE f3",
+     "VI f1",
+     "BG f1",
+     "VJ f1",
+     "VK f1",
+     "BF f6",
+     "BE f3",
+     "VH b2",
+     "VK b1",
+     "VJ b1",
+     "BD f3",
+     "BB f2",
+     "BA f5",
+     "BB f4",
+     "BG f5"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "coloured-exit",
+     "cone",
+     "crowded",
+     "groups",
+     "mixed-exits",
+     "one-way",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 43,
+   "name": "La plage",
+   "candidateId": "busfolie-043-43489-s",
+   "levelHash": "5d76b4770c68a1c56c7979cca02190d0c9863c806cf71d299ec6f24583d3c5ac",
+   "board": {
+    "map": [
+     "HHF...",
+     "..FGGL",
+     "IIBBBL",
+     "EE.A.J",
+     "DC.A.J",
+     "DC.AKK"
+    ],
+    "vehicles": [
+     "rouge 4 ^!",
+     "violet 4 >",
+     "bleu 4 ^",
+     "bleu 3 ^",
+     "vert 4 >",
+     "jaune 4 ^",
+     "rouge 2 <",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 0",
+     "top 1",
+     "top 2",
+     "top 3",
+     "right 2",
+     "right 3",
+     "left 1"
+    ],
+    "queue": "bleu 2, jaune 3, violet 1, violet 1, rouge 1, rouge 3, bleu 2, bleu 1, rouge 1, vert 1, vert 1"
+   },
+   "provenance": {
+    "profile": {
+     "name": "La plage",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 2,
+      "obstacles": 0,
+      "colors": 5,
+      "twins": 2,
+      "coloured": false,
+      "oneWay": 1,
+      "groupsMax": 2
+     }
+    },
+    "seed": 43489,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 401,
+     "count": 200,
+     "mutationSeed": 340517,
+     "iterations": 317,
+     "accepted": 202,
+     "startHash": "6b63eeadec126bcbffff75a10e3baae0808b34109ebc6069eea36eb549385846"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 29998,
+    "line": [
+     "BE f1",
+     "VL b1",
+     "BB f1",
+     "BF b1",
+     "VH f3",
+     "BF f1",
+     "VI f1",
+     "BD f6",
+     "BF f2",
+     "BB f3",
+     "BG f2",
+     "VH b2",
+     "BA f6",
+     "BE f1",
+     "BG b1",
+     "VH f1",
+     "VI f1",
+     "BC f6",
+     "BG f4",
+     "VK b1",
+     "VJ f1",
+     "BE f4"
+    ]
+   },
+   "metrics": {
+    "difficulty": 26.6,
+    "par": 22,
+    "target": 26.65,
+    "states": 44065,
+    "dead": 9312,
+    "trap": {
+     "at": 10,
+     "move": "BG f5"
+    },
+    "solution": [
+     "BE f1",
+     "VL b1",
+     "BB f1",
+     "BF b1",
+     "VH f3",
+     "BF f1",
+     "VI f1",
+     "BD f6",
+     "BF f2",
+     "BB f3",
+     "BG f2",
+     "VH b2",
+     "BA f6",
+     "BE f1",
+     "BG b1",
+     "VH f1",
+     "VI f1",
+     "BC f6",
+     "BG f4",
+     "VK b1",
+     "VJ f1",
+     "BE f4"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "crowded",
+     "groups",
+     "one-way",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 44,
+   "name": "Le musée",
+   "candidateId": "busfolie-044-44226-s",
+   "levelHash": "12d4e528da4c67ff8ccf0fd2eb071c368117496ca1eb8d43e92afa918e68ae3c",
+   "board": {
+    "map": [
+     "JBBBLL",
+     "J.....",
+     "KKCCAI",
+     "HGDDAI",
+     "HG.FA#",
+     "...FEE"
+    ],
+    "vehicles": [
+     "bleu 4 v!",
+     "bleu 6 <!",
+     "vert 3 >",
+     "violet 2 <",
+     "jaune 4 <",
+     "rouge 4 ^",
+     "rouge 3 ^",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 1 rouge",
+     "top 3 rouge",
+     "right 2 vert",
+     "bottom 4 bleu",
+     "left 0 bleu",
+     "left 3 violet",
+     "left 5 jaune"
+    ],
+    "queue": "bleu 3, violet 1, violet 1, rouge 1, rouge 2, jaune 2, vert 1, vert 1, bleu 2, rouge 1, rouge 3"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le musée",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 2,
+      "obstacles": 1,
+      "colors": 5,
+      "twins": 2,
+      "coloured": true,
+      "oneWay": 2,
+      "groupsMax": 2
+     }
+    },
+    "seed": 44226,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 201,
+     "count": 200,
+     "mutationSeed": 348436,
+     "iterations": 751,
+     "accepted": 266,
+     "startHash": "297b5a91fbf879ec65d7bc0a7690b84823798e1ba7728d6c4935141b6d083521"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 6667,
+    "line": [
+     "BG b1",
+     "BD f1",
+     "BF f1",
+     "BE f2",
+     "BA f1",
+     "BC f1",
+     "VH f1",
+     "VK f1",
+     "VJ f1",
+     "BB f4",
+     "BD f3",
+     "VH b1",
+     "VL b1",
+     "VI b2",
+     "BC f1",
+     "VK f1",
+     "BG f6",
+     "BE f4",
+     "BC f2",
+     "BA f3",
+     "VK f2",
+     "VL b2",
+     "BF f5"
+    ]
+   },
+   "metrics": {
+    "difficulty": 26.7,
+    "par": 23,
+    "target": 26.75,
+    "states": 11463,
+    "dead": 5316,
+    "trap": {
+     "at": 4,
+     "move": "BA f4"
+    },
+    "solution": [
+     "BG b1",
+     "BD f1",
+     "BF f1",
+     "BE f2",
+     "BA f1",
+     "BC f1",
+     "VH f1",
+     "VK f1",
+     "VJ f1",
+     "BB f4",
+     "BD f3",
+     "VH b1",
+     "VL b1",
+     "VI b2",
+     "BC f1",
+     "VK f1",
+     "BG f6",
+     "BE f4",
+     "BC f2",
+     "BA f3",
+     "VK f2",
+     "VL b2",
+     "BF f5"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "coloured-exit",
+     "cone",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:2",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 45,
+   "name": "La cathédrale",
+   "candidateId": "busfolie-045-45075-s",
+   "levelHash": "937ef82a5a579fd4f4b29f54903ff3c3738e2b28b5c5b893b1abaa7b1227e27a",
+   "board": {
+    "map": [
+     ".EAAA.",
+     "HELLDC",
+     "HJJBDC",
+     "IKKB..",
+     "IMGBFF",
+     ".MG..."
+    ],
+    "vehicles": [
+     "bleu 6 >!",
+     "bleu 4 v",
+     "vert 4 ^",
+     "rouge 3 ^",
+     "jaune 3 ^",
+     "violet 2 <",
+     "rouge 3 ^",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 1",
+     "top 2",
+     "top 4",
+     "top 5",
+     "right 0",
+     "bottom 3",
+     "left 4"
+    ],
+    "queue": "vert 1, vert 3, rouge 2, bleu 4, bleu 1, rouge 3, jaune 1, jaune 2, violet 1, bleu 2"
+   },
+   "provenance": {
+    "profile": {
+     "name": "La cathédrale",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 6,
+      "long": 2,
+      "obstacles": 0,
+      "colors": 5,
+      "twins": 2,
+      "coloured": false,
+      "oneWay": 1,
+      "groupsMax": 2
+     }
+    },
+    "seed": 45075,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 356355,
+     "iterations": 1500,
+     "accepted": 880,
+     "startHash": "7fe8fa4add78f797077a7882fe444a2f3065e3aa711f1b9dff42f16caa0eb628"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 23768,
+    "line": [
+     "BB f1",
+     "BC f3",
+     "BA f1",
+     "BD b1",
+     "VH b1",
+     "VI f1",
+     "VJ b1",
+     "VK b1",
+     "VL f1",
+     "BG f6",
+     "BA f3",
+     "VL b1",
+     "BD f4",
+     "BE f2",
+     "VJ f4",
+     "VL f2",
+     "BB b3",
+     "VK f4",
+     "VI b2",
+     "VM b2",
+     "BF f6",
+     "BB f6"
+    ]
+   },
+   "metrics": {
+    "difficulty": 26.2,
+    "par": 22,
+    "target": 26.85,
+    "states": 30517,
+    "dead": 20941,
+    "trap": {
+     "at": 10,
+     "move": "BB f3"
+    },
+    "solution": [
+     "BB f1",
+     "BC f3",
+     "BA f1",
+     "BD b1",
+     "VH b1",
+     "VI f1",
+     "VJ b1",
+     "VK b1",
+     "VL f1",
+     "BG f6",
+     "BA f3",
+     "VL b1",
+     "BD f4",
+     "BE f2",
+     "VJ f4",
+     "VL f2",
+     "BB b3",
+     "VK f4",
+     "VI b2",
+     "VM b2",
+     "BF f6",
+     "BB f6"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "crowded",
+     "groups",
+     "one-way",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 46,
+   "name": "Le tunnel",
+   "candidateId": "busfolie-046-46049-s",
+   "levelHash": "e0dd1981510dc1e15524b3a84f234baadf00f732c3816a276fbb36d1a2c1068f",
+   "board": {
+    "map": [
+     "KJJGLL",
+     "KFFGC.",
+     ".BI.C.",
+     ".BIEEA",
+     ".BHHDA",
+     "..#.DA"
+    ],
+    "vehicles": [
+     "rouge 5 ^!",
+     "violet 6 v!",
+     "bleu 2 ^",
+     "rouge 3 v",
+     "jaune 4 >",
+     "vert 3 >",
+     "bleu 3 v",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 4",
+     "top 5",
+     "right 1",
+     "right 3",
+     "bottom 1",
+     "bottom 3",
+     "bottom 4"
+    ],
+    "queue": "bleu 1, rouge 2, rouge 1, bleu 1, bleu 1, violet 4, vert 1, vert 2, jaune 4, rouge 2"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le tunnel",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 2,
+      "obstacles": 1,
+      "colors": 5,
+      "twins": 2,
+      "coloured": false,
+      "oneWay": 2,
+      "groupsMax": 2
+     }
+    },
+    "seed": 46049,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 364274,
+     "iterations": 442,
+     "accepted": 181,
+     "startHash": "b418aa3f125650c65a0bf8f58f03d524551d0d469a297f86e24b9b8beb01b6f8"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 27128,
+    "line": [
+     "BG f1",
+     "VK f2",
+     "BF b1",
+     "VI b1",
+     "BE b1",
+     "VJ b1",
+     "VL b2",
+     "BC f3",
+     "BA f6",
+     "BD b3",
+     "BE f2",
+     "VH f2",
+     "BG f5",
+     "BB f4",
+     "BE b2",
+     "VH b2",
+     "BD f3",
+     "BE f1",
+     "VI f1",
+     "BF f6",
+     "BE f3",
+     "BD f2"
+    ]
+   },
+   "metrics": {
+    "difficulty": 26.6,
+    "par": 22,
+    "target": 26.95,
+    "states": 35857,
+    "dead": 7257,
+    "trap": {
+     "at": 8,
+     "move": "BD f2"
+    },
+    "solution": [
+     "BG f1",
+     "VK f2",
+     "BF b1",
+     "VI b1",
+     "BE b1",
+     "VJ b1",
+     "VL b2",
+     "BC f3",
+     "BA f6",
+     "BD b3",
+     "BE f2",
+     "VH f2",
+     "BG f5",
+     "BB f4",
+     "BE b2",
+     "VH b2",
+     "BD f3",
+     "BE f1",
+     "VI f1",
+     "BF f6",
+     "BE f3",
+     "BD f2"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "cone",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:2",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 47,
+   "name": "La colline",
+   "candidateId": "busfolie-047-47023-s",
+   "levelHash": "8241b439204647f38e4bc9895fd1bc3d1e1e0b90cc7d1b702f839ed44aec17e3",
+   "board": {
+    "map": [
+     "ABJIDD",
+     "ABJI..",
+     "ABFFGK",
+     "EEH.GK",
+     "..H..L",
+     "CC...L"
+    ],
+    "vehicles": [
+     "jaune 6 ^!",
+     "vert 6 ^",
+     "rouge 4 <",
+     "violet 2 >",
+     "bleu 3 <",
+     "orange 4 >",
+     "rouge 3 ^",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 0",
+     "top 1",
+     "top 4",
+     "right 0",
+     "right 2",
+     "left 3",
+     "left 5"
+    ],
+    "queue": "orange 1, orange 1, violet 1, violet 1, jaune 4, vert 4, rouge 2, bleu 1, bleu 1, rouge 4"
+   },
+   "provenance": {
+    "profile": {
+     "name": "La colline",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 2,
+      "obstacles": 0,
+      "colors": 6,
+      "twins": 1,
+      "coloured": false,
+      "oneWay": 1,
+      "groupsMax": 2
+     }
+    },
+    "seed": 47023,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 372193,
+     "iterations": 267,
+     "accepted": 157,
+     "startHash": "f81b48207c7b7604161b4c4c0597a466db332760ec3e975f990e71c75caa24a8"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 15368,
+    "line": [
+     "BG b2",
+     "VH f1",
+     "VK b1",
+     "BE b4",
+     "VH b1",
+     "BC b2",
+     "BB b3",
+     "BF b1",
+     "VI f3",
+     "BD b1",
+     "VK b1",
+     "BF f5",
+     "VI b2",
+     "VK f1",
+     "BD f3",
+     "BA f3",
+     "BB f6",
+     "BC f2",
+     "VH f1",
+     "BE f2",
+     "BG f6",
+     "BE f4",
+     "BC f2"
+    ]
+   },
+   "metrics": {
+    "difficulty": 27.2,
+    "par": 23,
+    "target": 27.05,
+    "states": 44062,
+    "dead": 2784,
+    "trap": {
+     "at": 17,
+     "move": "BC f4"
+    },
+    "solution": [
+     "BG b2",
+     "VH f1",
+     "VK b1",
+     "BE b4",
+     "VH b1",
+     "BC b2",
+     "BB b3",
+     "BF b1",
+     "VI f3",
+     "BD b1",
+     "VK b1",
+     "BF f5",
+     "VI b2",
+     "VK f1",
+     "BD f3",
+     "BA f3",
+     "BB f6",
+     "BC f2",
+     "VH f1",
+     "BE f2",
+     "BG f6",
+     "BE f4",
+     "BC f2"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:orange",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "crowded",
+     "groups",
+     "one-way",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 48,
+   "name": "Le phare",
+   "candidateId": "busfolie-048-48034-s",
+   "levelHash": "59ba616b40f90a337681f58fd3b1350a99f46c2cf4f9f917eb27cae7d2ec4336",
+   "board": {
+    "map": [
+     "EEDDJH",
+     "II.#JH",
+     "G.BBB.",
+     "GAAACK",
+     "..FFCK",
+     ".LL..."
+    ],
+    "vehicles": [
+     "vert 4 >!",
+     "orange 6 <!",
+     "rouge 4 v",
+     "violet 3 >",
+     "rouge 3 <",
+     "bleu 3 >",
+     "jaune 4 ^",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 0 jaune",
+     "right 0 violet",
+     "right 3 vert",
+     "right 4 bleu",
+     "bottom 4 rouge",
+     "left 0 rouge",
+     "left 2 orange"
+    ],
+    "queue": "jaune 4, orange 4, rouge 1, rouge 2, vert 2, bleu 3, violet 3, rouge 4"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le phare",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 2,
+      "obstacles": 1,
+      "colors": 6,
+      "twins": 1,
+      "coloured": true,
+      "oneWay": 2,
+      "groupsMax": 2
+     }
+    },
+    "seed": 48034,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 380112,
+     "iterations": 330,
+     "accepted": 125,
+     "startHash": "258e098e2d934bf96bedc8307809b9e5c60c812d0c272bce71dd7a943283df83"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 41485,
+    "line": [
+     "BB f1",
+     "BC f1",
+     "VI f1",
+     "VJ f1",
+     "BD f1",
+     "BE b1",
+     "BG f4",
+     "BB f4",
+     "BE f3",
+     "BD b1",
+     "VJ b1",
+     "VK f1",
+     "BA f5",
+     "BC b2",
+     "VK b2",
+     "BF f4",
+     "BC f1",
+     "VJ f1",
+     "VK f1",
+     "VH f1",
+     "BD f4",
+     "BC f3"
+    ]
+   },
+   "metrics": {
+    "difficulty": 27,
+    "par": 22,
+    "target": 27.15,
+    "states": 42255,
+    "dead": 14456,
+    "trap": {
+     "at": 8,
+     "move": "BC f2"
+    },
+    "solution": [
+     "BB f1",
+     "BC f1",
+     "VI f1",
+     "VJ f1",
+     "BD f1",
+     "BE b1",
+     "BG f4",
+     "BB f4",
+     "BE f3",
+     "BD b1",
+     "VJ b1",
+     "VK f1",
+     "BA f5",
+     "BC b2",
+     "VK b2",
+     "BF f4",
+     "BC f1",
+     "VJ f1",
+     "VK f1",
+     "VH f1",
+     "BD f4",
+     "BC f3"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:orange",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "coloured-exit",
+     "cone",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:2",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 49,
+   "name": "L’aéroport",
+   "candidateId": "busfolie-049-49077-s",
+   "levelHash": "ca7a0775747eb4938b6833cfd41c453933d9807a170c12d25d9ea2e6cb127689",
+   "board": {
+    "map": [
+     "LL...I",
+     "AAAFDI",
+     ".GBFDM",
+     ".GBJJM",
+     "HEB..C",
+     "HEKK.C"
+    ],
+    "vehicles": [
+     "orange 6 >!",
+     "jaune 5 v!",
+     "rouge 3 v",
+     "bleu 2 ^",
+     "rouge 3 v",
+     "bleu 4 v",
+     "violet 3 ^",
+     "vert 3 v",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 1 violet",
+     "top 4 bleu",
+     "right 1 orange",
+     "bottom 0 vert",
+     "bottom 1 rouge",
+     "bottom 2 jaune",
+     "bottom 3 bleu",
+     "bottom 5 rouge"
+    ],
+    "queue": "jaune 2, jaune 2, rouge 3, violet 2, bleu 1, bleu 2, rouge 2, vert 1, vert 2, orange 6, bleu 1"
+   },
+   "provenance": {
+    "profile": {
+     "name": "L’aéroport",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 8,
+      "cars": 5,
+      "long": 2,
+      "obstacles": 0,
+      "colors": 6,
+      "twins": 2,
+      "coloured": true,
+      "oneWay": 2,
+      "groupsMax": 2
+     }
+    },
+    "seed": 49077,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 388031,
+     "iterations": 202,
+     "accepted": 113,
+     "startHash": "d8cea8781d574649889eef3f2244e8d2661c7177e85ff0fd7c9d0b457e92522e"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 34826,
+    "line": [
+     "VK f1",
+     "BB f4",
+     "BC f2",
+     "VJ b1",
+     "VK b1",
+     "BD b3",
+     "VL f2",
+     "VM f2",
+     "VJ f2",
+     "BF f1",
+     "BA f2",
+     "BG f4",
+     "BE b1",
+     "VK b1",
+     "BF f4",
+     "VJ b2",
+     "VI f2",
+     "VK f1",
+     "BE f3",
+     "BH f2",
+     "BA f4",
+     "BD f6"
+    ]
+   },
+   "metrics": {
+    "difficulty": 26.9,
+    "par": 22,
+    "target": 27.25,
+    "states": 51733,
+    "dead": 3132,
+    "trap": {
+     "at": 2,
+     "move": "BE f2"
+    },
+    "solution": [
+     "VK f1",
+     "BB f4",
+     "BC f2",
+     "VJ b1",
+     "VK b1",
+     "BD b3",
+     "VL f2",
+     "VM f2",
+     "VJ f2",
+     "BF f1",
+     "BA f2",
+     "BG f4",
+     "BE b1",
+     "VK b1",
+     "BF f4",
+     "VJ b2",
+     "VI f2",
+     "VK f1",
+     "BE f3",
+     "BH f2",
+     "BA f4",
+     "BD f6"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:orange",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "coloured-exit",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:2",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 50,
+   "name": "La mairie",
+   "candidateId": "busfolie-050-50078-s",
+   "levelHash": "12da4df5eb4ca849dc536c0dc01833ad027a4135c52c2dee34481e5755258748",
+   "board": {
+    "map": [
+     "DDGBBB",
+     "..G.LL",
+     "#.IIFH",
+     ".CCCFH",
+     "KAAA.E",
+     "KJJ..E"
+    ],
+    "vehicles": [
+     "vert 4 >!",
+     "bleu 4 >",
+     "violet 5 >",
+     "jaune 3 >",
+     "bleu 3 v",
+     "rouge 3 ^",
+     "rouge 3 v",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 4",
+     "right 0",
+     "right 3",
+     "right 4",
+     "bottom 2",
+     "bottom 5"
+    ],
+    "queue": "bleu 1, bleu 1, jaune 2, vert 2, vert 2, rouge 2, violet 2, violet 3, rouge 1, rouge 1, bleu 1, bleu 1"
+   },
+   "provenance": {
+    "profile": {
+     "name": "La mairie",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 3,
+      "obstacles": 1,
+      "colors": 5,
+      "twins": 2,
+      "coloured": false,
+      "oneWay": 1,
+      "groupsMax": 2
+     }
+    },
+    "seed": 50078,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 395950,
+     "iterations": 41,
+     "accepted": 25,
+     "startHash": "6a840bda25f8c17d75a729d9b6ee1d930271a76101856287b079ae4c516a9f0e"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 24462,
+    "line": [
+     "BB f3",
+     "BF b2",
+     "VI f1",
+     "BG f1",
+     "BD f6",
+     "VL b1",
+     "VH b2",
+     "BC f2",
+     "BG f1",
+     "VL b3",
+     "BG b2",
+     "BC b2",
+     "BE b2",
+     "VI b1",
+     "BF f2",
+     "BA f5",
+     "BE f2",
+     "BF f4",
+     "BC f5",
+     "VI f1",
+     "VJ f2",
+     "BG f6",
+     "BE f2"
+    ]
+   },
+   "metrics": {
+    "difficulty": 27.5,
+    "par": 23,
+    "target": 27.35,
+    "states": 37538,
+    "dead": 6227,
+    "trap": {
+     "at": 0,
+     "move": "BE f2"
+    },
+    "solution": [
+     "BB f3",
+     "BF b2",
+     "VI f1",
+     "BG f1",
+     "BD f6",
+     "VL b1",
+     "VH b2",
+     "BC f2",
+     "BG f1",
+     "VL b3",
+     "BG b2",
+     "BC b2",
+     "BE b2",
+     "VI b1",
+     "BF f2",
+     "BA f5",
+     "BE f2",
+     "BF f4",
+     "BC f5",
+     "VI f1",
+     "VJ f2",
+     "BG f6",
+     "BE f2"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "coaches:3",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "cone",
+     "crowded",
+     "groups",
+     "one-way",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 51,
+   "name": "Le cirque",
+   "candidateId": "busfolie-051-51011-s",
+   "levelHash": "810a4c15248e7c44afe89b5abcd6b7405d5116cef8da6b7048c8ce7ed3f335de",
+   "board": {
+    "map": [
+     "EE.FFI",
+     "HH.JJI",
+     "CCC.B.",
+     "LDGABK",
+     "LDGABK",
+     ".#.A.."
+    ],
+    "vehicles": [
+     "vert 5 ^!",
+     "rouge 4 ^!",
+     "bleu 6 <",
+     "orange 4 ^",
+     "rouge 4 <",
+     "violet 4 >",
+     "jaune 3 ^",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 1 orange",
+     "top 2 jaune",
+     "top 3 vert",
+     "top 4 rouge",
+     "right 0 violet",
+     "left 0 rouge",
+     "left 2 bleu"
+    ],
+    "queue": "vert 5, rouge 2, rouge 1, jaune 3, orange 1, orange 3, violet 4, rouge 1, rouge 1, bleu 6"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le cirque",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 3,
+      "obstacles": 1,
+      "colors": 6,
+      "twins": 1,
+      "coloured": true,
+      "oneWay": 2,
+      "groupsMax": 2
+     }
+    },
+    "seed": 51011,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 403869,
+     "iterations": 21,
+     "accepted": 9,
+     "startHash": "72d1fe2cf30e48b4ef3a702ae22303d24e78244346c9eee9b369f81182558ec2"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 9841,
+    "line": [
+     "VK f1",
+     "VI f2",
+     "BF f1",
+     "VJ f1",
+     "BA f6",
+     "BF b2",
+     "VJ b2",
+     "BB f5",
+     "BF f1",
+     "VI b2",
+     "BC b3",
+     "VJ f1",
+     "BG f5",
+     "BC f1",
+     "VI f2",
+     "BF f1",
+     "BE b2",
+     "VJ f1",
+     "VH f2",
+     "BD f5",
+     "BF f2",
+     "BE f4",
+     "BC f5"
+    ]
+   },
+   "metrics": {
+    "difficulty": 27.3,
+    "par": 23,
+    "target": 27.45,
+    "states": 12076,
+    "dead": 2062,
+    "trap": {
+     "at": 5,
+     "move": "BE f2"
+    },
+    "solution": [
+     "VK f1",
+     "VI f2",
+     "BF f1",
+     "VJ f1",
+     "BA f6",
+     "BF b2",
+     "VJ b2",
+     "BB f5",
+     "BF f1",
+     "VI b2",
+     "BC b3",
+     "VJ f1",
+     "BG f5",
+     "BC f1",
+     "VI f2",
+     "BF f1",
+     "BE b2",
+     "VJ f1",
+     "VH f2",
+     "BD f5",
+     "BF f2",
+     "BE f4",
+     "BC f5"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "coaches:3",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:orange",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "coloured-exit",
+     "cone",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:2",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 52,
+   "name": "Le vieux port",
+   "candidateId": "busfolie-052-52117-s",
+   "levelHash": "835cc95265109f8167c88ca9be4f22fd1ee956a0fea0627f9d5d2ed65c24a8f5",
+   "board": {
+    "map": [
+     "..C.EE",
+     ".FCBBB",
+     ".FLLKK",
+     "DJJ..A",
+     "D.GGHA",
+     "IIMMHA"
+    ],
+    "vehicles": [
+     "rouge 6 v!",
+     "jaune 6 <!",
+     "bleu 3 v",
+     "orange 2 v",
+     "violet 3 <",
+     "rouge 3 ^",
+     "bleu 3 <",
+     "vert 2 v",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 1",
+     "bottom 0",
+     "bottom 2",
+     "bottom 4",
+     "bottom 5",
+     "left 0",
+     "left 1",
+     "left 4"
+    ],
+    "queue": "violet 2, violet 1, rouge 1, bleu 3, rouge 1, rouge 5, bleu 3, jaune 3, jaune 3, orange 2, vert 1, vert 1"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le vieux port",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 8,
+      "cars": 5,
+      "long": 2,
+      "obstacles": 0,
+      "colors": 6,
+      "twins": 2,
+      "coloured": false,
+      "oneWay": 2,
+      "groupsMax": 2
+     }
+    },
+    "seed": 52117,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 411788,
+     "iterations": 249,
+     "accepted": 159,
+     "startHash": "16c465db0a07d97309b5bd73c5c489138f56cf0ae8a193b1c1d98dd5fdc40b6e"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 30724,
+    "line": [
+     "BD b3",
+     "BF f1",
+     "BG f2",
+     "BH b1",
+     "VJ b1",
+     "VL b2",
+     "VM f1",
+     "BC f4",
+     "VJ f1",
+     "VL f2",
+     "BD f2",
+     "BF b1",
+     "BE f6",
+     "BF f3",
+     "BC f2",
+     "BA f3",
+     "BG f2",
+     "BB f6",
+     "VI f1",
+     "BD f4",
+     "VI b1",
+     "VM b1",
+     "BH f3"
+    ]
+   },
+   "metrics": {
+    "difficulty": 27.3,
+    "par": 23,
+    "target": 27.55,
+    "states": 50442,
+    "dead": 25025,
+    "trap": {
+     "at": 13,
+     "move": "BA f3"
+    },
+    "solution": [
+     "BD b3",
+     "BF f1",
+     "BG f2",
+     "BH b1",
+     "VJ b1",
+     "VL b2",
+     "VM f1",
+     "BC f4",
+     "VJ f1",
+     "VL f2",
+     "BD f2",
+     "BF b1",
+     "BE f6",
+     "BF f3",
+     "BC f2",
+     "BA f3",
+     "BG f2",
+     "BB f6",
+     "VI f1",
+     "BD f4",
+     "VI b1",
+     "VM b1",
+     "BH f3"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:orange",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:2",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 53,
+   "name": "Les quais",
+   "candidateId": "busfolie-053-53075-s",
+   "levelHash": "88400a61528122a7eb782b77f399255cdd4e879b526bf76d5712a5f594484e2e",
+   "board": {
+    "map": [
+     ".BEE.D",
+     ".BFKKD",
+     "GBFJJ.",
+     "G.ICCC",
+     "..IHLL",
+     "AAAH.."
+    ],
+    "vehicles": [
+     "rouge 6 >!",
+     "rouge 6 v!",
+     "violet 4 <",
+     "jaune 4 v",
+     "orange 2 <",
+     "vert 4 ^",
+     "bleu 3 v",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 2 vert",
+     "right 5 rouge",
+     "bottom 0 bleu",
+     "bottom 1 rouge",
+     "bottom 5 jaune",
+     "left 0 orange",
+     "left 3 violet"
+    ],
+    "queue": "vert 3, vert 1, bleu 1, bleu 1, rouge 3, rouge 2, jaune 1, jaune 3, orange 1, orange 1, violet 3, rouge 3, rouge 3"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Les quais",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 3,
+      "obstacles": 0,
+      "colors": 6,
+      "twins": 1,
+      "coloured": true,
+      "oneWay": 2,
+      "groupsMax": 2
+     }
+    },
+    "seed": 53075,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 419707,
+     "iterations": 688,
+     "accepted": 407,
+     "startHash": "0103c2dd64c50a22e2dd411e9451c2c2ef77819e37faf9b8d22be5406ea797ad"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 23510,
+    "line": [
+     "BE b1",
+     "BF f3",
+     "BG b1",
+     "VI b2",
+     "BC f3",
+     "VJ f1",
+     "VH b2",
+     "BA f2",
+     "VL b3",
+     "VH f1",
+     "VJ b1",
+     "BD f3",
+     "VJ f1",
+     "VK f1",
+     "VH b2",
+     "BC b2",
+     "BG f5",
+     "VL f1",
+     "BB f6",
+     "BD f3",
+     "BE f5",
+     "BC f5",
+     "BA f4"
+    ]
+   },
+   "metrics": {
+    "difficulty": 27.9,
+    "par": 23,
+    "target": 27.65,
+    "states": 49562,
+    "dead": 18575,
+    "trap": {
+     "at": 17,
+     "move": "BA f4"
+    },
+    "solution": [
+     "BE b1",
+     "BF f3",
+     "BG b1",
+     "VI b2",
+     "BC f3",
+     "VJ f1",
+     "VH b2",
+     "BA f2",
+     "VL b3",
+     "VH f1",
+     "VJ b1",
+     "BD f3",
+     "VJ f1",
+     "VK f1",
+     "VH b2",
+     "BC b2",
+     "BG f5",
+     "VL f1",
+     "BB f6",
+     "BD f3",
+     "BE f5",
+     "BC f5",
+     "BA f4"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "coaches:3",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:orange",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "coloured-exit",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:2",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 54,
+   "name": "Les ateliers",
+   "candidateId": "busfolie-054-54237-s",
+   "levelHash": "b810777726a68f40caba9a9f69f96e4758b8bc0f915efc389cd6d433cf01a0cf",
+   "board": {
+    "map": [
+     ".I.BGG",
+     "#I.BE.",
+     "ACHBEF",
+     "ACH..F",
+     "AC.DDJ",
+     ".KKLLJ"
+    ],
+    "vehicles": [
+     "violet 5 v!",
+     "bleu 5 v!",
+     "rouge 5 v",
+     "jaune 3 >",
+     "bleu 3 v",
+     "orange 4 ^",
+     "vert 4 <",
+     "rouge 3 v",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 5 orange",
+     "right 4 jaune",
+     "bottom 0 violet",
+     "bottom 1 rouge",
+     "bottom 2 rouge",
+     "bottom 3 bleu",
+     "bottom 4 bleu",
+     "left 0 vert"
+    ],
+    "queue": "orange 3, orange 1, vert 3, rouge 1, rouge 2, violet 4, bleu 3, jaune 2, rouge 2, rouge 2, bleu 3"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Les ateliers",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 8,
+      "cars": 4,
+      "long": 3,
+      "obstacles": 1,
+      "colors": 6,
+      "twins": 2,
+      "coloured": true,
+      "oneWay": 2,
+      "groupsMax": 2
+     }
+    },
+    "seed": 54237,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 201,
+     "count": 200,
+     "mutationSeed": 427626,
+     "iterations": 116,
+     "accepted": 46,
+     "startHash": "2107109796588c69d7cd612c6b95d999db49fed4e8feb89bd3d10c91da3ca037"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 47748,
+    "line": [
+     "BB f1",
+     "BG f1",
+     "BF f4",
+     "VJ b2",
+     "BD f1",
+     "VL f1",
+     "VK f1",
+     "BC f1",
+     "VI f1",
+     "BG f5",
+     "VI b1",
+     "BC b1",
+     "VK b2",
+     "BH f4",
+     "VK f1",
+     "BA f4",
+     "BB f5",
+     "BD f2",
+     "VK f1",
+     "BC f4",
+     "VK b2",
+     "VL b2",
+     "BE f5"
+    ]
+   },
+   "metrics": {
+    "difficulty": 28,
+    "par": 23,
+    "target": 27.75,
+    "states": 48605,
+    "dead": 39182,
+    "trap": {
+     "at": 10,
+     "move": "BC f3"
+    },
+    "solution": [
+     "BB f1",
+     "BG f1",
+     "BF f4",
+     "VJ b2",
+     "BD f1",
+     "VL f1",
+     "VK f1",
+     "BC f1",
+     "VI f1",
+     "BG f5",
+     "VI b1",
+     "BC b1",
+     "VK b2",
+     "BH f4",
+     "VK f1",
+     "BA f4",
+     "BB f5",
+     "BD f2",
+     "VK f1",
+     "BC f4",
+     "VK b2",
+     "VL b2",
+     "BE f5"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "coach",
+     "coaches:3",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:orange",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "coloured-exit",
+     "cone",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:2",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 55,
+   "name": "Le grand pont",
+   "candidateId": "busfolie-055-55442-s",
+   "levelHash": "18cc7031ab9927d1df3ca84ed47025d9f958bbf07e30b1794cef0eb60afe5025",
+   "board": {
+    "map": [
+     "H.IIFF",
+     "HDDBJ.",
+     ".GGBJ.",
+     ".#.BLA",
+     "CCEELA",
+     "...KKA"
+    ],
+    "vehicles": [
+     "bleu 6 ^!",
+     "rouge 6 ^!",
+     "bleu 3 >!",
+     "jaune 3 >",
+     "violet 3 >",
+     "vert 3 >",
+     "rouge 2 <",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 3 rouge",
+     "top 5 bleu",
+     "right 0 vert",
+     "right 1 jaune",
+     "right 4",
+     "left 2 rouge"
+    ],
+    "queue": "violet 2, violet 1, bleu 1, bleu 4, rouge 2, rouge 1, vert 2, vert 1, rouge 2, bleu 3, jaune 1, jaune 2"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le grand pont",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 2,
+      "obstacles": 1,
+      "colors": 5,
+      "twins": 2,
+      "coloured": true,
+      "oneWay": 3,
+      "groupsMax": 2
+     }
+    },
+    "seed": 55442,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 401,
+     "count": 200,
+     "mutationSeed": 435545,
+     "iterations": 380,
+     "accepted": 157,
+     "startHash": "a23190780a8663642f4e4c79a86ab957b5f44caf2bd5f05a0bacfc6e5e3c691e"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 50454,
+    "line": [
+     "BA f2",
+     "VH f1",
+     "VI b2",
+     "BF b2",
+     "VJ b1",
+     "VK b1",
+     "VL b1",
+     "BE f4",
+     "BA f4",
+     "BC f1",
+     "VH f2",
+     "VL f1",
+     "VJ f1",
+     "BF f2",
+     "BB f4",
+     "BF f2",
+     "BG f3",
+     "VJ b1",
+     "VL b1",
+     "BC f5",
+     "VL f2",
+     "VJ f2",
+     "BD f5"
+    ]
+   },
+   "metrics": {
+    "difficulty": 28,
+    "par": 23,
+    "target": 27.85,
+    "states": 51830,
+    "dead": 22766,
+    "trap": {
+     "at": 8,
+     "move": "BC f6"
+    },
+    "solution": [
+     "BA f2",
+     "VH f1",
+     "VI b2",
+     "BF b2",
+     "VJ b1",
+     "VK b1",
+     "VL b1",
+     "BE f4",
+     "BA f4",
+     "BC f1",
+     "VH f2",
+     "VL f1",
+     "VJ f1",
+     "BF f2",
+     "BB f4",
+     "BF f2",
+     "BG f3",
+     "VJ b1",
+     "VL b1",
+     "BC f5",
+     "VL f2",
+     "VJ f2",
+     "BD f5"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "coloured-exit",
+     "cone",
+     "crowded",
+     "groups",
+     "mixed-exits",
+     "one-way",
+     "one-way:3",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 56,
+   "name": "Le marché de nuit",
+   "candidateId": "busfolie-056-56118-s",
+   "levelHash": "2e11b44053428944d20dee2ea2ccb0e82b426dce3e8fa521e337b31d3972861c",
+   "board": {
+    "map": [
+     "HGJJMM",
+     "HGFF.I",
+     ".AAACI",
+     "BBB.C.",
+     "LLKKCD",
+     "EE...D"
+    ],
+    "vehicles": [
+     "jaune 5 >!",
+     "orange 5 >!",
+     "bleu 4 v!",
+     "rouge 2 v",
+     "rouge 4 <",
+     "bleu 2 >",
+     "vert 4 v",
+     "violet 4 v",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "right 1",
+     "right 2",
+     "right 3",
+     "bottom 0",
+     "bottom 1",
+     "bottom 4",
+     "bottom 5",
+     "left 5"
+    ],
+    "queue": "bleu 4, vert 1, vert 2, bleu 2, orange 5, rouge 3, rouge 1, jaune 3, jaune 2, rouge 1, rouge 1, violet 3"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le marché de nuit",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 8,
+      "cars": 5,
+      "long": 3,
+      "obstacles": 0,
+      "colors": 6,
+      "twins": 2,
+      "coloured": false,
+      "oneWay": 3,
+      "groupsMax": 2
+     }
+    },
+    "seed": 56118,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 443464,
+     "iterations": 17,
+     "accepted": 11,
+     "startHash": "2da57036511708178025228284a6ca4df650819b2db4e472105dbfd85eac32ce"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 29088,
+    "line": [
+     "BC f4",
+     "BA f1",
+     "BB f2",
+     "BE b2",
+     "BG f1",
+     "VJ b1",
+     "VM b1",
+     "VI b1",
+     "BD b2",
+     "VK f2",
+     "VL f2",
+     "BG f5",
+     "VL b1",
+     "VK b1",
+     "BD f2",
+     "VI f2",
+     "BF f4",
+     "VI b2",
+     "BB f4",
+     "BE f4",
+     "BA f4",
+     "BD f2",
+     "BH f6"
+    ]
+   },
+   "metrics": {
+    "difficulty": 27.8,
+    "par": 23,
+    "target": 27.95,
+    "states": 30669,
+    "dead": 7060,
+    "trap": {
+     "at": 1,
+     "move": "BB f3"
+    },
+    "solution": [
+     "BC f4",
+     "BA f1",
+     "BB f2",
+     "BE b2",
+     "BG f1",
+     "VJ b1",
+     "VM b1",
+     "VI b1",
+     "BD b2",
+     "VK f2",
+     "VL f2",
+     "BG f5",
+     "VL b1",
+     "VK b1",
+     "BD f2",
+     "VI f2",
+     "BF f4",
+     "VI b2",
+     "BB f4",
+     "BE f4",
+     "BA f4",
+     "BD f2",
+     "BH f6"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "coaches:3",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:orange",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:3",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 57,
+   "name": "Les remparts",
+   "candidateId": "busfolie-057-57102-s",
+   "levelHash": "205891fb2b2d7150d7910a1f5654127b08419de9a41b9886e124bac42e9215ea",
+   "board": {
+    "map": [
+     "#.D...",
+     "B.DEKK",
+     "BJDEHH",
+     "BJFFGC",
+     ".AAAGC",
+     "II.LLC"
+    ],
+    "vehicles": [
+     "rouge 6 >!",
+     "rouge 4 v!",
+     "violet 6 v",
+     "bleu 6 ^",
+     "jaune 3 v",
+     "vert 3 >",
+     "orange 2 ^",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 2 bleu",
+     "top 4 orange",
+     "right 3 vert",
+     "right 4 rouge",
+     "bottom 0 rouge",
+     "bottom 3 jaune",
+     "bottom 5 violet"
+    ],
+    "queue": "bleu 1, bleu 3, orange 1, vert 2, rouge 1, rouge 3, jaune 1, jaune 1, rouge 4, violet 3"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Les remparts",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 7,
+      "cars": 5,
+      "long": 4,
+      "obstacles": 1,
+      "colors": 6,
+      "twins": 1,
+      "coloured": true,
+      "oneWay": 2,
+      "groupsMax": 2
+     }
+    },
+    "seed": 57102,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 1,
+     "count": 120,
+     "mutationSeed": 451383,
+     "iterations": 431,
+     "accepted": 183,
+     "startHash": "76ccbb7f3c1e8d292bc6e01d3603a0e3c2f152354c3c81bdf6129ec328faf74e"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 15620,
+    "line": [
+     "BD f3",
+     "BE b1",
+     "VH b2",
+     "BC b1",
+     "BG f1",
+     "BA f1",
+     "VL f1",
+     "VI f2",
+     "VJ f2",
+     "BF b1",
+     "VH b1",
+     "BE f2",
+     "VK b3",
+     "BC b2",
+     "BE b1",
+     "BG f4",
+     "BF f5",
+     "BA f4",
+     "VJ b1",
+     "VI b1",
+     "BE f5",
+     "BB f5",
+     "VL b1",
+     "BC f6"
+    ]
+   },
+   "metrics": {
+    "difficulty": 27.9,
+    "par": 24,
+    "target": 28.05,
+    "states": 23003,
+    "dead": 1524,
+    "trap": {
+     "at": 17,
+     "move": "BB f5"
+    },
+    "solution": [
+     "BD f3",
+     "BE b1",
+     "VH b2",
+     "BC b1",
+     "BG f1",
+     "BA f1",
+     "VL f1",
+     "VI f2",
+     "VJ f2",
+     "BF b1",
+     "VH b1",
+     "BE f2",
+     "VK b3",
+     "BC b2",
+     "BE b1",
+     "BG f4",
+     "BF f5",
+     "BA f4",
+     "VJ b1",
+     "VI b1",
+     "BE f5",
+     "BB f5",
+     "VL b1",
+     "BC f6"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "coaches:4",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:orange",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "coloured-exit",
+     "cone",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:2",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 58,
+   "name": "La gare de nuit",
+   "candidateId": "busfolie-058-58556-s",
+   "levelHash": "e81fd6970d21971008da499f0cc4043a393eff089a3d859f2f9eb4204bf76c8e",
+   "board": {
+    "map": [
+     "MHHEC.",
+     "MDDECB",
+     "..K#CB",
+     "LLKFFB",
+     "IAAA..",
+     "I.GGJJ"
+    ],
+    "vehicles": [
+     "rouge 6 >!",
+     "rouge 5 v!",
+     "bleu 4 v!",
+     "vert 3 <",
+     "bleu 3 ^",
+     "orange 2 >",
+     "violet 2 <",
+     "jaune 2 <",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 3 bleu",
+     "right 3 orange",
+     "right 4 rouge",
+     "bottom 4 bleu",
+     "bottom 5 rouge",
+     "left 0 jaune",
+     "left 1 vert",
+     "left 5 violet"
+    ],
+    "queue": "rouge 2, rouge 3, bleu 1, bleu 1, orange 1, jaune 1, rouge 5, violet 1, violet 1, vert 3, bleu 4"
+   },
+   "provenance": {
+    "profile": {
+     "name": "La gare de nuit",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 8,
+      "cars": 5,
+      "long": 3,
+      "obstacles": 1,
+      "colors": 6,
+      "twins": 2,
+      "coloured": true,
+      "oneWay": 3,
+      "groupsMax": 2
+     }
+    },
+    "seed": 58556,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 401,
+     "count": 200,
+     "mutationSeed": 459302,
+     "iterations": 314,
+     "accepted": 138,
+     "startHash": "beff5309e9ed58b64f47cee266cde55847220f17da9875ec21525cf58a8ec4b0"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 3291,
+    "line": [
+     "BG f1",
+     "VJ b1",
+     "BB f5",
+     "BE f2",
+     "BF f3",
+     "VM f1",
+     "BH f3",
+     "BA f5",
+     "BC f2",
+     "BD b2",
+     "VK b1",
+     "VL f1",
+     "VI b1",
+     "BG f3",
+     "VI f1",
+     "VL b1",
+     "VK f3",
+     "VL f1",
+     "VM f1",
+     "BD f5",
+     "VM b1",
+     "VL b1",
+     "VK b1",
+     "VJ b1",
+     "BC f4"
+    ]
+   },
+   "metrics": {
+    "difficulty": 28.5,
+    "par": 25,
+    "target": 28.15,
+    "states": 3566,
+    "dead": 1696,
+    "trap": {
+     "at": 0,
+     "move": "BA f5"
+    },
+    "solution": [
+     "BG f1",
+     "VJ b1",
+     "BB f5",
+     "BE f2",
+     "BF f3",
+     "VM f1",
+     "BH f3",
+     "BA f5",
+     "BC f2",
+     "BD b2",
+     "VK b1",
+     "VL f1",
+     "VI b1",
+     "BG f3",
+     "VI f1",
+     "VL b1",
+     "VK f3",
+     "VL f1",
+     "VM f1",
+     "BD f5",
+     "VM b1",
+     "VL b1",
+     "VK b1",
+     "VJ b1",
+     "BC f4"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "coaches:3",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:orange",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "coloured-exit",
+     "cone",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:3",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 59,
+   "name": "Le dépôt de nuit",
+   "candidateId": "busfolie-059-59658-s",
+   "levelHash": "32a886b489663f9cd4d75d06513e4b0ed23b417b86bd0de63aacfdb4c9df8b31",
+   "board": {
+    "map": [
+     "GGHHL.",
+     "BBB.L.",
+     ".FFJMM",
+     "A.IJEC",
+     "A.IKEC",
+     "ADDK.C"
+    ],
+    "vehicles": [
+     "violet 5 ^!",
+     "bleu 6 >!",
+     "bleu 5 ^",
+     "jaune 4 <",
+     "orange 3 v",
+     "vert 2 <",
+     "rouge 2 <",
+     "rouge 4 >",
+     "jaune 2 v",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 0",
+     "top 5",
+     "right 0",
+     "right 1",
+     "bottom 2",
+     "bottom 4",
+     "left 0",
+     "left 2",
+     "left 5"
+    ],
+    "queue": "jaune 2, orange 2, orange 1, rouge 2, violet 4, bleu 5, rouge 1, rouge 1, vert 1, vert 1, jaune 2, bleu 1, bleu 3"
+   },
+   "provenance": {
+    "profile": {
+     "name": "Le dépôt de nuit",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 9,
+      "cars": 4,
+      "long": 3,
+      "obstacles": 0,
+      "colors": 6,
+      "twins": 3,
+      "coloured": false,
+      "oneWay": 2,
+      "groupsMax": 2
+     }
+    },
+    "seed": 59658,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 601,
+     "count": 150,
+     "mutationSeed": 467221,
+     "iterations": 206,
+     "accepted": 135,
+     "startHash": "15907615a8e744b30094acb8fa4206f2d0a497827370cc7cccee471c5425c26b"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 2416,
+    "line": [
+     "BF f1",
+     "VJ b1",
+     "VK b1",
+     "BD b2",
+     "BI f3",
+     "BD f2",
+     "BE f3",
+     "BG f2",
+     "BH b1",
+     "VJ b1",
+     "VK f1",
+     "VM b2",
+     "VL f3",
+     "VM f2",
+     "BF b1",
+     "VJ f2",
+     "BB f1",
+     "BA f6",
+     "BB f5",
+     "BH f5",
+     "BF f3",
+     "BD f3",
+     "VJ b2",
+     "VM b1",
+     "BC f6"
+    ]
+   },
+   "metrics": {
+    "difficulty": 28.4,
+    "par": 25,
+    "target": 28.25,
+    "states": 4920,
+    "dead": 362,
+    "trap": {
+     "at": 0,
+     "move": "BA f1"
+    },
+    "solution": [
+     "BF f1",
+     "VJ b1",
+     "VK b1",
+     "BD b2",
+     "BI f3",
+     "BD f2",
+     "BE f3",
+     "BG f2",
+     "BH b1",
+     "VJ b1",
+     "VK f1",
+     "VM b2",
+     "VL f3",
+     "VM f2",
+     "BF b1",
+     "VJ f2",
+     "BB f1",
+     "BA f6",
+     "BB f5",
+     "BH f5",
+     "BF f3",
+     "BD f3",
+     "VJ b2",
+     "VM b1",
+     "BC f6"
+    ],
+    "features": [
+     "bus",
+     "buses:9",
+     "car",
+     "coach",
+     "coaches:3",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:orange",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:2",
+     "queue",
+     "shared-lane",
+     "size:6",
+     "twins"
+    ]
+   }
+  },
+  {
+   "slot": 60,
+   "name": "La tournée finale",
+   "candidateId": "busfolie-060-60578-s",
+   "levelHash": "52b87d5b907c896057b1c35cca3b6b49c9aab25ec3028178e944409d00460b31",
+   "board": {
+    "map": [
+     "BCKKFI",
+     "BCGGFI",
+     "BCD#.L",
+     "JJDHHL",
+     "..DAAA",
+     "..MMEE"
+    ],
+    "vehicles": [
+     "bleu 4 >!",
+     "orange 4 v!",
+     "rouge 5 ^!",
+     "jaune 5 ^",
+     "bleu 2 >",
+     "rouge 4 ^",
+     "violet 2 <",
+     "vert 3 >",
+     "gris",
+     "gris",
+     "gris",
+     "gris",
+     "gris"
+    ],
+    "exits": [
+     "top 1 rouge",
+     "top 2 jaune",
+     "top 4 rouge",
+     "right 3 vert",
+     "right 4 bleu",
+     "right 5 bleu",
+     "bottom 0 orange",
+     "left 1 violet"
+    ],
+    "queue": "rouge 1, rouge 4, bleu 2, vert 3, violet 1, violet 1, bleu 2, orange 3, orange 1, jaune 1, jaune 4, rouge 1, rouge 1"
+   },
+   "provenance": {
+    "profile": {
+     "name": "La tournée finale",
+     "template": {
+      "width": 6,
+      "height": 6,
+      "buses": 8,
+      "cars": 5,
+      "long": 4,
+      "obstacles": 1,
+      "colors": 6,
+      "twins": 2,
+      "coloured": true,
+      "oneWay": 3,
+      "groupsMax": 2
+     }
+    },
+    "seed": 60578,
+    "generatorVersion": "1.0.0",
+    "engineVersion": "1.0.0",
+    "schemaVersion": "1.0.0",
+    "search": {
+     "source": "scripts/search-busfolie.js:searchSlot",
+     "first": 401,
+     "count": 200,
+     "mutationSeed": 475140,
+     "iterations": 350,
+     "accepted": 186,
+     "startHash": "ad969b9029c29787e207e8e6967daf1a59513f70c958d1a91a460ee1c7d89427"
+    }
+   },
+   "status": "selected",
+   "solving": {
+    "verdict": "solved",
+    "evidence": "proof+replay",
+    "budget": {
+     "nodes": 200000
+    },
+    "used": 17174,
+    "line": [
+     "BC f3",
+     "BA f3",
+     "VM b2",
+     "BE b2",
+     "VL f2",
+     "BH f3",
+     "BF b4",
+     "BG b1",
+     "VK f1",
+     "BD f2",
+     "VJ f3",
+     "BB f2",
+     "BD b2",
+     "BG f5",
+     "BD f2",
+     "VJ b1",
+     "BF f1",
+     "VL b1",
+     "BE f4",
+     "VM f1",
+     "BB f4",
+     "BD f3",
+     "VK b1",
+     "BF f5"
+    ]
+   },
+   "metrics": {
+    "difficulty": 28.2,
+    "par": 24,
+    "target": 28.35,
+    "states": 25404,
+    "dead": 9236,
+    "trap": {
+     "at": 0,
+     "move": "BF f2"
+    },
+    "solution": [
+     "BC f3",
+     "BA f3",
+     "VM b2",
+     "BE b2",
+     "VL f2",
+     "BH f3",
+     "BF b4",
+     "BG b1",
+     "VK f1",
+     "BD f2",
+     "VJ f3",
+     "BB f2",
+     "BD b2",
+     "BG f5",
+     "BD f2",
+     "VJ b1",
+     "BF f1",
+     "VL b1",
+     "BE f4",
+     "VM f1",
+     "BB f4",
+     "BD f3",
+     "VK b1",
+     "BF f5"
+    ],
+    "features": [
+     "bus",
+     "car",
+     "cars:5",
+     "coach",
+     "coaches:4",
+     "colour:bleu",
+     "colour:jaune",
+     "colour:orange",
+     "colour:rouge",
+     "colour:vert",
+     "colour:violet",
+     "coloured-exit",
+     "cone",
+     "crowded",
+     "groups",
+     "one-way",
+     "one-way:3",
+     "queue",
+     "size:6",
+     "twins"
+    ]
+   }
+  }
+ ]
+}

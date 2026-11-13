@@ -15,6 +15,9 @@ export const nodeChecks = [
     ['validate-demineur.js'],
     ['validate-fusio.js'],
     ['validate-busfolie.js'],
+    // Bus en folie, levels 31-60: the committed generation receipt measured again; then the Level Factory command line.
+    ['validate-busfolie-campaign.js'],
+    ['test-game.js'],
     ['check-derapage-3d.js'],
     ['check-derapage-cadence.js'],
     ['check-level-catalogue-kart.js'],

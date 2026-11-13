@@ -18,6 +18,8 @@ import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { canvasGraphics } from '../thumbnail-art';
 import { COLORS, UI, arrow, backdrop, bulbIcon, canopy, cone, exitGate, passenger, pill, restartIcon, starIcon, tree, undoIcon, vehicle, yard } from './art';
+/** Catalogue size before levels 31-60: an older save capped there opens level 31. */
+const PREVIOUS_LEVEL_COUNT = 30;
 export const RUN_KEY = 'arcade-lab:busfolie:run:v1';
 export const busfolieButtons: readonly TouchButton[] = [
     { id: 'busfolie-undo', label: '', ariaLabel: 'Annuler le dernier coup', size: 56, placement: 'center', mode: 'tap' },
@@ -74,7 +76,7 @@ const parseMove = (text: string): Move => {
 export class BusfolieScene extends Phaser.Scene {
     private hero = new GameCharacter(selectedCharacter());
     private engine = new Engine();
-    private progress = new Progression(readSave(browserStorage(), 'busfolie', LEVELS.length), LEVELS.length);
+    private progress = new Progression(readSave(browserStorage(), 'busfolie', LEVELS.length), LEVELS.length, PREVIOUS_LEVEL_COUNT);
     private inputs = new Inputs();
     private manual = false;
     private selecting = false;
@@ -96,6 +98,7 @@ export class BusfolieScene extends Phaser.Scene {
     create(): void {
         const receipts = fingerReceipts(this.inputs);
         document.body.classList.add('busfolie');
+        writeSave(browserStorage(), this.progress.save, 'busfolie'); // keeps the menu in step with a migrated save
         const cleanup = (): void => {
             this.save(); this.inputs.dispose(); document.body.classList.remove('busfolie'); reserveHudRow(false);
             delete window.__BUSFOLIE_TEST__; sound.stop();

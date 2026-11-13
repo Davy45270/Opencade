@@ -6,13 +6,15 @@
 // along that line falls into a proven dead end, which the real engine reports as "Bloqué"; no level is easier than the
 // level five ranks before it; each mechanism arrives alone; diversity; the generator is deterministic (AC-09).
 import assert from 'node:assert/strict';
-import { Engine, LEVELS } from '../src/engines/busfolie/engine.ts';
+import { Engine, LEVELS as ALL_LEVELS } from '../src/engines/busfolie/engine.ts';
 import { initialState, validateLevel } from '../src/engines/busfolie/rules.ts';
 import { analyse, difficulty, solve } from '../src/engines/busfolie/solver.ts';
 import { generateLevel } from '../src/engines/busfolie/generator.ts';
 import { SLOTS } from '../src/engines/busfolie/slots.ts';
 import { busfolieDiversity, busfolieFeatures } from './busfolie-diversity.js';
 export const MAX_STATES = 60000;
+// The first campaign (levels 1-30); levels 31-60 are checked against their receipt by validate-busfolie-campaign.js.
+const LEVELS = ALL_LEVELS.slice(0, 30);
 const play = (e, text) => { const [id, how] = text.split(' '); return e.move(id, how.startsWith('f') ? 'forward' : 'backward', Number(how.slice(1))); };
 console.log('| Niveau | Taille | Bus | Voitures | Plots | Couleurs | Groupes | Coups | États | Impasses | Piège | Difficulté |');
 console.log('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');

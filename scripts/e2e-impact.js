@@ -109,7 +109,7 @@ export const SPEC_SECONDS = {
     'alunir-levels': 70, 'alunir': 68, 'arcade': 120, 'artificiers-finger': 87, 'artificiers': 32, 'autres-jeux': 6, 'bombercade-finger': 8,
     'bombercade': 14, 'briqueterie': 141, 'bubble-catalogue': 422, 'bubble-snap-finger': 23, 'caisses': 21, 'character-finger-2': 323,
     'character-finger-3': 208, 'character-finger-4': 1041, 'character-finger': 407, 'character-pixels': 23, 'characters': 19, 'collier-finger': 48,
-    'busfolie': 60, 'collier': 42, 'dedale': 61, 'demineur': 90, 'devisso': 30, 'derapage-3d': 116, 'derapage-bonus': 18, 'derapage-catalogue': 58, 'derapage-decor': 20, 'derapage-horizon': 15, 'derapage-trees': 15, 'derapage': 63, 'device': 56, 'empilo': 56, 'essaim-signature': 57,
+    'busfolie': 110, 'collier': 42, 'dedale': 61, 'demineur': 90, 'devisso': 30, 'derapage-3d': 116, 'derapage-bonus': 18, 'derapage-catalogue': 58, 'derapage-decor': 20, 'derapage-horizon': 15, 'derapage-trees': 15, 'derapage': 63, 'device': 56, 'empilo': 56, 'essaim-signature': 57,
     'essaim': 269, 'ferraille-levels': 245, 'ferraille': 342, 'fusio': 240, 'game': 23, 'gourmandises-finger': 17, 'gourmandises': 32, 'habillage-action': 221,
     'habillage': 19, 'levels': 18, 'marmaille': 19, 'mobile-layout': 721, 'mobile': 3, 'offline': 6, 'orbite': 143, 'pepites-finger': 107,
     'pepites': 34, 'perf-fps': 86, 'petits-pompiers-finger': 62, 'petits-pompiers-touch': 9, 'petits-pompiers': 118, 'pwa-update': 36,

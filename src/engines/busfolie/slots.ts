@@ -1,5 +1,5 @@
 import type { Template } from './generator';
-/** The 30 progression slots: title (FR/EN), the generator template, and the novelty the level introduces. One idea
+/** The 60 progression slots (two campaigns of 30): title (FR/EN), the generator template, and the novelty the level introduces. One idea
  * at a time, then combined. The boards themselves were picked offline (scripts/search-busfolie.js) and frozen in data.ts. */
 export interface Slot { name: string; en: string; novelty: string; template: Template }
 const T = (width: number, buses: number, cars: number, long: number, obstacles: number, colors: number, twins: number, coloured: boolean, oneWay: number, groupsMax: number): Template =>
@@ -35,4 +35,36 @@ export const SLOTS: readonly Slot[] = [
     { name: 'Le centre-ville', en: 'Downtown', novelty: '', template: T(8, 9, 5, 3, 13, 6, 3, false, 2, 2) },
     { name: 'La grande gare', en: 'The central station', novelty: '', template: T(6, 7, 5, 2, 1, 6, 2, true, 2, 2) },
     { name: 'Bus en folie', en: 'Bus Frenzy', novelty: '', template: T(8, 9, 5, 4, 12, 6, 3, true, 3, 2) },
+    // Campaign 2 (levels 31-60): a second town, small and crowded yards (6 × 6: under 60 000 states, harder lines),
+    // where the mechanisms come back one at a time; picked offline by `npm run game -- generate|solve|rank busfolie`.
+    { name: 'Le quartier neuf', en: 'The new district', novelty: 'nouveau quartier', template: T(6, 7, 4, 0, 0, 4, 3, false, 0, 2) },
+    { name: 'La boulangerie', en: 'The bakery', novelty: '', template: T(6, 7, 4, 0, 0, 4, 3, false, 0, 2) },
+    { name: 'Le rond-point', en: 'The roundabout', novelty: 'plot', template: T(6, 7, 4, 0, 1, 4, 3, false, 0, 2) },
+    { name: 'Le port', en: 'The harbour', novelty: '', template: T(6, 7, 4, 0, 2, 4, 3, false, 0, 2) },
+    { name: 'La piscine', en: 'The swimming pool', novelty: 'cinq voitures', template: T(6, 7, 5, 0, 1, 4, 3, false, 0, 2) },
+    { name: 'Le pont-levis', en: 'The drawbridge', novelty: 'car de 3', template: T(6, 7, 5, 1, 1, 4, 3, false, 0, 2) },
+    { name: 'La fête foraine', en: 'The funfair', novelty: '', template: T(6, 7, 4, 1, 1, 4, 3, false, 0, 2) },
+    { name: 'Le jardin public', en: 'The public garden', novelty: 'sorties colorées', template: T(6, 7, 5, 1, 1, 4, 3, true, 0, 2) },
+    { name: 'La caserne', en: 'The fire station', novelty: '', template: T(6, 7, 4, 1, 2, 4, 3, true, 0, 2) },
+    { name: 'Le stade', en: 'The stadium', novelty: 'cinq couleurs', template: T(6, 7, 5, 1, 1, 5, 2, false, 0, 2) },
+    { name: 'La bibliothèque', en: 'The library', novelty: 'sens unique', template: T(6, 7, 5, 1, 1, 5, 2, false, 1, 2) },
+    { name: 'Le zoo', en: 'The zoo', novelty: '', template: T(6, 7, 4, 1, 1, 5, 2, true, 1, 2) },
+    { name: 'La plage', en: 'The beach', novelty: '', template: T(6, 7, 5, 2, 0, 5, 2, false, 1, 2) },
+    { name: 'Le musée', en: 'The museum', novelty: 'deux sens uniques', template: T(6, 7, 5, 2, 1, 5, 2, true, 2, 2) },
+    { name: 'La cathédrale', en: 'The cathedral', novelty: '', template: T(6, 7, 6, 2, 0, 5, 2, false, 1, 2) },
+    { name: 'Le tunnel', en: 'The tunnel', novelty: '', template: T(6, 7, 5, 2, 1, 5, 2, false, 2, 2) },
+    { name: 'La colline', en: 'The hill', novelty: 'six couleurs', template: T(6, 7, 5, 2, 0, 6, 1, false, 1, 2) },
+    { name: 'Le phare', en: 'The lighthouse', novelty: '', template: T(6, 7, 5, 2, 1, 6, 1, true, 2, 2) },
+    { name: 'L’aéroport', en: 'The airport', novelty: '', template: T(6, 8, 5, 2, 0, 6, 2, true, 2, 2) },
+    { name: 'La mairie', en: 'The town hall', novelty: 'trois cars', template: T(6, 7, 5, 3, 1, 5, 2, false, 1, 2) },
+    { name: 'Le cirque', en: 'The circus', novelty: '', template: T(6, 7, 5, 3, 1, 6, 1, true, 2, 2) },
+    { name: 'Le vieux port', en: 'The old harbour', novelty: '', template: T(6, 8, 5, 2, 0, 6, 2, false, 2, 2) },
+    { name: 'Les quais', en: 'The quays', novelty: '', template: T(6, 7, 5, 3, 0, 6, 1, true, 2, 2) },
+    { name: 'Les ateliers', en: 'The workshops', novelty: '', template: T(6, 8, 4, 3, 1, 6, 2, true, 2, 2) },
+    { name: 'Le grand pont', en: 'The great bridge', novelty: 'trois sens uniques', template: T(6, 7, 5, 2, 1, 5, 2, true, 3, 2) },
+    { name: 'Le marché de nuit', en: 'The night market', novelty: '', template: T(6, 8, 5, 3, 0, 6, 2, false, 3, 2) },
+    { name: 'Les remparts', en: 'The ramparts', novelty: 'quatre cars', template: T(6, 7, 5, 4, 1, 6, 1, true, 2, 2) },
+    { name: 'La gare de nuit', en: 'The night station', novelty: '', template: T(6, 8, 5, 3, 1, 6, 2, true, 3, 2) },
+    { name: 'Le dépôt de nuit', en: 'The night depot', novelty: 'neuf bus', template: T(6, 9, 4, 3, 0, 6, 3, false, 2, 2) },
+    { name: 'La tournée finale', en: 'The last round', novelty: '', template: T(6, 8, 5, 4, 1, 6, 2, true, 3, 2) },
 ];
