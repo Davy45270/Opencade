@@ -79,7 +79,7 @@ export const oracles: readonly [string, () => void][] = [
     ['B05 chaînes immédiates et ordre', () => {
         const a = room(), b = room(); const bombs = [bomb(14, 0, FIXED), bomb(16, 1, 2500, 2), bomb(18, 1, 2500, 3)];
         a.bombs = structuredClone(bombs); b.bombs = structuredClone(bombs).reverse(); a.step(FIXED); b.step(FIXED);
-        equal(a.bombs.length, 0); equal(a.snapshot(), b.snapshot()); equal(a.events.filter(e => e === 'chain').length, 2); check(a.fires.some(f => f.at === 20));
+        equal(a.bombs.length, 0); equal(a.snapshot(), b.snapshot()); equal(a.drain().filter(e => e.type === 'chain').length, 2); check(a.fires.some(f => f.at === 20));
     }],
     ['B06 cœurs et immunité', () => {
         const e = room(); e.fires = [{ at: 12, owner: 1, character: 'dragon', left: 5000 }]; e.step(FIXED); equal(e.player.hearts, 1); equal(e.player.immune, 2000);

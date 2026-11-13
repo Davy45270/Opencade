@@ -15,7 +15,7 @@ export async function checkBombercadeScene() {
         'Touch controls reserve at least 12 px below the joystick and bomb');
     assert.match(readFileSync(new URL('../src/shell/input.ts', import.meta.url), 'utf8'), /inputs\.on\(stick, 'click', \(\) => \{\}\)/,
         'Joystick participates in touch adjustment with a disposed no-op click listener');
-    const { module: { BombercadeScene, trackExplosionOrigins } } = await mutationModule('../src/games/bombercade/scene.ts',
+    const { module: { BombercadeScene } } = await mutationModule('../src/games/bombercade/scene.ts',
         "import Phaser from 'phaser';", 'const Phaser = { Scene: class {} };');
     const liveGraphics = new Set(), textures = new Set(), images = new Set();
     let bakes = 0;
@@ -46,8 +46,10 @@ export async function checkBombercadeScene() {
     const arena = new ArenaLayer(platform), dynamic = graphics();
     const engine = new Engine();
     const status = { textContent: '' }, hud = { text: '', setText(text) { this.text = text; } };
-    const context = { hud, engine, explosionOrigins: trackExplosionOrigins(engine), arena, graphics: dynamic, visualTime: 0, cast: [], debris: { events: engine.events, cursor: 0, blocks: new Set(), particles: [] } };
+    const context = { hud, engine, explosionOrigins: new WeakMap(), arena, graphics: dynamic, visualTime: 0, cast: [], debris: { breaks: 0, blocks: new Set(), particles: [] } };
     const scene = BombercadeScene.prototype;
+    // The scene reads the engine's events (without sound) before drawing, as its feedback() does after each step or action.
+    const observed = () => scene.observe.call(context).map(event => event.type);
     // DOM updates are irrelevant to command replay; no browser is instantiated.
     const oldDocument = Object.getOwnPropertyDescriptor(globalThis, 'document');
     const oldMedia = Object.getOwnPropertyDescriptor(globalThis, 'matchMedia');
@@ -111,7 +113,7 @@ export async function checkBombercadeScene() {
             engine.board.walls = confined ? [...engine.board.walls, 1, 23] : [];
             engine.actors.forEach((a, i) => { a.at = i ? 120 : 100; a.from = a.at; a.think = 100000; });
             engine.bombs = [{ id: 1001, at: 12, owner: 0, character: 'panda', fuse: 1, range: confined ? 2 : 1 }];
-            engine.step(20);
+            engine.step(20); observed();
             if (confined) assert.deepEqual(engine.fires.map(f => f.at), [12, 13, 14], 'Confined blast reproduction');
             scene.draw.call(context);
             const stars = boardStars();
@@ -124,8 +126,8 @@ export async function checkBombercadeScene() {
         engine.board.walls.push(1, 23);
         engine.actors.forEach((a, i) => { a.at = i ? 120 : 100; a.from = a.at; a.think = 100000; });
         engine.bombs = [12, 13].map((at, i) => ({ id: 1100 + i, at, owner: 0, character: 'panda', fuse: i ? 2500 : 1, range: 2 }));
-        engine.step(20); scene.draw.call(context);
-        assert(engine.events.includes('chain'), 'Real chained explosion');
+        engine.step(20); const chained = observed(); scene.draw.call(context);
+        assert(chained.includes('chain'), 'Real chained explosion');
         assert.equal(boardStars().length, 2, 'Each chained bomb retains its own star');
         engine.fires = [];
 
@@ -153,36 +155,36 @@ export async function checkBombercadeScene() {
         engine.board.walls = engine.board.walls.filter(at => ![14, 15, 16].includes(at));
         engine.actors.forEach((a, i) => { a.at = i ? 120 : 12; a.from = a.at; a.think = 100000; });
         engine.bombs = [{ id: 999, at: 14, owner: 0, character: 'panda', fuse: 1, range: 1 }];
-        context.debris = { events: engine.events, cursor: 0, blocks: new Set(engine.board.blocks), particles: [] };
-        scene.draw.call(context); engine.step(20); scene.draw.call(context);
-        assert(engine.events.includes('slide'), 'Level 19 scenario really slides ice');
+        context.debris = { breaks: 0, blocks: new Set(engine.board.blocks), particles: [] };
+        scene.draw.call(context); engine.step(20); const slid = observed(); scene.draw.call(context);
+        assert(slid.includes('slide'), 'Level 19 scenario really slides ice');
         assert.equal(engine.board.blocks[0].at, 16);
         assert.equal(context.debris.particles.length, 0, 'Sliding ice never emits break debris');
         engine.board.blocks = [{ at: 15, kind: 'normal', hp: 1 }];
         context.debris.blocks = new Set(engine.board.blocks);
         engine.bombs = [{ id: 1000, at: 14, owner: 0, character: 'panda', fuse: 1, range: 1 }];
-        engine.step(20); scene.draw.call(context);
-        assert(engine.events.includes('block'), 'Control really breaks a crate');
+        engine.step(20); const broken = observed(); scene.draw.call(context);
+        assert(broken.includes('block'), 'Control really breaks a crate');
         assert.equal(context.debris.particles.length, 1, 'Real break emits debris');
         for (const kind of ['normal', 'gold']) {
             engine.loadLevel(0, 28);
             engine.player.character = 'dragon'; engine.player.at = 12; engine.player.from = 12;
             engine.player.direction = 'right'; engine.player.charges = 2;
             engine.board.blocks = [{ at: 13, kind, hp: 1 }];
-            context.debris = { events: engine.events, cursor: 0, blocks: new Set(engine.board.blocks), particles: [] };
+            context.debris = { breaks: 0, blocks: new Set(engine.board.blocks), particles: [] };
             scene.draw.call(context);
             assert(engine.special(), 'Dragon breath succeeds');
             assert.equal(engine.time, 0, 'No time advance before drawing');
-            assert(engine.events.includes('block'), 'Breath really destroys the block');
+            assert(observed().includes('block'), 'Breath really destroys the block');
             scene.draw.call(context);
             assert.equal(context.debris.particles.length, 1, `Time-zero dragon breath emits ${kind} debris`);
             scene.draw.call(context);
             assert.equal(context.debris.particles.length, 1, 'Repeated draws consume each break only once');
             engine.board.blocks = [{ at: 13, kind, hp: 1 }]; scene.draw.call(context);
-            engine.special(); scene.draw.call(context);
-            assert.equal(context.debris.particles.length, 2, 'A second event appended to the same array at time zero is consumed');
+            engine.special(); observed(); scene.draw.call(context);
+            assert.equal(context.debris.particles.length, 2, 'A second break at time zero, after a drain, is consumed');
         }
-        engine.fires = []; engine.time = 0; engine.events = []; context.debris.particles = [];
+        engine.fires = []; engine.time = 0; engine.drain(); context.debris.particles = [];
         scene.draw.call(context);
         assert(!dynamic.commandBuffer.some(([name, x, y]) => name === 'lineBetween' && x === 308 && y === 77), 'Fixed clock hands absent from dynamic replay');
         assert(!dynamic.commandBuffer.some(([name, x, y]) => name === 'fillRoundedRect' && x === 24 && y === 115), 'Empty gauge background absent from dynamic replay');

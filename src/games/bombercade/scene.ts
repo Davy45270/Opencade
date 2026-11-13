@@ -2,7 +2,7 @@ import Phaser from 'phaser';
 import { GameCharacter } from '../../characters/game';
 import { selectedCharacter } from '../../characters/selection';
 import { characters } from '../../characters/model';
-import { Engine, LEVELS, WIDTH, type Block, type Bomb, type Fire, type Direction } from '../../engines/bombercade/engine';
+import { Engine, LEVELS, WIDTH, type BombercadeEvent, type Block, type Fire, type Direction } from '../../engines/bombercade/engine';
 import { Pilot, type Action } from '../../engines/bombercade/pilot';
 import { GAME_NAME } from '../../engines/bombercade/levels';
 import { Inputs, renderTouchControls, virtualJoystick, type TouchButton } from '../../shell/input';
@@ -40,26 +40,10 @@ export interface BombercadeHook {
     crateViews(): string[];
 }
 declare global { interface Window { __BOMBERCADE_TEST__?: BombercadeHook } }
-// Presentation metadata stays outside the engine. Its explosion event carries no
-// position, so observe the bomb argument before it is removed (including chains).
-export function trackExplosionOrigins(engine: Engine): WeakMap<Fire, boolean> {
-    const origins = new WeakMap<Fire, boolean>();
-    const emitter = engine as unknown as { explode(bomb: Bomb, only?: Direction): void };
-    const explode = emitter.explode.bind(engine);
-    emitter.explode = function (bomb, only) {
-        const first = engine.fires.length;
-        explode(bomb, only);
-        if (!only) for (let i = first; i < engine.fires.length; i++) {
-            const fire = engine.fires[i];
-            // Recursive chain explosions have already recorded their own origin.
-            if (fire && !origins.has(fire)) origins.set(fire, i === first && fire.at === bomb.at);
-        }
-    };
-    return origins;
-}
 export class BombercadeScene extends Phaser.Scene {
     private engine = new Engine(selectedCharacter());
-    private explosionOrigins = trackExplosionOrigins(this.engine);
+    /** Flames of a bomb: true for the bomb's own cell (it gets the star), false for the arms. Breath flames are absent. */
+    private explosionOrigins = new WeakMap<Fire, boolean>();
     private cast = this.engine.actors.map(a => new GameCharacter(a.character));
     private progress = new Progression(readSave(browserStorage(), 'bombercade', 30), 30);
     private inputs = new Inputs();
@@ -78,14 +62,14 @@ export class BombercadeScene extends Phaser.Scene {
     private counter?: Phaser.GameObjects.Text;
     private timer?: Phaser.GameObjects.Text;
     private powerLabel?: Phaser.GameObjects.Text;
-    private debris = { events: [] as string[], cursor: 0, blocks: new Set<Block>(), particles: [] as { at: number; born: number }[] };
+    private debris = { breaks: 0, blocks: new Set<Block>(), particles: [] as { at: number; born: number }[] };
     private fuseBeat = 0;
     private visualTime = 0;
     constructor(private session = new PlaySession(true)) { super('bombercade'); }
     private start(index: number, seed = 28, fresh = false): void {
         this.progress.start(index, fresh); this.engine.loadLevel(index, seed); this.testPilot = new Pilot(false); this.cast = this.engine.actors.map(a => new GameCharacter(a.character));
         this.arena?.reset();
-        this.debris = { events: this.engine.events, cursor: 0, blocks: new Set(this.engine.board.blocks), particles: [] };
+        this.debris = { breaks: 0, blocks: new Set(this.engine.board.blocks), particles: [] };
         this.selecting = false; this.sync();
     }
     private panels(): void { renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.score, this.progress.total, this.selecting); }
@@ -120,7 +104,7 @@ export class BombercadeScene extends Phaser.Scene {
         this.timer = this.add.text(335, 49, '', { fontFamily: 'system-ui', fontSize: '16px', fontStyle: 'bold', color: '#ffdf9c' }).setOrigin(1, 0).setDepth(5);
         this.powerLabel = this.add.text(49, 95, '', { fontFamily: 'system-ui', fontSize: '16px', color: '#fff3cf' }).setDepth(5);
         this.hint = this.add.text(29, 563, '', { fontFamily: 'system-ui', fontSize: '16px', color: '#263447', wordWrap: { width: 302 }, lineSpacing: 4 }).setDepth(5);
-        const action = (special: boolean): void => { if (this.session.paused || this.selecting) return; this.engine.events = []; if (special) this.specialRequests++; else this.bombRequests++; if (special) this.engine.special(); else this.engine.requestBomb(); this.feedback(); this.sync(); };
+        const action = (special: boolean): void => { if (this.session.paused || this.selecting) return; if (special) this.specialRequests++; else this.bombRequests++; if (special) this.engine.special(); else this.engine.requestBomb(); this.feedback(); this.sync(); };
         renderTouchControls(this.inputs, bombercadeButtons, (id, held) => { if (held) action(id === 'bombercade-special'); });
         const bombButton = document.querySelector('#bombercade-bomb');
         if (bombButton) bombButton.innerHTML = '<svg viewBox="0 0 48 48" aria-hidden="true"><path d="M27 13q-2-8 7-8" fill="none" stroke="#583c25" stroke-width="3"/><path d="m35 1 2 4 5 1-5 2-2 4-2-4-4-2 4-1Z" fill="#fff9d1"/><circle cx="23" cy="29" r="15" fill="#172d47"/><ellipse cx="18" cy="23" rx="6" ry="4" fill="#9cc6d1"/><path d="m21 15 8-1" stroke="#526c81" stroke-width="5"/></svg>';
@@ -183,6 +167,8 @@ export class BombercadeScene extends Phaser.Scene {
                     // Enemy's corridor has one exit through the future bomb cell: a legal trap.
                     this.engine.board.walls = this.engine.board.walls.filter(p => p !== 14); this.engine.board.walls.push(25);
                 } else { this.engine.place(); this.engine.step(2200); }
+                // Silent set-up: its events feed the drawing, not the sound.
+                this.observe();
                 this.draw();
             },
         };
@@ -207,9 +193,21 @@ export class BombercadeScene extends Phaser.Scene {
         this.draw();
     }
     private feedback(): void {
-        for (const event of this.engine.events) sound.playEffect(event);
+        for (const event of this.observe()) sound.playEffect(event.type);
         const beat = Math.floor(this.engine.time / 500);
         if (this.engine.bombs.length && beat !== this.fuseBeat) sound.playEffect('fuse'); this.fuseBeat = beat;
+    }
+    /** Takes the engine's new events: explosion origins for the stars, block breaks for the debris. */
+    private observe(): BombercadeEvent[] {
+        const events = this.engine.drain();
+        for (const event of events) {
+            if (event.type === 'block') this.debris.breaks++;
+            else if (event.type === 'explosion' && !event.payload.directed) {
+                const { at, fires } = event.payload;
+                fires.forEach((fire, i) => { this.explosionOrigins.set(fire, i === 0 && fire.at === at); });
+            }
+        }
+        return events;
     }
     private sync(): void {
         if (this.engine.status !== 'playing' && this.progress.state === 'playing') { this.progress.finish(this.engine.status, this.engine.score); writeSave(browserStorage(), this.progress.save, 'bombercade'); }
@@ -254,9 +252,8 @@ export class BombercadeScene extends Phaser.Scene {
         for (const bomb of e.bombs) drawBomb(g, bomb.character, ox + bomb.at % WIDTH * unit + 15, oy + Math.floor(bomb.at / WIDTH) * unit + 16, 9 + Math.sin(e.time / (bomb.fuse < 650 ? 45 : 140)) * (bomb.fuse < 650 ? 1.4 : .4), e.time);
         const debris = this.debris;
         const current = new Set(e.board.blocks);
-        if (debris.events !== e.events) { debris.events = e.events; debris.cursor = 0; }
-        const breaks = e.events.slice(debris.cursor).filter(event => event === 'block').length;
-        debris.cursor = e.events.length;
+        const breaks = debris.breaks;
+        debris.breaks = 0;
         if (breaks) for (const block of debris.blocks) {
             if (!current.has(block) && e.fires.some(f => f.at === block.at)) debris.particles.push({ at: block.at, born: e.time });
         }

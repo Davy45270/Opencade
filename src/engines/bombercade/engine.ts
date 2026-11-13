@@ -1,4 +1,6 @@
 import { Random } from '../shared/random';
+import { FixedStep } from '../shared/fixed-step';
+import type { EngineEvent } from '../shared/events';
 import { ids, type CharacterId } from '../../characters/model';
 import { LEVELS, difficulty, layoutAt, type Mechanic } from './levels';
 export { LEVELS, difficulty };
@@ -17,12 +19,17 @@ export interface Bomb { id: number; at: number; owner: number; character: Charac
 export interface Fire { at: number; owner: number; character: CharacterId; left: number }
 export interface Board { walls: number[]; blocks: Block[]; conveyors: { at: number; direction: Direction }[]; portals: number[] }
 export interface Intent { direction: Direction | null; bomb: boolean }
+/** One bomb or breath: its cell, whether it went one way only (dragon breath), and the flames it lit, its own cell first. */
+export interface Explosion { at: number; directed: boolean; fires: readonly Fire[] }
+export type BombercadeEvent =
+    | EngineEvent<'place' | 'special' | 'slide' | 'block' | 'chain' | 'power' | 'hit' | 'life' | 'shrink' | 'won' | 'lost'>
+    | EngineEvent<'explosion', Explosion> & { readonly payload: Explosion };
 export function neighbor(at: number, direction: Direction): number { return at + ({ up: -WIDTH, right: 1, down: WIDTH, left: -1 })[direction]; }
 export function distance(a: number, b: number): number { return Math.abs(a % WIDTH - b % WIDTH) + Math.abs(Math.floor(a / WIDTH) - Math.floor(b / WIDTH)); }
 const starts = [12, 130, 20, 122, 71];
 export class Engine {
     level = 0; seed = 28; status: 'playing' | 'won' | 'lost' = 'playing';
-    goldBroken = 0; pendingBomb = 0; ticks = 0; time = 0; score = 0; remainder = 0; nextBomb = 1; ring = 0;
+    goldBroken = 0; pendingBomb = 0; ticks = 0; time = 0; score = 0; nextBomb = 1; ring = 0;
     board: Board = { walls: [], blocks: [], conveyors: [], portals: [] };
     actors: Actor[] = []; bombs: Bomb[] = []; fires: Fire[] = []; pickups: { at: number; kind: Power }[] = [];
     private inTick = false;
@@ -31,13 +38,21 @@ export class Engine {
     private tickDanger: Map<number, number> | null = null;
     private fixedForecast: Map<number, Bomb> | null = null;
     private slidingForecast: { key: string; ticks: Map<number, number> } | null = null;
-    events: string[] = []; random = new Random(28);
+    /** Events of the current step and of the actions since; each step starts a new batch. */
+    private queue: BombercadeEvent[] = [];
+    private clock = new FixedStep(FIXED, .000001);
+    random = new Random(28);
     constructor(public character: CharacterId = 'panda') { this.loadLevel(0); }
+    /** Time not yet simulated, part of the snapshot. */
+    get remainder(): number { return this.clock.rest; }
+    set remainder(value: number) { this.clock.rest = value; }
+    /** Hands over the events since the start of the step (or the last drain) and forgets them. */
+    drain(): BombercadeEvent[] { const events = this.queue; this.queue = []; return events; }
     has(mechanic: Mechanic): boolean { return LEVELS[this.level]?.mechanics.includes(mechanic) ?? false; }
     loadLevel(index: number, seed = 28): void {
         const d = difficulty(index); this.level = index; this.seed = seed; this.random = new Random(seed);
         this.goldBroken = 0; this.pendingBomb = 0; this.status = 'playing'; this.ticks = 0; this.time = 0; this.score = 0; this.remainder = 0; this.nextBomb = 1; this.ring = 0;
-        this.bombs = []; this.fires = []; this.pickups = []; this.events = [];
+        this.bombs = []; this.fires = []; this.pickups = []; this.queue = [];
         this.board = { walls: [], blocks: [], conveyors: [], portals: [] };
         const safe = new Set(starts.flatMap(p => [p, ...directions.map(dir => neighbor(p, dir))]));
         for (let y = 0; y < HEIGHT; y++) for (let x = 0; x < WIDTH; x++) {
@@ -190,7 +205,7 @@ export class Engine {
         if (this.status !== 'playing' || actor.hearts <= 0 || !this.free(at) || this.bombs.some(b => b.at === at) || (!bypass && (actor.travel > 0 || this.bombs.filter(b => b.owner === actor.id).length >= actor.capacity))) return false;
         this.tickDanger = null; this.fixedForecast = null;
         this.bombs.push({ id: this.nextBomb++, at, owner: actor.id, character: actor.character, range: actor.range, fuse: 2500, slide: null });
-        this.events.push('place'); return true;
+        this.queue.push({ type: 'place' }); return true;
     }
     requestBomb(): void {
         if (this.status !== 'playing') return;
@@ -215,13 +230,15 @@ export class Engine {
                 actor.at = candidates[0] ?? actor.at; actor.from = actor.at; break;
             }
         }
-        actor.charges--; this.events.push('special'); return true;
+        actor.charges--; this.queue.push({ type: 'special' }); return true;
     }
     private explode(bomb: Bomb, only?: Direction): void {
         this.tickDanger = null; this.fixedForecast = null;
         this.bombs = this.bombs.filter(b => b.id !== bomb.id);
         const cells = this.blast(bomb.at, bomb.range, only).filter(at => !only || at !== bomb.at);
-        this.events.push('explosion');
+        const fires: Fire[] = [];
+        this.queue.push({ type: 'explosion', payload: { at: bomb.at, directed: only !== undefined, fires } });
+        const first = this.fires.length;
         for (const at of cells) {
             this.pickups = this.pickups.filter(p => p.at !== at);
             const block = this.board.blocks.find(b => b.at === at);
@@ -229,17 +246,18 @@ export class Engine {
                 const dx = at % WIDTH - bomb.at % WIDTH, dy = Math.floor(at / WIDTH) - Math.floor(bomb.at / WIDTH);
                 const dir: Direction = dx ? dx > 0 ? 'right' : 'left' : dy > 0 ? 'down' : 'up';
                 const pushed = neighbor(at, dir);
-                if (block.kind === 'ice' && this.free(pushed) && !this.actors.some(a => a.hearts > 0 && (a.at === pushed || a.travel > 0 && a.from === pushed))) { this.tickBlocks?.delete(block.at); block.at = pushed; this.tickBlocks?.set(pushed, block); this.events.push('slide'); }
+                if (block.kind === 'ice' && this.free(pushed) && !this.actors.some(a => a.hearts > 0 && (a.at === pushed || a.travel > 0 && a.from === pushed))) { this.tickBlocks?.delete(block.at); block.at = pushed; this.tickBlocks?.set(pushed, block); this.queue.push({ type: 'slide' }); }
                 else if (--block.hp <= 0) {
                     if (block.kind === 'gold') this.goldBroken++;
-                    this.board.blocks = this.board.blocks.filter(b => b !== block); this.tickBlocks?.delete(at); this.score += bomb.owner === 0 ? 10 : 0; this.events.push('block');
+                    this.board.blocks = this.board.blocks.filter(b => b !== block); this.tickBlocks?.delete(at); this.score += bomb.owner === 0 ? 10 : 0; this.queue.push({ type: 'block' });
                     if (block.drop) this.pickups.push({ at, kind: block.drop });
                 }
             }
             this.fires.push({ at, owner: bomb.owner, character: bomb.character, left: 500 });
         }
+        fires.push(...this.fires.slice(first));
         const chained = this.bombs.filter(b => cells.includes(b.at)).sort((a, b) => a.id - b.id);
-        for (const other of chained) if (this.bombs.some(b => b.id === other.id)) { this.events.push('chain'); this.explode(other); }
+        for (const other of chained) if (this.bombs.some(b => b.id === other.id)) { this.queue.push({ type: 'chain' }); this.explode(other); }
     }
     policy(actor: Actor = this.player, bold = false, variant = 0, forecast = this.danger()): Intent {
         const order = variant ? [...directions.slice(variant), ...directions.slice(0, variant)] : directions;
@@ -289,18 +307,17 @@ export class Engine {
             if (power.kind === 'capacity') actor.capacity = Math.min(4, actor.capacity + 1);
             if (power.kind === 'speed') actor.speed = Math.min(6, actor.speed + 1);
             if (power.kind === 'special') actor.charges = 1;
-            actor.joy = 700; this.pickups = this.pickups.filter(p => p !== power); if (!actor.id) this.score += 25; this.events.push('power');
+            actor.joy = 700; this.pickups = this.pickups.filter(p => p !== power); if (!actor.id) this.score += 25; this.queue.push({ type: 'power' });
         }
     }
     private running(): boolean { return this.status === 'playing'; }
     step(dtMs: number): void {
         if (!Number.isFinite(dtMs) || dtMs < 0) throw new RangeError('Temps');
-        this.events = []; if (!this.running()) return;
-        this.remainder += dtMs; this.fixedForecast = null;
+        this.queue = []; if (!this.running()) return;
+        this.fixedForecast = null;
         this.tickWalls = new Set(this.board.walls); this.tickBlocks = new Map(this.board.blocks.map(b => [b.at, b]));
-        while (this.remainder + .000001 >= FIXED && this.running()) { this.remainder = Math.max(0, this.remainder - FIXED); this.tick(); }
+        this.clock.advance(dtMs, () => { this.tick(); return this.running(); });
         this.tickWalls = null; this.tickBlocks = null;
-        if (this.remainder < .000001 || !this.running()) this.remainder = 0;
     }
     private tick(): void {
         this.inTick = true; this.tickDanger = null;
@@ -343,7 +360,7 @@ export class Engine {
             }
             const hit = this.fires.find(f => f.at === a.at || (a.travel > .5 && f.at === a.from));
             if (hit && a.immune < .000001 && a.shield < .000001) {
-                a.hearts--; a.immune = 2000; a.hurt = 700; this.events.push(a.id === 0 ? 'life' : 'hit');
+                a.hearts--; a.immune = 2000; a.hurt = 700; this.queue.push({ type: a.id === 0 ? 'life' : 'hit' });
                 if (a.hearts === 0 && hit.owner === 0 && a.id !== 0) this.score += 200;
             }
         }
@@ -359,13 +376,13 @@ export class Engine {
                         const edge = Math.min(at % WIDTH, WIDTH - 1 - at % WIDTH, Math.floor(at / WIDTH), HEIGHT - 1 - Math.floor(at / WIDTH));
                         if (edge === this.ring) { if (!this.board.walls.includes(at)) this.board.walls.push(at); this.tickWalls?.add(at); for (const a of this.actors) if (a.at === at) a.hearts = 0; }
                     }
-                    this.events.push('shrink');
+                    this.queue.push({ type: 'shrink' });
                 }
             }
         }
-        if (this.player.hearts <= 0) { this.status = 'lost'; this.events.push('lost'); }
+        if (this.player.hearts <= 0) { this.status = 'lost'; this.queue.push({ type: 'lost' }); }
         else if (this.actors.slice(1).every(a => a.hearts <= 0) || (this.has('gold') && !this.board.blocks.some(b => b.kind === 'gold'))) {
-            this.status = 'won'; this.score += Math.max(0, Math.floor((deadline - this.time) / 1000)); this.events.push('won');
+            this.status = 'won'; this.score += Math.max(0, Math.floor((deadline - this.time) / 1000)); this.queue.push({ type: 'won' });
         }
         this.inTick = false; this.tickDanger = null;
     }
