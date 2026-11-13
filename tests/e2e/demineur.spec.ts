@@ -190,6 +190,12 @@ test('DM-E08 130 grilles en onglets de dix ; la dernière, 16 × 24, jouée au d
     await expect(page.locator('#level-tiers [role="tab"]')).toHaveCount(13);
     await expect(page.locator('#level-list button')).toHaveCount(130);
     await expect(page.locator('#level-tiers [aria-selected="true"]')).toHaveAccessibleName('Niveaux 121 à 130 · Le sommet');
+    // Order: classic modes, then the tabs, then the grids of the chosen tab, nothing in between.
+    const box = async (selector: string) => { const b = await page.locator(selector).boundingBox(); if (!b) throw new Error(selector); return b; };
+    const [modes, tabs, list] = [await box('#demineur-modes'), await box('#level-tiers'), await box('#level-list')];
+    expect(modes.y + modes.height).toBeLessThanOrEqual(tabs.y + 1);
+    expect(list.y).toBeGreaterThanOrEqual(tabs.y + tabs.height - 1);
+    expect(await page.evaluate(() => document.querySelector('#level-tiers')?.nextElementSibling?.id)).toBe('level-list');
     const last = page.locator('#level-list button').nth(129);
     await expect(last).toBeVisible(); await expect(last).toBeEnabled();
     await tapButton(page, '#level-list button >> nth=129', mobile);

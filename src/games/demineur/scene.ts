@@ -323,7 +323,8 @@ export class DemineurScene extends Phaser.Scene {
             b.addEventListener('click', () => { this.startMode(kind); });
             modes.append(b);
         }
-        document.querySelector('#level-list')?.before(modes);
+        // Above the tier tabs, so that the grids follow their tabs directly.
+        (document.querySelector('#level-tiers') ?? document.querySelector('#level-list'))?.before(modes);
     }
     // ——— Test hook ———
     private testHook(receipts: ReturnType<typeof fingerReceipts>): DemineurHook {
