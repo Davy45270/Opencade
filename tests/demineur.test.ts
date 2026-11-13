@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { Random } from '../src/engines/shared/random';
 import { applyAction, armState, counts, initialState, neighbours, placeMines, validateLevel, type GameAction, type GameState, type LevelDefinition } from '../src/engines/demineur/rules';
 import { boardOf, deduce, difficulty, hint, LIMITS, proveBoard, viewOf } from '../src/engines/demineur/solver';
@@ -281,11 +282,15 @@ describe('Démineur : propriétés (1000 cas seedés par famille)', () => {
 });
 
 describe('Démineur : progression, modes et moteur', () => {
-    test('DM01 trente grilles 6 × 6 à 16 × 16, portrait, titrées FR/EN, prouvées sans devinette depuis leur ouverture', () => {
-        expect(LEVELS).toHaveLength(30); expect(GRIDS).toHaveLength(30); expect(TIPS).toHaveLength(30);
+    test('DM01 cent trente grilles 6 × 6 à 16 × 24, portrait, titrées FR/EN, prouvées sans devinette depuis leur ouverture', () => {
+        expect(LEVELS).toHaveLength(130); expect(GRIDS).toHaveLength(130); expect(TIPS).toHaveLength(130);
         expect([LEVELS[0]?.width, LEVELS[0]?.height, LEVELS[29]?.width, LEVELS[29]?.height]).toEqual([6, 6, 16, 16]);
+        expect(Math.max(...LEVELS.map(l => l.width * l.height))).toBe(16 * 24);
         for (const level of LEVELS) {
             expect(level.width).toBeLessThanOrEqual(level.height);
+            // Mobile: at most 16 columns and 24 rows (the expert board, 16 × 30 once turned, stays the largest).
+            expect(level.width).toBeLessThanOrEqual(16); expect(level.height).toBeLessThanOrEqual(24);
+            expect(TIPS[LEVELS.indexOf(level)]?.length).toBeGreaterThan(0);
             expect(level.name.length * level.en.length).toBeGreaterThan(0);
             const p = proveBoard(level);
             expect(p.status).toBe('solvable');
@@ -293,7 +298,16 @@ describe('Démineur : progression, modes et moteur', () => {
             // The opening leaves most of the work.
             expect(initialState(level).revealedSafeCount).toBeLessThanOrEqual(0.55 * (level.width * level.height - level.mineCount));
         }
-        expect(LEVELS.filter(l => l.drawing).length).toBeGreaterThanOrEqual(10);
+        expect(LEVELS.filter(l => l.drawing).length).toBeGreaterThanOrEqual(35);
+    });
+    test('DM01b ids et dispositions uniques ; les 30 premières grilles et leurs ids n’ont pas bougé (sauvegardes valides)', () => {
+        expect(LEVELS.map(l => l.id)).toEqual(LEVELS.map((_, i) => `DEM-PROG-${String(i + 1).padStart(3, '0')}`));
+        expect(new Set(LEVELS.map(l => l.id)).size).toBe(LEVELS.length);
+        expect(new Set(LEVELS.map(l => (l.layout ?? []).join('/'))).size).toBe(LEVELS.length);
+        expect(new Set(LEVELS.map(l => l.name)).size).toBe(LEVELS.length);
+        expect(new Set(LEVELS.map(l => l.en)).size).toBe(LEVELS.length);
+        // Fingerprint of the 30 grids frozen before the extension (main d72f7ff).
+        expect(createHash('sha256').update(JSON.stringify(GRIDS.slice(0, 30))).digest('hex').slice(0, 16)).toBe('26ec455ab2b5c367');
     });
     test('DM02 difficulté croissante : aucune grille à 5 rangs ou plus de sa place', () => {
         const scores = LEVELS.map(l => difficulty(proveBoard(l), l.width * l.height));

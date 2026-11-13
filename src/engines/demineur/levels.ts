@@ -6,7 +6,8 @@ export { type Theme };
 export const GAME_NAME = 'Démineur';
 /** A progression grid: the spec's level contract plus its title (FR/EN), board theme and drawing. */
 export interface Grid extends LevelDefinition { name: string; en: string; theme: Theme; drawing: string | null; difficulty: number }
-/** The 30 progression grids, each proven without guessing from its opening (src/engines/demineur/grids.ts). */
+/** The 130 progression grids, each proven without guessing from its opening (src/engines/demineur/grids.ts). The ids
+ * DEM-PROG-001…130 follow the slot order: new grids are only ever appended, so saved progress stays valid. */
 export const LEVELS: readonly Grid[] = SLOTS.map((slot, i) => {
     const grid = GRIDS[i];
     if (!grid) throw new Error(`Grille ${String(i + 1)} absente`);
@@ -38,6 +39,29 @@ export function dailyLevel(day: number): LevelDefinition {
     if (!found) return { ...classicLevel('beginner', day), id: `DEM-DAY-${String(day)}`, mode: 'challenge', width: DAILY.width, height: DAILY.height, mineCount: DAILY.mines };
     return curated(`DEM-DAY-${String(day)}`, 'challenge', found.layout, found.start, day, true);
 }
+/** Level-list tabs: ten grids each, named after the boards they hold. */
+export const TIER_NAMES: readonly string[] = ['Les bases', 'Mer et ciel', 'Néons et nuit', 'Arcade de nuit', 'Jardins', 'Mer et étoiles', 'Ombres', 'Campagne', 'Grand large', 'Veillée', 'Saisons', 'Cosmos', 'Le sommet'];
+/** Grids 31–130 bring no new technique: their line under the board is advice, or the drawing announced. */
+const ADVICE: readonly string[] = [
+    'Grande grille : faites glisser pour vous déplacer, la loupe montre tout.',
+    'Commencez par le bord de l’ouverture : c’est là que les chiffres parlent.',
+    'Un drapeau sûr en appelle un autre : avancez de proche en proche.',
+    'Comparez deux chiffres voisins avant de toucher une case.',
+    'Touchez un chiffre complet pour ouvrir toutes ses voisines d’un coup.',
+    'Le motif 1-2-1 revient souvent : les mines sont sous les deux 1.',
+    'Bloqué ? L’indice montre une déduction certaine, et l’explique.',
+    'Les coins ont peu de voisines : leurs chiffres se lisent vite.',
+    'Un 2 qui ne touche que deux cases cachées : ce sont deux mines.',
+    'À la fin, le compteur de mines dit souvent où sont les dernières.',
+    'Jamais de pari : cette grille se résout entièrement par déduction.',
+    'Grille dense : vérifiez chaque drapeau avant d’ouvrir par un chiffre.',
+    'Une case marquée « ? » reste creusable : seuls les drapeaux protègent.',
+    'Grille en longueur : avancez par bandes, de haut en bas.',
+];
+const DRAWN: readonly string[] = [
+    'Un dessin se cache sous les mines : finissez la grille pour le découvrir.',
+    'Les mines de cette grille dessinent quelque chose. Devinez quoi… en déduisant.',
+];
 /** One line per grid under the board: the new idea of the grid, said once, then advice. */
 export const TIPS: readonly string[] = [
     'Un chiffre compte les mines de ses 8 voisines. Touchez une case pour la creuser.',
@@ -69,5 +93,6 @@ export const TIPS: readonly string[] = [
     'Le sapin a un tronc : ne l’oubliez pas.',
     'La nuit est dense : partez de l’ouverture et élargissez.',
     'Un croissant de lune : sa face creuse est sûre.',
-    'La dernière grille dessine… une mine. À vous !',
+    'Cette grille dessine… une mine. À vous !',
+    ...SLOTS.slice(30).map((slot, k) => slot.drawing ? DRAWN[k % DRAWN.length] ?? '' : ADVICE[k % ADVICE.length] ?? ''),
 ];

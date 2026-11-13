@@ -5868,9 +5868,17 @@ du vrai moteur guidé par ses seuls indices) : écart de rang maximal 3 (échec 
 | 29 La lune | 16×16 | 53 | lune | 42 | 32 | 3 | 0 | 0 | 24,5 |
 | 30 La grande mine | 16×16 | 54 | bombe | 18 | 26 | 4 | 0 | 0 | 25,4 |
 
+Grilles 31 à 130 (ajoutées après les trente, ids DEM-PROG-031…130 ; les trente premières
+ne bougent pas) : plateaux portrait de 11 à 16 colonnes sur 16 à 24 lignes, densité 20 à 25 %, thèmes par
+blocs de cinq, un nouveau dessin toutes les quatre grilles (vingt-cinq dessins), aucune
+nouvelle technique ; difficulté visée 25,4 + 0,3 par grille, jusque vers 55. Chacune est
+prouvée sans devinette, gagnée par le moteur guidé par ses seuls indices et conforme au
+schéma de niveau reçu (`validate-demineur.js`, qui imprime le tableau complet). Mode
+`learning` comme les trente premières : une seule série, mêmes règles de déblocage.
+
 ### Modes
 
-- **Progression** : les trente grilles, débloquées une à une (Progression du
+- **Progression** : les cent trente grilles (onglets de dix), débloquées une à une (Progression du
   socle) ; étoiles : 3 sans indice, 2 avec un ou deux, 1 au-delà ; score = 10 par
   mine + 100 par étoile.
 - **Classique** (sélecteur de niveaux) : Débutant 9 × 9 / 10 (l’exemple

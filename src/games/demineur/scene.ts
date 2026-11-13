@@ -5,7 +5,7 @@ import { fingerReceipts } from '../finger-receipts';
 import { GameCharacter } from '../../characters/game';
 import { selectedCharacter } from '../../characters/selection';
 import { Engine, LEVELS, GAME_NAME, recordTime, type Kind, type Records, type Tool } from '../../engines/demineur/engine';
-import { CLASSIC, TIPS, type Classic, type Theme } from '../../engines/demineur/levels';
+import { CLASSIC, TIER_NAMES, TIPS, type Classic, type Theme } from '../../engines/demineur/levels';
 import { hint as solverHint } from '../../engines/demineur/solver';
 import { Inputs, renderTouchControls, type TouchButton } from '../../shell/input';
 import { PlaySession } from '../../shell/pause';
@@ -309,7 +309,9 @@ export class DemineurScene extends Phaser.Scene {
     private renderSelector(): void {
         document.querySelector('#demineur-modes')?.remove();
         if (!this.selecting) return;
-        renderLevels(LEVELS, this.progress.save, index => { this.startLevel(index, true); this.sync(); });
+        // 130 grids: tabs of ten, opened on the tier of the next grid to play.
+        renderLevels(LEVELS, this.progress.save, index => { this.startLevel(index, true); this.sync(); },
+            { size: 10, names: TIER_NAMES, current: Math.min(LEVELS.length - 1, this.progress.save.unlocked - 1) });
         const modes = document.createElement('div'); modes.id = 'demineur-modes';
         const title = document.createElement('p'); title.textContent = 'Classique (peut demander de deviner) et défi du jour :';
         modes.append(title);

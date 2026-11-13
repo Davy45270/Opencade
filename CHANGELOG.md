@@ -5,6 +5,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Démineur : **130 grilles** au lieu de 30. Les cent nouvelles suivent les trente premières, qui ne changent pas (la progression sauvegardée reste valable) : plateaux plus grands jusqu’au 16 × 24, plus denses, dans les six thèmes, et un nouveau dessin de mines toutes les quatre grilles. Chacune est prouvée sans devinette depuis son ouverture, et la difficulté continue de monter. La liste des niveaux se range en onglets de dix.
+
 ## [0.6.0] — 2026-11-11
 
 - Nouveau jeu, **Bus en folie** : un parking de bus en 30 niveaux, d’après le dossier de David. Sur des cours de 6×6 à 8×8, des bus de deux ou trois cases glissent seulement dans leur axe, entre voitures grises garées et plots fixes ; il faut les faire sortir par les bonnes sorties pour embarquer, dans l’ordre, la file visible des passagers de leur couleur. Bus à sens unique, annulation illimitée, recommencer, et un indice qui explique le coup. « Bloqué ! » ne s’affiche que lorsque le solveur prouve qu’aucune solution ne reste. Chaque niveau est résolu par le solveur et cache au moins un piège prouvé ; les niveaux 1 à 19 introduisent une mécanique à la fois, les niveaux 20 à 30 montent en charge (plus de voitures, plus de bus, des cours plus pleines).

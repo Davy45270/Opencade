@@ -1,0 +1,97 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "MinesweeperLevel",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schemaVersion",
+    "id",
+    "mode",
+    "width",
+    "height",
+    "mineCount",
+    "generation",
+    "rules"
+  ],
+  "properties": {
+    "schemaVersion": {
+      "type": "string"
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1
+    },
+    "mode": {
+      "enum": [
+        "learning",
+        "classic",
+        "chrono",
+        "challenge",
+        "endless"
+      ]
+    },
+    "width": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 100
+    },
+    "height": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 100
+    },
+    "mineCount": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "generation": {
+      "type": "object",
+      "required": [
+        "type",
+        "generatorVersion",
+        "seed"
+      ],
+      "properties": {
+        "type": {
+          "enum": [
+            "deferred_seeded",
+            "curated"
+          ]
+        },
+        "generatorVersion": {
+          "type": "string"
+        },
+        "seed": {
+          "type": "integer"
+        },
+        "noGuess": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rules": {
+      "type": "object",
+      "required": [
+        "firstClickSafe",
+        "chordEnabled",
+        "questionMarks"
+      ],
+      "properties": {
+        "firstClickSafe": {
+          "type": "boolean"
+        },
+        "chordEnabled": {
+          "type": "boolean"
+        },
+        "questionMarks": {
+          "type": "boolean"
+        },
+        "firstClickZeroPreferred": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

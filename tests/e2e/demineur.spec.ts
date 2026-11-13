@@ -177,3 +177,30 @@ for (const [width, height] of [[320, 640], [390, 844], [768, 1024], [1280, 900],
     await expect(page.locator('#demineur-tool')).toHaveAttribute('data-tool', 'flag');
     await expect(page.locator('#demineur-tool')).toHaveAttribute('aria-pressed', 'true');
 });
+test('DM-E08 130 grilles en onglets de dix ; la dernière, 16 × 24, jouée au doigt', async ({ page }, info) => {
+    test.setTimeout(120000);
+    const mobile = info.project.name === 'mobile-chromium';
+    await page.addInitScript(() => { localStorage.setItem('arcade-lab:demineur:v1', JSON.stringify({ unlocked: 130, best: 0 })); });
+    await page.goto('/?test=1#/demineur');
+    await hookReady(page);
+    await tapButton(page, '#pause', mobile);
+    await tapButton(page, '#levels', mobile);
+    await expect(page.locator('#level-select')).toBeVisible();
+    // Thirteen tabs of ten; the list opens on the tier of the next grid to play (130).
+    await expect(page.locator('#level-tiers [role="tab"]')).toHaveCount(13);
+    await expect(page.locator('#level-list button')).toHaveCount(130);
+    await expect(page.locator('#level-tiers [aria-selected="true"]')).toHaveAccessibleName('Niveaux 121 à 130 · Le sommet');
+    const last = page.locator('#level-list button').nth(129);
+    await expect(last).toBeVisible(); await expect(last).toBeEnabled();
+    await tapButton(page, '#level-list button >> nth=129', mobile);
+    await page.evaluate(() => window.__DEMINEUR_TEST__?.advance(0));
+    const start = await read(page);
+    expect(start).toMatchObject({ kind: 'progression', level: 129, status: 'playing', noGuess: true });
+    expect(start.width * start.height).toBeLessThanOrEqual(16 * 24);
+    if (mobile) expect(start.view).toMatchObject({ zoomable: true, zoomed: true });
+    // 40 proven moves by touch on the zoomed board (the view scrolls to each cell). The win of every grid by the engine
+    // following its hints is checked by validate-demineur.js.
+    await playToEnd(page, mobile, 40);
+    const after = await read(page);
+    expect(after.status).toBe('playing'); expect(after.revealed).toBeGreaterThan(start.revealed + 20);
+});
