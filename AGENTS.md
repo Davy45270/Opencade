@@ -103,6 +103,29 @@ The reference CI is Woodpecker (`.woodpecker/checks.yml` and `.woodpecker/e2e.ym
 - `e2e.yml`: four parts, each running its share of the `e2e-impact.js` selection in the Playwright image
   pinned to the `@playwright/test` version of `package-lock.json`.
 
+## Assets: images and their budgets
+
+Most art is drawn in code; image files are the exception. `scripts/assets.js` (no dependency) handles them:
+
+| Command | Does |
+|---|---|
+| `npm run assets -- check` | inventory of every image (png, webp, avif, svg, jpg, gif) outside `node_modules`/`dist`, against `assets-budget.json`; exit 1 on any image or group over budget. Pure Node: runs in the CI through `scripts/node-checks.js`. |
+| `npm run assets -- optimize --dry-run [paths]` | prices the gain without writing: oxipng for PNG, svgo for SVG, lossless only, kept only when pixel-identical |
+| `npm run assets -- optimize [--lossy] [paths]` | writes it; `--lossy` adds pngquant and a cwebp re-encode, kept only at PSNR >= 40 dB (`--min-psnr`) |
+| `npm run assets -- raster <in.svg> --width 64,128 --format png\|webp\|avif --out <dir>` | SVG source to sized rasters (rsvg-convert, then oxipng, cwebp or avifenc) |
+
+- `assets-budget.json`: each image takes `maxImage` (bytes) and `maxSide` (px) from the first matching rule with
+  `maxImage`, and is summed into the group of the first matching rule with `maxTotal`. `src/games/*/` makes one
+  group per game; `docs/` is counted but marked not served. A new asset that needs more raises its budget in the
+  same commit, with the measured size in the message.
+- `optimize` and `raster` need the workstation tools (oxipng, pngquant, cwebp, avifenc, svgo, rsvg-convert,
+  ImageMagick); the CI never runs them. Commit their output, then check that `assets check` passes.
+- `scripts/test-assets.js` tests the header reader and the budget failures (also in `node-checks.js`).
+- No texture atlas today: every game loads its few images one by one. When a game needs one, add
+  `free-tex-packer-core` as a devDependency (discuss it first) behind an `assets atlas` subcommand that writes the
+  TexturePacker JSON hash format Phaser reads with `load.atlas`, and budget the atlas like any image.
+- A drawing made for the games enters the repository only with its author's agreement.
+
 ## Commands
 
 | Command | Does |
@@ -116,6 +139,7 @@ The reference CI is Woodpecker (`.woodpecker/checks.yml` and `.woodpecker/e2e.ym
 | `npm run test:node` | every validator of `scripts/node-checks.js` (CI) |
 | `npm run test:pwa` | PWA checks without a browser |
 | `npm run test:e2e -- <specs>` | Playwright against the production build |
+| `npm run assets -- check` | image budgets (`assets-budget.json`); also run by `test:node` |
 
 Test-only hooks: the URL parameter `?test=1` exposes `window.__ARCADE_TEST__` and one hook per game
 (`loadLevel(index, seed)`, `advance(ms)`, `read()`), so tests drive simulated time instead of waiting.

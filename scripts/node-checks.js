@@ -37,4 +37,7 @@ export const nodeChecks = [
     // bubble-input-check and validate-derapage-historical are imported above.
     // Dérapage mutation audits are explicit offline commands.
     ['validate-artificiers.js'],
+    // Image budgets of assets-budget.json, then the tests of the budget check itself.
+    ['assets.js', 'check'],
+    ['test-assets.js'],
 ];

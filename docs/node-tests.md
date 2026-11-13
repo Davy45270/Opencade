@@ -69,6 +69,8 @@ Catégories : **V** validateur rapide (objectif < 30 s par entrée), **G** campa
 | `test-pwa.js` | V | Appelé par test:node. |
 | `e2e-impact.js` | M | Sélection des specs Playwright d’un changement (niveaux N0 à N3, jamais la suite complète) ; utilisé par la CI et en local. |
 | `test-e2e-impact.js` | V | Appelé par test:node : cas tirés de vrais commits pour `e2e-impact.js`. |
+| `assets.js` | V | Appelé par test:node avec `check` : budgets d'images d'`assets-budget.json` (Node pur). Ses sous-commandes `optimize` et `raster` appellent des outils système et restent hors CI. |
+| `test-assets.js` | V | Appelé par test:node : lecture des en-têtes d'images et échec des budgets dépassés. |
 | `transpile.js` | M | Transpilation des sources et mutations, cache temporaire partagé ; types retirés par Node, repli Oxc (`rolldown/utils`, le transformateur du build) pour les propriétés de constructeur. |
 | `to-commonjs.js` | M | Module auxiliaire des harnais PWA : source ES (TypeScript ou JS) en script CommonJS pour `vm` ou `new Function`, refus explicite de toute forme non gérée. |
 | `orbite-verified-replay.js` | M | Mutualise uniquement les rejeux identiques déjà vérifiés ; moteurs mutés toujours rejoués. |
