@@ -26,7 +26,7 @@ for (const [i, level] of LEVELS.entries()) {
     assert.equal(difficulty(a), level.difficulty, `difficulté figée ${i + 1}`);
     scores.push(level.difficulty);
     // The dossier's solver: a shortest line, replayed by the real engine (AC-10).
-    const s = solve(level, initialState(level), { nodes: 200000, ms: 20000 });
+    const s = solve(level, initialState(level), { nodes: 200000 });
     assert.equal(s.status, 'solved', `solveur ${i + 1}`); assert.equal(s.actions.length, level.par);
     const r = new Engine(); r.loadLevel(i);
     for (const m of s.actions) assert(r.move(m.busId, m.direction, m.distance), `rejeu solveur ${i + 1}`);
@@ -41,7 +41,7 @@ for (const [i, level] of LEVELS.entries()) {
         const d = new Engine(); d.loadLevel(i);
         for (const m of level.solution.split(', ').slice(0, level.trap.at)) assert(play(d, m));
         assert(play(d, level.trap.move), `coup piège ${i + 1}`);
-        assert.equal(solve(level, { ...d.state, status: 'playing' }, { nodes: 200000, ms: 20000 }).status, 'unsolvable', `impasse prouvée ${i + 1}`);
+        assert.equal(solve(level, { ...d.state, status: 'playing' }, { nodes: 200000 }).status, 'unsolvable', `impasse prouvée ${i + 1}`);
         if (!d.state.busPositions[level.trap.move.split(' ')[0]]) departures++;
         d.checkBlocked();
         assert.equal(d.status, 'blocked', `« Bloqué » ${i + 1}`);

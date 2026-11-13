@@ -2,10 +2,16 @@ import { boarding, exitFor, forwardSign, horizontal, isCar, legalMoves, type Cor
 /** Solver of the dossier: breadth-first search (A* with the admissible heuristic 0 and unit costs) over a canonical
  * state — the moving coordinate of every vehicle (or "departed") and the head of the waiting line; the fixed lane of a
  * vehicle, the obstacles and the exits never change. Results `solved` (a shortest line), `unsolvable` (the reachable
- * space was exhausted without a win) or `unknown` (a node or time limit was hit: never reported as unsolvable). */
+ * space was exhausted without a win) or `unknown` (the node budget was spent: never reported as unsolvable). The budget is
+ * counted in explored nodes, so the verdict is the same on every machine; a wall-clock bound applies only with an
+ * injected clock (`now`), as in the sudoku solver: engines read no clock of their own. */
 export interface Move { busId: string; direction: Direction; distance: number; departs: boolean }
+/** `durationMs` is 0 unless a clock was injected; `reason: 'timeout'` happens only with one. */
 export interface SolverResult { status: 'solved' | 'unsolvable' | 'unknown'; actions?: Move[]; exploredNodes: number; durationMs: number; reason?: 'timeout' | 'node_limit' }
-export const LIMITS = { nodes: 400000, ms: 20000 } as const;
+export const LIMITS = { nodes: 400000 } as const;
+/** `nodes`: the budget in explored nodes (the verdict depends on it alone). `ms` is honoured only with `now`, an
+ * injected clock: a caller that wants a wall-clock guard owns the clock, and accepts a machine-dependent verdict. */
+export interface SolverLimits { nodes?: number; ms?: number; now?: () => number }
 interface Compiled {
     n: number; w: number; h: number; fixed: Int8Array; len: Int8Array; hz: Uint8Array; sign: Int8Array; oneWay: Uint8Array; car: Uint8Array;
     /** Per vehicle: may it leave through its low end (left/top), its high end (right/bottom), exit colour included. */
@@ -79,8 +85,9 @@ export function moveOf(level: LevelDefinition, vehicle: number, delta: number, d
     return { busId: bus.id, direction: Math.sign(delta) === forwardSign(bus) ? 'forward' : 'backward', distance: Math.abs(delta), departs };
 }
 /** Shortest line from `state` (moves counted per validated displacement, whatever its distance). */
-export function solve(level: LevelDefinition, state: Core, limits: { nodes?: number; ms?: number } = {}): SolverResult {
-    const t0 = Date.now(), maxNodes = limits.nodes ?? LIMITS.nodes, maxMs = limits.ms ?? LIMITS.ms;
+export function solve(level: LevelDefinition, state: Core, limits: SolverLimits = {}): SolverResult {
+    const now = limits.now, t0 = now ? now() : 0, maxNodes = limits.nodes ?? LIMITS.nodes, maxMs = limits.ms ?? Infinity;
+    const elapsed = (): number => now ? now() - t0 : 0;
     if (state.status === 'won') return { status: 'solved', actions: [], exploredNodes: 0, durationMs: 0 };
     const c = compile(level), startKey = encode(level, state);
     const parent = new Map<string, [string, number, number, boolean]>();
@@ -90,8 +97,8 @@ export function solve(level: LevelDefinition, state: Core, limits: { nodes?: num
         const next: string[] = [];
         for (const sk of frontier) {
             explored++;
-            if (explored > maxNodes) return { status: 'unknown', exploredNodes: explored, durationMs: Date.now() - t0, reason: 'node_limit' };
-            if ((explored & 1023) === 0 && Date.now() - t0 > maxMs) return { status: 'unknown', exploredNodes: explored, durationMs: Date.now() - t0, reason: 'timeout' };
+            if (explored > maxNodes) return { status: 'unknown', exploredNodes: explored, durationMs: elapsed(), reason: 'node_limit' };
+            if (now && (explored & 1023) === 0 && elapsed() > maxMs) return { status: 'unknown', exploredNodes: explored, durationMs: elapsed(), reason: 'timeout' };
             for (const m of successors(c, sk, buffer)) {
                 const k = m.key;
                 if (k === startKey || parent.has(k)) continue;
@@ -99,14 +106,14 @@ export function solve(level: LevelDefinition, state: Core, limits: { nodes?: num
                 if (isWin(c, k)) {
                     const actions: Move[] = [];
                     for (let cur = k; cur !== startKey;) { const e = parent.get(cur); if (!e) break; actions.unshift(moveOf(level, e[1], e[2], e[3])); cur = e[0]; }
-                    return { status: 'solved', actions, exploredNodes: explored, durationMs: Date.now() - t0 };
+                    return { status: 'solved', actions, exploredNodes: explored, durationMs: elapsed() };
                 }
                 next.push(k);
             }
         }
         frontier = next;
     }
-    return { status: 'unsolvable', exploredNodes: explored, durationMs: Date.now() - t0 };
+    return { status: 'unsolvable', exploredNodes: explored, durationMs: elapsed() };
 }
 /** The whole reachable space from the start, with the distance to a win of every state (-1: a dead end, the level can
  * no longer be won from there). Used offline (search, validation, measured difficulty and traps), never per frame. */

@@ -161,13 +161,29 @@ describe('Bus en folie : critères d’acceptation', () => {
         const big = LEVELS[29] as LevelDefinition;
         const nodes = solve(big, initialState(big), { nodes: 50 });
         expect(nodes).toMatchObject({ status: 'unknown', reason: 'node_limit' });
-        const time = solve(big, initialState(big), { ms: -1 });
+        // A wall-clock bound needs an injected clock; without one, `ms` is ignored and the verdict depends on nodes only.
+        let clock = 0;
+        const time = solve(big, initialState(big), { ms: 10, now: () => (clock += 1000) });
         expect(time).toMatchObject({ status: 'unknown', reason: 'timeout' });
+        expect(solve(big, initialState(big), { ms: -1 }).status).toBe('solved');
         expect(analyse(big, initialState(big), 10).status).toBe('unknown');
         // The in-game check never declares a board blocked on an unknown answer.
         const e = new Engine(); e.loadLevel(29);
         expect(e.checkBlocked()).toBe(false); expect(e.status).toBe('playing');
     });
+    test('P0-B budget en nœuds : même verdict, même ligne et même compte de nœuds à chaque exécution', () => {
+        for (const [i, level] of LEVELS.entries()) {
+            for (const nodes of i % 10 === 9 ? [50, 2000, 200000] : [50, 2000]) {
+                const a = solve(level, initialState(level), { nodes }), b = solve(level, initialState(level), { nodes });
+                expect(b, `niveau ${String(i + 1)} / ${String(nodes)}`).toEqual(a);
+                expect(a.durationMs).toBe(0);
+                if (a.status === 'unknown') expect(a.reason).toBe('node_limit');
+            }
+        }
+        // The verdict changes with the budget only, from unknown to solved, never to unsolvable.
+        const last = LEVELS[29] as LevelDefinition, verdicts = [50, 2000, 200000].map(nodes => solve(last, initialState(last), { nodes }).status);
+        expect(verdicts).toEqual(['unknown', 'unknown', 'solved']);
+    }, 60000);
     test('AC-12 partie sauvegardée puis rechargée : état identique', () => {
         const random = new Random(12);
         for (let k = 0; k < 60; k++) {
