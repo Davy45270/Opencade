@@ -199,6 +199,21 @@
       {
         "requireStringLiterals": false
       }
+    ],
+    "eslint/no-restricted-imports": [
+      "error",
+      {
+        "patterns": [
+          {
+            "group": [
+              "@phaser-ae/*",
+              "phaser-ae",
+              "phaser-ae/*"
+            ],
+            "message": "This repository uses Phaser 4 from the phaser npm package; Phaser AE packages are not allowed (see AGENTS.md)."
+          }
+        ]
+      }
     ]
   },
   "overrides": [
@@ -370,8 +385,21 @@
           "error",
           {
             "patterns": [
-              "phaser",
-              "phaser/*"
+              {
+                "group": [
+                  "phaser",
+                  "phaser/*"
+                ],
+                "message": "Engines stay free of Phaser: rendering belongs to src/games/<game>/."
+              },
+              {
+                "group": [
+                  "@phaser-ae/*",
+                  "phaser-ae",
+                  "phaser-ae/*"
+                ],
+                "message": "This repository uses Phaser 4 from the phaser npm package; Phaser AE packages are not allowed (see AGENTS.md)."
+              }
             ]
           }
         ],

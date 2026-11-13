@@ -149,7 +149,7 @@ features are silently skipped. See the device section of [GAME_SPEC.md](GAME_SPE
 
 ## Development
 
-Use **Node 22.12 or later** (see `.nvmrc`).
+Use **Node 26** (see `.nvmrc`), the version the CI runs.
 
 ```sh
 npm ci

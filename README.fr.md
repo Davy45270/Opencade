@@ -155,7 +155,7 @@ Appareil de [GAME_SPEC.md](GAME_SPEC.md).
 
 ## Développement
 
-Utiliser **Node 22.12 ou plus** (voir `.nvmrc`).
+Utiliser **Node 26** (voir `.nvmrc`), la version de la CI.
 
 ```sh
 npm ci

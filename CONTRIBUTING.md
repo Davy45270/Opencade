@@ -20,7 +20,7 @@ Bug reports and pull requests are welcome in English or French.
 
 ## Set up
 
-Use Node 22.12 or later (see `.nvmrc`).
+Use Node 26 (see `.nvmrc`), the version the CI runs. Coding agents: read [AGENTS.md](AGENTS.md).
 
 ```sh
 npm ci
