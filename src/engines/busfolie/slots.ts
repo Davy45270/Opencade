@@ -66,7 +66,7 @@ export const SLOTS: readonly Slot[] = [
     { name: 'Les remparts', en: 'The ramparts', novelty: 'quatre cars', template: T(6, 7, 5, 4, 1, 6, 1, true, 2, 2) },
     { name: 'La gare de nuit', en: 'The night station', novelty: '', template: T(6, 8, 5, 3, 1, 6, 2, true, 3, 2) },
     { name: 'Le dépôt de nuit', en: 'The night depot', novelty: 'neuf bus', template: T(6, 9, 4, 3, 0, 6, 3, false, 2, 2) },
-    { name: 'La tournée finale', en: 'The last round', novelty: '', template: T(6, 8, 5, 4, 1, 6, 2, true, 3, 2) },    // Campaign 3 (levels 61-90): a third town, in the mountains: 7 × 7 yards dotted with cones (each reachable space under
+    { name: 'Fin de la tournée en ville', en: 'End of the town round', novelty: '', template: T(6, 8, 5, 4, 1, 6, 2, true, 3, 2) },    // Campaign 3 (levels 61-90): a third town, in the mountains: 7 × 7 yards dotted with cones (each reachable space under
     // 120 000 states, the in-game search budget: longer lines than 6 × 6 allows), mechanisms back one at a time.
     { name: 'La gare d’altitude', en: 'The mountain station', novelty: 'troisième ville, 7 × 7', template: T(7, 8, 4, 0, 10, 4, 3, false, 0, 2) },
     { name: 'Le téléphérique', en: 'The cable car', novelty: '', template: T(7, 8, 4, 0, 10, 4, 3, false, 0, 2) },

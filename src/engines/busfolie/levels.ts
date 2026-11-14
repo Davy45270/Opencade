@@ -73,7 +73,7 @@ export const TIPS: readonly string[] = [
     'Quatre cars dans les remparts : le moindre détour compte.',
     'Gare de nuit : coincé ? Annulez, chaque coup se reprend.',
     'Neuf bus au dépôt : la cour n’a jamais été aussi pleine.',
-    'La dernière tournée. Bravo, chauffeur !',
+    'Fin de la tournée en ville. Bravo, chauffeur : la montagne vous attend !',
     'Une troisième ville, en montagne : sept cases sur sept, semées de plots.',
     'Plus de place, plus de chemins : cherchez d’abord quel bus part en premier.',
     'Cinq voitures garées sur le lac gelé : libérez une rue à la fois.',

@@ -4616,7 +4616,7 @@
   },
   {
    "slot": 60,
-   "name": "La tournée finale",
+   "name": "Fin de la tournée en ville",
    "candidateId": "busfolie-060-60578-s",
    "levelHash": "52b87d5b907c896057b1c35cca3b6b49c9aab25ec3028178e944409d00460b31",
    "board": {
@@ -4657,7 +4657,7 @@
    },
    "provenance": {
     "profile": {
-     "name": "La tournée finale",
+     "name": "Fin de la tournée en ville",
      "template": {
       "width": 6,
       "height": 6,
