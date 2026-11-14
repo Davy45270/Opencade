@@ -196,7 +196,7 @@ test('BF-E09 campagne 2 : une sauvegarde de la première campagne ouvre le nivea
     await hookReady(page);
     await page.locator('#pause').tap(); await page.locator('#levels').tap();
     const buttons = page.locator('#level-list button');
-    await expect(buttons).toHaveCount(60);
+    await expect(buttons).toHaveCount(90);
     await expect(buttons.nth(30)).toBeEnabled(); await expect(buttons.nth(31)).toBeDisabled();
     await page.locator('#close-levels').tap();
     if (await page.locator('#resume').isVisible()) await page.locator('#resume').tap();
@@ -206,5 +206,25 @@ test('BF-E09 campagne 2 : une sauvegarde de la première campagne ouvre le nivea
     await playLine(page, cdp, await line(page, 59));
     const end = await read(page);
     expect(end.status).toBe('won'); expect(end.stars).toBe(3); expect(end.moves).toBe(end.par);
-    expect(await page.evaluate(() => window.__BUSFOLIE_TEST__?.hudText())).toContain('NIVEAU 60/60');
+    expect(await page.evaluate(() => window.__BUSFOLIE_TEST__?.hudText())).toContain('NIVEAU 60/90');
+});
+test('BF-E10 campagne 3 : une sauvegarde de la deuxième campagne ouvre le niveau 61, une cour de 7 × 7 gagnée au doigt', async ({ page }) => {
+    test.setTimeout(180_000); // up to 40 finger drags on a 7 × 7 yard
+    // A player who won level 60 when it was the last one: the save says so (cleared: 60).
+    await page.addInitScript(() => { localStorage.setItem('arcade-lab:busfolie:v1', JSON.stringify({ unlocked: 60, best: 9000, cleared: 60 })); });
+    await page.goto('/?test=1#/busfolie');
+    await hookReady(page);
+    await page.locator('#pause').tap(); await page.locator('#levels').tap();
+    const buttons = page.locator('#level-list button');
+    await expect(buttons).toHaveCount(90);
+    await expect(buttons.nth(60)).toBeEnabled(); await expect(buttons.nth(61)).toBeDisabled();
+    await buttons.nth(60).tap();
+    await expect.poll(async () => (await read(page)).level).toBe(60);
+    await page.evaluate(() => { window.__BUSFOLIE_TEST__?.advance(0); });
+    expect(await read(page)).toMatchObject({ level: 60, status: 'playing', moves: 0 });
+    expect(await page.evaluate(() => window.__BUSFOLIE_TEST__?.hudText())).toContain('NIVEAU 61/90');
+    const cdp = await page.context().newCDPSession(page);
+    await playLine(page, cdp, await line(page, 60));
+    const end = await read(page);
+    expect(end.status).toBe('won'); expect(end.stars).toBe(3); expect(end.moves).toBe(end.par);
 });

@@ -257,13 +257,13 @@ describe('Bus en folie : propriétés (1000 cas seedés par famille)', () => {
             expect(r.status, `niveau ${String(i + 1)}`).toBe('solved');
             expect(r.actions?.length).toBe(level.par);
         }
-    }, 60000);
+    }, 120000);
 });
 describe('Bus en folie : niveaux, indice, blocage', () => {
-    test('BF01 soixante niveaux (deux campagnes de trente) titrés en français et en anglais, sans nom commercial', () => {
+    test('BF01 quatre-vingt-dix niveaux (trois campagnes de trente) titrés en français et en anglais, sans nom commercial', () => {
         expect(GAME_NAME).toBe('Bus en folie'); expect(GAME_NAME_EN).toBe('Bus Frenzy');
-        expect(LEVELS).toHaveLength(60); expect(TIPS).toHaveLength(60);
-        expect(new Set(LEVELS.map(l => l.name)).size).toBe(60); expect(new Set(LEVELS.map(l => l.en)).size).toBe(60);
+        expect(LEVELS).toHaveLength(90); expect(TIPS).toHaveLength(90);
+        expect(new Set(LEVELS.map(l => l.name)).size).toBe(90); expect(new Set(LEVELS.map(l => l.en)).size).toBe(90);
         for (const l of LEVELS) { expect(l.mode).toBe('classic'); expect(l.board.width).toBeGreaterThanOrEqual(6); expect(l.board.width).toBeLessThanOrEqual(8); }
         // Level 1 is already a classic level: a real traffic move before the departures.
         expect(LEVELS[0]?.par).toBeGreaterThan(LEVELS[0]?.buses.filter(b => b.color !== 'gris').length ?? 0);
@@ -289,13 +289,13 @@ describe('Bus en folie : niveaux, indice, blocage', () => {
             expect(applyAction(e.level, e.state, { type: 'MOVE_BUS', busId: e.level.buses[0]?.id ?? '', direction: 'forward', distance: 1 }).accepted).toBe(false);
             expect(e.undo()).toBe(true); expect(e.status).toBe('playing');
         }
-    }, 60000);
+    }, 120000);
     test('BF04 chaque mécanique arrive seule, à son niveau ; diversité', () => {
         const first = (el: string): number => LEVELS.findIndex(l => busfolieFeatures(l).elements.includes(el)) + 1;
         expect([first('twins'), first('groups'), first('car'), first('cone'), first('coach'), first('coloured-exit'), first('size:7'), first('one-way'), first('size:8')]).toEqual([1, 3, 4, 5, 6, 7, 10, 11, 18]);
         expect([first('colour:jaune'), first('colour:vert'), first('colour:violet'), first('colour:orange')]).toEqual([3, 8, 12, 19]);
-        // Each campaign is measured on its own: campaign 2 brings the mechanisms back one at a time.
-        for (const indices of [LEVELS.slice(0, 30).map((_, i) => i), LEVELS.slice(30).map((_, i) => 30 + i)]) {
+        // Each campaign is measured on its own: campaigns 2 and 3 bring the mechanisms back one at a time.
+        for (const indices of [0, 30, 60].map(from => LEVELS.slice(from, from + 30).map((_, i) => from + i))) {
             const report = busfolieDiversity(LEVELS, indices);
             expect(report.cloneShare).toBe(0);
             expect(report.maxGapWithoutNovelty).toBeLessThanOrEqual(5);

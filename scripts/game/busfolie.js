@@ -1,6 +1,7 @@
 // Bus en folie adapter of scripts/game.js: every rule comes from the game's own modules (generator, rules, solver,
 // search-busfolie.js, busfolie-diversity.js); this file only wraps them in receipts and writes them to an output
-// directory, never to src/. Campaign 2 is levels 31-60 (slots 30-59, 0-based).
+// directory, never to src/. Campaign 2 is levels 31-60, campaign 3 levels 61-90 (7 × 7 yards); the commands work on
+// the latest campaign (CAMPAIGN), the validator on every one of CAMPAIGNS.
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -10,22 +11,30 @@ import { LIMITS, analyse, difficulty, solve } from '../../src/engines/busfolie/s
 import { SLOTS } from '../../src/engines/busfolie/slots.ts';
 import { DATA } from '../../src/engines/busfolie/data.ts';
 import { parseEntry, toEntry } from '../../src/engines/busfolie/format.ts';
-import { MAX_STATES, cost, diagnose, minExtra, moveText, searchSlot, target } from '../search-busfolie.js';
+import { cost, diagnose, maxStates, minExtra, moveText, searchSlot, target } from '../search-busfolie.js';
 import { busfolieDiversity, busfolieFeatures } from '../busfolie-diversity.js';
 
 export { ENGINE_VERSION };
-export const CAMPAIGN = { id: 'busfolie-c2', first: 31, last: 60 };
-/** Levels frozen before campaign 2: they never change (their hash is in the campaign receipt). */
-export const FROZEN_BEFORE = 30;
-export const SOLVER_NODES = 200000;
+/** The generated campaigns: levels, the levels frozen before each (their hash is in its receipt, they never change),
+ * the state budget of its exhaustive analysis and the node budget of its solver (a count: the same verdict on every
+ * machine). The solver budget covers the state budget, so every accepted board gets a verdict. */
+export const CAMPAIGNS = [
+    { id: 'busfolie-c2', first: 31, last: 60, frozenBefore: 30, maxStates: maxStates(30), solverNodes: 200000, receipt: 'campaign-2.receipt.json' },
+    { id: 'busfolie-c3', first: 61, last: 90, frozenBefore: 60, maxStates: maxStates(60), solverNodes: Math.max(200000, maxStates(60)), receipt: 'campaign-3.receipt.json' },
+];
+export const CAMPAIGN = CAMPAIGNS[CAMPAIGNS.length - 1];
+export const campaignOf = slot => CAMPAIGNS.find(c => slot >= c.first && slot <= c.last) ?? null;
+export const FROZEN_BEFORE = CAMPAIGN.frozenBefore;
+export const SOLVER_NODES = CAMPAIGN.solverNodes;
+export const RECEIPTS_DIR = 'src/engines/busfolie/campaigns';
 const id3 = n => String(n).padStart(3, '0');
 const sha = text => createHash('sha256').update(text).digest('hex');
 /** The board alone, in the frozen text format: map, vehicles, exits, line (no seed, no measure). */
 export const boardOf = level => { const e = toEntry(level, { par: 0, difficulty: 0, solution: '', trap: null }); return { map: e.map, vehicles: e.vehicles, exits: e.exits, queue: e.queue }; };
 export const boardHash = level => sha(JSON.stringify(boardOf(level)));
 export const entryHash = entry => sha(JSON.stringify({ map: entry.map, vehicles: entry.vehicles, exits: entry.exits, queue: entry.queue }));
-/** Hash of the frozen entries before campaign 2, in data.ts order. */
-export const frozenHash = () => sha(JSON.stringify(DATA.slice(0, FROZEN_BEFORE)));
+/** Hash of the frozen entries before a campaign (the latest by default), in data.ts order. */
+export const frozenHash = (levels = FROZEN_BEFORE) => sha(JSON.stringify(DATA.slice(0, levels)));
 const parseMove = text => { const [busId, how] = text.split(' '); return { busId, direction: how.startsWith('f') ? 'forward' : 'backward', distance: Number(how.slice(1)) }; };
 
 export const capabilities = {
@@ -34,7 +43,7 @@ export const capabilities = {
     validator: { schema: null, rules: 'src/engines/busfolie/rules.ts:validateLevel', node: 'scripts/validate-busfolie.js' },
     solver: { supported: true, source: 'src/engines/busfolie/solver.ts:solve', verdicts: ['solved', 'unsolvable', 'unknown'], budget: 'nodes', evidence: 'proof+replay', defaultNodes: LIMITS.nodes },
     search: { script: 'scripts/search-busfolie.js:searchSlot', outDir: true, writesSrc: false },
-    replay: { fixtures: ['src/engines/busfolie/campaigns/campaign-2.receipt.json'], recorder: 'scripts/game/busfolie.js:solveReceipt' },
+    replay: { fixtures: CAMPAIGNS.map(c => `${RECEIPTS_DIR}/${c.receipt}`), recorder: 'scripts/game/busfolie.js:solveReceipt' },
     diversity: 'scripts/busfolie-diversity.js:busfolieDiversity',
     preview: { hook: '__BUSFOLIE_TEST__', loadLevel: 'index', loadDefinition: false },
     campaign: { ...CAMPAIGN, validator: 'scripts/validate-busfolie-campaign.js' },
@@ -66,7 +75,7 @@ export function parseSlots(text) {
 function receipt(n, level, extra) {
     const slot = SLOTS[n - 1];
     return {
-        receiptVersion: 1, gameId: 'busfolie', campaignId: n > FROZEN_BEFORE ? CAMPAIGN.id : 'busfolie-c1', slot: n,
+        receiptVersion: 1, gameId: 'busfolie', campaignId: campaignOf(n)?.id ?? 'busfolie-c1', slot: n,
         candidateId: `busfolie-${id3(n)}-${String(level?.seed ?? extra.seed)}${extra.searched ? '-s' : ''}`,
         levelHash: level ? boardHash(level) : null, board: level ? boardOf(level) : null,
         provenance: { profile: { name: slot.name, template: slot.template }, seed: level?.seed ?? extra.seed, generatorVersion: GENERATOR_VERSION, engineVersion: ENGINE_VERSION, schemaVersion: SCHEMA_VERSION, ...extra.provenance },
@@ -136,9 +145,9 @@ export function solveReceipt(level, { nodes, moves = [], index = null }) {
     if (r.status !== 'won') return { status: 'rejected', validation: { errors: ['replay did not win'] }, solving };
     const out = { status: 'verified', validation: { errors: [] }, solving };
     if (!moves.length) {
-        const a = analyse(level, state, MAX_STATES);
+        const limit = maxStates(index ?? 0), a = analyse(level, state, limit);
         out.metrics = { difficulty: difficulty(a), par: a.optimal, states: a.states, dead: a.dead, trap: a.trap ? { at: a.trap.before.length, move: moveText(a.trap.move) } : null, solution: a.solution.map(moveText), features: busfolieFeatures({ ...level, par: a.optimal }).elements };
-        if (a.status !== 'solved' || a.optimal !== s.actions.length) { out.status = 'rejected'; out.validation.errors.push(`analysis ${a.status}, ${a.states} states (limit ${MAX_STATES})`); }
+        if (a.status !== 'solved' || a.optimal !== s.actions.length) { out.status = 'rejected'; out.validation.errors.push(`analysis ${a.status}, ${a.states} states (limit ${limit})`); }
         if (index !== null && index >= 1 && !a.trap) { out.status = 'rejected'; out.validation.errors.push('no dead end along the shortest line'); }
     }
     return out;
@@ -193,7 +202,7 @@ export function campaignReceipt(selected, dir) {
     }
     return {
         receiptVersion: 1, gameId: 'busfolie', campaignId: CAMPAIGN.id, levels: `${CAMPAIGN.first}-${CAMPAIGN.last}`,
-        generatorVersion: GENERATOR_VERSION, engineVersion: ENGINE_VERSION, schemaVersion: SCHEMA_VERSION, maxStates: MAX_STATES,
+        generatorVersion: GENERATOR_VERSION, engineVersion: ENGINE_VERSION, schemaVersion: SCHEMA_VERSION, maxStates: CAMPAIGN.maxStates,
         frozenBefore: { levels: FROZEN_BEFORE, hash: frozenHash() },
         generation: { generated, valid, validRate: generated ? Math.round(1000 * valid / generated) / 1000 : 0, rejected: Object.fromEntries(Object.entries(reasons).sort()) },
         receipts: selected.map(r => ({
@@ -204,7 +213,8 @@ export function campaignReceipt(selected, dir) {
         })),
     };
 }
-/** report: the difficulty curve 1-60 (frozen levels, then the campaign receipt when given), progression, diversity. */
+/** report: the difficulty curve of every level (frozen levels, then the campaign receipt when given), progression,
+ * diversity of each campaign. */
 export function report(campaign) {
     const entries = DATA.map((e, i) => ({ n: i + 1, entry: e }));
     if (campaign) for (const r of campaign.receipts) entries[r.slot - 1] = { n: r.slot, entry: entryOfReceipt(r) };
@@ -217,9 +227,13 @@ export function report(campaign) {
         const d = busfolieDiversity(levels);
         return { levels: `${from}-${from + levels.length - 1}`, score: d.score, cloneShare: d.cloneShare, maxGapWithoutNovelty: d.maxGapWithoutNovelty, noveltyLevels: d.noveltyLevels.map(k => k + from - 1), novelty: d.novelty.map(x => ({ level: x.level + from - 1, elements: x.elements })) };
     };
-    const c1 = diversityOf(1, FROZEN_BEFORE), c2 = diversityOf(CAMPAIGN.first, CAMPAIGN.last);
-    if (c2 && c2.cloneShare !== 0) failures.push(`campaign 2 clones ${c2.cloneShare}`);
-    if (c2 && c2.maxGapWithoutNovelty > 5) failures.push(`campaign 2 gap without novelty ${c2.maxGapWithoutNovelty}`);
+    const diversity = { campaign1: diversityOf(1, CAMPAIGNS[0].first - 1) };
+    for (const c of CAMPAIGNS) {
+        const d = diversityOf(c.first, c.last), name = `campaign ${c.id.slice(-1)}`;
+        diversity[name.replace(' ', '')] = d;
+        if (d && d.cloneShare !== 0) failures.push(`${name} clones ${d.cloneShare}`);
+        if (d && d.maxGapWithoutNovelty > 5) failures.push(`${name} gap without novelty ${d.maxGapWithoutNovelty}`);
+    }
     const max = Math.max(...rows.map(r => r.difficulty)), chart = rows.map(r => `${String(r.level).padStart(2)} ${'#'.repeat(Math.round(50 * r.difficulty / max)).padEnd(50)} ${r.difficulty.toFixed(1).padStart(5)} (cible ${r.target.toFixed(1)})`).join('\n');
-    return { curve: rows, progression: failures.filter(f => f.startsWith('level')).length ? 'broken' : 'no level easier than the one five ranks before', diversity: { campaign1: c1, campaign2: c2 }, frozenBefore: { levels: FROZEN_BEFORE, hash: frozenHash() }, failures, chart };
+    return { curve: rows, progression: failures.filter(f => f.startsWith('level')).length ? 'broken' : 'no level easier than the one five ranks before', diversity, frozenBefore: { levels: FROZEN_BEFORE, hash: frozenHash() }, failures, chart };
 }

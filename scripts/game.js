@@ -15,7 +15,7 @@ const HELP = {
 
 Commands (game: ${Object.keys(GAMES).join(', ')}):
   capabilities <game> [--check]                 what the game offers; --check: every cited source exists
-  generate <game> --out <dir> [--count N] [--seed S] [--slots 31-60] [--iterations N] [--max-candidates N]
+  generate <game> --out <dir> [--count N] [--seed S] [--slots 61-90] [--iterations N] [--max-candidates N]
                                                 seeded candidates and a local search per slot, with receipts
   validate <game> [--file f.json | --level N]   the level rules on one candidate; without a file: the validators
   solve <game> (--in <dir> | --file f.json | --level N) [--moves "BA f1, BB b2"] [--nodes N]
@@ -125,7 +125,7 @@ async function main() {
             if (!o.in) throw new UsageError('rank needs --in <dir>');
             const dir = outside(o.in), files = g.listJson(join(dir, 'solved'));
             const expect = int(o.expect, 'expect', g.CAMPAIGN.last - g.CAMPAIGN.first + 1);
-            if (o['dry-run']) return dry(files, [join(dir, 'ranking.json'), join(dir, 'entries/<slot>.json'), join(dir, 'campaign-2.receipt.json')]);
+            if (o['dry-run']) return dry(files, [join(dir, 'ranking.json'), join(dir, 'entries/<slot>.json'), join(dir, g.CAMPAIGN.receipt)]);
             const receipts = files.map(g.readJson), r = g.rank(receipts);
             const unknown = receipts.filter(x => x.solving?.verdict === 'unknown').length;
             const div = r.diversity ? { score: r.diversity.score, cloneShare: r.diversity.cloneShare, maxGapWithoutNovelty: r.diversity.maxGapWithoutNovelty, noveltyLevels: r.diversity.noveltyLevels.map(n => n + g.CAMPAIGN.first - 1) } : null;
@@ -136,15 +136,15 @@ async function main() {
             mkdirSync(join(dir, 'entries'), { recursive: true });
             for (const s of r.selected) writeFileSync(join(dir, 'entries', `${s.slot}.json`), JSON.stringify(g.entryOfReceipt(s)));
             const campaign = g.campaignReceipt(r.selected, dir);
-            writeFileSync(join(dir, 'campaign-2.receipt.json'), `${JSON.stringify(campaign, null, 1)}\n`);
+            writeFileSync(join(dir, g.CAMPAIGN.receipt), `${JSON.stringify(campaign, null, 1)}\n`);
             const result = { selected: r.selected.map(s => ({ slot: s.slot, candidateId: s.candidateId, difficulty: s.metrics.difficulty, par: s.metrics.par, hash: s.levelHash })), rejected: r.rejected, failures, diversity: div };
             writeFileSync(join(dir, 'ranking.json'), `${JSON.stringify(result, null, 1)}\n`);
             const code = unknown ? 3 : failures.length ? 1 : 0;
             return done(code === 0, code, result);
         }
         if (command === 'report') {
-            if (o['dry-run']) return dry(['src/engines/busfolie/data.ts', ...(o.in ? [join(o.in, 'campaign-2.receipt.json')] : [])], []);
-            const result = g.report(o.in ? g.readJson(join(resolve(o.in), 'campaign-2.receipt.json')) : null);
+            if (o['dry-run']) return dry(['src/engines/busfolie/data.ts', ...(o.in ? [join(o.in, g.CAMPAIGN.receipt)] : [])], []);
+            const result = g.report(o.in ? g.readJson(join(resolve(o.in), g.CAMPAIGN.receipt)) : null);
             log(result.chart);
             return done(result.failures.length === 0, result.failures.length ? 1 : 0, result);
         }

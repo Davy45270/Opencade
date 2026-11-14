@@ -5,8 +5,9 @@
 // vehicle, turn a bus round, swap two groups, move a cone; exits follow the buses) that keeps a board only if the whole
 // reachable space is solved and, from level 2, if a real dead end hides along the shortest line. The board kept is the
 // one whose measured difficulty is closest to a rising target (6.5 + 0.65 per level for the first 30 levels, then the
-// gentler slope of target() for the second campaign). Fixed seeds: same output each run. The functions are exported
-// for scripts/game.js; --write keeps the frozen entry of every slot whose file is absent from <dir>.
+// gentler slope of target() for the second campaign, then the third campaign's own line). The whole reachable space of
+// a board must fit in maxStates(i) states (a count, never a duration). Fixed seeds: same output each run. The functions
+// are exported for scripts/game.js; --write keeps the frozen entry of every slot whose file is absent from <dir>.
 import { writeFileSync, readFileSync, mkdirSync, existsSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { Random } from '../src/engines/shared/random.ts';
@@ -17,10 +18,17 @@ import { SLOTS } from '../src/engines/busfolie/slots.ts';
 import { toEntry } from '../src/engines/busfolie/format.ts';
 import { DATA } from '../src/engines/busfolie/data.ts';
 const arg = name => process.argv.find(a => a.startsWith(`--${name}=`))?.slice(name.length + 3);
+/** State budget of the exhaustive analysis for campaigns 1 and 2 (levels 1-60). */
 export const MAX_STATES = 60000;
-/** Difficulty wanted at slot i (0-based): the first campaign's slope, then CAMPAIGN_2_SLOPE per level from level 30's. */
+/** Campaign 3 (levels 61-90, 7 × 7 yards): twice the budget, so longer lines fit. It is the node budget of the in-game
+ * searches (GAME_LIMITS in engine.ts): the hint and the dead-end proof always reach a verdict on these boards. */
+export const CAMPAIGN_3_MAX_STATES = 120000;
+export const maxStates = i => i < 60 ? MAX_STATES : CAMPAIGN_3_MAX_STATES;
+/** Difficulty wanted at slot i (0-based): the first campaign's slope, then CAMPAIGN_2_SLOPE per level from level 30's,
+ * then campaign 3 from CAMPAIGN_3_START at level 61, CAMPAIGN_3_SLOPE per level. */
 export const CAMPAIGN_2_SLOPE = 0.1;
-export const target = i => i < 30 ? 6.5 + 0.65 * i : 6.5 + 0.65 * 29 + CAMPAIGN_2_SLOPE * (i - 29);
+export const CAMPAIGN_3_START = 28.4, CAMPAIGN_3_SLOPE = 0.26;
+export const target = i => i < 30 ? 6.5 + 0.65 * i : i < 60 ? 6.5 + 0.65 * 29 + CAMPAIGN_2_SLOPE * (i - 29) : CAMPAIGN_3_START + CAMPAIGN_3_SLOPE * (i - 60);
 /** Traffic moves wanted beyond the departures: 1 at the start, up to 6. */
 export const minExtra = i => Math.min(6, 1 + Math.floor(i / 4));
 export const cost = (m, i) => Math.abs(m.d - target(i)) + 3 * Math.max(0, minExtra(i) - m.extra);
@@ -30,8 +38,8 @@ export function diagnose(level, i) {
     const errors = validateLevel(level);
     if (errors.length) return { ok: false, reason: 'invalid', errors };
     if (hopeless(level)) return { ok: false, reason: 'hopeless', errors: ['a cone or a parallel parked car lies in the road ahead of a bus'] };
-    const a = analyse(level, initialState(level), MAX_STATES);
-    if (a.status !== 'solved') return { ok: false, reason: a.status === 'unknown' ? 'state_limit' : 'unsolvable', errors: [`${a.status} (${a.states} states, limit ${MAX_STATES})`] };
+    const limit = maxStates(i), a = analyse(level, initialState(level), limit);
+    if (a.status !== 'solved') return { ok: false, reason: a.status === 'unknown' ? 'state_limit' : 'unsolvable', errors: [`${a.status} (${a.states} states, limit ${limit})`] };
     if (i >= 1 && !a.trap) return { ok: false, reason: 'no_trap', errors: ['no dead end along the shortest line'] };
     if (i === 0 && (a.optimal < 4 || a.optimal > 7)) return { ok: false, reason: 'par_range', errors: [`par ${a.optimal} outside 4-7`] };
     // Moves beyond one departure per bus: the traffic part of the puzzle.

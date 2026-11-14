@@ -1,5 +1,5 @@
 import type { Template } from './generator';
-/** The 60 progression slots (two campaigns of 30): title (FR/EN), the generator template, and the novelty the level introduces. One idea
+/** The 90 progression slots (three campaigns of 30): title (FR/EN), the generator template, and the novelty the level introduces. One idea
  * at a time, then combined. The boards themselves were picked offline (scripts/search-busfolie.js) and frozen in data.ts. */
 export interface Slot { name: string; en: string; novelty: string; template: Template }
 const T = (width: number, buses: number, cars: number, long: number, obstacles: number, colors: number, twins: number, coloured: boolean, oneWay: number, groupsMax: number): Template =>
@@ -66,5 +66,36 @@ export const SLOTS: readonly Slot[] = [
     { name: 'Les remparts', en: 'The ramparts', novelty: 'quatre cars', template: T(6, 7, 5, 4, 1, 6, 1, true, 2, 2) },
     { name: 'La gare de nuit', en: 'The night station', novelty: '', template: T(6, 8, 5, 3, 1, 6, 2, true, 3, 2) },
     { name: 'Le dépôt de nuit', en: 'The night depot', novelty: 'neuf bus', template: T(6, 9, 4, 3, 0, 6, 3, false, 2, 2) },
-    { name: 'La tournée finale', en: 'The last round', novelty: '', template: T(6, 8, 5, 4, 1, 6, 2, true, 3, 2) },
+    { name: 'La tournée finale', en: 'The last round', novelty: '', template: T(6, 8, 5, 4, 1, 6, 2, true, 3, 2) },    // Campaign 3 (levels 61-90): a third town, in the mountains: 7 × 7 yards dotted with cones (each reachable space under
+    // 120 000 states, the in-game search budget: longer lines than 6 × 6 allows), mechanisms back one at a time.
+    { name: 'La gare d’altitude', en: 'The mountain station', novelty: 'troisième ville, 7 × 7', template: T(7, 8, 4, 0, 10, 4, 3, false, 0, 2) },
+    { name: 'Le téléphérique', en: 'The cable car', novelty: '', template: T(7, 8, 4, 0, 10, 4, 3, false, 0, 2) },
+    { name: 'Le lac gelé', en: 'The frozen lake', novelty: 'cinq voitures', template: T(7, 8, 5, 0, 9, 4, 3, false, 0, 2) },
+    { name: 'La fromagerie', en: 'The cheese dairy', novelty: '', template: T(7, 8, 5, 0, 10, 4, 3, false, 0, 2) },
+    { name: 'Le funiculaire', en: 'The funicular', novelty: 'car de 3', template: T(7, 8, 4, 1, 10, 4, 3, false, 0, 2) },
+    { name: 'La patinoire', en: 'The ice rink', novelty: '', template: T(7, 8, 5, 1, 9, 4, 3, false, 0, 2) },
+    { name: 'Le refuge', en: 'The mountain hut', novelty: 'sorties colorées', template: T(7, 8, 4, 1, 10, 4, 3, true, 0, 2) },
+    { name: 'La scierie', en: 'The sawmill', novelty: '', template: T(7, 8, 5, 1, 9, 4, 3, true, 0, 2) },
+    { name: 'Le chalet', en: 'The chalet', novelty: '', template: T(7, 8, 4, 2, 9, 4, 3, false, 0, 2) },
+    { name: 'La station de ski', en: 'The ski resort', novelty: 'cinq couleurs', template: T(7, 8, 4, 1, 10, 5, 2, false, 0, 2) },
+    { name: 'Le col', en: 'The mountain pass', novelty: 'sens unique', template: T(7, 8, 4, 1, 10, 5, 2, false, 1, 2) },
+    { name: 'Le tremplin', en: 'The ski jump', novelty: '', template: T(7, 8, 5, 1, 9, 5, 2, true, 1, 2) },
+    { name: 'La cascade', en: 'The waterfall', novelty: '', template: T(7, 8, 4, 2, 9, 5, 2, false, 1, 2) },
+    { name: 'Les lacets', en: 'The hairpin bends', novelty: 'deux sens uniques', template: T(7, 8, 4, 2, 9, 5, 2, true, 2, 2) },
+    { name: 'Le belvédère', en: 'The lookout', novelty: '', template: T(7, 8, 5, 2, 9, 5, 2, false, 2, 2) },
+    { name: 'Le barrage', en: 'The dam', novelty: '', template: T(7, 8, 4, 2, 10, 5, 2, true, 2, 2) },
+    { name: 'Le glacier', en: 'The glacier', novelty: 'six couleurs', template: T(7, 8, 4, 2, 10, 6, 2, false, 1, 2) },
+    { name: 'Le moulin', en: 'The mill', novelty: '', template: T(7, 8, 5, 2, 9, 6, 2, true, 2, 2) },
+    { name: 'La chapelle', en: 'The chapel', novelty: '', template: T(7, 8, 4, 2, 10, 6, 2, false, 2, 2) },
+    { name: 'Le viaduc', en: 'The viaduct', novelty: 'trois cars', template: T(7, 8, 4, 3, 9, 6, 2, false, 1, 2) },
+    { name: 'Le village perché', en: 'The hilltop village', novelty: '', template: T(7, 8, 5, 3, 9, 6, 2, true, 2, 2) },
+    { name: 'L’observatoire', en: 'The observatory', novelty: '', template: T(7, 8, 4, 3, 9, 6, 2, false, 2, 2) },
+    { name: 'Le marché d’alpage', en: 'The alpine market', novelty: '', template: T(7, 8, 5, 2, 9, 6, 2, true, 2, 2) },
+    { name: 'La galerie', en: 'The rock gallery', novelty: '', template: T(7, 8, 4, 2, 10, 6, 2, false, 2, 2) },
+    { name: 'La mine', en: 'The mine', novelty: 'neuf bus', template: T(7, 9, 4, 2, 10, 6, 3, false, 1, 2) },
+    { name: 'Le haras', en: 'The stud farm', novelty: 'trois sens uniques', template: T(7, 9, 4, 2, 10, 6, 3, true, 3, 2) },
+    { name: 'La descente', en: 'The descent', novelty: '', template: T(7, 9, 5, 3, 9, 6, 3, false, 2, 2) },
+    { name: 'La tempête de neige', en: 'The snowstorm', novelty: '', template: T(7, 9, 5, 3, 9, 6, 3, false, 3, 2) },
+    { name: 'Le sommet', en: 'The summit', novelty: '', template: T(7, 9, 4, 2, 10, 6, 3, false, 2, 2) },
+    { name: 'La grande traversée', en: 'The great crossing', novelty: '', template: T(7, 9, 5, 3, 10, 6, 3, false, 2, 2) },
 ];

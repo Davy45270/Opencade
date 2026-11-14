@@ -2,7 +2,8 @@ import { LEVELS, GAME_NAME } from './levels';
 import { applyAction, cellsOf, forwardSign, horizontal, initialState, isCar, legalMoves, ENGINE_VERSION, SCHEMA_VERSION, type Bus, type Color, type Direction, type GameAction, type GameEvent, type GameState, type LevelDefinition, type RefusalReason } from './rules';
 import { encode, solve, type Move } from './solver';
 export { LEVELS, GAME_NAME };
-/** Bounds of the in-game searches (hint, dead-end check): every progression board's whole space is under 60 000 states. */
+/** Bounds of the in-game searches (hint, dead-end check): every progression board's whole space is under 60 000 states
+ * (levels 1-60) or 120 000 (levels 61-90), so these searches always reach a verdict. */
 export const GAME_LIMITS = { nodes: 120000, ms: 4000 } as const;
 export const COLOR_NAMES: Readonly<Record<Color, string>> = { rouge: 'rouge', bleu: 'bleu', jaune: 'jaune', vert: 'vert', violet: 'violet', orange: 'orange', gris: 'gris' };
 export interface Hint { status: 'move' | 'none'; move: Move | null; text: string; remaining: number }
