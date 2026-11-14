@@ -121,7 +121,7 @@ export class DemineurScene extends Phaser.Scene {
         this.ui = this.add.graphics();
         this.board = this.add.graphics();
         // The board is clipped by its own camera (a scissor rectangle), not by a mask: the Phaser 4 WebGL mask
-        // filter let half-visible cells spill over the help line and the tip box (HL-526, phone and headless alike).
+        // filter let half-visible cells spill over the help line and the tip box (seen on a phone and in headless Chromium alike).
         this.fx = this.add.graphics().setDepth(3);
         this.boardCam = this.cameras.add(0, 0, 1, 1, false, 'board');
         this.cameras.main.ignore([this.board, this.fx]);

@@ -212,13 +212,13 @@ test('DM-E08 130 grilles en onglets de dix ; la dernière, 16 × 24, jouée au d
     expect(after.status).toBe('playing'); expect(after.revealed).toBeGreaterThan(start.revealed + 20);
 });
 
-// HL-526 (capture de David, téléphone 360 × 430 sous la barre de Chrome) : le jeu n'occupait que la moitié de la largeur
+// Retour du 15/11 (capture d’un téléphone 360 × 430 sous la barre de Chrome) : le jeu n'occupait que la moitié de la largeur
 // et les cases à demi visibles débordaient sur la ligne d'aide et la bulle du compagnon (masque WebGL sans effet).
 type Box = { x: number; y: number; w: number; h: number };
 /** Plan of the former 360 × 640 world, used only when the hook has no rects() (counter-test on the old code). */
 const LEGACY = { width: 360, height: 640, hud: { x: 8, y: 8, w: 346, h: 32 }, help: { x: 8, y: 48, w: 344, h: 18 }, board: { x: 8, y: 74, w: 344, h: 470 }, tip: { x: 4, y: 554, w: 352, h: 82 } };
 const meets = (a: Box, b: Box): boolean => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
-for (const [width, height] of [[390, 664], [360, 430]] as const) for (const zoomed of [true, false]) test(`DM-E09 HL-526 ${String(width)}×${String(height)} ${zoomed ? 'zoomé' : 'dézoomé'} : le jeu prend la largeur, la grille reste dans son cadre`, async ({ page }, info) => {
+for (const [width, height] of [[390, 664], [360, 430]] as const) for (const zoomed of [true, false]) test(`DM-E09 ${String(width)}×${String(height)} ${zoomed ? 'zoomé' : 'dézoomé'} : le jeu prend la largeur, la grille reste dans son cadre`, async ({ page }, info) => {
     test.skip(info.project.name !== 'mobile-chromium', 'téléphone');
     await page.setViewportSize({ width, height });
     await page.goto('/?test=1#/demineur');
