@@ -5,10 +5,11 @@ const read = (page: Page) => page.evaluate(() => {
     return hook.read();
 });
 const hookReady = (page: Page) => expect.poll(() => page.evaluate(() => Boolean(window.__DEMINEUR_TEST__))).toBe(true);
-/** Screen point of a world point of the 360 × 640 canvas. */
+/** Screen point of a world point (the world is the canvas size: the game draws at the play area's size). */
 async function screen(page: Page, x: number, y: number): Promise<{ x: number; y: number }> {
     const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent');
-    return { x: box.x + x * box.width / 360, y: box.y + y * box.height / 640 };
+    const world = await page.evaluate(() => window.__DEMINEUR_TEST__?.usefulArea() ?? { width: 360, height: 640 });
+    return { x: box.x + x * box.width / world.width, y: box.y + y * box.height / world.height };
 }
 async function touchCell(page: Page, x: number, y: number, mobile: boolean): Promise<void> {
     const w = await page.evaluate(([x, y]) => window.__DEMINEUR_TEST__?.cellPoint(x, y), [x, y] as const);
@@ -209,4 +210,50 @@ test('DM-E08 130 grilles en onglets de dix ; la dernière, 16 × 24, jouée au d
     await playToEnd(page, mobile, 40);
     const after = await read(page);
     expect(after.status).toBe('playing'); expect(after.revealed).toBeGreaterThan(start.revealed + 20);
+});
+
+// HL-526 (capture de David, téléphone 360 × 430 sous la barre de Chrome) : le jeu n'occupait que la moitié de la largeur
+// et les cases à demi visibles débordaient sur la ligne d'aide et la bulle du compagnon (masque WebGL sans effet).
+type Box = { x: number; y: number; w: number; h: number };
+/** Plan of the former 360 × 640 world, used only when the hook has no rects() (counter-test on the old code). */
+const LEGACY = { width: 360, height: 640, hud: { x: 8, y: 8, w: 346, h: 32 }, help: { x: 8, y: 48, w: 344, h: 18 }, board: { x: 8, y: 74, w: 344, h: 470 }, tip: { x: 4, y: 554, w: 352, h: 82 } };
+const meets = (a: Box, b: Box): boolean => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+for (const [width, height] of [[390, 664], [360, 430]] as const) for (const zoomed of [true, false]) test(`DM-E09 HL-526 ${String(width)}×${String(height)} ${zoomed ? 'zoomé' : 'dézoomé'} : le jeu prend la largeur, la grille reste dans son cadre`, async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'téléphone');
+    await page.setViewportSize({ width, height });
+    await page.goto('/?test=1#/demineur');
+    await hookReady(page);
+    // Grid 21 « Le cœur » (14 × 16), the one of the capture: it opens zoomed on a phone.
+    await page.evaluate(() => { window.__DEMINEUR_TEST__?.loadLevel(20); window.__DEMINEUR_TEST__?.advance(0); });
+    expect((await read(page)).view.zoomed).toBe(true);
+    if (!zoomed) { await page.locator('#demineur-zoom').tap(); expect((await read(page)).view.zoomed).toBe(false); }
+    await page.evaluate(() => window.__DEMINEUR_TEST__?.advance(50));
+    const canvas = await page.locator('#game canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
+    expect.soft(canvas.width, 'largeur du jeu ≥ 90 % de la fenêtre').toBeGreaterThanOrEqual(0.9 * width);
+    const r = await page.evaluate(() => (window.__DEMINEUR_TEST__ as { rects?: () => unknown } | undefined)?.rects?.() ?? null) as typeof LEGACY | null ?? LEGACY;
+    const toScreen = (b: Box): Box => ({ x: canvas.x + b.x * canvas.width / r.width, y: canvas.y + b.y * canvas.height / r.height, w: b.w * canvas.width / r.width, h: b.h * canvas.height / r.height });
+    const [hud, help, board, tip] = [r.hud, r.help, r.board, r.tip].map(toScreen) as [Box, Box, Box, Box];
+    for (const [name, a, b] of [['bandeau × ligne d’aide', hud, help], ['bandeau × grille', hud, board], ['ligne d’aide × grille', help, board], ['grille × message', board, tip], ['ligne d’aide × message', help, tip]] as const) expect.soft(meets(a, b), name).toBe(false);
+    // The buttons sit under the canvas, inside the window, at least 56 px.
+    for (const id of ['#demineur-tool', '#demineur-hint', '#demineur-zoom']) {
+        const b = await page.locator(id).boundingBox(); if (!b) throw new Error(id);
+        expect.soft(b.width, id).toBeGreaterThanOrEqual(56); expect.soft(b.height, id).toBeGreaterThanOrEqual(56);
+        expect.soft(b.y + b.height, id).toBeLessThanOrEqual(height + 0.5);
+        expect.soft(meets({ x: b.x, y: b.y, w: b.width, h: b.height }, { x: canvas.x, y: canvas.y, w: canvas.width, h: canvas.height }), `${id} hors du canevas`).toBe(false);
+    }
+    // What is drawn, not what is planned: no covered cell (Arcade theme, 0x2fc6e8) outside the board window,
+    // in the band of the help line and in the tip box.
+    const shot = await page.screenshot();
+    const counts = await page.evaluate(async ({ png, zones }) => {
+        const img = new Image(); img.src = `data:image/png;base64,${png}`; await img.decode();
+        const c = document.createElement('canvas'); c.width = img.width; c.height = img.height;
+        const ctx = c.getContext('2d'); if (!ctx) throw new Error('2d'); ctx.drawImage(img, 0, 0);
+        return zones.map(z => {
+            const x = Math.max(0, Math.round(z.x)), y = Math.max(0, Math.round(z.y)), w = Math.max(1, Math.round(z.w)), h = Math.max(1, Math.round(z.h));
+            const d = ctx.getImageData(x, y, w, h).data; let n = 0;
+            for (let i = 0; i < d.length; i += 4) if (Math.abs((d[i] ?? 0) - 0x2f) + Math.abs((d[i + 1] ?? 0) - 0xc6) + Math.abs((d[i + 2] ?? 0) - 0xe8) < 40) n++;
+            return n;
+        });
+    }, { png: shot.toString('base64'), zones: [{ x: help.x, y: help.y, w: help.w, h: board.y - help.y - 8 }, tip, { x: board.x + board.w + 8, y: board.y, w: Math.max(1, canvas.x + canvas.width - board.x - board.w - 8), h: board.h }] });
+    expect.soft(counts, 'pixels de case hors du cadre (ligne d’aide, message, droite)').toEqual([0, 0, 0]);
 });

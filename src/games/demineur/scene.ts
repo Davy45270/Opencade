@@ -24,9 +24,29 @@ export const demineurButtons: readonly TouchButton[] = [
     { id: 'demineur-hint', label: '', ariaLabel: 'Indice : une déduction certaine, expliquée', size: 56, placement: 'center', mode: 'tap' },
     { id: 'demineur-zoom', label: '', ariaLabel: 'Loupe : vue d’ensemble ou zoom', size: 56, placement: 'center', mode: 'tap' },
 ];
-/** Board area of the 360 × 640 world, under the HUD and above the companion's tip box. */
-export const AREA = { x: 8, y: 74, w: 344, h: 470 } as const;
-const TIP = { y: 554, h: 82 } as const;
+export interface Rect { x: number; y: number; w: number; h: number }
+/** Screen plan of the canvas (world px = CSS px: the game draws at the play area's size). */
+export interface DemineurLayout { width: number; height: number; hud: Rect; help: Rect; area: Rect; tip: Rect; hero: number }
+/** The shell's ⏸ sits at the top right of the screen on phones; the HUD row leaves it room. */
+const PAUSE_CORNER = 60;
+/** Pure plan, unit-tested: HUD row, help line, board window, companion's tip box — never overlapping.
+ *  Portrait and narrow screens stack them; a wide and short screen puts the tip box beside the board. */
+export function demineurLayout(width: number, height: number, pauseCorner = false): DemineurLayout {
+    const w = Math.max(240, width), h = Math.max(240, height);
+    const column = Math.min(w - 20, 640), x0 = Math.round((w - column) / 2);
+    const right = pauseCorner ? Math.min(x0 + column, w - PAUSE_CORNER) : x0 + column;
+    const hud = { x: x0, y: 8, w: right - x0, h: 32 };
+    const help = { x: x0, y: 48, w: column, h: 18 };
+    const top = 76, bottom = h - 6;
+    if (w >= 600 && w > h * 1.25) {
+        const tw = Math.min(260, Math.round(column * 0.32)), area = { x: x0, y: top, w: column - tw - 14, h: bottom - top - 4 };
+        return { width: w, height: h, hud, help, area, tip: { x: x0 + column - tw, y: top - 4, w: tw, h: Math.min(area.h + 4, 150) }, hero: 48 };
+    }
+    const tipH = h < 560 ? 62 : 82;
+    const tip = { x: x0 - 4, y: bottom - tipH, w: column + 8, h: tipH };
+    return { width: w, height: h, hud, help, area: { x: x0, y: top, w: column, h: tip.y - 14 - top }, tip, hero: tipH < 80 ? 46 : 56 };
+}
+const MOBILE = '(pointer: coarse), (width < 600px)';
 /** Cells smaller than this (world px ≈ CSS px on a 390 px phone) are hard to hit with a finger: the board zooms. */
 export const MIN_TOUCH_CELL = 28;
 export const ZOOM_CELL = 38;
@@ -39,6 +59,8 @@ export interface DemineurHook {
     advance(ms: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
+    /** World rectangles (world px = CSS px): HUD, help line, visible board window, tip box. */
+    rects(): { width: number; height: number; hud: Rect; help: Rect; board: Rect; tip: Rect };
     loadLevel(index: number, seed?: number): void;
     loadMode(kind: Classic | 'daily', seed?: number): void;
     /** World point at the centre of board cell (x, y), scrolled into view first. */
@@ -74,6 +96,9 @@ export class DemineurScene extends Phaser.Scene {
     private board?: Phaser.GameObjects.Graphics;
     private texts: Record<'label' | 'mines' | 'time' | 'sub' | 'tip', Phaser.GameObjects.Text> | null = null;
     private hud?: Phaser.GameObjects.Text;
+    private plan = demineurLayout(360, 640);
+    private boardCam?: Phaser.Cameras.Scene2D.Camera;
+    private get area(): Rect { return this.plan.area; }
     constructor(private session = new PlaySession(false)) { super('demineur'); }
     private get kind(): Kind { return this.engine.kind; }
     private get theme(): Theme { return this.kind === 'progression' ? LEVELS[this.engine.index]?.theme ?? 'classique' : this.kind === 'daily' ? 'plage' : 'classique'; }
@@ -95,18 +120,23 @@ export class DemineurScene extends Phaser.Scene {
         reserveHudRow();
         this.ui = this.add.graphics();
         this.board = this.add.graphics();
-        // Phaser 4: geometry masks are Canvas-only; under WebGL a mask is a filter (world space, main camera, as before).
-        const mask = this.make.graphics({}, false); mask.fillStyle(0xffffff).fillRect(AREA.x, AREA.y, AREA.w, AREA.h);
-        if (this.renderer.type === Phaser.WEBGL) this.board.enableFilters().filters?.external.addMask(mask);
-        else this.board.setMask(mask.createGeometryMask());
+        // The board is clipped by its own camera (a scissor rectangle), not by a mask: the Phaser 4 WebGL mask
+        // filter let half-visible cells spill over the help line and the tip box (HL-526, phone and headless alike).
         this.fx = this.add.graphics().setDepth(3);
+        this.boardCam = this.cameras.add(0, 0, 1, 1, false, 'board');
+        this.cameras.main.ignore([this.board, this.fx]);
         const text = (x: number, y: number, size: number, color = '#ffffff', bold = true): Phaser.GameObjects.Text =>
             this.add.text(x, y, '', { fontFamily: 'system-ui, sans-serif', fontSize: `${String(size)}px`, fontStyle: bold ? 'bold' : 'normal', color }).setDepth(4);
         this.texts = {
             label: text(20, 15, 15), mines: text(222, 15, 16), time: text(304, 15, 16).setOrigin(0.5, 0),
-            sub: text(180, 50, 12, '#ffffff', false).setOrigin(0.5, 0), tip: text(70, TIP.y + 8, 12, '#ffffff', false).setWordWrapWidth(276).setLineSpacing(1),
+            sub: text(180, 50, 12, '#ffffff', false).setOrigin(0.5, 0), tip: text(70, 562, 12, '#ffffff', false).setLineSpacing(1),
         };
         this.hud = this.add.text(0, 0, '', { fontSize: '1px' }).setVisible(false);
+        this.boardCam.ignore([this.ui, this.hud, ...Object.values(this.texts)]);
+        this.measure();
+        const resized = (): void => { this.measure(); this.refit(); this.sync(); };
+        this.scale.on('resize', resized);
+        this.events.once('shutdown', () => { this.scale.off('resize', resized); });
         renderTouchControls(this.inputs, demineurButtons, (id, held) => { if (held) this.button(id); });
         this.dressButtons();
         this.input.mouse?.disableContextMenu();
@@ -171,9 +201,9 @@ export class DemineurScene extends Phaser.Scene {
     }
     private reset(): void {
         this.boom = null; this.ended = 0; this.recordNote = ''; this.flash = { cells: [], t: 1 }; this.press = null;
-        const e = this.engine, transposed = e.width > e.height, cols = transposed ? e.height : e.width, rows = transposed ? e.width : e.height;
-        const fit = Math.min(AREA.w / cols, AREA.h / rows, 48), zoomable = fit < MIN_TOUCH_CELL;
-        this.view = { transposed, cols, rows, fit, zoomable, zoomed: zoomable && this.coarse, cell: fit, ox: 0, oy: 0 };
+        const e = this.engine;
+        this.view = { transposed: false, cols: 1, rows: 1, fit: 1, zoomable: false, zoomed: false, cell: 1, ox: 0, oy: 0 };
+        this.fitView(); this.view.zoomed = this.view.zoomable && this.coarse;
         this.cursor = { x: Math.floor(e.width / 2), y: Math.floor(e.height / 2), shown: false };
         this.layout();
         const start = e.state.firstClick ?? { x: Math.floor(e.width / 2), y: Math.floor(e.height / 2) };
@@ -181,11 +211,38 @@ export class DemineurScene extends Phaser.Scene {
         this.paintZoom(); this.sync();
     }
     // ——— View: fit, zoom, pan, transposition of wide boards ———
+    /** Screen plan from the canvas size; the board camera is the board window. */
+    private measure(): void {
+        this.plan = demineurLayout(this.scale.width, this.scale.height, matchMedia(MOBILE).matches && document.body.classList.contains('playing'));
+        const a = this.area, t = this.texts, p = this.plan;
+        this.boardCam?.setViewport(a.x, a.y, a.w, a.h).setScroll(a.x, a.y);
+        this.cameras.main.setViewport(0, 0, p.width, p.height);
+        if (t) {
+            t.tip.setPosition(p.tip.x + p.hero + 14, p.tip.y + 8).setWordWrapWidth(p.tip.w - p.hero - 24);
+            t.sub.setY(p.help.y + 2);
+        }
+        this.dirty = true;
+    }
+    /** Cell size that fits the board window; a transposed (wide) board turns only on a portrait window. */
+    private fitView(): void {
+        const e = this.engine, a = this.area, v = this.view;
+        const transposed = e.width > e.height && a.h > a.w, cols = transposed ? e.height : e.width, rows = transposed ? e.width : e.height;
+        const fit = Math.min(a.w / cols, a.h / rows, 48);
+        Object.assign(v, { transposed, cols, rows, fit, zoomable: fit < MIN_TOUCH_CELL });
+        if (!v.zoomable) v.zoomed = false;
+    }
+    /** After a resize: same zoom, same centre cell. */
+    private refit(): void {
+        const a = this.area, focus = this.cellAt(a.x + a.w / 2, a.y + a.h / 2);
+        this.fitView(); this.layout();
+        if (focus) this.centerOn(focus.x, focus.y);
+        this.paintZoom();
+    }
     private layout(): void {
         const v = this.view; v.cell = v.zoomed ? ZOOM_CELL : v.fit; this.clamp();
     }
     private clamp(): void {
-        const v = this.view, bw = v.cols * v.cell, bh = v.rows * v.cell;
+        const v = this.view, bw = v.cols * v.cell, bh = v.rows * v.cell, AREA = this.area;
         v.ox = bw <= AREA.w ? AREA.x + (AREA.w - bw) / 2 : Math.min(AREA.x, Math.max(AREA.x + AREA.w - bw, v.ox));
         v.oy = bh <= AREA.h ? AREA.y + (AREA.h - bh) / 2 : Math.min(AREA.y, Math.max(AREA.y + AREA.h - bh, v.oy));
         this.dirty = true;
@@ -193,23 +250,24 @@ export class DemineurScene extends Phaser.Scene {
     private display(x: number, y: number): [number, number] { return this.view.transposed ? [y, x] : [x, y]; }
     private cellXY(x: number, y: number): [number, number] { const [c, r] = this.display(x, y); return [this.view.ox + c * this.view.cell, this.view.oy + r * this.view.cell]; }
     private cellAt(wx: number, wy: number): { x: number; y: number } | null {
+        const AREA = this.area;
         if (wx < AREA.x || wx > AREA.x + AREA.w || wy < AREA.y || wy > AREA.y + AREA.h) return null;
         const c = Math.floor((wx - this.view.ox) / this.view.cell), r = Math.floor((wy - this.view.oy) / this.view.cell);
         if (c < 0 || r < 0 || c >= this.view.cols || r >= this.view.rows) return null;
         return this.view.transposed ? { x: r, y: c } : { x: c, y: r };
     }
     private centerOn(x: number, y: number): void {
-        const [c, r] = this.display(x, y), v = this.view;
+        const [c, r] = this.display(x, y), v = this.view, AREA = this.area;
         v.ox = AREA.x + AREA.w / 2 - (c + 0.5) * v.cell; v.oy = AREA.y + AREA.h / 2 - (r + 0.5) * v.cell; this.clamp();
     }
     /** Brings cell (x, y) inside the view with a margin, without moving when it already is. */
     private reveal(x: number, y: number): void {
-        const [px, py] = this.cellXY(x, y), m = this.view.cell;
+        const [px, py] = this.cellXY(x, y), m = this.view.cell, AREA = this.area;
         if (px < AREA.x + m || py < AREA.y + m || px > AREA.x + AREA.w - 2 * m || py > AREA.y + AREA.h - 2 * m) this.centerOn(x, y);
     }
     private setZoom(on: boolean, around?: { x: number; y: number }): void {
         if (!this.view.zoomable) return;
-        const focus = around ?? this.cellAt(AREA.x + AREA.w / 2, AREA.y + AREA.h / 2) ?? { x: 0, y: 0 };
+        const AREA = this.area, focus = around ?? this.cellAt(AREA.x + AREA.w / 2, AREA.y + AREA.h / 2) ?? { x: 0, y: 0 };
         this.view.zoomed = on; this.layout(); this.centerOn(focus.x, focus.y); this.paintZoom();
     }
     // ——— Input ———
@@ -229,7 +287,7 @@ export class DemineurScene extends Phaser.Scene {
     private pointerMove(p: Phaser.Input.Pointer): void {
         const press = this.press; if (!press || !p.isDown || press.done) return;
         const dx = p.worldX - press.x, dy = p.worldY - press.y;
-        if (!press.panned && Math.hypot(dx, dy) > DRAG && (this.view.cols * this.view.cell > AREA.w || this.view.rows * this.view.cell > AREA.h)) press.panned = true;
+        if (!press.panned && Math.hypot(dx, dy) > DRAG && (this.view.cols * this.view.cell > this.area.w || this.view.rows * this.view.cell > this.area.h)) press.panned = true;
         if (press.panned) { this.view.ox = press.ox + dx; this.view.oy = press.oy + dy; this.clamp(); }
     }
     private pointerUp(): void {
@@ -339,7 +397,13 @@ export class DemineurScene extends Phaser.Scene {
                 if (ms === 0) this.tick(0);
             },
             hudText: () => this.hud?.text ?? '',
-            usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
+            usefulArea: () => ({ x: 0, y: 0, width: this.plan.width, height: this.plan.height }),
+            rects: () => {
+                const v = this.view, a = this.area, x = Math.max(a.x, v.ox), y = Math.max(a.y, v.oy);
+                const board = { x, y, w: Math.min(a.x + a.w, v.ox + v.cols * v.cell) - x, h: Math.min(a.y + a.h, v.oy + v.rows * v.cell) - y };
+                const p = this.plan;
+                return { width: p.width, height: p.height, hud: { ...p.hud }, help: { ...p.help }, board, tip: { ...p.tip } };
+            },
             loadLevel: index => { this.startLevel(index, true); },
             loadMode: (kind, seed) => { this.startMode(kind, seed); },
             cellPoint: (x, y) => { this.reveal(x, y); this.draw(); const [px, py] = this.cellXY(x, y); return { x: px + this.view.cell / 2, y: py + this.view.cell / 2 }; },
@@ -394,16 +458,18 @@ export class DemineurScene extends Phaser.Scene {
         const g = this.ui, b = this.board, t = this.texts, fx = this.fx; if (!g || !b || !t || !fx) return;
         const e = this.engine, theme = this.theme, still = matchMedia('(prefers-reduced-motion: reduce)').matches, now = still ? 0 : e.time;
         g.clear(); fx.clear();
-        backdrop(g, theme);
+        const p = this.plan, AREA = this.area, H = p.hud, TIP = p.tip;
+        backdrop(g, theme, p.width, p.height);
         // HUD: board name, mines left, clock; a line saying whether the board can be solved without guessing.
-        pill(g, 8, 8, 196, 32, UI.violet);
-        const name = e.kind === 'progression' ? `${String(e.index + 1)} · ${e.name}` : e.name;
-        t.label.setText(name.length > 22 ? `${name.slice(0, 21)}…` : name);
-        pill(g, 210, 8, 66, 32, 0x2a3550); mine(g, 228, 24, 26); t.mines.setText(String(e.minesLeft)).setX(244);
-        pill(g, 282, 8, 72, 32, 0x2a3550); stopwatch(g, 298, 24, 9); t.time.setText(clock(e.elapsedMs)).setX(328);
-        if (e.kind === 'progression') for (let k = 0; k < 3; k++) starIcon(g, 30 + k * 20, 58, 7, k < e.stars);
+        const tx = H.x + H.w - 72, mx = tx - 72, lw = mx - 6 - H.x;
+        pill(g, H.x, H.y, lw, H.h, UI.violet);
+        const name = e.kind === 'progression' ? `${String(e.index + 1)} · ${e.name}` : e.name, room = Math.max(6, Math.floor((lw - 20) / 8.4));
+        t.label.setPosition(H.x + 12, H.y + 7).setText(name.length > room ? `${name.slice(0, room - 1)}…` : name);
+        pill(g, mx, H.y, 66, H.h, 0x2a3550); mine(g, mx + 18, H.y + 16, 26); t.mines.setText(String(e.minesLeft)).setPosition(mx + 34, H.y + 7);
+        pill(g, tx, H.y, 72, H.h, 0x2a3550); stopwatch(g, tx + 16, H.y + 16, 9); t.time.setText(clock(e.elapsedMs)).setPosition(tx + 46, H.y + 7);
+        if (e.kind === 'progression') for (let k = 0; k < 3; k++) starIcon(g, p.help.x + 22 + k * 20, p.help.y + 10, 7, k < e.stars);
         // With stars, the line starts after them (left-aligned) instead of running under them.
-        if (e.kind === 'progression') t.sub.setOrigin(0, 0).setX(96); else t.sub.setOrigin(0.5, 0).setX(180);
+        if (e.kind === 'progression') t.sub.setOrigin(0, 0).setX(p.help.x + 88); else t.sub.setOrigin(0.5, 0).setX(p.help.x + p.help.w / 2);
         t.sub.setText(e.noGuess ? (e.kind === 'daily' ? 'Défi du jour · sans devinette' : 'Sans devinette : chaque coup se déduit') : 'Classique : il faudra peut-être deviner');
         // Board frame (the visible window of the board).
         const v = this.view, bw = Math.min(AREA.w, v.cols * v.cell), bh = Math.min(AREA.h, v.rows * v.cell);
@@ -418,9 +484,11 @@ export class DemineurScene extends Phaser.Scene {
             fx.fillRoundedRect(AREA.x + AREA.w - 6, AREA.y + (AREA.y - v.oy) * sy, 4, Math.min(1, sy) * AREA.h, 2);
         }
         // Companion and tip box (never over the board).
-        g.fillStyle(0x000000, 0.4); g.fillRoundedRect(4, TIP.y, 352, TIP.h, 14);
-        this.hero.draw(g, 6, TIP.y + 8, 56);
-        t.tip.setText(this.tipText());
+        g.fillStyle(0x000000, 0.4); g.fillRoundedRect(TIP.x, TIP.y, TIP.w, TIP.h, 14);
+        this.hero.draw(g, TIP.x + 4, TIP.y + Math.max(4, (Math.min(TIP.h, 82) - p.hero) / 2), p.hero);
+        // A long proof on a short tip box steps the font down rather than spilling out of the box.
+        t.tip.setText(this.tipText()).setFontSize(12);
+        if (t.tip.height > TIP.h - 12) t.tip.setFontSize(11);
         const hudText = `DÉMINEUR · ${e.kind === 'progression' ? `GRILLE ${String(e.index + 1)}/${String(LEVELS.length)}` : e.name.toUpperCase()} · ${e.name} · SCORE ${String(e.score)} · MINES ${String(e.minesLeft)} · TEMPS ${clock(e.elapsedMs)}\n${t.tip.text}`;
         this.hud?.setText(hudText);
         const status = document.querySelector('#status'); if (status && status.textContent !== hudText) status.textContent = hudText;
@@ -449,7 +517,7 @@ export class DemineurScene extends Phaser.Scene {
             return this.boom.t >= 250 + 60 * Math.hypot(c.x - boomAt.x, c.y - boomAt.y);
         };
         const shake = this.boom && this.boom.t < 300 ? Math.sin(this.boom.t / 18) * 3 * (1 - this.boom.t / 300) : 0;
-        const pulse = 0.5 + 0.5 * Math.sin(now / 160);
+        const pulse = 0.5 + 0.5 * Math.sin(now / 160), AREA = this.area;
         for (const [i, c] of cells.entries()) {
             const [x0, y0] = this.cellXY(c.x, c.y), x = x0 + shake;
             if (x + s < AREA.x || y0 + s < AREA.y || x > AREA.x + AREA.w || y0 > AREA.y + AREA.h) continue;
