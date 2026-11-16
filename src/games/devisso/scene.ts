@@ -21,7 +21,12 @@ import { canvasGraphics } from '../thumbnail-art';
 import {
     BOARD, ROWS, UI, backdrop, boardFrame, boostIcon, boxArt, burst, chainArt, coinIcon, crateArt, dust, heartIcon,
     impact, miniBox, pill, plate, screwHead, slotArt, starIcon, toBoard, toWorld, type ScrewLook,
+    THEMES,
 } from './art';
+import { aim, planZones, toScreen, type ZonePlan } from '../zones';
+const MOBILE = '(pointer: coarse), (width < 600px)';
+/** World regions of the former 360 × 640 layout: the HUD (level, boxes, reserve) and the board with the tip row. */
+const HUD_ZONE = { x: 0, y: 0, w: 360, h: 168 }, BOARD_ZONE = { x: 0, y: 168, w: 360, h: 472 };
 export const devissoButtons: readonly TouchButton[] = [
     { id: 'devisso-undo', label: '', ariaLabel: 'Annuler : un coup en arrière', size: 56, placement: 'center', mode: 'tap' },
     { id: 'devisso-hint', label: '', ariaLabel: 'Indice : la vis à dévisser', size: 56, placement: 'center', mode: 'tap' },
@@ -51,6 +56,10 @@ export interface DevissoHook {
     /** The tip row under the board (world rect) and its text. */
     tipRow(): { x: number; y: number; width: number; height: number; text: string };
     usefulArea(): { x: number; y: number; width: number; height: number };
+    /** World point (360 × 640 layout) to canvas pixels, through the camera of its region. */
+    toCanvas(x: number, y: number): { x: number; y: number };
+    /** Canvas pixels: the HUD and board windows of the full-screen plan. */
+    rects(): { width: number; height: number; hud: { x: number; y: number; w: number; h: number }; board: { x: number; y: number; w: number; h: number } };
     loadLevel(index: number, seed?: number): void;
     /** World point of screw `i` (centre), for finger tests. */
     screwPoint(i: number): { x: number; y: number };
@@ -79,6 +88,10 @@ export class DevissoScene extends Phaser.Scene {
     private graphics?: Phaser.GameObjects.Graphics;
     private texts: Record<'level' | 'coins' | 'hearts' | 'boxes' | 'tip' | 'title' | 'sub' | 'button', Phaser.GameObjects.Text> | null = null;
     private hud?: Phaser.GameObjects.Text;
+    /** Full-screen plan: the HUD and the board, each shown by its own camera over a plain backdrop. */
+    private plan: ZonePlan = planZones(360, 640, HUD_ZONE, BOARD_ZONE);
+    private hudCam?: Phaser.Cameras.Scene2D.Camera;
+    private boardCam?: Phaser.Cameras.Scene2D.Camera;
     constructor(private session = new PlaySession(false)) { super('devisso'); }
     private panels(): void { renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.score, this.progress.total, this.selecting); }
     private start(index: number, seed?: number, fresh = false): void {
@@ -103,6 +116,16 @@ export class DevissoScene extends Phaser.Scene {
             button: text(180, 408, 16).setOrigin(0.5, 0).setDepth(4),
         };
         this.hud = this.add.text(0, 0, '', { fontSize: '1px' }).setVisible(false);
+        // Headless harnesses build the scene without cameras: they keep the 360 × 640 world.
+        if (typeof (this as { cameras?: { add?: unknown } }).cameras?.add === 'function') {
+            this.cameras.main.ignore([this.graphics, this.hud, ...Object.values(this.texts)]);
+            this.boardCam = this.cameras.add(0, 0, 1, 1, false, 'board');
+            this.hudCam = this.cameras.add(0, 0, 1, 1, false, 'hud');
+            this.measure();
+            const resized = (): void => { this.measure(); };
+            this.scale.on('resize', resized);
+            this.events.once('shutdown', () => { this.scale.off('resize', resized); });
+        }
         renderTouchControls(this.inputs, devissoButtons, (id, held) => { if (held) this.boost(id.replace('devisso-', '') as Boost); });
         for (const kind of ['undo', 'hint', 'hammer', 'bomb', 'drill'] as const) {
             const button = document.querySelector(`#devisso-${kind}`), icon = document.createElement('canvas');
@@ -111,7 +134,8 @@ export class DevissoScene extends Phaser.Scene {
             const count = document.createElement('span'); count.className = 'boost-count';
             button?.replaceChildren(icon, count);
         }
-        this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { this.pointer(p.worldX, p.worldY); });
+        // Taps go through the board camera (the HUD region has no target).
+        this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { const w = this.boardCam?.getWorldPoint(p.x, p.y) ?? { x: p.worldX, y: p.worldY }; this.pointer(w.x, w.y); });
         this.inputs.on(document, 'keydown', event => { this.keydown(event as KeyboardEvent); });
         const retry = (): void => { this.progress.retry(); this.start(this.engine.level, this.engine.seed); };
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', retry);
@@ -121,6 +145,13 @@ export class DevissoScene extends Phaser.Scene {
         this.game.canvas.setAttribute('aria-label', `${GAME_NAME} : dévisser les vis libres, remplir les boîtes de leur couleur`);
         if (new URLSearchParams(location.search).get('test') === '1') window.__DEVISSO_TEST__ = this.testHook(receipts);
         this.start(this.progress.level, undefined, true);
+    }
+    /** Screen plan from the canvas size: HUD and board stacked or side by side, whichever gives the larger board. */
+    private measure(): void {
+        const p = this.plan = planZones(this.scale.width, this.scale.height, HUD_ZONE, BOARD_ZONE, { pauseCorner: matchMedia(MOBILE).matches ? 60 : 0 });
+        this.cameras.main.setViewport(0, 0, p.width, p.height);
+        if (this.boardCam) aim(this.boardCam, p.board);
+        if (this.hudCam) aim(this.hudCam, p.hud);
     }
     private keydown(e: KeyboardEvent): void {
         if (e.repeat || this.blocked()) return;
@@ -225,7 +256,9 @@ export class DevissoScene extends Phaser.Scene {
             hudCoins: () => this.texts?.coins.text ?? '',
             banners: () => this.banner ? [{ ...this.banner }] : [],
             tipRow: () => ({ x: 4, y: ROWS.tip, width: 352, height: 44, text: this.texts?.tip.text ?? '' }),
-            usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
+            usefulArea: () => ({ x: 0, y: 0, width: this.plan.width, height: this.plan.height }),
+            toCanvas: (x, y) => this.boardCam ? toScreen(y >= BOARD_ZONE.y ? this.plan.board : this.plan.hud, x, y) : { x, y },
+            rects: () => ({ width: this.plan.width, height: this.plan.height, hud: { ...this.plan.hud.view }, board: { ...this.plan.board.view } }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
             screwPoint: i => { const [x, y] = toWorld(...this.engine.position(i)); return { x, y }; },
             bestMove: () => {
@@ -291,6 +324,7 @@ export class DevissoScene extends Phaser.Scene {
         const now = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : e.time / 1000;
         g.clear();
         backdrop(g, theme);
+        if (this.boardCam) this.cameras.main.setBackgroundColor(THEMES[theme].sky[1]);
         // HUD: level, stars and progress, coins, hearts.
         pill(g, 8, 10, 100, 34, UI.violet);
         t.level.setText(`Niveau ${String(e.level + 1)}`);
