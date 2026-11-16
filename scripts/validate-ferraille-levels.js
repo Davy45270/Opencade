@@ -51,8 +51,8 @@ for (const [name, file, before, after, run] of [
     ['minimum de modules supprimé', '../scripts/ferraille-diversity.js', 'if (used.size < 14)', 'if (used.size < 1)', m => repetition(undefined, m.measureRepetition)],
     ['première rencontre ignorée', '../scripts/ferraille-diversity.js', 'if (current.modules[0] !== current.star)', 'if (false)', m => repetition(undefined, m.measureRepetition)],
     ['annonce supprimée', '../src/games/ferraille/scene.ts', 's.ticks < 120 && config', 's.ticks < 0 && config', m => sceneChecks(m.FerrailleScene, false, false)],
-    ['checkpoints invisibles', '../src/games/ferraille/scene.ts', 'if (Math.abs(x - camera) < 260)', 'if (Math.abs(x - camera) < 0)', m => sceneChecks(m.FerrailleScene, false, false)],
-    ['démonstrations invisibles', '../src/games/ferraille/scene.ts', 'if (m.x + m.w < camera || m.x > camera + 280) continue;', 'if (m.preview || m.x + m.w < camera || m.x > camera + 280) continue;', m => sceneChecks(m.FerrailleScene, false, false)],
+    ['checkpoints invisibles', '../src/games/ferraille/scene.ts', 'if (Math.abs(x - camera) < span / VIEW.scale + 122)', 'if (Math.abs(x - camera) < 0)', m => sceneChecks(m.FerrailleScene, false, false)],
+    ['démonstrations invisibles', '../src/games/ferraille/scene.ts', 'if (m.x + m.w < camera || m.x > camera + span / VIEW.scale + 142) continue;', 'if (m.preview || m.x + m.w < camera || m.x > camera + span / VIEW.scale + 142) continue;', m => sceneChecks(m.FerrailleScene, false, false)],
 ]) {
     const source = readFileSync(new URL(file, import.meta.url), 'utf8');
     assert.equal(source.split(before).length, 2, name);

@@ -19,6 +19,8 @@ import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
 import { Impacts, BLAST_RADIUS, BEAM_REACH, BEAM_HALF_HEIGHT } from './impacts';
+import { FIELD_HEIGHT, HUD_BAND, MAX_SPAN, ferraillePlan, type FerraillePlan } from './plan';
+const MOBILE = '(pointer: coarse), (width < 600px)';
 export const ferrailleButtons: readonly TouchButton[] = [
     // Main action last: Saut (72 px) sits under the thumb, bottom of the column or end of the row.
     { id: 'ferraille-special', label: 'Super', ariaLabel: 'Super-tir', size: 56, placement: 'right', mode: 'tap' },
@@ -33,7 +35,7 @@ export interface FerrailleHook {
         hud: { x: number; y: number; width: number; height: number };
         ground: { x: number; y: number; width: number; height: number };
         visibleWorldBottom: number;
-        /** The hero's drawn box, in world (360×640) coordinates. */
+        /** The hero's drawn box, in canvas pixels (world, HUD and ground too). */
         hero: { x: number; y: number; width: number; height: number };
     };
     advance(ms: number): void;
@@ -74,6 +76,10 @@ export class FerrailleScene extends Phaser.Scene {
     private flash = 0;
     private impacts = new Impacts();
     private scoreTexts = new Map<object, Phaser.GameObjects.Text>();
+    /** Logical width of the play field: the full-screen plan widens it on a wide screen (more of the level ahead). */
+    private span = VIEW.width;
+    private plan: FerraillePlan = ferraillePlan(VIEW.width, VIEW.height);
+    private hudCam?: Phaser.Cameras.Scene2D.Camera;
     constructor(private session = new PlaySession(true)) { super('ferraille'); }
     private panels(): void {
         const signature = `${this.engine.status}|${this.progress.state}|${String(this.engine.level)}|${String(this.engine.state.score)}|${String(this.progress.total)}|${String(this.selecting)}`;
@@ -101,7 +107,8 @@ export class FerrailleScene extends Phaser.Scene {
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.graphics = this.add.graphics();
         this.art = new ActionPaint(this, 224);
-        this.decor = new DecorCache(this, 20);
+        // One image per decor tile across the widest field (MAX_SPAN): six parallax parts, each tiled with one spare.
+        this.decor = new DecorCache(this, Array.from({ length: DECOR_PARTS }, (_, part) => Math.ceil(MAX_SPAN / decorWidth(part)) + 1).reduce((a, b) => a + b, 0));
         for (const theme of sceneryThemes) for (let part = 0; part < DECOR_PARTS; part++) {
             this.decor.bake(decorKey(theme, part), decorWidth(part), 640, g => { decorPart(g, theme, part); });
         }
@@ -141,7 +148,7 @@ export class FerrailleScene extends Phaser.Scene {
                 }
                 this.draw();
             },
-            usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
+            usefulArea: () => ({ x: 0, y: 0, width: this.plan.width, height: this.plan.height }),
             performance: () => ({ frames: this.game.loop.frame, gameMs: this.engine.state.ticks * 1000 / 60 }),
             fingerReceipts: receipts,
             read: () => ({ fingerInput: { paused: this.session.paused, controls: this.controls() }, character: this.hero.snapshot(), ...this.engine.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
@@ -161,7 +168,28 @@ export class FerrailleScene extends Phaser.Scene {
                 this.engine.loadState(s); this.draw();
             },
         };
+        // Headless harnesses (scripts/validate-*.js) build Ferraille without cameras: they keep the 360 × 640 plan.
+        if (typeof (this as { cameras?: { add?: unknown } }).cameras?.add === 'function') {
+            this.hudCam = this.cameras.add(0, 0, 1, 1, false, 'hud');
+            this.measure();
+            const resized = (): void => { this.measure(); this.draw(); };
+            this.scale.on('resize', resized);
+            this.events.once('shutdown', () => { this.scale.off('resize', resized); });
+        }
         this.scale.refresh(); this.panels(); this.draw();
+    }
+    /** Screen plan from the canvas size: the HUD camera shows the HUD band, the main camera the play field. */
+    private measure(): void {
+        const p = this.plan = ferraillePlan(this.scale.width, this.scale.height, matchMedia(MOBILE).matches);
+        this.span = p.span;
+        this.hudCam?.setViewport(p.hud.x, p.hud.y, p.hud.w, p.hud.h).setZoom(p.hudZoom).centerOn(HUD_BAND.width / 2, HUD_BAND.height / 2);
+        this.cameras.main.setViewport(p.field.x, p.field.y, p.field.w, p.field.h).setZoom(p.zoom);
+        this.placeField(0, 0);
+    }
+    /** Centres the field camera on the field, moved by the shake offset. Headless harnesses have no cameras. */
+    private placeField(dx: number, dy: number): void {
+        const camera = (this as { cameras?: { main?: { centerOn?: (x: number, y: number) => unknown } } }).cameras?.main;
+        camera?.centerOn?.(this.span / 2 + dx, VIEW.worldTop + FIELD_HEIGHT / 2 + dy);
     }
     private controls(): Input {
         const has = (...codes: string[]): boolean => codes.some(c => this.keys.has(c));
@@ -242,32 +270,35 @@ export class FerrailleScene extends Phaser.Scene {
         }
         for (const [b, text] of this.scoreTexts) if (!live.has(b)) { text.destroy(); this.scoreTexts.delete(b); }
         if (this.impacts.message) {
-            this.hurtText ??= this.add.text(180, 300, '', { fontFamily: 'system-ui', fontSize: '18px', fontStyle: 'bold', color: '#ffffff', backgroundColor: '#8a1028e6', padding: { x: 10, y: 6 }, align: 'center', wordWrap: { width: 320 } }).setOrigin(.5).setDepth(7);
-            this.hurtText.setText(this.impacts.message).setVisible(true).setAlpha(Math.min(1, this.impacts.messageLeft / 300));
+            this.hurtText ??= this.add.text(this.span / 2, 300, '', { fontFamily: 'system-ui', fontSize: '18px', fontStyle: 'bold', color: '#ffffff', backgroundColor: '#8a1028e6', padding: { x: 10, y: 6 }, align: 'center', wordWrap: { width: 320 } }).setOrigin(.5).setDepth(7);
+            this.hurtText.setX(this.span / 2).setText(this.impacts.message).setVisible(true).setAlpha(Math.min(1, this.impacts.messageLeft / 300));
         } else this.hurtText?.setVisible(false);
-        if (this.impacts.red > 0) { const a = this.impacts.red / 400; g.lineStyle(14, 0xff2f4e, .75 * a); g.strokeRoundedRect(7, 7, 346, 626, 16); g.fillStyle(0xff2f4e, .12 * a); g.fillRect(0, 0, 360, 640); }
+        if (this.impacts.red > 0) { const a = this.impacts.red / 400; g.lineStyle(14, 0xff2f4e, .75 * a); g.strokeRoundedRect(7, VIEW.worldTop + 7, this.span - 14, FIELD_HEIGHT - 14, 16); g.fillStyle(0xff2f4e, .12 * a); g.fillRect(0, VIEW.worldTop, this.span, FIELD_HEIGHT); }
         // Headless scene harnesses (scripts/validate-*.js) build Ferraille without cameras.
-        const shake = this.impacts.offset(reducedMotion), camera = (this as { cameras?: { main?: { setScroll?: (x: number, y: number) => unknown } } }).cameras?.main;
-        camera?.setScroll?.(shake.x, shake.y);
+        const shake = this.impacts.offset(reducedMotion);
+        this.placeField(shake.x, shake.y);
     }
     rendering: { palette: number[]; layers: { factor: number; x: number }[]; camera: number; boss: ReturnType<typeof bossAppearance> | null; reducedMotion: boolean } = { palette: [], layers: [], camera: 0, boss: null, reducedMotion: false };
     private layout() {
         const h = this.engine.state.hero, top = Math.max(88, h.y - 146);
-        const camera = Math.max(0, Math.min(this.engine.state.columns * TILE - VIEW.width / VIEW.scale, h.x - 42));
+        const camera = Math.max(0, Math.min(this.engine.state.columns * TILE - this.span / VIEW.scale, h.x - 42));
         const groundTop = Math.max(VIEW.worldTop, Math.min(VIEW.height, (16 * TILE - top) * VIEW.scale + VIEW.worldTop));
         const groundBottom = Math.max(groundTop, Math.min(VIEW.height, (20 * TILE - top) * VIEW.scale + VIEW.worldTop));
+        // Logical field and HUD coordinates to canvas pixels, through the two cameras of the plan.
+        const p = this.plan, f = (x: number, y: number, width: number, height: number) => ({ x: p.field.x + x * p.zoom, y: p.field.y + (y - VIEW.worldTop) * p.zoom, width: width * p.zoom, height: height * p.zoom });
+        const hz = p.hudZoom, field = f(0, VIEW.worldTop, this.span, FIELD_HEIGHT);
         return {
-            world: { x: 0, y: VIEW.worldTop, width: VIEW.width, height: VIEW.height - VIEW.worldTop },
-            hud: { ...HUD },
-            ground: { x: 0, y: groundTop, width: VIEW.width, height: groundBottom - groundTop },
+            world: field,
+            hud: { x: p.hud.x + HUD.x * hz, y: p.hud.y + HUD.y * hz, width: HUD.width * hz, height: HUD.height * hz },
+            ground: f(0, groundTop, this.span, groundBottom - groundTop),
             // Camera reach at the physical fall threshold, including the standing body.
             visibleWorldBottom: Math.max(88, 340 - 146) + (VIEW.height - VIEW.worldTop) / VIEW.scale,
-            hero: { x: (h.x - camera) * VIEW.scale, y: (h.y - top) * VIEW.scale + VIEW.worldTop, width: h.w * VIEW.scale, height: h.h * VIEW.scale },
+            hero: f((h.x - camera) * VIEW.scale, (h.y - top) * VIEW.scale + VIEW.worldTop, h.w * VIEW.scale, h.h * VIEW.scale),
         };
     }
     private draw(): void {
         const g = this.graphics; if (!g) return;
-        const s = this.engine.state, h = s.hero, camera = Math.max(0, Math.min(s.columns * TILE - VIEW.width / VIEW.scale, h.x - 42));
+        const s = this.engine.state, h = s.hero, span = this.span, camera = Math.max(0, Math.min(s.columns * TILE - span / VIEW.scale, h.x - 42));
         const top = Math.max(88, h.y - 146);
         const xx = (x: number): number => (x - camera) * VIEW.scale, yy = (y: number): number => (y - top) * VIEW.scale + VIEW.worldTop;
         const palette = PALETTES[s.theme];
@@ -276,7 +307,7 @@ export class FerrailleScene extends Phaser.Scene {
         const stride = !reducedMotion && h.vx && s.grounded ? Math.sin(s.ticks * .55) * 3 : 0;
         if (this.art) { this.art.clock = s.ticks; this.art.firing = s.input.fire; this.art.running = Boolean(h.vx && s.grounded); this.art.reduced = reducedMotion; }
         this.art?.begin();
-        g.clear(); if (!this.decor) { g.fillStyle(palette[0]); g.fillRoundedRect(0, 0, 360, 640, 16); }
+        g.clear(); if (!this.decor) { g.fillStyle(palette[0]); g.fillRoundedRect(0, 0, span, 640, 16); }
         g.fillStyle(0x142a3d); g.fillRoundedRect(HUD.x, HUD.y, HUD.width, HUD.height, 10);
         for (const factor of [.15, .3, .55]) this.rendering.layers.push({ factor, x: backdropX(0, camera, factor) });
         if (this.decor) {
@@ -285,16 +316,16 @@ export class FerrailleScene extends Phaser.Scene {
             for (let part = 0; part < DECOR_PARTS; part++) {
                 const width = decorWidth(part);
                 const shift = camera * decorFactor(part) % width;
-                for (let x = -shift; x < 360; x += width) this.decor.draw(decorKey(theme, part), x, 0, width, 640, -6 + part * .1);
+                for (let x = -shift; x < span; x += width) this.decor.draw(decorKey(theme, part), x, 0, width, 640, -6 + part * .1);
             }
             sceneryMotion(g, this.engine.level, camera, s.ticks, reducedMotion, s.theme);
         } else scenery(g, this.engine.level, camera, s.ticks, reducedMotion, s.theme);
-        const first = Math.max(0, Math.floor(camera / TILE)), last = Math.min(s.columns, first + Math.ceil(VIEW.width / (TILE * VIEW.scale)) + 1);
+        const first = Math.max(0, Math.floor(camera / TILE)), last = Math.min(s.columns, first + Math.ceil(span / (TILE * VIEW.scale)) + 1);
         for (let y = 0; y < 20; y++) for (let x = first; x < last; x++) if (s.tiles[y * s.columns + x]) {
             tileArt(g, palette, xx(x * TILE), yy(y * TILE), TILE * VIEW.scale, y === 16 || !s.tiles[(y - 1) * s.columns + x]);
         }
         for (const m of s.modules ?? []) {
-            if (m.x + m.w < camera || m.x > camera + 280) continue;
+            if (m.x + m.w < camera || m.x > camera + span / VIEW.scale + 142) continue;
             const platform = m.kind === 'lift' || m.kind === 'chain' ? s.platforms.find(p => p.originX === m.x - 32) : undefined;
             drawModule(g, platform ? { ...m, x: platform.x, y: platform.y, w: platform.w } : m, xx, yy, VIEW.scale, s.ticks, reducedMotion);
         }
@@ -303,7 +334,7 @@ export class FerrailleScene extends Phaser.Scene {
             if (p.originY !== undefined || s.modules?.some(m => m.kind === 'chain' && p.originX === m.x - 32)) { g.lineStyle(2, 0xd4bd87, .6); for (const dx of [6, p.w - 6]) { g.lineBetween(xx(p.x + dx), yy(70), xx(p.x + dx), yy(p.y)); for (let j = 90; j < p.y; j += 14) g.strokeCircle(xx(p.x + dx), yy(j), 2); } }
             platformArt(g, xx(p.x), yy(p.y), p.w * VIEW.scale);
         }
-        for (const x of s.checkpoints) if (Math.abs(x - camera) < 260) { g.lineStyle(2, 0x74f1c7); g.lineBetween(xx(x), yy(220), xx(x), yy(256)); g.fillStyle(x <= s.checkpoint ? 0x74f1c7 : 0x61768d); g.fillTriangle(xx(x), yy(220), xx(x + 14), yy(226), xx(x), yy(232)); }
+        for (const x of s.checkpoints) if (Math.abs(x - camera) < span / VIEW.scale + 122) { g.lineStyle(2, 0x74f1c7); g.lineBetween(xx(x), yy(220), xx(x), yy(256)); g.fillStyle(x <= s.checkpoint ? 0x74f1c7 : 0x61768d); g.fillTriangle(xx(x), yy(220), xx(x + 14), yy(226), xx(x), yy(232)); }
         for (const b of s.bonuses) {
             const x = xx(b.x), y = yy(b.y);
             g.fillStyle(b.kind === 'flame' ? 0xffa45c : b.kind === 'bounce' ? 0x8bbfff : b.kind === 'grenade' ? 0xa4dc76 : b.kind === 'fan' ? 0xffc66e : b.kind === 'burst' ? 0xf688b1 : 0x74f1c7);
@@ -321,7 +352,7 @@ export class FerrailleScene extends Phaser.Scene {
         }
         if (s.vehicle) this.art?.craft('vehicles', s.facing < 0 ? 'gauche' : 'droite', xx(h.x + h.w / 2), yy(h.y + h.h) - 45, 148, 126);
         for (const e of s.enemies) {
-            if (e.x + e.w < camera || e.x > camera + VIEW.width / VIEW.scale) continue;
+            if (e.x + e.w < camera || e.x > camera + span / VIEW.scale) continue;
             const x = xx(e.x) - 10, y = yy(e.y) - 10;
             enemyArt(g, e.kind, x, y);
             const blink = this.impacts.blink.get(e);
@@ -355,7 +386,7 @@ export class FerrailleScene extends Phaser.Scene {
             if (s.shield) { g.lineStyle(2, 0x89f8ff); g.strokeEllipse(xx(h.x + h.w / 2), yy(h.y + h.h / 2), 43, 55); }
         }
         g.fillStyle(0x3b6070); g.fillRect(HUD.x + 12, HUD.y + 58, HUD.width - 24, 5); g.fillStyle(0x74f1c7); g.fillRect(HUD.x + 12, HUD.y + 58, (HUD.width - 24) * Math.min(1, h.x / s.door), 5);
-        if (this.flash && !reducedMotion) { g.lineStyle(3, 0xffe8ad, this.flash); g.strokeRoundedRect(3, 3, 354, 634, 16); }
+        if (this.flash && !reducedMotion) { g.lineStyle(3, 0xffe8ad, this.flash); g.strokeRoundedRect(3, VIEW.worldTop + 3, span - 6, FIELD_HEIGHT - 6, 16); }
         this.drawImpacts(g, xx, yy, reducedMotion);
         this.specialGraphics?.clear();
         let aimX = Math.sign(s.input.x), aimY = Math.sign(s.input.y);

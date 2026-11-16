@@ -102,3 +102,18 @@ describe('Ferraille diversité passe 51', () => {
     it('F-TERRAIN emplacements et respirations', () => { terrain(); });
     for (const seed of [460, 28]) it(`F-PILOT trente victoires bornées graine ${String(seed)}`, () => { campaign(Engine, seed); });
 });
+
+describe('plan plein écran', () => {
+    it('bandeau et terrain se partagent le canevas sans se recouvrir, terrain au moins aussi large que l’ancien monde', async () => {
+        const { ferraillePlan, FIELD_HEIGHT, MIN_SPAN, MAX_SPAN } = await import('../src/games/ferraille/plan');
+        for (const [w, h] of [[360, 250], [390, 480], [390, 680], [844, 226], [820, 1016], [1280, 700]] as const) for (const pause of [false, true]) {
+            const p = ferraillePlan(w, h, pause), { hud, field } = p;
+            expect(hud.y + hud.h <= field.y + 0.01 || hud.x + hud.w <= field.x + 0.01, `${String(w)}×${String(h)}`).toBe(true);
+            expect(field.x).toBeGreaterThanOrEqual(-0.01); expect(field.x + field.w).toBeLessThanOrEqual(w + 0.01);
+            expect(field.y + field.h).toBeLessThanOrEqual(h + 0.01);
+            expect(field.h).toBeCloseTo(FIELD_HEIGHT * p.zoom); expect(field.w).toBeCloseTo(p.span * p.zoom);
+            expect(p.span).toBeGreaterThanOrEqual(MIN_SPAN); expect(p.span).toBeLessThanOrEqual(MAX_SPAN);
+            if (pause && w < 600) expect(hud.x + hud.w).toBeLessThanOrEqual(w - 60 + 0.01);
+        }
+    });
+});

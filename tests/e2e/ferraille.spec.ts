@@ -199,7 +199,7 @@ test('F20 tactile : Saut plus gros que Tir et Super, joystick à gauche du canev
     const exposed = async () => page.evaluate(() => {
         const canvas = document.querySelector('#game canvas')?.getBoundingClientRect(), hero = window.__FERRAILLE_TEST__?.layout().hero;
         if (!canvas || !hero) throw new Error('Géométrie absente');
-        const k = canvas.width / 360, box = { x: canvas.x + hero.x * k, y: canvas.y + hero.y * k, width: hero.width * k, height: hero.height * k };
+        const k = canvas.width / (window.__FERRAILLE_TEST__?.usefulArea().width ?? 360), box = { x: canvas.x + hero.x * k, y: canvas.y + hero.y * k, width: hero.width * k, height: hero.height * k };
         const controls = [...document.querySelectorAll<HTMLElement>('#touch-controls button, #touch-controls .joystick, #pause')].map(e => ({ id: e.id || e.className, r: e.getBoundingClientRect() })).filter(c => c.r.width > 0);
         const size = (id: string) => document.querySelector(`#${id}`)?.getBoundingClientRect().width ?? 0;
         const joystick = document.querySelector('#touch-controls .joystick')?.getBoundingClientRect();
@@ -272,4 +272,37 @@ test('F-FX-07 super-tir visible, vie perdue qui dit la cause et l’arme perdue'
     await page.keyboard.up('ArrowRight');
     expect(message).toBe('Chute · Arme perdue : Éventail');
     await page.screenshot({ path: `test-results/screenshots/ferraille-cause-${info.project.name}.png` });
+});
+
+// Phone window under Chrome's bar (360 × 430) and a short phone (390 × 664): the game takes the width, the HUD and
+// the play field do not overlap, and the controls stay under the canvas, inside the window, at least 56 px.
+type Box = { x: number; y: number; width: number; height: number };
+const meets = (a: Box, b: Box): boolean => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+for (const [width, height] of [[360, 430], [390, 664]] as const) for (const level of [0, 29]) test(`F-FILL ${String(width)}×${String(height)} niveau ${String(level + 1)} : le jeu prend la largeur, bandeau et terrain sans recouvrement`, async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'téléphone');
+    await page.setViewportSize({ width, height });
+    await page.goto('/?test=1#/ferraille');
+    await expect.poll(() => page.evaluate(() => Boolean(window.__FERRAILLE_TEST__))).toBe(true);
+    await tap(page, '#resume', true);
+    await page.evaluate(level => { window.__FERRAILLE_TEST__?.loadLevel(level, 28); window.__FERRAILLE_TEST__?.advance(100); }, level);
+    const canvas = await page.locator('#game canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
+    expect.soft(canvas.width, 'largeur du jeu ≥ 90 % de la fenêtre').toBeGreaterThanOrEqual(0.9 * width);
+    // The hook gives game pixels: the canvas size of a full-screen game, the 360 × 640 world of a FIT one.
+    const { view, game } = await page.evaluate(() => ({ view: window.__FERRAILLE_TEST__?.layout(), game: window.__FERRAILLE_TEST__?.usefulArea() }));
+    if (!view || !game) throw new Error('Zones absentes');
+    const k = canvas.width / game.width, toScreen = (b: Box): Box => ({ x: canvas.x + b.x * k, y: canvas.y + b.y * k, width: b.width * k, height: b.height * k });
+    const hud = toScreen(view.hud), field = toScreen(view.world), hero = toScreen(view.hero);
+    expect.soft(meets(hud, field), 'bandeau × terrain').toBe(false);
+    for (const [name, b] of [['bandeau', hud], ['terrain', field]] as const) {
+        expect.soft(b.x, `${name} dans la fenêtre`).toBeGreaterThanOrEqual(-0.5); expect.soft(b.x + b.width, `${name} dans la fenêtre`).toBeLessThanOrEqual(width + 0.5);
+        expect.soft(b.y + b.height, `${name} dans le canevas`).toBeLessThanOrEqual(canvas.y + canvas.height + 0.5);
+    }
+    expect.soft(meets(hero, field), 'héros sur le terrain').toBe(true);
+    for (const id of ['#ferraille-special', '#ferraille-fire', '#ferraille-jump', '#touch-controls .joystick']) {
+        const b = await page.locator(id).boundingBox(); if (!b) throw new Error(id);
+        expect.soft(b.width, id).toBeGreaterThanOrEqual(56); expect.soft(b.height, id).toBeGreaterThanOrEqual(56);
+        expect.soft(b.x, id).toBeGreaterThanOrEqual(0); expect.soft(b.x + b.width, id).toBeLessThanOrEqual(width + 0.5);
+        expect.soft(b.y + b.height, id).toBeLessThanOrEqual(height + 0.5);
+        expect.soft(meets(b, canvas), `${id} hors du canevas`).toBe(false);
+    }
 });
