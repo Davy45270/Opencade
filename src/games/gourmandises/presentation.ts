@@ -42,10 +42,12 @@ export function card(c: CanvasRenderingContext2D, x: number, y: number, w: numbe
     c.stroke();
 }
 /** Cached scenery: no animation, randomness or image resources. */
+/** Top colour of each world's sky (also the full-screen backdrop around the board). */
+export const SKY = ['#67d9ff', '#8776cd', '#55bba2', '#45cce8', '#6fa6d9', '#8784d1', '#e8af88', '#7cdef1', '#edb26e',
+    '#9fd8ff', '#7ec3f5', '#d7a6e8'] as const;
 export function drawScenery(c: CanvasRenderingContext2D, world: number): void {
     const sky = c.createLinearGradient(0, 0, 0, 640);
-    sky.addColorStop(0, ['#67d9ff', '#8776cd', '#55bba2', '#45cce8', '#6fa6d9', '#8784d1', '#e8af88', '#7cdef1', '#edb26e',
-        '#9fd8ff', '#7ec3f5', '#d7a6e8'][world] ?? '#67d9ff');
+    sky.addColorStop(0, SKY[world] ?? '#67d9ff');
     sky.addColorStop(1, '#eff7a0');
     c.fillStyle = sky;
     c.fillRect(0, 0, 360, 640);

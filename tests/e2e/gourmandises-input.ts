@@ -10,13 +10,13 @@ export async function point(page: Page, index: number) {
     const board = await page.evaluate(() => {
         const hook = window.__GOURMANDISES_TEST__;
         if (!hook) throw new Error('Crochet absent');
-        return { ...hook.board(), columns: hook.read().width };
+        return { ...hook.board(), columns: hook.read().width, gameWidth: hook.rects().width, gameHeight: hook.rects().height };
     });
     const canvas = await page.locator('#game canvas').boundingBox();
     if (!canvas) throw new Error('Canevas absent');
     return {
-        x: canvas.x + (board.x + (index % board.columns + 0.5) * board.unit) * canvas.width / 360,
-        y: canvas.y + (board.y + (Math.floor(index / board.columns) + 0.5) * board.unit) * canvas.height / 640,
+        x: canvas.x + (board.x + (index % board.columns + 0.5) * board.unit) * canvas.width / board.gameWidth,
+        y: canvas.y + (board.y + (Math.floor(index / board.columns) + 0.5) * board.unit) * canvas.height / board.gameHeight,
     };
 }
 export async function swap(page: Page, pair: [number, number], touch: boolean): Promise<void> {

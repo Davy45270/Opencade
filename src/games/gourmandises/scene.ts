@@ -16,9 +16,13 @@ import { browserStorage, readSave, writeSave, readValue, writeValue } from '../.
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
+import { aim, planZones, screenRect, type ZonePlan } from '../zones';
+/** World regions of the former 360 × 640 layout: the HUD cards and companion, and the board with its frame. */
+const MOBILE = '(pointer: coarse), (width < 600px)';
+const HUD_ZONE = { x: 0, y: 0, w: 360, h: 188 }, BOARD_ZONE = { x: 6, y: 178, w: 348, h: 428 };
 import { drawPiece } from './thumbnail';
 import { drawBomb, drawFruitCargo, drawPortal } from './presentation';
-import { drawChocolate, drawHedge, drawBelt, drawDrop, drawIce, boardLayout, presentation, drawScenery, drawTool, card, drawObjective, drawWorldRibbon, drawScoreGauge, WORLD_RIBBON } from './presentation';
+import { drawChocolate, drawHedge, drawBelt, drawDrop, drawIce, boardLayout, presentation, drawScenery, drawTool, card, drawObjective, drawWorldRibbon, drawScoreGauge, WORLD_RIBBON, SKY } from './presentation';
 export const gourmandisesButtons: readonly TouchButton[] = [
     { id: 'gourmandises-hammer', label: '', ariaLabel: 'Marteau : une case', size: 56, placement: 'center', mode: 'tap' },
     { id: 'gourmandises-rocket', label: '', ariaLabel: 'Fusée : une ligne', size: 56, placement: 'center', mode: 'tap' },
@@ -47,7 +51,10 @@ export interface GourmandisesHook {
     loadLevel(index: number, seed?: number): void;
     scenario(name: 'finish' | 'loss' | 'drop' | 'belt' | 'portal' | 'fruit' | 'bomb'): [number, number] | null;
     bestMove(): [number, number] | null;
+    /** The board in canvas pixels. */
     board(): { x: number; y: number; unit: number; width: number; height: number };
+    /** Canvas pixels: the HUD and board windows of the full-screen plan. */
+    rects(): { width: number; height: number; hud: { x: number; y: number; w: number; h: number }; board: { x: number; y: number; w: number; h: number } };
 }
 declare global { interface Window { __GOURMANDISES_TEST__?: GourmandisesHook } }
 interface TransportFrame {
@@ -82,6 +89,10 @@ export class GourmandisesScene extends Phaser.Scene {
     private sceneryLevel = -1;
     private reducedMotion = false;
     private hud?: Phaser.GameObjects.Text;
+    /** Full-screen plan: the HUD and the board, each shown by its own camera over a backdrop of the scenery. */
+    private plan: ZonePlan = planZones(360, 640, HUD_ZONE, BOARD_ZONE);
+    private hudCam?: Phaser.Cameras.Scene2D.Camera;
+    private boardCam?: Phaser.Cameras.Scene2D.Camera;
     private modeButton?: HTMLButtonElement;
     private down: { index: number; x: number; y: number } | null = null;
     constructor(private session = new PlaySession(false)) { super('gourmandises'); }
@@ -313,10 +324,22 @@ export class GourmandisesScene extends Phaser.Scene {
         });
         this.sceneryLevel = -1;
         this.scenery = this.textures.createCanvas('gourmandises-scenery', 360, 640) ?? undefined;
-        this.add.image(0, 0, 'gourmandises-scenery').setOrigin(0);
+        const sceneryImage = this.add.image(0, 0, 'gourmandises-scenery').setOrigin(0);
         this.texture = this.textures.createCanvas('gourmandises-board', 360, 640) ?? undefined;
-        this.add.image(0, 0, 'gourmandises-board').setOrigin(0);
+        const boardImage = this.add.image(0, 0, 'gourmandises-board').setOrigin(0);
         this.hud = this.add.text(0, 0, '', { fontSize: '1px' }).setVisible(false);
+        // Headless harnesses build the scene without cameras: they keep the 360 × 640 world.
+        if (typeof (this as { cameras?: { add?: unknown } }).cameras?.add === 'function') {
+            // The main camera is a plain backdrop in the sky colour (the scenery texture also carries the board frame);
+            // the board and the HUD have their own cameras on top.
+            this.cameras.main.ignore([sceneryImage, boardImage, this.hud]);
+            this.boardCam = this.cameras.add(0, 0, 1, 1, false, 'board');
+            this.hudCam = this.cameras.add(0, 0, 1, 1, false, 'hud');
+            this.measure();
+            const resized = (): void => { this.measure(); };
+            this.scale.on('resize', resized);
+            this.events.once('shutdown', () => { this.scale.off('resize', resized); });
+        }
         this.modeButton = document.createElement('button');
         this.modeButton.id = 'gourmandises-mode';
         document.querySelector('#game-menu')?.append(this.modeButton);
@@ -346,8 +369,8 @@ export class GourmandisesScene extends Phaser.Scene {
             count.className = 'tool-count';
             button?.replaceChildren(icon, count);
         }
-        this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { this.pointerDown(p.x, p.y); });
-        this.input.on('pointerup', (p: Phaser.Input.Pointer) => { this.pointerUp(p.x, p.y); });
+        this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { const w = this.world(p); this.pointerDown(w.x, w.y); });
+        this.input.on('pointerup', (p: Phaser.Input.Pointer) => { const w = this.world(p); this.pointerUp(w.x, w.y); });
         this.inputs.on(document, 'keydown', event => { this.keydown(event as KeyboardEvent); });
         this.inputs.on(document, 'keyup', event => {
             if ((event as KeyboardEvent).code === 'KeyP') {
@@ -382,6 +405,19 @@ export class GourmandisesScene extends Phaser.Scene {
         this.events.once('shutdown', cleanup);
         this.events.once('destroy', cleanup);
         this.sync();
+    }
+    /** Screen plan from the canvas size: board and HUD stacked or side by side, whichever gives the larger board. */
+    private measure(): void {
+        const p = this.plan = planZones(this.scale.width, this.scale.height, HUD_ZONE, BOARD_ZONE, { pauseCorner: matchMedia(MOBILE).matches ? 60 : 0 });
+        this.cameras.main.setViewport(0, 0, p.width, p.height);
+        if (this.boardCam) aim(this.boardCam, p.board);
+        if (this.hudCam) aim(this.hudCam, p.hud);
+    }
+    /** Canvas point to world point through the board camera (the HUD region has no target). */
+    private world(p: Phaser.Input.Pointer): { x: number; y: number } {
+        if (!this.boardCam) return { x: p.x, y: p.y };
+        const w = this.boardCam.getWorldPoint(p.x, p.y);
+        return { x: w.x, y: w.y };
     }
     private indexAt(x: number, y: number): number {
         const b = this.board();
@@ -431,7 +467,7 @@ export class GourmandisesScene extends Phaser.Scene {
                 }
             },
             hudText: () => this.hud?.text ?? '',
-            usefulArea: () => ({ x: 0, y: 0, width: 360, height: 600 }),
+            usefulArea: () => this.boardCam ? { x: 0, y: 0, width: this.plan.width, height: this.plan.height } : { x: 0, y: 0, width: 360, height: 600 },
             loadLevel: (index, seed) => {
                 this.ready = false;
                 if (pausePanel) pausePanel.hidden = true;
@@ -439,7 +475,13 @@ export class GourmandisesScene extends Phaser.Scene {
             },
             transport: () => this.beltMoves.map(move => ({ ...move, piece: { ...move.piece } })),
             bestMove: () => greedyMove(this.engine),
-            board: () => this.board(),
+            board: () => {
+                // Canvas pixels (the game draws at the play area's size): the board seen through its camera.
+                const b = this.board(); if (!this.boardCam) return { ...b };
+                const z = this.plan.board.zoom, r = screenRect(this.plan.board, { x: b.x, y: b.y, w: b.width, h: b.height });
+                return { x: r.x, y: r.y, unit: b.unit * z, width: r.w, height: r.h };
+            },
+            rects: () => ({ width: this.plan.width, height: this.plan.height, hud: { ...this.plan.hud.view }, board: { ...this.plan.board.view } }),
             scenario: name => {
                 this.ready = false;
                 if (pausePanel) pausePanel.hidden = true;
@@ -572,6 +614,7 @@ export class GourmandisesScene extends Phaser.Scene {
         if (this.scenery && this.sceneryLevel !== s.level) {
             const background = this.scenery.context;
             drawScenery(background, view.world);
+            if (this.boardCam) this.cameras.main.setBackgroundColor(SKY[view.world] ?? SKY[0]);
             this.drawStaticHud(background);
             background.shadowColor = '#254834';
             background.shadowBlur = 12;

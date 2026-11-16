@@ -89,6 +89,7 @@ export const games: readonly GameDefinition[] = [
         thumbnail: gourmandisesThumbnail,
         demo: gourmandisesDemo,
         id: 'gourmandises',
+        fill: true,
         name: GAME_NAME,
         levelCount: 240,
         realtime: false,

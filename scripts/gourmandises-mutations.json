@@ -569,8 +569,8 @@
   {
     "name": "trois ciels identiques",
     "file": "src/games/gourmandises/presentation.ts",
-    "before": "'#9fd8ff', '#7ec3f5', '#d7a6e8'][world]",
-    "after": "'#9fd8ff', '#9fd8ff', '#9fd8ff'][world]",
+    "before": "'#9fd8ff', '#7ec3f5', '#d7a6e8'] as const",
+    "after": "'#9fd8ff', '#9fd8ff', '#9fd8ff'] as const",
     "oracle": "presentationChecks"
   },
   {

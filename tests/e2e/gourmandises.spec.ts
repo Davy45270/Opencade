@@ -51,10 +51,10 @@ test('clavier, sélection visible et raccourcis des trois outils', async ({ page
     const canvas = await page.locator('#game canvas').boundingBox();
     if (!board || !canvas) throw new Error('Plateau absent');
     const clip = {
-        x: canvas.x + board.x * canvas.width / 360,
-        y: canvas.y + board.y * canvas.height / 640,
-        width: board.width * canvas.width / 360,
-        height: board.height * canvas.height / 640,
+        x: canvas.x + board.x,
+        y: canvas.y + board.y,
+        width: board.width,
+        height: board.height,
     };
     const unselected = await page.screenshot({ clip });
     await page.keyboard.press('Space');
@@ -176,4 +176,39 @@ test('portes, îles et atelier : portail, fraise et bombe au doigt', async ({ pa
         await page.screenshot({ path: `${captures}/gourmandises-${scenario}-after.png` });
     }
     expect(errors).toEqual([]);
+});
+
+// Phone window under Chrome's bar (360 × 430) and a short phone (390 × 664): the game takes the width, the HUD and
+// the board do not overlap, the tool buttons stay under the canvas, and a swap by touch still lands on its cells.
+type Box = { x: number; y: number; w: number; h: number };
+/** Plan of the former 360 × 640 world, used only when the hook has no rects() (counter-test on the old code). */
+const LEGACY = { width: 360, height: 640, hud: { x: 0, y: 0, w: 360, h: 188 }, board: { x: 6, y: 178, w: 348, h: 428 } };
+const meets = (a: Box, b: Box): boolean => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+for (const [width, height] of [[360, 430], [390, 664]] as const) for (const level of [0, 239]) test(`G-FILL ${String(width)}×${String(height)} niveau ${String(level + 1)} : le jeu prend la largeur, bandeau et plateau sans recouvrement`, async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'téléphone');
+    await page.setViewportSize({ width, height });
+    await page.goto('/?test=1#/gourmandises');
+    await ready(page, true);
+    await page.evaluate(level => { window.__GOURMANDISES_TEST__?.loadLevel(level, 28); window.__GOURMANDISES_TEST__?.advance(50); }, level);
+    const canvas = await page.locator('#game canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
+    expect.soft(canvas.width, 'largeur du jeu ≥ 90 % de la fenêtre').toBeGreaterThanOrEqual(0.9 * width);
+    const r = await page.evaluate(() => (window.__GOURMANDISES_TEST__ as { rects?: () => unknown } | undefined)?.rects?.() ?? null) as typeof LEGACY | null ?? LEGACY;
+    const k = canvas.width / r.width, toScreen = (b: Box): Box => ({ x: canvas.x + b.x * k, y: canvas.y + b.y * k, w: b.w * k, h: b.h * k });
+    const hud = toScreen(r.hud), board = toScreen(r.board);
+    expect.soft(meets(hud, board), 'bandeau × plateau').toBe(false);
+    for (const [name, b] of [['bandeau', hud], ['plateau', board]] as const) {
+        expect.soft(b.x, name).toBeGreaterThanOrEqual(canvas.x - 0.5); expect.soft(b.x + b.w, name).toBeLessThanOrEqual(canvas.x + canvas.width + 0.5);
+        expect.soft(b.y, name).toBeGreaterThanOrEqual(canvas.y - 0.5); expect.soft(b.y + b.h, name).toBeLessThanOrEqual(canvas.y + canvas.height + 0.5);
+    }
+    for (const id of ['#gourmandises-hammer', '#gourmandises-rocket', '#gourmandises-rainbow']) {
+        const b = await page.locator(id).boundingBox(); if (!b) throw new Error(id);
+        expect.soft(b.width, id).toBeGreaterThanOrEqual(56); expect.soft(b.height, id).toBeGreaterThanOrEqual(56);
+        expect.soft(b.x + b.width, id).toBeLessThanOrEqual(width + 0.5); expect.soft(b.y + b.height, id).toBeLessThanOrEqual(height + 0.5);
+        expect.soft(meets({ x: b.x, y: b.y, w: b.width, h: b.height }, { x: canvas.x, y: canvas.y, w: canvas.width, h: canvas.height }), `${id} hors du canevas`).toBe(false);
+    }
+    const move = await page.evaluate(() => window.__GOURMANDISES_TEST__?.bestMove());
+    if (!move) throw new Error('Permutation absente');
+    const before = await page.evaluate(() => window.__GOURMANDISES_TEST__?.read().moves);
+    await swap(page, move, true);
+    await expect.poll(() => page.evaluate(() => window.__GOURMANDISES_TEST__?.read().moves)).toBe((before ?? 0) + 1);
 });
