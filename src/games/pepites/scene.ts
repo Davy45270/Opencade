@@ -13,6 +13,10 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
+import { aim, planZones, screenRect, type ZonePlan } from '../zones';
+const MOBILE = '(pointer: coarse), (width < 600px)';
+/** World regions of the former 360 × 640 layout: the mine (12 × 16 cells) and the text block under it. */
+const MINE_ZONE = { x: 0, y: TOP, w: W * CELL, h: H * CELL }, TEXT_ZONE = { x: 0, y: TOP + H * CELL, w: W * CELL, h: 76 };
 export const pepitesButtons: readonly TouchButton[] = [
     // Drag then hold on the mine to dig; Étai is the only button.
     { id: 'pepites-special', label: 'Étai', ariaLabel: 'Étai : figer les rochers', size: 56, placement: 'right', mode: 'tap' },
@@ -21,6 +25,8 @@ export interface PepitesHook {
     advance(ms: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
+    /** Canvas pixels: the text block and the mine windows of the full-screen plan. */
+    rects(): { width: number; height: number; hud: { x: number; y: number; w: number; h: number }; board: { x: number; y: number; w: number; h: number } };
     fingerReceipts: ReturnType<typeof fingerReceipts>;
     read(): ReturnType<Engine['snapshot']> & { fingerInput: { paused: boolean }; cumulativeScore: number; progression: string; character: ReturnType<GameCharacter['snapshot']> };
     loadLevel(index: number, seed?: number): void;
@@ -37,6 +43,10 @@ export class PepitesScene extends Phaser.Scene {
     private graphics?: Phaser.GameObjects.Graphics;
     private hud?: Phaser.GameObjects.Text;
     private flash = 0;
+    /** Full-screen plan: the mine and its text block, each shown by its own camera. */
+    private plan: ZonePlan = planZones(360, 640, TEXT_ZONE, MINE_ZONE);
+    private textCam?: Phaser.Cameras.Scene2D.Camera;
+    private mineCam?: Phaser.Cameras.Scene2D.Camera;
     constructor(private session = new PlaySession(true)) { super('pepites'); }
     private panels(): void { renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.state.score, this.progress.total, this.selecting); }
     private start(index: number, seed?: number, fresh = false): void {
@@ -49,6 +59,20 @@ export class PepitesScene extends Phaser.Scene {
         this.events.once('shutdown', cleanup); this.events.once('destroy', cleanup);
         this.graphics = this.add.graphics();
         this.hud = this.add.text(10, TOP + H * CELL + 8, '', { fontFamily: 'system-ui', fontSize: '14px', color: '#e5f3ff', lineSpacing: 6 });
+        // Headless harnesses build the scene without cameras: they keep the 360 × 640 world.
+        if (typeof (this as { cameras?: { add?: unknown } }).cameras?.add === 'function') {
+            // The main camera is a plain backdrop in the colour of the rock; the mine and the text have their own cameras.
+            this.cameras.main.ignore([this.graphics, this.hud]).setBackgroundColor(MINE_GROUND);
+            this.mineCam = this.cameras.add(0, 0, 1, 1, false, 'mine');
+            this.textCam = this.cameras.add(0, 0, 1, 1, false, 'text');
+            this.measure();
+            const resized = (): void => { this.measure(); };
+            this.scale.on('resize', resized);
+            // The DOM HUD (nuggets, clock, score) floats over the top of a full-screen canvas: replan when it changes.
+            const band = new ResizeObserver(resized), hud = document.querySelector('#hud');
+            if (hud) band.observe(hud);
+            this.events.once('shutdown', () => { this.scale.off('resize', resized); band.disconnect(); });
+        }
         const ready = (): boolean => {
             if (this.session.state === 'ready') this.session.send('start');
             return !this.session.paused && !this.selecting && this.engine.status === 'playing';
@@ -86,12 +110,23 @@ export class PepitesScene extends Phaser.Scene {
         if (new URLSearchParams(location.search).get('test') === '1') window.__PEPITES_TEST__ = {
             advance: ms => { this.advanceTest(ms); },
             hudText: () => this.hud?.text ?? '',
-            usefulArea: () => ({ x: 0, y: TOP, width: W * CELL, height: H * CELL }),
+            // Canvas pixels: the mine seen through its camera (the 360 × 640 world without cameras).
+            usefulArea: () => { const r = this.mineCam ? screenRect(this.plan.board, MINE_ZONE) : MINE_ZONE; return { x: r.x, y: r.y, width: r.w, height: r.h }; },
+            rects: () => ({ width: this.plan.width, height: this.plan.height, hud: { ...this.plan.hud.view }, board: { ...this.plan.board.view } }),
             fingerReceipts: receipts,
             read: () => ({ fingerInput: { paused: this.session.paused }, ...this.engine.snapshot(), character: this.hero.snapshot(), cumulativeScore: this.progress.total, progression: this.progress.state }),
             loadLevel: (index, seed) => { this.start(index, seed, true); },
         };
         this.scale.refresh(); this.panels(); this.draw();
+    }
+    /** Screen plan from the canvas size: text block and mine stacked or side by side, whichever gives the larger mine. */
+    private measure(): void {
+        const canvas = this.game.canvas.getBoundingClientRect(), hud = document.querySelector('#hud')?.getBoundingClientRect();
+        const top = hud && hud.height > 0 && hud.bottom > canvas.top ? Math.ceil(hud.bottom - canvas.top) + 4 : 0;
+        const p = this.plan = planZones(this.scale.width, this.scale.height, TEXT_ZONE, MINE_ZONE, { pauseCorner: matchMedia(MOBILE).matches ? 60 : 0, top });
+        this.cameras.main.setViewport(0, 0, p.width, p.height);
+        if (this.mineCam) aim(this.mineCam, p.board);
+        if (this.textCam) aim(this.textCam, p.hud);
     }
     private advanceTest(ms: number): void {
         if (!Number.isFinite(ms) || ms < 0) throw new RangeError('Temps invalide');
