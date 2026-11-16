@@ -21,4 +21,12 @@ describe('plan plein écran à deux régions', () => {
         expect(meets(p.hud.view, corner)).toBe(false); expect(meets(p.board.view, corner)).toBe(false);
         expect(meets(p.hud.view, p.board.view)).toBe(false);
     });
+    it('une bande réservée en haut (bandeau DOM) n’est jamais recouverte', () => {
+        for (const [w, h] of [[360, 360], [390, 600], [844, 270]] as const) {
+            const p = planZones(w, h, hud, board, { pauseCorner: 60, top: 40 });
+            expect(p.height).toBe(h);
+            for (const s of [p.hud, p.board]) { expect(s.view.y).toBeGreaterThanOrEqual(40 - 0.01); expect(s.view.y + s.view.h).toBeLessThanOrEqual(h + 0.01); }
+            expect(meets(p.hud.view, p.board.view)).toBe(false);
+        }
+    });
 });

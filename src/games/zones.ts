@@ -13,12 +13,22 @@ export interface ZoneOptions {
     /** Width of the top-right corner kept free for the shell's ⏸ (it floats over the canvas on phones);
      *  the corner is PAUSE_HEIGHT tall. Neither the HUD nor the board goes under it. */
     pauseCorner?: number;
+    /** Band kept free at the top of the canvas (a DOM HUD floating over it), canvas px. */
+    top?: number;
 }
 function shown(zone: Rect, zoom: number, x: number, y: number): Shown {
     return { view: { x, y, w: zone.w * zoom, h: zone.h * zoom }, zone, zoom };
 }
 export const PAUSE_HEIGHT = 52;
 export function planZones(width: number, height: number, hud: Rect, board: Rect, options: ZoneOptions = {}): ZonePlan {
+    const top = Math.max(0, options.top ?? 0);
+    if (top > 0) {
+        // Plan under the band, then move everything down; the band also covers (part of) the ⏸ corner.
+        const corner = top >= PAUSE_HEIGHT ? 0 : options.pauseCorner;
+        const p = planZones(width, Math.max(200, height) - top, hud, board, { ...options, top: 0, pauseCorner: corner });
+        const down = (s: Shown): Shown => ({ ...s, view: { ...s.view, y: s.view.y + top } });
+        return { ...p, height: p.height + top, hud: down(p.hud), board: down(p.board) };
+    }
     const w = Math.max(200, width), h = Math.max(200, height);
     const minHud = options.minHud ?? 0.5, maxZoom = options.maxZoom ?? 1.8, corner = options.pauseCorner ?? 0;
     const cornerH = corner > 0 ? PAUSE_HEIGHT : 0;
