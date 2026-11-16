@@ -16,6 +16,10 @@ import { browserStorage, readSave, readValue, writeSave, writeValue } from '../.
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
+import { aim, planZones, toScreen, type ZonePlan } from '../zones';
+const MOBILE = '(pointer: coarse), (width < 600px)';
+/** World regions of the 360 × 640 layout for the full-screen plan: HUD and station; the yard with the tip box. */
+const HUD_ZONE = { x: 0, y: 0, w: 360, h: 148 }, BOARD_ZONE = { x: 0, y: 148, w: 360, h: 492 };
 import { canvasGraphics } from '../thumbnail-art';
 import { COLORS, UI, arrow, backdrop, bulbIcon, canopy, cone, exitGate, passenger, pill, restartIcon, starIcon, tree, undoIcon, vehicle, yard } from './art';
 /** Catalogue size before levels 31-60: an older save capped there opens level 31. */
@@ -44,6 +48,10 @@ export interface BusfolieHook {
     advance(ms: number): void;
     hudText(): string;
     usefulArea(): { x: number; y: number; width: number; height: number };
+    /** World point (360 × 640 layout) to canvas pixels, through the camera of its region. */
+    toCanvas(x: number, y: number): { x: number; y: number };
+    /** Canvas pixels: the HUD and board windows of the full-screen plan. */
+    rects(): { width: number; height: number; hud: { x: number; y: number; w: number; h: number }; board: { x: number; y: number; w: number; h: number } };
     loadLevel(index: number, seed?: number): void;
     /** World point at the centre of a vehicle still on the board (null when it left). */
     busPoint(busId: string): { x: number; y: number } | null;
@@ -94,6 +102,20 @@ export class BusfolieScene extends Phaser.Scene {
     private hud?: Phaser.GameObjects.Text;
     constructor(private session = new PlaySession(false)) { super('busfolie'); }
     private blocked(): boolean { return this.session.paused || this.selecting; }
+    /** Full-screen plan: the main camera shows the yard, a second camera the HUD and the station. */
+    private plan: ZonePlan = planZones(360, 640, HUD_ZONE, BOARD_ZONE);
+    private hudCam?: Phaser.Cameras.Scene2D.Camera;
+    private measure(): void {
+        const p = this.plan = planZones(this.scale.width, this.scale.height, HUD_ZONE, BOARD_ZONE, { pauseCorner: matchMedia(MOBILE).matches ? 60 : 0 });
+        aim(this.cameras.main, p.board);
+        if (this.hudCam) aim(this.hudCam, p.hud);
+    }
+    /** Canvas point to world point through the yard camera (the HUD region has no target). */
+    private world(p: Phaser.Input.Pointer): { x: number; y: number } {
+        if (!this.hudCam) return { x: p.worldX, y: p.worldY };
+        const w = this.cameras.main.getWorldPoint(p.x, p.y);
+        return { x: w.x, y: w.y };
+    }
     // ——— Lifecycle ———
     create(): void {
         const receipts = fingerReceipts(this.inputs);
@@ -117,6 +139,14 @@ export class BusfolieScene extends Phaser.Scene {
         this.hud = this.add.text(0, 0, '', { fontSize: '1px' }).setVisible(false);
         renderTouchControls(this.inputs, busfolieButtons, (id, held) => { if (held) this.button(id); });
         this.dressButtons();
+        // Headless harnesses build the scene without cameras: they keep the 360 × 640 world.
+        if (typeof (this as { cameras?: { add?: unknown } }).cameras?.add === 'function') {
+            this.hudCam = this.cameras.add(0, 0, 1, 1, false, 'hud');
+            this.measure();
+            const resized = (): void => { this.measure(); };
+            this.scale.on('resize', resized);
+            this.events.once('shutdown', () => { this.scale.off('resize', resized); });
+        }
         this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { this.pointerDown(p); });
         this.input.on('pointermove', (p: Phaser.Input.Pointer) => { this.pointerMove(p); });
         this.input.on('pointerup', (p: Phaser.Input.Pointer) => { this.pointerUp(p); });
@@ -201,16 +231,16 @@ export class BusfolieScene extends Phaser.Scene {
     }
     private pointerDown(p: Phaser.Input.Pointer): void {
         if (this.blocked() || this.engine.status === 'won') return;
-        const b = this.busAt(p.worldX, p.worldY);
+        const w = this.world(p), b = this.busAt(w.x, w.y);
         if (b && this.engine.status === 'playing') {
             const r = this.range(b);
-            this.drag = { busId: b.id, x: p.worldX, y: p.worldY, offset: 0, min: r.min, max: r.max, moved: false, touch: p.wasTouch };
-        } else this.drag = { busId: '', x: p.worldX, y: p.worldY, offset: 0, min: 0, max: 0, moved: false, touch: p.wasTouch };
+            this.drag = { busId: b.id, x: w.x, y: w.y, offset: 0, min: r.min, max: r.max, moved: false, touch: p.wasTouch };
+        } else this.drag = { busId: '', x: w.x, y: w.y, offset: 0, min: 0, max: 0, moved: false, touch: p.wasTouch };
     }
     private pointerMove(p: Phaser.Input.Pointer): void {
         const d = this.drag; if (!d || !p.isDown || !d.busId) return;
         const b = this.engine.bus(d.busId); if (!b) return;
-        const along = horizontal(b) ? p.worldX - d.x : p.worldY - d.y;
+        const w = this.world(p), along = horizontal(b) ? w.x - d.x : w.y - d.y;
         if (!d.moved && Math.abs(along) > DRAG) { d.moved = true; this.selected = d.busId; }
         if (d.moved) d.offset = Math.max(d.min, Math.min(d.max, along / this.view.s));
     }
@@ -228,10 +258,10 @@ export class BusfolieScene extends Phaser.Scene {
         }
         // A tap: on a free cell or an exit in line with the selected bus, it drives there; on a vehicle it selects it
         // (a touch just beside a vehicle, off the selected lane, selects the nearest one).
-        const exact = this.busAt(p.worldX, p.worldY, true), target = this.tapTarget(p.worldX, p.worldY);
+        const w = this.world(p), exact = this.busAt(w.x, w.y, true), target = this.tapTarget(w.x, w.y);
         const b = this.selected ? this.engine.bus(this.selected) : undefined;
         if (!exact && b && target !== null) { this.slide(b, target); return; }
-        const tapped = exact ?? this.busAt(p.worldX, p.worldY);
+        const tapped = exact ?? this.busAt(w.x, w.y);
         if (tapped) { this.selected = this.selected === tapped.id ? null : tapped.id; sound.playEffect('select'); this.sync(); }
     }
     /** The signed cells a tap at (wx, wy) asks of the selected bus: a cell of its lane (its front goes there), or past
@@ -352,7 +382,9 @@ export class BusfolieScene extends Phaser.Scene {
                 if (ms === 0) this.tick(0);
             },
             hudText: () => this.hud?.text ?? '',
-            usefulArea: () => ({ x: 0, y: 0, width: 360, height: 640 }),
+            usefulArea: () => ({ x: 0, y: 0, width: this.plan.width, height: this.plan.height }),
+            toCanvas: (x, y) => this.hudCam ? toScreen(y >= BOARD_ZONE.y ? this.plan.board : this.plan.hud, x, y) : { x, y },
+            rects: () => ({ width: this.plan.width, height: this.plan.height, hud: { ...this.plan.hud.view }, board: { ...this.plan.board.view } }),
             loadLevel: index => { this.startLevel(index, true); },
             busPoint: id => {
                 const b = this.engine.bus(id), p = this.engine.state.busPositions[id]; if (!b || !p) return null;

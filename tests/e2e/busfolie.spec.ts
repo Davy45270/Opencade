@@ -7,10 +7,11 @@ const read = (page: Page) => page.evaluate(() => {
 });
 const hookReady = (page: Page) => expect.poll(() => page.evaluate(() => Boolean(window.__BUSFOLIE_TEST__))).toBe(true);
 const parse = (text: string): Move => { const [busId = '', how = 'f1'] = text.split(' '); return { busId, direction: how.startsWith('f') ? 'forward' : 'backward', distance: Number(how.slice(1)), departs: false }; };
-/** Screen point of a world point of the 360 × 640 canvas. */
+/** Screen point of a world point of the 360 × 640 layout, through the camera of its region (full-screen game). */
 async function screen(page: Page, x: number, y: number): Promise<{ x: number; y: number }> {
     const box = await page.locator('#game canvas').boundingBox(); if (!box) throw new Error('Canevas absent');
-    return { x: box.x + x * box.width / 360, y: box.y + y * box.height / 640 };
+    const p = await page.evaluate(([x, y]) => { const hook = window.__BUSFOLIE_TEST__; if (!hook) throw new Error('Crochet'); return { ...hook.toCanvas(x, y), game: hook.usefulArea() }; }, [x, y] as const);
+    return { x: box.x + p.x * box.width / p.game.width, y: box.y + p.y * box.height / p.game.height };
 }
 /** A real finger drag of a bus along its axis (CDP touch events only): `distance` cells, or past the edge to leave. */
 async function dragBus(page: Page, cdp: CDPSession, move: Move): Promise<void> {
@@ -187,7 +188,10 @@ for (const [width, height] of [[320, 640], [390, 844], [768, 1024], [1280, 900]]
     const area = await page.evaluate(() => window.__BUSFOLIE_TEST__?.playArea());
     expect((area?.height ?? 0) / 640).toBeGreaterThanOrEqual(0.6);
     // A bus cell stays a finger target on a phone.
-    if (width === 390) expect((await page.evaluate(() => window.__BUSFOLIE_TEST__?.cell() ?? 0)) * (layout.canvas?.w ?? 0) / 360).toBeGreaterThanOrEqual(40);
+    if (width === 390) {
+        const cell = await page.evaluate(() => window.__BUSFOLIE_TEST__?.cell() ?? 0), a = await screen(page, 100, 300), b = await screen(page, 100 + cell, 300);
+        expect(b.x - a.x).toBeGreaterThanOrEqual(40);
+    }
 });
 test('BF-E09 campagne 2 : une sauvegarde de la première campagne ouvre le niveau 31, et le niveau 60 se gagne au doigt', async ({ page }) => {
     test.setTimeout(150_000); // 24 finger drags of the last level
@@ -227,4 +231,38 @@ test('BF-E10 campagne 3 : une sauvegarde de la deuxième campagne ouvre le nivea
     await playLine(page, cdp, await line(page, 60));
     const end = await read(page);
     expect(end.status).toBe('won'); expect(end.stars).toBe(3); expect(end.moves).toBe(end.par);
+});
+
+// Phone window under Chrome's bar (360 × 430) and a short phone (390 × 664): the game takes the width, the HUD and
+// station do not overlap the yard, the buttons stay under the canvas, and a bus still slides under the finger.
+type Box = { x: number; y: number; w: number; h: number };
+/** Plan of the former 360 × 640 world, used only when the hook has no rects() (counter-test on the old code). */
+const LEGACY = { width: 360, height: 640, hud: { x: 0, y: 0, w: 360, h: 148 }, board: { x: 0, y: 148, w: 360, h: 492 } };
+const meets = (a: Box, b: Box): boolean => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+for (const [width, height] of [[360, 430], [390, 664]] as const) for (const level of [0, 89]) test(`BF-FILL ${String(width)}×${String(height)} niveau ${String(level + 1)} : le jeu prend la largeur, bandeau et cour sans recouvrement`, async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'téléphone');
+    await page.setViewportSize({ width, height });
+    await page.goto('/?test=1#/busfolie');
+    await hookReady(page);
+    await page.evaluate(level => { window.__BUSFOLIE_TEST__?.loadLevel(level); window.__BUSFOLIE_TEST__?.advance(0); }, level);
+    const canvas = await page.locator('#game canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
+    expect.soft(canvas.width, 'largeur du jeu ≥ 90 % de la fenêtre').toBeGreaterThanOrEqual(0.9 * width);
+    const r = await page.evaluate(() => (window.__BUSFOLIE_TEST__ as { rects?: () => unknown } | undefined)?.rects?.() ?? null) as typeof LEGACY | null ?? LEGACY;
+    const k = canvas.width / r.width, toScreen = (b: Box): Box => ({ x: canvas.x + b.x * k, y: canvas.y + b.y * k, w: b.w * k, h: b.h * k });
+    const hud = toScreen(r.hud), board = toScreen(r.board);
+    expect.soft(meets(hud, board), 'bandeau × cour').toBe(false);
+    for (const [name, b] of [['bandeau', hud], ['cour', board]] as const) {
+        expect.soft(b.x, name).toBeGreaterThanOrEqual(canvas.x - 0.5); expect.soft(b.x + b.w, name).toBeLessThanOrEqual(canvas.x + canvas.width + 0.5);
+        expect.soft(b.y, name).toBeGreaterThanOrEqual(canvas.y - 0.5); expect.soft(b.y + b.h, name).toBeLessThanOrEqual(canvas.y + canvas.height + 0.5);
+    }
+    const pause = await page.locator('#pause').boundingBox();
+    if (pause) for (const [name, b] of [['bandeau', hud], ['cour', board]] as const) expect.soft(meets({ x: pause.x, y: pause.y, w: pause.width, h: pause.height }, b), `⏸ × ${name}`).toBe(false);
+    for (const b0 of await page.locator('#touch-controls button').all()) {
+        const b = await b0.boundingBox(); if (!b || !b.width) continue;
+        expect.soft(b.width).toBeGreaterThanOrEqual(56); expect.soft(b.height).toBeGreaterThanOrEqual(56);
+        expect.soft(b.x + b.width).toBeLessThanOrEqual(width + 0.5); expect.soft(b.y + b.height).toBeLessThanOrEqual(height + 0.5);
+        expect.soft(meets({ x: b.x, y: b.y, w: b.width, h: b.height }, { x: canvas.x, y: canvas.y, w: canvas.width, h: canvas.height }), 'bouton hors du canevas').toBe(false);
+    }
+    const cdp = await page.context().newCDPSession(page);
+    await playLine(page, cdp, (await line(page, level)).slice(0, 1));
 });
