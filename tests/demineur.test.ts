@@ -2,13 +2,14 @@ import { describe, expect, test } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { Random } from '../src/engines/shared/random';
-import { applyAction, armState, counts, initialState, neighbours, placeMines, validateLevel, type GameAction, type GameState, type LevelDefinition } from '../src/engines/demineur/rules';
+import { applyAction, armState, cascade, counts, initialState, neighbours, placeMines, validateLevel, type GameAction, type GameState, type LevelDefinition } from '../src/engines/demineur/rules';
 import { boardOf, deduce, difficulty, hint, LIMITS, proveBoard, viewOf } from '../src/engines/demineur/solver';
 import { curated, noGuessBoard } from '../src/engines/demineur/generator';
 import { CLASSIC, LEVELS, TIPS, classicLevel, dailyLevel } from '../src/engines/demineur/levels';
 import { GRIDS } from '../src/engines/demineur/grids';
 import { Engine, recordTime, stars } from '../src/engines/demineur/engine';
 import { demineurDiversity } from '../scripts/demineur-diversity.js';
+import { checkGrid } from './demineur-oracles';
 
 const example = JSON.parse(readFileSync('tests/fixtures/demineur-classic-9x9.json', 'utf8')) as LevelDefinition;
 const deferred = (w: number, h: number, mines: number, seed: number): LevelDefinition =>
@@ -300,14 +301,16 @@ describe('Démineur : progression, modes et moteur', () => {
         }
         expect(LEVELS.filter(l => l.drawing).length).toBeGreaterThanOrEqual(35);
     });
-    test('DM01b ids et dispositions uniques ; les 30 premières grilles et leurs ids n’ont pas bougé (sauvegardes valides)', () => {
+    test('DM01b ids et dispositions uniques ; les 30 premières grilles (sauf 14 et 19, refaites) et leurs ids n’ont pas bougé', () => {
         expect(LEVELS.map(l => l.id)).toEqual(LEVELS.map((_, i) => `DEM-PROG-${String(i + 1).padStart(3, '0')}`));
         expect(new Set(LEVELS.map(l => l.id)).size).toBe(LEVELS.length);
         expect(new Set(LEVELS.map(l => (l.layout ?? []).join('/'))).size).toBe(LEVELS.length);
         expect(new Set(LEVELS.map(l => l.name)).size).toBe(LEVELS.length);
         expect(new Set(LEVELS.map(l => l.en)).size).toBe(LEVELS.length);
-        // Fingerprint of the 30 grids frozen before the extension (main d72f7ff).
-        expect(createHash('sha256').update(JSON.stringify(GRIDS.slice(0, 30))).digest('hex').slice(0, 16)).toBe('26ec455ab2b5c367');
+        // Fingerprint of the first 30 grids frozen before the extension (main d72f7ff), but for grids 14 and 19, rebuilt
+        // because they needed a whole-group placement and the mine counter: ids and order unchanged, saves stay valid.
+        const kept = GRIDS.slice(0, 30).filter((_, i) => i !== 13 && i !== 18);
+        expect(createHash('sha256').update(JSON.stringify(kept)).digest('hex').slice(0, 16)).toBe('3f10a2eb11235267');
     });
     test('DM02 difficulté croissante : aucune grille à 5 rangs ou plus de sa place', () => {
         const scores = LEVELS.map(l => difficulty(proveBoard(l), l.width * l.height));
@@ -318,7 +321,8 @@ describe('Démineur : progression, modes et moteur', () => {
         expect(swapped.map(v => swapped.filter(u => u < v).length).some((r, i) => Math.abs(r - i) >= 5)).toBe(true);
         // Each technique arrives alone, in order.
         const first = (k: 'pair' | 'enumeration' | 'count') => LEVELS.findIndex(l => proveBoard(l).rounds[k] > 0) + 1;
-        expect([first('pair'), first('enumeration'), first('count')]).toEqual([3, 14, 19]);
+        // Two numbers compared arrive at grid 3; no grid of the progression needs a whole-group placement or the counter.
+        expect([first('pair'), first('enumeration'), first('count')]).toEqual([3, 0, 0]);
     });
     test('DM03 diversité : aucun clone, une nouveauté au moins toutes les cinq grilles', () => {
         const report = demineurDiversity(LEVELS);
@@ -360,5 +364,85 @@ describe('Démineur : progression, modes et moteur', () => {
         expect(e.hint()).toMatchObject({ status: 'unknown' }); expect(e.hints).toBe(0);
         const board = boardOf(LEVELS[0] ?? example);
         expect(board.mines.filter(Boolean)).toHaveLength(LEVELS[0]?.mineCount ?? 0);
+    });
+});
+
+/** A board as the player sees it: `revealed` cells open, `flags` flagged, everything else covered. */
+function seen(layout: string[], revealed: number[], flags: number[] = []): { level: LevelDefinition; cells: GameState['cells'] } {
+    const level = curated('indice', 'learning', layout, { x: 0, y: 0 }, 1), open = new Set(revealed), marked = new Set(flags);
+    return { level, cells: initialState(level).cells.map((c, i) => ({ ...c, revealed: open.has(i), mark: marked.has(i) ? 'flag' as const : 'none' as const })) };
+}
+describe('Démineur : vérificateur indépendant et indices expliqués', () => {
+    test('DD01 les 130 grilles se résolvent depuis leur ouverture par un ou deux chiffres à la fois (vérificateur indépendant)', () => {
+        const hard = LEVELS.flatMap((level, i) => {
+            const v = checkGrid(level);
+            return v.status === 'solved' && (v.hardest === 'single' || v.hardest === 'two') ? [] : [`${String(i + 1)}:${v.status}:${String(v.hardest)}`];
+        });
+        expect(hard).toEqual([]);
+        // The checker bites: a true 50/50 is a guess, and a board that needs the mine counter is not solved by two numbers.
+        expect(checkGrid(COIN).status).toBe('guess');
+        expect(checkGrid(curated('groupe', 'learning', ['..*.', '....', '*...', '....'], { x: 0, y: 0 }, 1))).toMatchObject({ status: 'solved', hardest: 'local' });
+        expect(checkGrid(curated('compteur', 'learning', ['..**', '...*', '..*.', '..*.'], { x: 0, y: 0 }, 1))).toMatchObject({ status: 'solved', hardest: 'counter' });
+    });
+    test('DD02 case pleine : un chiffre qui n’a que des mines autour de lui', () => {
+        const { level, cells } = seen(['..*...', '......', '*.....', '....*.', '......', '*.**..'], [0, 1, 6, 7, 8, 9, 13, 14, 15, 19, 20, 21, 25, 26, 27]);
+        expect(hint(level, cells)).toMatchObject({ status: 'mine_proven', cells: [2], sources: [1], shared: [],
+            proof: 'Le 1 entouré n’a qu’une case cachée autour de lui : cette case est forcément une mine.' });
+    });
+    test('DD03 case vide : un chiffre qui a déjà toutes ses mines', () => {
+        const { level, cells } = seen(['..*...', '......', '*.....', '....*.', '......', '*.**..'], [0, 1, 6, 7, 8, 9, 13, 14, 15, 19, 20, 21, 25, 26, 27], [2, 12]);
+        expect(hint(level, cells)).toMatchObject({ status: 'safe_move', cells: [3], sources: [8], shared: [],
+            proof: 'Le 1 entouré a déjà sa mine prouvée : cette case est sûre.' });
+    });
+    test('DD04 sous-ensemble : les cases d’un chiffre sont toutes autour de l’autre, avec autant de mines', () => {
+        const { level, cells } = seen(['...**.', '......', '*...*.', '......', '..*...', '*....*'], [0, 1, 2, 6, 7, 8]);
+        expect(hint(level, cells)).toMatchObject({ status: 'safe_move', cells: [13, 14, 15], sources: [2, 8], shared: [3, 9],
+            proof: 'Les 2 cases cachées du 1 touchent toutes aussi le 1, et le 1 y place 1 mine : c’est tout ce qu’il faut au 1. Les 3 autres cases du 1 sont sûres.' });
+    });
+    test('DD05 différence : même inclusion, et l’autre chiffre a besoin de mines en plus', () => {
+        const { level, cells } = seen(['......', '.....*', '.**..*', '*...*.', '....**', '.*..*.'], [0, 1, 2, 3, 4, 6, 7, 8, 9, 10, 16]);
+        expect(hint(level, cells)).toMatchObject({ status: 'mine_proven', cells: [14], sources: [6, 7], shared: [12, 13],
+            proof: 'Les 2 cases cachées du 1 touchent toutes aussi le 2, et le 1 y place 1 mine. Il en faut 1 de plus au 2 : son autre case est forcément une mine.' });
+    });
+    test('DD06 recouvrement : un chiffre force une mine dans les cases partagées, l’autre a donc la sienne', () => {
+        const { level, cells } = seen(['......', '.....*', '.**..*', '*...*.', '....**', '.*..*.'], [0, 1, 2, 3, 4, 6, 7, 8, 9, 10]);
+        expect(hint(level, cells)).toMatchObject({ status: 'safe_move', cells: [16], sources: [8, 9], shared: [14, 15],
+            proof: 'Le 2 n’a que 3 cases cachées pour 2 mines : au moins une est dans les 2 cases qu’il partage avec le 1. Le 1 a donc déjà sa mine là : son autre case est sûre.' });
+    });
+    test('DD07 sur les 130 grilles, chaque indice entoure exactement les chiffres et les cases qu’il cite', () => {
+        let checked = 0;
+        const word = (n: number): string => n === 1 ? '(une|qu’une|son autre|L’autre|cette)' : String(n);
+        for (const level of LEVELS) {
+            let cells = initialState(level).cells;
+            const safe = level.width * level.height - level.mineCount;
+            // Until the grid is won: the game ends there (mines no number touches are never asked for).
+            for (let k = 0; k < 400 && cells.filter(c => c.revealed).length < safe; k++) {
+                const h = hint(level, cells);
+                expect(['simple', 'pair']).toContain(h.status === 'unknown' ? 'simple' : h.technique);
+                if (h.status === 'unknown') break;
+                const n = (i: number): number => cells[i]?.adjacent ?? -1;
+                // The circled numbers are revealed, the outlined cells hidden, and the text names them in that order.
+                for (const i of h.sources) expect(cells[i]?.revealed).toBe(true);
+                for (const i of [...h.cells, ...h.shared]) expect(cells[i]?.revealed).toBe(false);
+                expect(h.proof).toMatch(new RegExp(`^(Le|Les \\d+ cases cachées du|Les 2 cases cachées du) ${String(n(h.sources[0] ?? -1))}\\b`));
+                if (h.technique === 'pair') {
+                    expect(h.sources).toHaveLength(2);
+                    expect(h.proof).toContain(`le ${String(n(h.sources[1] ?? -1))}`);
+                    expect(h.proof).toMatch(new RegExp(`${word(h.cells.length)} (autres? cases?|case|est|sont)`));
+                    if (!/touchent toutes/.test(h.proof)) expect(h.proof).toContain(`les ${String(h.shared.length)} case`);
+                    else expect(h.proof).toContain(`Les ${String(h.shared.length)} case`);
+                } else expect(h.shared).toEqual([]);
+                checked++;
+                if (h.status === 'safe_move') cells = cascade(level, cells, h.cells).cells;
+                else cells = cells.map((c, i) => h.cells.includes(i) ? { ...c, mark: 'flag' as const } : c);
+            }
+        }
+        expect(checked).toBeGreaterThan(1000);
+    });
+    test('DD08 le bandeau « sans devinette » ne vient que d’une grille prouvée', () => {
+        for (const level of LEVELS) expect(level.generation.noGuess && proveBoard(level).status === 'solvable').toBe(true);
+        // A daily challenge with no proven candidate falls back to a classic board, which says it may need a guess.
+        const e = new Engine(); e.loadClassic('beginner', 1);
+        expect(e.noGuess).toBe(false);
     });
 });

@@ -1,7 +1,8 @@
 /** The 130 progression slots, before the offline search (scripts/search-demineur.js) fills them with proven boards:
  * size (portrait, 6 × 6 to 16 × 24), mine count, title FR/EN, board theme, the drawing made by some of the mines,
  * and the techniques a slot must need (`need`) or must not need (`forbid`), so that each technique arrives alone:
- * one-number deductions (1–3), two numbers compared (3), every placement of a small group (14), the global count (19). */
+ * one-number deductions (1–3), then two numbers compared (from 3 on). No grid needs every placement of a group nor the
+ * mine counter: a hint explains each move in a sentence or two (the search drops any board that would need them). */
 export type Theme = 'classique' | 'nature' | 'plage' | 'espace' | 'arcade' | 'sombre';
 export type TechniqueName = 'simple' | 'pair' | 'enumeration' | 'count';
 export interface Slot {
@@ -68,12 +69,12 @@ export const SLOTS: readonly Slot[] = [
     { name: 'Les coquillages', en: 'The shells', theme: 'plage', w: 10, h: 12, mines: 19, forbid: EARLY },
     { name: 'Le poisson', en: 'The fish', theme: 'plage', w: 10, h: 13, mines: 21, drawing: 'poisson', at: [2, 2], forbid: ['count'] },
     { name: 'Le château de sable', en: 'The sandcastle', theme: 'plage', w: 11, h: 13, mines: 23, drawing: 'chateau', at: [3, 2], forbid: ['count'] },
-    { name: 'Les vagues', en: 'The waves', theme: 'plage', w: 11, h: 14, mines: 25, need: ['enumeration'], forbid: ['count'] },
+    { name: 'Les vagues', en: 'The waves', theme: 'plage', w: 11, h: 14, mines: 25, forbid: EARLY },
     { name: 'La marée', en: 'The tide', theme: 'plage', w: 12, h: 14, mines: 28, forbid: ['count'] },
     { name: 'La fusée', en: 'The rocket', theme: 'espace', w: 12, h: 15, mines: 30, drawing: 'fusee', at: [6, 0], forbid: ['count'] },
     { name: 'Les astéroïdes', en: 'The asteroids', theme: 'espace', w: 12, h: 16, mines: 33, forbid: ['count'] },
     { name: 'La comète', en: 'The comet', theme: 'espace', w: 13, h: 16, mines: 35, drawing: 'comete', at: [0, 0], forbid: ['count'] },
-    { name: 'La constellation', en: 'The constellation', theme: 'espace', w: 13, h: 16, mines: 37, need: ['count'] },
+    { name: 'La constellation', en: 'The constellation', theme: 'espace', w: 13, h: 16, mines: 37, forbid: EARLY },
     { name: 'La planète', en: 'The planet', theme: 'espace', w: 14, h: 16, mines: 39, drawing: 'planete', at: [2, 2] },
     { name: 'Le cœur', en: 'The heart', theme: 'arcade', w: 14, h: 16, mines: 41, drawing: 'coeur', at: [3, 2] },
     { name: 'L’étoile', en: 'The star', theme: 'arcade', w: 15, h: 16, mines: 43, drawing: 'etoile', at: [4, 2] },

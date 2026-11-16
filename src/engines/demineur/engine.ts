@@ -60,7 +60,8 @@ export class Engine {
         return this.kind === 'daily' ? 'Défi du jour' : CLASSIC[this.kind].name;
     }
     /** Proven without guessing (progression and daily) or not (classic: guesses may be needed). */
-    get noGuess(): boolean { return this.level.generation.noGuess === true; }
+    /** "Sans devinette" is shown only for a curated board proven when it was made (progression, daily challenge). */
+    get noGuess(): boolean { return this.level.generation.type === 'curated' && this.level.generation.noGuess === true && Boolean(this.level.layout); }
     act(action: GameAction): boolean {
         const result = applyAction(this.level, this.state, action);
         if (!result.accepted) { this.refused = result.reason; this.events = []; return false; }

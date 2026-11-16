@@ -2,7 +2,7 @@
 // node --import ./scripts/ts-loader.js scripts/validate-demineur.js
 // Démineur: at least 130 progression grids with unique ids and layouts; every one is valid, proven without guessing from its opening (frozen difficulty recomputed),
 // and won by the real engine following only its hints; difficulty rises (no grid 5 ranks or more from its place);
-// each technique arrives alone; diversity; seven daily challenges proven; classic boards never mined at the first click.
+// two numbers compared from grid 3, never a whole-group placement nor the counter; diversity; seven daily challenges proven; classic boards never mined at the first click.
 import assert from 'node:assert/strict';
 import { Engine, LEVELS } from '../src/engines/demineur/engine.ts';
 import { initialState, validateLevel, applyAction } from '../src/engines/demineur/rules.ts';
@@ -69,7 +69,8 @@ assert.equal(new Set(LEVELS.map(l => l.layout.join('/'))).size, LEVELS.length, '
 const ranks = scores.map(v => scores.filter(u => u < v).length), worst = Math.max(...ranks.map((r, i) => Math.abs(r - i)));
 assert(worst < 5, `écart de rang ${worst}`);
 const first = k => LEVELS.findIndex(l => proveBoard(l).rounds[k] > 0) + 1;
-assert.deepEqual([first('pair'), first('enumeration'), first('count')], [3, 14, 19]);
+// Two numbers compared from grid 3; never a whole-group placement nor the mine counter (a hint explains every move).
+assert.deepEqual([first('pair'), first('enumeration'), first('count')], [3, 0, 0]);
 const report = demineurDiversity(LEVELS);
 assert(report.cloneShare === 0 && report.maxGapWithoutNovelty <= 5 && report.score <= 25, `diversité ${report.score}`);
 for (let d = 0; d < 7; d++) assert.equal(proveBoard(dailyLevel(20261111 + d)).status, 'solvable', `défi ${d}`);

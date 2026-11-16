@@ -5,7 +5,10 @@
 // nearest a rising target (2 + 0.8 per slot for the first 30, then 0.3 per slot from 25.4). Writes
 // src/engines/demineur/grids.ts (frozen layouts). `--from=N` keeps the first N frozen grids as they are (players' saved
 // progress stays valid) and searches only the slots after them.
-//   node --import ./scripts/ts-loader.js scripts/search-demineur.js [--tries=40] [--from=30]
+// `--only=14,19` searches only those grids (1-based) and keeps every other frozen grid. Every grid kept must be solved
+// by one or two numbers at a time, as the independent checker of tests/demineur-oracles.ts sees it: no grid of the
+// progression needs every placement of a group, nor the mine counter (a hint must explain it in a sentence or two).
+//   node --import ./scripts/ts-loader.js scripts/search-demineur.js [--tries=40] [--from=30] [--only=14,19]
 import { writeFileSync } from 'node:fs';
 import { noGuessBoard } from '../src/engines/demineur/generator.ts';
 import { difficulty } from '../src/engines/demineur/solver.ts';
@@ -15,6 +18,7 @@ import { curated } from '../src/engines/demineur/generator.ts';
 import { Random } from '../src/engines/shared/random.ts';
 import { SLOTS, DRAWINGS } from '../src/engines/demineur/slots.ts';
 import { GRIDS } from '../src/engines/demineur/grids.ts';
+import { checkGrid } from '../tests/demineur-oracles.ts';
 
 const tries = Number(process.argv.find(a => a.startsWith('--tries='))?.slice(8) ?? 40);
 /** The player's path: following only the live hint (one cell at a time, flags included) must win the board, as
@@ -31,7 +35,9 @@ function wonByHints(level) {
 }
 const from = Number(process.argv.find(a => a.startsWith('--from='))?.slice(7) ?? 0);
 const out = GRIDS.slice(0, from).map(g => ({ layout: [...g.layout], start: { x: g.start[0], y: g.start[1] }, difficulty: g.difficulty }));
-const seen = new Set(out.map(g => g.layout.join('/')));
+const only = new Set((process.argv.find(a => a.startsWith('--only='))?.slice(7) ?? '').split(',').filter(Boolean).map(k => Number(k) - 1));
+const seen = new Set(GRIDS.map(g => g.layout.join('/')));
+const frozen = g => ({ layout: [...g.layout], start: { x: g.start[0], y: g.start[1] }, difficulty: g.difficulty });
 /** Writes the grids found so far: an interrupted search resumes with --from=<grids written>. */
 function write() {
     const body = out.map(g => `    { start: [${g.start.x}, ${g.start.y}], difficulty: ${g.difficulty}, layout: [\n${g.layout.map(r => `        '${r}',`).join('\n')}\n    ] },`).join('\n');
@@ -45,6 +51,7 @@ ${body}
 }
 for (const [n, slot] of SLOTS.entries()) {
     if (n < from) continue;
+    if (only.size && !only.has(n)) { const g = GRIDS[n]; if (!g) throw new Error(`Grille ${String(n + 1)} absente`); out.push(frozen(g)); continue; }
     const { w, h, mines, drawing: name, at = [0, 0], need = [], forbid = [] } = slot;
     const drawing = new Set();
     if (name) DRAWINGS[name].forEach((row, y) => [...row].forEach((c, x) => { if (c === '#') drawing.add((y + at[1]) * w + x + at[0]); }));
@@ -58,10 +65,12 @@ for (const [n, slot] of SLOTS.entries()) {
         const c = noGuessBoard(w, h, mines, 1000 * (n + 1) + t, { start: { x: s % w, y: Math.floor(s / w) }, drawing, attempts: 30 });
         if (!c) continue;
         const r = c.proof.rounds;
-        if (need.some(k => r[k] === 0) || forbid.some(k => r[k] > 0)) continue;
+        if (need.some(k => r[k] === 0) || forbid.some(k => r[k] > 0) || r.enumeration > 0 || r.count > 0) continue;
         // The opening shows the way but leaves most of the work: at most 55 % of the safe cells, three rounds at least.
         const opened = initialState(curated('x', 'learning', c.layout, c.start, 0)).revealedSafeCount;
         if (opened > 0.55 * (w * h - mines) || r.simple + r.pair + r.enumeration + r.count < 3 || seen.has(c.layout.join('/'))) continue;
+        const v = checkGrid(curated('x', 'learning', c.layout, c.start, 0));
+        if (v.status !== 'solved' || (v.hardest !== 'single' && v.hardest !== 'two')) continue;
         candidates.push({ ...c, score: difficulty(c.proof, w * h) });
     }
     if (!candidates.length) throw new Error(`Aucune grille prouvée pour la case ${String(n + 1)}`);
@@ -74,10 +83,12 @@ for (const [n, slot] of SLOTS.entries()) {
     const floor = n < 30 ? -Infinity : Math.min(target - 1, Math.max(...out.slice(-4).map(g => g.difficulty)) - 0.5);
     const ranked = [...candidates].sort((a, b) => Math.abs(a.score - target) - Math.abs(b.score - target));
     const won = c => wonByHints(curated('x', 'learning', c.layout, c.start, 0));
-    const pick = n < 30 ? ranked[0] : ranked.find(c => c.score >= floor && won(c)) ?? ranked.find(won);
+    const pick = ranked.find(c => c.score >= floor && c.score <= target + 1.5 && won(c)) ?? ranked.find(c => c.score >= floor && won(c)) ?? ranked.find(won);
     if (!pick) throw new Error(`Aucune grille retenue pour la case ${String(n + 1)}`);
-    out.push({ layout: pick.layout, start: pick.start, difficulty: pick.score, rounds: pick.proof.rounds }); seen.add(pick.layout.join('/')); write();
+    out.push({ layout: pick.layout, start: pick.start, difficulty: pick.score, rounds: pick.proof.rounds }); seen.add(pick.layout.join('/'));
+    if (!only.size) write();
     console.log(`${String(n + 1).padStart(2)} ${w}×${h} ${mines} ${name ?? '-'} candidats ${candidates.length} difficulté ${pick.score} ${JSON.stringify(pick.proof.rounds)} (min ${candidates[0].score}, max ${candidates.at(-1).score})`);
 }
+if (only.size) write();
 const scores = out.map(g => g.difficulty), ranks = scores.map(v => scores.filter(u => u < v).length);
 console.log('Écarts de rang :', ranks.map((r, i) => r - i).join(' '));

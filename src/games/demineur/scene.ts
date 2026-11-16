@@ -550,6 +550,12 @@ export class DemineurScene extends Phaser.Scene {
             const [x, y] = this.cellXY(c.x, c.y);
             b.lineStyle(Math.max(2, s * 0.09), UI.gold, 0.6 + 0.4 * pulse); b.strokeCircle(x + s / 2, y + s / 2, s * 0.48);
         }
+        // The cells a comparison says the two numbers share: outlined in the same gold as the numbers, thinner.
+        if (h && h.status !== 'unknown' && this.flash.t < 1) for (const i of h.shared) {
+            const c = cells[i]; if (!c) continue;
+            const [x, y] = this.cellXY(c.x, c.y);
+            b.lineStyle(Math.max(1.5, s * 0.06), UI.gold, 0.6 + 0.4 * pulse); b.strokeRoundedRect(x + s * 0.12, y + s * 0.12, s * 0.76, s * 0.76, s * 0.16);
+        }
         if (this.cursor.shown) { const [x, y] = this.cellXY(this.cursor.x, this.cursor.y); b.lineStyle(3, 0xffffff); b.strokeRoundedRect(x + 1, y + 1, s - 2, s - 2, s * 0.2); b.lineStyle(1.5, UI.ink); b.strokeRoundedRect(x + 3, y + 3, s - 6, s - 6, s * 0.16); }
         if (this.boom && boomAt && this.boom.t < 700) { const [x, y] = this.cellXY(boomAt.x, boomAt.y); blast(b, x + s / 2, y + s / 2, s, this.boom.t / 700); }
     }
