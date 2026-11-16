@@ -5825,7 +5825,10 @@ grille). Difficulté = 0,35 × tours simples + 3 × tours de paire + 7 × tours
 d’énumération + 4 × tours de compte + cases / 60. Les grilles sont figées dans
 `grids.ts`. Six thèmes de la planche : classique (1–5), nature (6–10), plage
 (11–15), espace (16–20), arcade néon (21–25), sombre (26–30). Une technique à la
-fois : paire à la grille 3, énumération à la 14, compte global à la 19. Quinze
+fois : paire à la grille 3 ; aucune grille de la progression ne demande l’énumération
+d’un groupe ni le compteur de mines (vérificateur indépendant `tests/demineur-oracles.ts` :
+un ou deux chiffres à la fois depuis l’ouverture, pour qu’un indice explique chaque coup en
+une ou deux phrases ; les grilles 14 et 19 ont été refaites pour cela). Quinze
 grilles cachent un dessin de mines (flèche, escalier, champignon, rivière,
 poisson, château, fusée, comète, planète, cœur, étoile, chat, sapin, lune,
 bombe), loin des bords pour ne fermer aucune poche de cases sûres ; il apparaît
@@ -5850,12 +5853,12 @@ du vrai moteur guidé par ses seuls indices) : écart de rang maximal 3 (échec 
 | 11 Les coquillages | 10×12 | 19 | — | 44 | 14 | 1 | 0 | 0 | 9,9 |
 | 12 Le poisson | 10×13 | 21 | poisson | 43 | 17 | 1 | 0 | 0 | 11,1 |
 | 13 Le château de sable | 11×13 | 23 | château | 65 | 18 | 1 | 0 | 0 | 11,7 |
-| 14 Les vagues | 11×14 | 25 | — | 9 | 11 | 0 | 1 | 0 | 13,4 |
+| 14 Les vagues | 11×14 | 25 | — | 37 | 20 | 1 | 0 | 0 | 12,6 |
 | 15 La marée | 12×14 | 28 | — | 44 | 21 | 1 | 0 | 0 | 13,2 |
 | 16 La fusée | 12×15 | 30 | fusée | 20 | 23 | 1 | 0 | 0 | 14,1 |
 | 17 Les astéroïdes | 12×16 | 33 | — | 50 | 25 | 1 | 0 | 0 | 15 |
 | 18 La comète | 13×16 | 35 | comète | 80 | 25 | 1 | 0 | 0 | 15,2 |
-| 19 La constellation | 13×16 | 37 | — | 18 | 17 | 1 | 0 | 1 | 16,4 |
+| 19 La constellation | 13×16 | 37 | — | 69 | 28 | 1 | 0 | 0 | 16,3 |
 | 20 La planète | 14×16 | 39 | planète | 76 | 21 | 2 | 0 | 0 | 17,1 |
 | 21 Le cœur | 14×16 | 41 | cœur | 86 | 22 | 2 | 0 | 0 | 17,4 |
 | 22 L’étoile | 15×16 | 43 | étoile | 35 | 25 | 2 | 0 | 0 | 18,8 |

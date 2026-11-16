@@ -9,6 +9,7 @@ import { initialState, validateLevel, applyAction } from '../src/engines/demineu
 import { difficulty, proveBoard } from '../src/engines/demineur/solver.ts';
 import { classicLevel, dailyLevel } from '../src/engines/demineur/levels.ts';
 import { demineurDiversity } from './demineur-diversity.js';
+import { checkGrid } from '../tests/demineur-oracles.ts';
 import { readFileSync } from 'node:fs';
 /** The received level contract (tests/fixtures/demineur-level.schema.json, copied from the specification folder), checked
  * without a dependency: the JSON Schema keywords it uses (type, required, properties, additionalProperties, enum,
@@ -48,6 +49,9 @@ for (const [i, level] of LEVELS.entries()) {
     assert.deepEqual(Object.keys(level).filter(k => !(k in SCHEMA.properties)).sort(), [...EXTENSIONS].sort(), `extensions ${i + 1}`);
     const proof = proveBoard(level), score = difficulty(proof, level.width * level.height);
     assert.equal(proof.status, 'solvable', `sans devinette ${i + 1}`);
+    // Independent checker, from the real opening: one or two numbers at a time, never a whole group nor the counter.
+    const v = checkGrid(level);
+    assert(v.status === 'solved' && (v.hardest === 'single' || v.hardest === 'two'), `vérificateur indépendant ${i + 1} : ${v.status} ${v.hardest}`);
     assert.equal(score, level.difficulty, `difficulté figée ${i + 1}`);
     scores.push(score);
     // The real engine, guided by its own hints only, wins without a single refused touch.

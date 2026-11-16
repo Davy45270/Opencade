@@ -5,6 +5,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+- Démineur : toutes les grilles se résolvent en lisant un ou deux chiffres à la fois. 31 grilles qui demandaient d’essayer toutes les places d’un groupe de mines, ou de compter les mines restantes, ont été refaites (même numéro, même thème, même dessin). L’indice écrit maintenant le calcul : « Le 2 n’a que 3 cases cachées pour 2 mines : au moins une est dans les 2 cases qu’il partage avec le 1. Le 1 a donc déjà sa mine là : ses 4 autres cases sont sûres. » Les cases partagées sont entourées en or, comme les chiffres cités.
+
 - Démineur : **130 grilles** au lieu de 30. Les cent nouvelles suivent les trente premières, qui ne changent pas (la progression sauvegardée reste valable) : plateaux plus grands jusqu’au 16 × 24, plus denses, dans les six thèmes, et un nouveau dessin de mines toutes les quatre grilles. Chacune est prouvée sans devinette depuis son ouverture, et la difficulté continue de monter. La liste des niveaux se range en onglets de dix.
 
 ## [0.6.0] — 2026-11-11
