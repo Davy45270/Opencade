@@ -14,10 +14,11 @@ async function play(page: Page): Promise<void> {
     const resume = page.locator('#resume');
     if (await resume.isVisible()) await resume.click();
 }
-/** Page coordinates of a logical canvas point (360 × 640). */
+/** Page coordinates of a world point of the 360 × 640 layout, through the field camera (full-screen game). */
 async function toPage(page: Page, p: { x: number; y: number }): Promise<{ x: number; y: number }> {
     const box = await page.locator('canvas').boundingBox(); if (!box) throw new Error('canvas');
-    return { x: box.x + p.x * box.width / 360, y: box.y + p.y * box.height / 640 };
+    const c = await page.evaluate(q => { const hook = window.__MARMAILLE_TEST__; if (!hook) throw new Error('crochet'); return { ...hook.toCanvas(q.x, q.y), width: hook.rects().width }; }, p);
+    return { x: box.x + c.x * box.width / c.width, y: box.y + c.y * box.width / c.width };
 }
 // MA-E1: the board opens with its HUD, the role slots follow the level and a real click hands a role.
 test('MA-E1 ouverture, emplacements de rôles et clic sur un enfant', async ({ page }) => {
@@ -106,4 +107,33 @@ test('MA20 tactile : pas de panneau de texte en bas, rôles et stocks visibles, 
     await page.locator('#marmaille-fast').tap();
     await expect(page.locator('#marmaille-fast')).toHaveAttribute('aria-pressed', 'true');
     expect((await page.evaluate(() => window.__MARMAILLE_TEST__?.read()))?.fast).toBe(true);
+});
+
+// Phone window under Chrome's bar (360 × 430) and a short phone (390 × 664): the game takes the width, the field stays
+// under the DOM counters and the pause, the role buttons under the canvas, and a tap still hands a role to a kid.
+type Box = { x: number; y: number; w: number; h: number };
+const meets = (a: Box, b: Box): boolean => a.x < b.x + b.w && b.x < a.x + a.w && a.y < b.y + b.h && b.y < a.y + a.h;
+for (const [width, height] of [[360, 430], [390, 664]] as const) for (const level of [0, 29]) test(`MA-FILL ${String(width)}×${String(height)} niveau ${String(level + 1)} : le jeu prend la largeur, le terrain sous les compteurs`, async ({ page }, info) => {
+    test.skip(info.project.name !== 'mobile-chromium', 'téléphone');
+    await page.setViewportSize({ width, height });
+    await open(page); await play(page);
+    await page.evaluate(level => { window.__MARMAILLE_TEST__?.loadLevel(level); }, level);
+    const canvas = await page.locator('#game canvas').boundingBox(); if (!canvas) throw new Error('Canevas absent');
+    expect.soft(canvas.width, 'largeur du jeu ≥ 90 % de la fenêtre').toBeGreaterThanOrEqual(0.9 * width);
+    const u = await page.evaluate(() => window.__MARMAILLE_TEST__?.usefulArea()); if (!u) throw new Error('zone');
+    // usefulArea is in game pixels: canvas pixels for a full-screen game, the 360 × 640 world otherwise.
+    const k = canvas.width / await page.evaluate(() => (window.__MARMAILLE_TEST__ as { rects?: () => { width: number } } | undefined)?.rects?.().width ?? 360);
+    const field: Box = { x: canvas.x + u.x * k, y: canvas.y + u.y * k, w: u.width * k, h: u.height * k };
+    expect.soft(field.x).toBeGreaterThanOrEqual(canvas.x - 0.5); expect.soft(field.x + field.w).toBeLessThanOrEqual(canvas.x + canvas.width + 0.5);
+    expect.soft(field.y + field.h).toBeLessThanOrEqual(canvas.y + canvas.height + 0.5);
+    for (const selector of ['#hud', '#pause']) {
+        const b = await page.locator(selector).boundingBox(); if (!b || !b.width) continue;
+        expect.soft(meets({ x: b.x, y: b.y, w: b.width, h: b.height }, field), `${selector} × terrain`).toBe(false);
+    }
+    for (const b0 of await page.locator('#touch-controls button').all()) {
+        const b = await b0.boundingBox(); if (!b || !b.width) continue;
+        expect.soft(b.width).toBeGreaterThanOrEqual(56); expect.soft(b.height).toBeGreaterThanOrEqual(56);
+        expect.soft(b.x + b.width).toBeLessThanOrEqual(width + 0.5); expect.soft(b.y + b.height).toBeLessThanOrEqual(height + 0.5);
+        expect.soft(meets({ x: b.x, y: b.y, w: b.width, h: b.height }, { x: canvas.x, y: canvas.y, w: canvas.width, h: canvas.height }), 'bouton hors du canevas').toBe(false);
+    }
 });

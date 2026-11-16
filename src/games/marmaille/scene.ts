@@ -13,6 +13,13 @@ import { browserStorage, readSave, writeSave } from '../../shell/storage';
 import { renderPanels } from '../../shell/panels';
 import { renderLevels } from '../../shell/levels';
 import { sound } from '../../shell/services';
+import { aim, planZones, screenRect, toScreen, type ZonePlan } from '../zones';
+/** World regions of the 360 × 640 layout for the full-screen plan. With a keyboard, the text panel under the field is
+ * the HUD region; on a touch screen that panel is hidden (its text lives in the pause page) and the field stands alone
+ * (a 1-px HUD region, never shown). */
+const FIELD = { x: 0, y: FIELD_Y, w: COLS * CELL, h: ROWS * CELL };
+const PANEL = { x: 0, y: FIELD_Y + ROWS * CELL, w: 360, h: 164 }, NO_PANEL = { x: 0, y: 0, w: 360, h: 1 };
+const DESK_BOARD = { x: 0, y: 0, w: 360, h: FIELD_Y + ROWS * CELL };
 import { backdrop, CARD, paintCell, repaintBox, portals, roleProp, worldOf, WORLD_NAME, type World } from './art';
 /** Field geometry: 20 × 22 cells of 18 px under a 40 px band. */
 import { CELL, FIELD_Y } from './layout';
@@ -45,6 +52,10 @@ export interface MarmailleHook {
     /** Whether the canvas text panel (lower third) is drawn. */
     textPanel(): boolean;
     usefulArea(): { x: number; y: number; width: number; height: number };
+    /** Canvas pixels: the HUD and board windows of the full-screen plan. */
+    rects(): { width: number; height: number; hud: { x: number; y: number; w: number; h: number }; board: { x: number; y: number; w: number; h: number } };
+    /** World point (360 × 640 layout) to canvas pixels, through the field camera. */
+    toCanvas(x: number, y: number): { x: number; y: number };
     loadLevel(index: number, seed?: number): void;
     advance(ms: number): void;
     /** Screen position (logical canvas pixels) of a kid's centre, for real taps. */
@@ -100,6 +111,18 @@ export class MarmailleScene extends Phaser.Scene {
     }
     private choose(i: number): void { const r = levelRoles(this.engine.level)[i]; if (r) { this.selected = r; this.syncButtons(); } }
     /** A tap on the field hands the selected role to the designated kid. */
+    /** Full-screen plan: the main camera shows the field, a second camera the text panel (keyboard only). */
+    private plan: ZonePlan = planZones(360, 640, PANEL, DESK_BOARD);
+    private hudCam?: Phaser.Cameras.Scene2D.Camera;
+    private measure(): void {
+        const touch = matchMedia(MOBILE_PLAY).matches;
+        // The shell's DOM HUD floats over the top of a full-screen canvas: keep that band free.
+        const canvas = this.game.canvas.getBoundingClientRect(), hud = document.querySelector('#hud')?.getBoundingClientRect();
+        const top = hud && hud.height > 0 && hud.bottom > canvas.top ? Math.ceil(hud.bottom - canvas.top) + 4 : 0;
+        const p = this.plan = planZones(this.scale.width, this.scale.height, touch ? NO_PANEL : PANEL, touch ? FIELD : DESK_BOARD, { pauseCorner: touch ? 60 : 0, top });
+        aim(this.cameras.main, p.board);
+        if (this.hudCam) { aim(this.hudCam, p.hud); this.hudCam.setVisible(!touch); }
+    }
     private tap(x: number, y: number): void {
         if (!this.active() || !this.selected) return;
         const k = kidAt(this.engine.kids, x, y);
@@ -126,7 +149,20 @@ export class MarmailleScene extends Phaser.Scene {
         for (const id of ['levels', 'result-levels', 'close-levels']) this.inputs.on(document.querySelector(`#${id}`), 'click', levels);
         this.inputs.on(document.querySelector('#next-level'), 'click', () => { if (this.progress.state === 'won' && this.engine.level + 1 < LEVELS.length) this.start(this.engine.level + 1); });
         for (const id of ['retry-level', 'replay-level', 'restart']) this.inputs.on(document.querySelector(`#${id}`), 'click', () => { this.progress.retry(); this.start(this.engine.level); });
-        this.input.on('pointerdown', (p: Phaser.Input.Pointer) => { this.tap(p.x, p.y); });
+        // Headless harnesses build the scene without cameras: they keep the 360 × 640 world.
+        if (typeof (this as { cameras?: { add?: unknown } }).cameras?.add === 'function') {
+            this.hudCam = this.cameras.add(0, 0, 1, 1, false, 'hud');
+            this.measure();
+            const resized = (): void => { this.measure(); };
+            this.scale.on('resize', resized);
+            const band = new ResizeObserver(resized), hud = document.querySelector('#hud');
+            if (hud) band.observe(hud);
+            this.events.once('shutdown', () => { this.scale.off('resize', resized); band.disconnect(); });
+        }
+        this.input.on('pointerdown', (p: Phaser.Input.Pointer) => {
+            const w = this.hudCam ? this.cameras.main.getWorldPoint(p.x, p.y) : { x: p.x, y: p.y };
+            this.tap(w.x, w.y);
+        });
         this.inputs.on(document, 'keydown', event => {
             const e = event as KeyboardEvent;
             if (!this.active() || (e.target instanceof HTMLElement && e.target.closest('button,select,input'))) return;
@@ -140,7 +176,10 @@ export class MarmailleScene extends Phaser.Scene {
                 read: () => ({ ...this.engine.snapshot(), selected: this.selected, fast: this.fast, character: this.hero.snapshot(), progression: this.progress.state }),
                 textPanel: () => Boolean(this.hud?.visible || this.title?.visible),
                 hudText: () => `${this.title?.text ?? ''}\n${this.hud?.text ?? ''}`,
-                usefulArea: () => ({ x: 0, y: FIELD_Y, width: COLS * CELL, height: ROWS * CELL }),
+                // The field, in canvas pixels (the 360 × 640 world without cameras).
+                usefulArea: () => { const a = this.hudCam ? screenRect(this.plan.board, FIELD) : FIELD; return { x: a.x, y: a.y, width: a.w, height: a.h }; },
+                rects: () => ({ width: this.plan.width, height: this.plan.height, hud: { ...this.plan.hud.view }, board: { ...this.plan.board.view } }),
+                toCanvas: (x, y) => this.hudCam ? toScreen(this.plan.board, x, y) : { x, y },
                 // Test clock: a loaded board stays frozen until advance() drives it (recorded ticks stay exact).
                 loadLevel: index => { this.start(index, true); this.manual = true; this.tick(0); },
                 advance: ms => { this.manual = true; this.tick(ms); },
