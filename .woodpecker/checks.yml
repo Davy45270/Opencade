@@ -19,6 +19,12 @@ steps:
     commands:
       - node --version
       - npm ci
+  - name: réutilisation (avertissement)
+    image: *node
+    commands:
+      # BB-001 § 5 (usine) : brique nouvelle sans recherche documentée = avertissement, non bloquant.
+      # Rapport : reutilisation-rapport.json, recopié en fin de journal de l'étape.
+      - node .woodpecker/usine/reutilisation.mjs
   - name: lint
     image: *node
     commands:
