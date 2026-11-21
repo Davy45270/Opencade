@@ -21,6 +21,17 @@ clone:
       # Full history: git diff --name-only against the base.
       depth: 0
       partial: false
+  # Pull request: the target branch, in its own directory. The steps cannot reach the forge (the clone credentials
+  # stay in the clone steps), so "select" takes the merge-base from this local copy.
+  - name: target branch
+    image: woodpeckerci/plugin-git:2.12.1
+    settings:
+      ref: refs/heads/${CI_COMMIT_TARGET_BRANCH}
+      path: /woodpecker/cible-e2e
+      depth: 0
+      partial: false
+    when:
+      - event: pull_request
 
 steps:
   - name: select
@@ -28,6 +39,10 @@ steps:
     pull: true
     commands:
       - |
+        CIBLE="$${E2E_CIBLE:-/woodpecker/cible-e2e}"
+        if [ "$${CI_PIPELINE_EVENT}" = pull_request ] && [ -d "$$CIBLE/.git" ]; then
+          git fetch -q "$$CIBLE" "+HEAD:refs/remotes/origin/$${CI_COMMIT_TARGET_BRANCH}"
+        fi
         E2E_BASE="$(node .woodpecker/usine/base-e2e.mjs)" || exit 1
         BASE="$$E2E_BASE"
         # A manual run given the head itself would select nothing (N0, green without any E2E): refuse instead of lying.
