@@ -1,4 +1,3 @@
-// CI proof: a pull request that touches this spec must play it (removed by the next commit).
 import { test, expect } from './fixture';
 import type { Page } from '@playwright/test';
 import { Engine as Crates, LEVELS } from '../../src/engines/caisses/engine';
