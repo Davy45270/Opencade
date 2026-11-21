@@ -35,6 +35,7 @@ export const nodeChecks = [
     ['test-dedale.js'],
     ['test-pwa.js'],
     ['test-e2e-impact.js'],
+    ['test-ci-e2e-base.js'],
     ['measure-thumbnails.js'],
     ['check-thumbnail-art.js'],
     // bubble-input-check and validate-derapage-historical are imported above.
