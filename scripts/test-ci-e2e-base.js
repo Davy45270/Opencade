@@ -76,16 +76,26 @@ before(() => {
 
 after(() => { if (dir) rmSync(dir, { recursive: true, force: true }); });
 
-/** Clone like the CI does (only the ref under test, full history), then run the "select" step. */
+/**
+ * Clone like the CI does (only the commit under test, full history), then run the "select" step. As on the real
+ * agent, the forge cannot be reached from that step (the clone credentials stay in the clone steps): origin points
+ * nowhere. The second clone step of e2e.yml (the target branch, pull requests only) is the directory E2E_CIBLE.
+ */
 function select(ref, vars) {
     const ci = mkdtempSync(join(dir, 'ci-'));
     git(ci, 'init', '-q');
     git(ci, 'remote', 'add', 'origin', origin);
     git(ci, 'fetch', '-q', 'origin', `+refs/heads/${ref}:refs/heads/${ref}`);
     git(ci, 'checkout', '-q', ref);
+    git(ci, 'remote', 'set-url', 'origin', join(dir, 'unreachable.git'));
+    const cible = `${ci}-cible`;
+    const target = vars.CI_COMMIT_TARGET_BRANCH;
+    if (vars.CI_PIPELINE_EVENT === 'pull_request' && target && git(dir, 'ls-remote', origin, `refs/heads/${target}`)) {
+        git(dir, 'clone', '-q', '--branch', target, origin, cible);
+    }
     const out = join(ci, '.args.json');
     const r = spawnSync('sh', ['-e', '-c', selectScript(readFileSync(join(root, '.woodpecker/e2e.yml'), 'utf8'))],
-        { cwd: ci, env: { ...env, ...vars, ARGS_OUT: out, CI: 'woodpecker' }, encoding: 'utf8' });
+        { cwd: ci, env: { ...env, ...vars, E2E_CIBLE: cible, ARGS_OUT: out, CI: 'woodpecker' }, encoding: 'utf8' });
     const args = existsSync(out) ? JSON.parse(readFileSync(out, 'utf8')) : null;
     return { status: r.status, log: r.stdout + r.stderr, base: args ? args[args.indexOf('--base') + 1] : null };
 }
