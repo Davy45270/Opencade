@@ -42,7 +42,9 @@ export function jumpEnvelope(gap: number, rise = 0): boolean {
 export function traversable(s: State): boolean {
     return s.blocks.every(b => jumpEnvelope(b.gap * TILE, b.rise * TILE));
 }
-export function generate(level: number, seed: number): State {
+/** Relief fourni (pilote Sturgeon) : lignes du bas de la carte, 'X' plein, 'P' plateforme, '-' vide. */
+export interface Terrain { rows: readonly string[] }
+export function generate(level: number, seed: number, relief?: Terrain): State {
     const config = LEVELS[Math.max(0, Math.min(29, level))];
     if (!config) throw new RangeError('Niveau absent');
     const d = { ...difficulty(level), blocks: config.sequence.length }, columns = (d.blocks + 2) * 16;
@@ -83,6 +85,19 @@ export function generate(level: number, seed: number): State {
     const cages: Cage[] = config.structure === 'rescue' ? [560, 1072, 1584].map(x => ({ x, y: 224, w: 24, h: 32, hp: 3, rescued: false })) : [];
     const door = (columns - 5) * TILE;
     if (config.structure === 'arena') for (let x = Math.floor((door - 400) / TILE); x < columns; x++) for (let y = 0; y < 20; y++) tiles[y * columns + x] = y >= 16;
+    if (relief) {
+        const top = 20 - relief.rows.length;
+        platforms.splice(0, platforms.length);
+        relief.rows.forEach((row, i) => {
+            let run = -1;
+            for (let x = 0; x <= columns; x++) {
+                const c = row[x] ?? '-';
+                if (x < columns) tiles[(top + i) * columns + x] = c === 'X';
+                if (c === 'P' && run < 0) run = x;
+                if (c !== 'P' && run >= 0) { platforms.push({ x: run * TILE, y: (top + i) * TILE, w: (x - run) * TILE, h: 8, originX: run * TILE, phase: run, dx: 0 }); run = -1; }
+            }
+        });
+    }
     const boss: Boss | null = (level + 1) % 5 === 0 ? { x: door - 48, y: 220, w: 30, h: 36, hp: d.bossHp, maxHp: d.bossHp, phase: 1, clock: 0, pattern: config.boss, exposed: false } : null;
     const modules = config.sequence.map((kind, i) => moduleAt(kind, (i + 1) * 256 + 96));
     modules.unshift(moduleAt(config.star, 128, true));
@@ -99,7 +114,7 @@ export function generate(level: number, seed: number): State {
         shots: [], fireClock: 0, ticks: 0, checkpoint: 32, checkpoints: blocks.filter((_, i) => i % 3 === 2).map(b => (b.start + 2) * TILE),
         shield: false, grace: 0, lives: 3, score: 0, weapon: 'single', boss, door };
     if (config.structure === 'descent') s.hero.y = 170;
-    if (!traversable(s)) throw new Error('Terrain hors enveloppe');
+    if (!relief && !traversable(s)) throw new Error('Terrain hors enveloppe');
     return s;
 }
 /** Swept movement in substeps smaller than a tile, resolved X then Y. */
@@ -126,8 +141,10 @@ export class Engine {
     hurt: Hurt | null = null;
     level = 0; seed = 460; status: 'playing' | 'won' | 'lost' = 'playing';
     state = generate(0, 460); events: string[] = []; private accumulator = 0;
-    loadLevel(level: number, seed = 460): void { this.hurt = null; this.level = Math.max(0, Math.min(29, level)); this.seed = seed; this.state = generate(this.level, seed); this.status = 'playing'; this.accumulator = 0; this.events = []; }
-    loadState(state: State): void { this.hurt = null; this.state = { ...generate(this.level, this.seed), ...structuredClone(state), modules: structuredClone(state.modules ?? []), moduleTrace: [...(state.moduleTrace ?? [])], actionTrace: [...(state.actionTrace ?? [])] }; this.accumulator = 0; this.status = 'playing'; }
+    /** Relief fourni par la préversion du pilote ; absent en jeu normal. */
+    terrain?: Terrain;
+    loadLevel(level: number, seed = 460): void { this.hurt = null; this.level = Math.max(0, Math.min(29, level)); this.seed = seed; this.state = generate(this.level, seed, this.terrain); this.status = 'playing'; this.accumulator = 0; this.events = []; }
+    loadState(state: State): void { this.hurt = null; this.state = { ...generate(this.level, this.seed, this.terrain), ...structuredClone(state), modules: structuredClone(state.modules ?? []), moduleTrace: [...(state.moduleTrace ?? [])], actionTrace: [...(state.actionTrace ?? [])] }; this.accumulator = 0; this.status = 'playing'; }
     /** Short frontal discharge: respects walls and closed boss cores. */
     special(): boolean {
         const s = this.state, h = s.hero;

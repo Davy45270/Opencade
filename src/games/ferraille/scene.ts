@@ -1,3 +1,4 @@
+import { PILOTES, reliefEdite, type Pilote } from '../../engines/ferraille/pilote';
 import { fingerProof } from './finger';
 import { fingerReceipts } from '../finger-receipts';
 import Phaser from 'phaser';
@@ -87,7 +88,9 @@ export class FerrailleScene extends Phaser.Scene {
         this.panelSignature = signature;
         renderPanels(this.engine.status, this.progress.state, this.engine.level, this.engine.state.score, this.progress.total, this.selecting);
     }
+    private pilote?: Pilote;
     private start(index: number, seed?: number, fresh = false): void {
+        if (this.pilote) this.engine.terrain = index === this.pilote.base ? { rows: this.pilote.rows } : undefined;
         this.testManual = false; this.progress.start(index, fresh); this.engine.loadLevel(index, seed); this.impacts.reset(this.engine.state); this.selecting = false;
         this.keys.clear(); this.stick = null; this.jump = this.fire = false; this.panels(); this.draw();
     }
@@ -176,6 +179,9 @@ export class FerrailleScene extends Phaser.Scene {
             this.scale.on('resize', resized);
             this.events.once('shutdown', () => { this.scale.off('resize', resized); });
         }
+        // Préversion du pilote (branche seulement) : ?pilote=N charge le relief généré par Sturgeon.
+        const pilote = PILOTES[Number(new URLSearchParams(location.search).get('pilote')) - 1] ?? reliefEdite(new URLSearchParams(location.search).get('relief'));
+        if (pilote) { this.pilote = pilote; this.engine.terrain = { rows: pilote.rows }; this.start(pilote.base, pilote.seed, true); }
         this.scale.refresh(); this.panels(); this.draw();
     }
     /** Screen plan from the canvas size: the HUD camera shows the HUD band, the main camera the play field. */
