@@ -18,7 +18,7 @@ for (const [name, run] of [['F-DIV-01', () => diversityResult = diversity()], ['
 const source = readFileSync('src/engines/ferraille/engine.ts', 'utf8');
 const mutations = [];
 for (const [name, before, after, test] of [
-    ['all levels equal level 1', 'this.state = generate(this.level, seed)', 'this.state = generate(0, seed)', diversity],
+    ['all levels equal level 1', 'this.state = generate(this.level, seed, this.terrain)', 'this.state = generate(0, seed, this.terrain)', diversity],
     ['stationary kamikaze', 'e.vx = e.clock < 950 ? (e.facing ?? -1) * 95 : 0;', 'e.vx = 0;', behaviors['F-ENEMY-02 kamikaze closes distance each step then commits to charge']],
     ['frontal armor removed', "if (enemy.kind === 'armored' && !(enemy.turned ?? 0) && Math.sign(shot.vx) !== (enemy.facing ?? -1)) return;", '', behaviors['F-ENEMY-04 armor rejects front, accepts rear and overturned']],
     ['ricochet disabled', 'shot.vx = wallX ? -vx : vx; shot.vy = wallY ? -vy : vy;', 'shot.life = 0;', behaviors['F-WEAPON-02 bounce reflects independently on floor and wall']],
