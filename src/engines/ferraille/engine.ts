@@ -141,7 +141,7 @@ export class Engine {
     hurt: Hurt | null = null;
     level = 0; seed = 460; status: 'playing' | 'won' | 'lost' = 'playing';
     state = generate(0, 460); events: string[] = []; private accumulator = 0;
-    /** Relief fourni par la préversion du pilote ; absent en jeu normal. */
+    /** Relief généré (?pilote=N) ou retouché dans l’éditeur (?relief=) ; absent en jeu normal. */
     terrain?: Terrain;
     loadLevel(level: number, seed = 460): void { this.hurt = null; this.level = Math.max(0, Math.min(29, level)); this.seed = seed; this.state = generate(this.level, seed, this.terrain); this.status = 'playing'; this.accumulator = 0; this.events = []; }
     loadState(state: State): void { this.hurt = null; this.state = { ...generate(this.level, this.seed, this.terrain), ...structuredClone(state), modules: structuredClone(state.modules ?? []), moduleTrace: [...(state.moduleTrace ?? [])], actionTrace: [...(state.actionTrace ?? [])] }; this.accumulator = 0; this.status = 'playing'; }

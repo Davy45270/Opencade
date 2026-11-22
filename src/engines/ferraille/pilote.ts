@@ -82,7 +82,7 @@ export const PILOTES: readonly Pilote[] = [
         'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX--XXXXXXXXXXX',
     ] },
 ];
-/** Relief retouché dans l'éditeur de la préversion : ?relief=<base64url de l'UTF-8 de {nom, base, seed, rows}>. */
+/** Relief retouché dans l'éditeur (pilote.html) : ?relief=<base64url de l'UTF-8 de {nom, base, seed, rows}>. */
 export function reliefEdite(code: string | null): Pilote | undefined {
     if (!code) return undefined;
     try {

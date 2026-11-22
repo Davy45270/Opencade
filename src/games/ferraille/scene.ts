@@ -30,7 +30,7 @@ export const ferrailleButtons: readonly TouchButton[] = [
 ];
 const HUD = { x: 10, y: 8, width: 340, height: 98 };
 export interface FerrailleHook {
-    /** Pilote chargé par ?pilote=N ou ?relief= (préversion), sinon undefined. */
+    /** Pilote chargé par ?pilote=N ou ?relief=, sinon undefined. */
     pilote(): { nom: string; base: number; rows: readonly string[] } | undefined;
     performance(): { frames: number; gameMs: number };
     layout(): {
@@ -182,7 +182,7 @@ export class FerrailleScene extends Phaser.Scene {
             this.scale.on('resize', resized);
             this.events.once('shutdown', () => { this.scale.off('resize', resized); });
         }
-        // Préversion du pilote (branche seulement) : ?pilote=N charge le relief généré par Sturgeon.
+        // Niveaux au relief généré (Sturgeon) : ?pilote=N ; relief retouché dans l’éditeur : ?relief=.
         const pilote = PILOTES[Number(new URLSearchParams(location.search).get('pilote')) - 1] ?? reliefEdite(new URLSearchParams(location.search).get('relief'));
         if (pilote) { this.pilote = pilote; this.engine.terrain = { rows: pilote.rows }; this.start(pilote.base, pilote.seed, true); }
         this.scale.refresh(); this.panels(); this.draw();
