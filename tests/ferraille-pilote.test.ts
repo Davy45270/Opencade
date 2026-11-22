@@ -28,6 +28,9 @@ describe('ferraille, niveaux pilotes', () => {
         if (!p) throw new Error('aucun pilote');
         const code = btoa(JSON.stringify({ nom: 'x', base: p.base, seed: p.seed, rows: p.rows })).replace(/\+/g, '-').replace(/\//g, '_');
         expect(reliefEdite(code)?.rows).toEqual(p.rows);
+        // Nom accentué : l'éditeur encode l'UTF-8 (btoa seul lève une erreur hors Latin-1).
+        const utf8 = btoa(String.fromCharCode(...new TextEncoder().encode(JSON.stringify({ nom: 'Pilote 1 (retouché)', base: p.base, seed: p.seed, rows: p.rows })))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+        expect(reliefEdite(utf8)?.nom).toBe('Pilote 1 (retouché)');
         expect(reliefEdite(btoa(JSON.stringify({ base: 99, rows: ['X'] })))).toBeUndefined();
         expect(reliefEdite(btoa(JSON.stringify({ base: 1, rows: ['<script>'] })))).toBeUndefined();
         expect(reliefEdite('%%%')).toBeUndefined();

@@ -82,11 +82,11 @@ export const PILOTES: readonly Pilote[] = [
         'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX--XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX--XXXXXXXXXXX',
     ] },
 ];
-/** Relief retouché dans l'éditeur de la préversion : ?relief=<base64url de {nom, base, seed, rows}>. */
+/** Relief retouché dans l'éditeur de la préversion : ?relief=<base64url de l'UTF-8 de {nom, base, seed, rows}>. */
 export function reliefEdite(code: string | null): Pilote | undefined {
     if (!code) return undefined;
     try {
-        const p = JSON.parse(atob(code.replace(/-/g, '+').replace(/_/g, '/'))) as { nom?: unknown; base?: unknown; seed?: unknown; rows?: unknown };
+        const p = JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(code.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0)))) as { nom?: unknown; base?: unknown; seed?: unknown; rows?: unknown };
         const { base, rows } = p;
         if (typeof base !== 'number' || !Number.isInteger(base) || base < 0 || base >= 30 || !Array.isArray(rows)) return undefined;
         const lignes = rows.filter((r): r is string => typeof r === 'string' && /^[-XP]{1,200}$/.test(r));

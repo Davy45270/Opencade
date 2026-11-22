@@ -63,6 +63,7 @@ function dessiner() {
 }
 function charger(i) { courant = niveaux[i]; rows = courant.rows.map(r => r); historique = []; dessiner(); }
 function poser(ev) {
+  if (!courant) return;
   const r = toile.getBoundingClientRect(), x = Math.floor((ev.clientX - r.left) / C), y = Math.floor((ev.clientY - r.top) / C);
   if (y < 0 || y >= rows.length || x < 0 || x >= rows[0].length || courant.fixe[y][x] !== ',' || rows[y][x] === pinceau) return;
   historique.push(rows.slice());
@@ -74,10 +75,16 @@ document.querySelectorAll('.outils button[data-t]').forEach(b => b.addEventListe
 }));
 document.getElementById('annuler').onclick = () => { if (historique.length) { rows = historique.pop(); dessiner(); } };
 choix.onchange = () => charger(Number(choix.value));
+// base64url de l'UTF-8 : btoa seul refuse tout caractère hors Latin-1 (« é » du nom), et le clic échouait sans rien dire.
+function base64url(texte) {
+  let bin = ''; for (const o of new TextEncoder().encode(texte)) bin += String.fromCharCode(o);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
 document.getElementById('jouer').onclick = () => {
-  const code = btoa(JSON.stringify({ nom: courant.nom + ' (retouché)', base: courant.base, seed: courant.seed, rows }))
-    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
-  location.href = './?relief=' + code + '#/ferraille';
+  if (!courant) return;
+  const code = base64url(JSON.stringify({ nom: courant.nom + ' (retouché)', base: courant.base, seed: courant.seed, rows }));
+  const test = new URLSearchParams(location.search).get('test') === '1' ? '&test=1' : '';
+  location.href = './?relief=' + code + test + '#/ferraille';
 };
 // Tiled (.tmj) : carte orthogonale 16 px, calque « relief » (gid 1 = sol, 2 = plateforme), propriétés base/seed/nom.
 document.getElementById('exporter').onclick = () => {

@@ -30,6 +30,8 @@ export const ferrailleButtons: readonly TouchButton[] = [
 ];
 const HUD = { x: 10, y: 8, width: 340, height: 98 };
 export interface FerrailleHook {
+    /** Pilote chargé par ?pilote=N ou ?relief= (préversion), sinon undefined. */
+    pilote(): { nom: string; base: number; rows: readonly string[] } | undefined;
     performance(): { frames: number; gameMs: number };
     layout(): {
         world: { x: number; y: number; width: number; height: number };
@@ -138,6 +140,7 @@ export class FerrailleScene extends Phaser.Scene {
             art: () => { if (!this.art) throw new Error('Atlas absent'); return this.art.stats(); },
             bake: () => ({ ms: this.decor?.bakeMs ?? 0, textures: this.decor?.baked ?? 0 }),
             hudText: () => this.hud?.text ?? '',
+            pilote: () => this.pilote ? { nom: this.pilote.nom, base: this.pilote.base, rows: [...this.pilote.rows] } : undefined,
             rendering: () => structuredClone(this.rendering),
             inspect: change => {
                 const s = this.engine.state;
