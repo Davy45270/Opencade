@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>Ferraille — éditeur de relief (pilote)</title>
+<style>
+  :root { --fond: #14161b; --texte: #e8e6e1; --doux: #9aa0a8; --sol: #8a6a45; --plat: #4fa3c7; --vide: #232730; --fixe: #3a2f2f; --acc: #f0b43c; }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; height: 100%; background: var(--fond); color: var(--texte); font: 15px/1.35 system-ui, sans-serif; }
+  body { display: flex; flex-direction: column; padding: env(safe-area-inset-top) 0 env(safe-area-inset-bottom); }
+  header { padding: 10px 12px 6px; }
+  h1 { font-size: 17px; margin: 0 0 4px; }
+  p.aide { margin: 0; color: var(--doux); font-size: 13px; }
+  .barre { display: flex; flex-wrap: wrap; gap: 6px; padding: 6px 12px; align-items: center; }
+  select, button, label.bouton { font: inherit; color: var(--texte); background: #2a2f39; border: 1px solid #3c4350; border-radius: 8px; padding: 9px 12px; min-height: 42px; }
+  button.jouer { background: var(--acc); color: #1a1406; border-color: var(--acc); font-weight: 700; }
+  .outils button[aria-pressed="true"] { outline: 2px solid var(--acc); }
+  .grille { flex: 1; overflow: auto; padding: 6px 12px 12px; touch-action: pan-x pan-y; }
+  canvas { display: block; image-rendering: pixelated; }
+  .legende { display: flex; gap: 12px; padding: 0 12px 8px; color: var(--doux); font-size: 12px; flex-wrap: wrap; }
+  .legende i { display: inline-block; width: 12px; height: 12px; vertical-align: -2px; margin-right: 4px; border-radius: 2px; }
+  input[type=file] { display: none; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Ferraille — éditeur de relief</h1>
+  <p class="aide">Touchez une case pour poser du sol, une plateforme ou du vide, puis « Jouer ». Seul le relief s'édite : modules, ennemis et boss viennent du niveau d'origine. Les cases hachurées (départ, arrivée, emprise des modules) sont fixes.</p>
+</header>
+<div class="barre">
+  <select id="niveau" aria-label="Niveau"></select>
+  <button class="jouer" id="jouer">▶ Jouer</button>
+</div>
+<div class="barre outils" role="group" aria-label="Pinceau">
+  <button data-t="X" aria-pressed="true">Sol</button>
+  <button data-t="P" aria-pressed="false">Plateforme</button>
+  <button data-t="-" aria-pressed="false">Vide</button>
+  <button id="annuler">↶ Annuler</button>
+  <button id="exporter">Exporter Tiled (.tmj)</button>
+  <label class="bouton">Importer .tmj<input type="file" id="importer" accept=".tmj,.json,application/json"></label>
+</div>
+<div class="legende"><span><i style="background:var(--sol)"></i>sol</span><span><i style="background:var(--plat)"></i>plateforme mobile</span><span><i style="background:var(--vide)"></i>vide</span><span><i style="background:var(--fixe)"></i>fixe</span></div>
+<div class="grille" id="grille"><canvas id="toile"></canvas></div>
+<script>
+'use strict';
+let C = 22; const TUILE = 16, couleurs = { X: '#8a6a45', P: '#4fa3c7', '-': '#232730' };
+let niveaux = [], courant = null, rows = [], pinceau = 'X', historique = [];
+const toile = document.getElementById('toile'), ctx = toile.getContext('2d'), choix = document.getElementById('niveau');
+
+function dessiner() {
+  const h = rows.length, w = rows[0].length;
+  // Cases aussi grandes que la hauteur restante le permet (la grille défile en largeur) : tout l'écran sert.
+  C = Math.max(22, Math.floor((innerHeight - toile.parentElement.getBoundingClientRect().top - 20) / h));
+  toile.width = w * C; toile.height = h * C;
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    ctx.fillStyle = couleurs[rows[y][x]] || '#000'; ctx.fillRect(x * C, y * C, C, C);
+    if (courant.fixe[y][x] !== ',') { ctx.fillStyle = 'rgba(255,90,90,.12)'; ctx.fillRect(x * C, y * C, C, C);
+      ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.beginPath(); ctx.moveTo(x * C, y * C + C); ctx.lineTo(x * C + C, y * C); ctx.stroke(); }
+    ctx.strokeStyle = 'rgba(0,0,0,.35)'; ctx.strokeRect(x * C + .5, y * C + .5, C - 1, C - 1);
+  }
+}
+function charger(i) { courant = niveaux[i]; rows = courant.rows.map(r => r); historique = []; dessiner(); }
+function poser(ev) {
+  if (!courant) return;
+  const r = toile.getBoundingClientRect(), x = Math.floor((ev.clientX - r.left) / C), y = Math.floor((ev.clientY - r.top) / C);
+  if (y < 0 || y >= rows.length || x < 0 || x >= rows[0].length || courant.fixe[y][x] !== ',' || rows[y][x] === pinceau) return;
+  historique.push(rows.slice());
+  rows[y] = rows[y].slice(0, x) + pinceau + rows[y].slice(x + 1); dessiner();
+}
+toile.addEventListener('click', poser);
+document.querySelectorAll('.outils button[data-t]').forEach(b => b.addEventListener('click', () => {
+  pinceau = b.dataset.t; document.querySelectorAll('.outils button[data-t]').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
+}));
+document.getElementById('annuler').onclick = () => { if (historique.length) { rows = historique.pop(); dessiner(); } };
+choix.onchange = () => charger(Number(choix.value));
+// base64url de l'UTF-8 : btoa seul refuse tout caractère hors Latin-1 (« é » du nom), et le clic échouait sans rien dire.
+function base64url(texte) {
+  let bin = ''; for (const o of new TextEncoder().encode(texte)) bin += String.fromCharCode(o);
+  return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+document.getElementById('jouer').onclick = () => {
+  if (!courant) return;
+  const code = base64url(JSON.stringify({ nom: courant.nom + ' (retouché)', base: courant.base, seed: courant.seed, rows }));
+  const test = new URLSearchParams(location.search).get('test') === '1' ? '&test=1' : '';
+  location.href = './?relief=' + code + test + '#/ferraille';
+};
+// Tiled (.tmj) : carte orthogonale 16 px, calque « relief » (gid 1 = sol, 2 = plateforme), propriétés base/seed/nom.
+document.getElementById('exporter').onclick = () => {
+  const gid = { '-': 0, X: 1, P: 2 }, w = rows[0].length, h = rows.length;
+  const tmj = { type: 'map', version: '1.10', tiledversion: '1.11.0', orientation: 'orthogonal', renderorder: 'right-down', infinite: false,
+    width: w, height: h, tilewidth: TUILE, tileheight: TUILE, nextlayerid: 2, nextobjectid: 1,
+    properties: [{ name: 'base', type: 'int', value: courant.base }, { name: 'seed', type: 'int', value: courant.seed }, { name: 'nom', type: 'string', value: courant.nom }],
+    tilesets: [{ firstgid: 1, name: 'ferraille-relief', image: 'ferraille-relief.png', imagewidth: 32, imageheight: 16, tilewidth: TUILE, tileheight: TUILE, tilecount: 2, columns: 2, margin: 0, spacing: 0 }],
+    layers: [{ id: 1, name: 'relief', type: 'tilelayer', x: 0, y: 0, width: w, height: h, opacity: 1, visible: true, data: rows.join('').split('').map(c => gid[c] ?? 0) }] };
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(tmj, null, 1)], { type: 'application/json' }));
+  a.download = courant.nom.replace(/[^a-z0-9]+/gi, '-').toLowerCase() + '.tmj'; a.click();
+};
+document.getElementById('importer').onchange = async ev => {
+  const f = ev.target.files[0]; if (!f) return;
+  try {
+    const t = JSON.parse(await f.text()), c = (t.layers || []).find(l => l.type === 'tilelayer');
+    const prop = n => ((t.properties || []).find(p => p.name === n) || {}).value;
+    const i = niveaux.findIndex(n => n.base === prop('base'));
+    if (!c || i < 0 || c.width !== niveaux[i].rows[0].length || c.height !== niveaux[i].rows.length) throw new Error('carte incompatible');
+    choix.value = String(i); charger(i);
+    const car = ['-', 'X', 'P'], neuf = [];
+    for (let y = 0; y < c.height; y++) neuf.push(c.data.slice(y * c.width, (y + 1) * c.width).map((g, x) => courant.fixe[y][x] !== ',' ? rows[y][x] : (car[g] || '-')).join(''));
+    historique.push(rows.slice()); rows = neuf; dessiner();
+  } catch (e) { alert('Import impossible : ' + e.message); }
+  ev.target.value = '';
+};
+addEventListener('resize', () => { if (courant) dessiner(); });
+fetch('pilote-niveaux.json').then(r => r.json()).then(l => {
+  niveaux = l; l.forEach((n, i) => choix.add(new Option(n.nom, String(i)))); charger(0);
+});
+</script>
+</body>
+</html>
