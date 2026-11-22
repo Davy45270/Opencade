@@ -1,8 +1,10 @@
 # Local CI (Woodpecker): the "select" and "e2e" jobs of .github/workflows/ci.yml.
 # Never the whole suite: scripts/e2e-impact.js picks the specs and splits them into at most 4 parts (MAX_SHARDS);
 # each matrix workflow computes the same selection and runs its own part, or nothing.
-# Base of the diff: push -> the commit of the previous pipeline on this branch (CI_PREV_COMMIT_SHA, the local
-# equivalent of github.event.before); manual -> the E2E_BASE variable (optional); otherwise none -> N3 smoke.
+# Base of the diff: .woodpecker/usine/base-e2e.mjs, copied unchanged from the shared CI template of the game factory.
+# pull_request -> merge-base of HEAD with the target branch (no base = red, never a sample: without it the PR specs
+# were not played and the pipeline went green); push -> the previous pipeline commit if it is an ancestor of HEAD,
+# else HEAD~1; manual -> the E2E_BASE variable (optional, otherwise N3 smoke). Tested by scripts/test-ci-e2e-base.js.
 # Manual run on a list of specs: variable E2E_SPECS (the workflow_dispatch input "specs").
 matrix:
   PART: [1, 2, 3, 4]
@@ -19,6 +21,17 @@ clone:
       # Full history: git diff --name-only against the base.
       depth: 0
       partial: false
+  # Pull request: the target branch, in its own directory. The steps cannot reach the forge (the clone credentials
+  # stay in the clone steps), so "select" takes the merge-base from this local copy.
+  - name: target branch
+    image: woodpeckerci/plugin-git:2.12.1
+    settings:
+      ref: refs/heads/${CI_COMMIT_TARGET_BRANCH}
+      path: /woodpecker/cible-e2e
+      depth: 0
+      partial: false
+    when:
+      - event: pull_request
 
 steps:
   - name: select
@@ -26,41 +39,18 @@ steps:
     pull: true
     commands:
       - |
-        case "$${CI_PIPELINE_EVENT}" in
-          push) BASE="$${CI_PREV_COMMIT_SHA:-}" ;;
-          manual) BASE="$${E2E_BASE:-}" ;;
-          *) BASE="" ;;
-        esac
-        # CI_PREV_COMMIT_SHA is the commit of the PREVIOUS pipeline, which can be a pull-request head
-        # (Renovate, Dependabot) that main took by cherry-pick: not an ancestor of HEAD, so the selection
-        # saw "no base" and fell back to a sample that skips the changed games. Use the common ancestor.
-        if [ -n "$$BASE" ] && ! git merge-base --is-ancestor "$$BASE" HEAD 2>/dev/null; then
-          git cat-file -e "$$BASE^{commit}" 2>/dev/null || git fetch -q origin "$$BASE" 2>/dev/null || git fetch -q origin '+refs/pull/*/head:refs/remotes/pr/*' 2>/dev/null || true
-          COMMUN="$(git merge-base "$$BASE" HEAD 2>/dev/null || true)"
-          if [ -z "$$COMMUN" ]; then
-            echo "base $$BASE introuvable ou sans ancêtre commun avec HEAD : lancer un pipeline manuel avec E2E_BASE=<commit avant le push>."
-            exit 1
-          fi
-          echo "base $$BASE hors de l'historique de HEAD (PR reprise par cherry-pick ?) : ancêtre commun $$COMMUN"
-          BASE="$$COMMUN"
+        CIBLE="$${E2E_CIBLE:-/woodpecker/cible-e2e}"
+        if [ "$${CI_PIPELINE_EVENT}" = pull_request ] && [ -d "$$CIBLE/.git" ]; then
+          git fetch -q "$$CIBLE" "+HEAD:refs/remotes/origin/$${CI_COMMIT_TARGET_BRANCH}"
         fi
-        # A restarted pipeline keeps its commit: CI_PREV_COMMIT_SHA is then HEAD itself and the
-        # selection would be N0 (green without any E2E). Refuse instead of lying.
-        # A PR integrated by fast-forward: the previous pipeline is that PR's, on this very commit.
-        # The PR pipeline already covered PR base..HEAD; on push, re-test the last commit (HEAD~1..HEAD)
-        # instead of failing. Any other event keeps the loud refusal.
-        if [ -n "$$BASE" ] && [ "$(git rev-parse "$$BASE" 2>/dev/null)" = "$(git rev-parse HEAD)" ] && [ "$${CI_PIPELINE_EVENT}" = "push" ]; then
-          git cat-file -e HEAD~1 2>/dev/null || git fetch -q --deepen=1 origin 2>/dev/null || true
-          if git cat-file -e HEAD~1 2>/dev/null; then
-            echo "base = tête ($$BASE) sur push : PR intégrée en fast-forward ? base ramenée au parent $(git rev-parse --short HEAD~1)"
-            BASE="$(git rev-parse HEAD~1)"
-          fi
-        fi
+        E2E_BASE="$(node .woodpecker/usine/base-e2e.mjs)" || exit 1
+        BASE="$$E2E_BASE"
+        # A manual run given the head itself would select nothing (N0, green without any E2E): refuse instead of lying.
         if [ -n "$$BASE" ] && [ "$(git rev-parse "$$BASE" 2>/dev/null)" = "$(git rev-parse HEAD)" ]; then
-          echo "base = tête ($$BASE) : relance d'un pipeline ? Lancer un pipeline manuel avec E2E_BASE=<commit avant le push>."
+          echo "base = tête ($$BASE) : lancer un pipeline manuel avec E2E_BASE=<commit avant le changement>."
           exit 1
         fi
-        echo "évènement $${CI_PIPELINE_EVENT}, base '$${BASE:-aucune}', tête $(git rev-parse --short HEAD), part ${PART}"
+        echo "base e2e '$${BASE:-aucune}' ($${CI_PIPELINE_EVENT}), tête $(git rev-parse --short HEAD), part ${PART}"
         GITHUB_OUTPUT=.e2e-select.out node scripts/e2e-impact.js --base "$$BASE" --head HEAD --specs "$${E2E_SPECS:-}" --github
 
   - name: e2e
